@@ -83,6 +83,11 @@ or
 npm start
 ```
 
+### Connect to Igloo Aurora
+In order to visualize the data of your Igloo Bering instance with Igloo Aurora you need to change its server address. To do so, go to the settings dialog in Igloo Aurora and enable the developer mode from the account settings; at this point, go to the development settings, click on "Change connected server", switch to manual mode and enter the address of your Igloo Bering instance.
+
+Please note that this procedure works even if you are trying to connect to a `localhost` address.
+
 ## Documentation
 TBD
 
