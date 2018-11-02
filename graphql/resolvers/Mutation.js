@@ -1043,24 +1043,44 @@ const MutationResolver = (
                 return
               }
 
-              const updateObj = args.email
-                ? { ...args, emailIsVerified: false }
-                : args
-              const newUser = await userFound.update(updateObj)
-              resolve(newUser.dataValues)
-
-              pubsub.publish('userUpdated', {
-                userUpdated: newUser.dataValues,
-                userId: context.auth.userId,
-              })
-
               if (args.email) {
-                sendVerificationEmail(args.email, newUser.id)
+                const sameEmailUserFound = await User.find({
+                  where: { email: args.email },
+                })
+                if (sameEmailUserFound) {
+                  reject('A user with this email already exists')
+                  return
+                }
               }
 
-              // if we are the mutation is not a usageCap or paymentPlan update bill it
-              if (permissionRequired === undefined) {
-                context.billingUpdater.update(MUTATION_COST)
+              try {
+                const updateObj = args.email
+                  ? { ...args, emailIsVerified: false }
+                  : args
+                const newUser = await userFound.update(updateObj)
+                resolve(newUser.dataValues)
+
+                pubsub.publish('userUpdated', {
+                  userUpdated: newUser.dataValues,
+                  userId: context.auth.userId,
+                })
+
+                if (args.email) {
+                  sendVerificationEmail(args.email, newUser.id)
+                }
+
+                // if the token used for the mutation is not a usageCap update or paymentPlan update bill it
+                if (permissionRequired === undefined) {
+                  context.billingUpdater.update(MUTATION_COST)
+                }
+              } catch (e) {
+                console.log(e)
+                if (e.errors[0].validatorKey === 'isEmail') {
+                  reject('Invalid email')
+                } else {
+                  /* istanbul ignore next */
+                  throw e
+                }
               }
             }
           },
