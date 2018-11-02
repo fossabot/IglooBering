@@ -29,7 +29,9 @@ const colorizedFormat = printf((info) => {
       ? chalk.red
       : info.level === 'warn'
         ? chalk.yellow
-        : info.level === 'info' ? chalk.blue : id => id
+        : info.level === 'info'
+          ? chalk.blue
+          : id => id
 
   return colorizer(formatString(info))
 })
@@ -583,7 +585,7 @@ const sendVerificationEmail = (email, userId) => {
   // TODO: create a template for the email verification
   ses.sendEmail(
     {
-      Source: "'Igloo Cloud' <verification@igloo.ooo>",
+      Source: "'Igloo Cloud' <noreply@igloo.ooo>",
       Destination: { ToAddresses: [email] },
       Message: {
         Body: {
@@ -619,7 +621,7 @@ const sendPasswordRecoveryEmail = (email, userId) => {
   // TODO: create a template for the email verification
   ses.sendEmail(
     {
-      Source: "'Igloo Cloud' <recovery@igloo.ooo>",
+      Source: "'Igloo Cloud' <noreply@igloo.ooo>",
       Destination: { ToAddresses: [email] },
       Message: {
         Body: {
@@ -646,7 +648,7 @@ const sendPasswordUpdatedEmail = (email) => {
   // TODO: create a template for the email verification
   ses.sendEmail(
     {
-      Source: "'Igloo Cloud' <security@igloo.ooo>",
+      Source: "'Igloo Cloud' <noreply@igloo.ooo>",
       Destination: { ToAddresses: [email] },
       Message: {
         Body: {
@@ -675,7 +677,7 @@ const sendTokenCreatedEmail = (email) => {
   // TODO: create a template for the email verification
   ses.sendEmail(
     {
-      Source: "'Igloo Cloud' <security@igloo.ooo>",
+      Source: "'Igloo Cloud' <noreply@igloo.ooo>",
       Destination: { ToAddresses: [email] },
       Message: {
         Body: {
