@@ -7,6 +7,7 @@ import { withFilter } from 'graphql-subscriptions'
 import winston from 'winston'
 import AWS from 'aws-sdk'
 import UpdateBatcher from 'update-batcher'
+import { isNullOrUndefined } from 'util'
 
 require('dotenv').config()
 
@@ -198,6 +199,9 @@ const CreateGenericValue = (
           ...args,
           tileSize: args.tileSize || 'NORMAL',
           ownerId: context.auth.userId,
+          visibility: isNullOrUndefined(args.visibility)
+            ? 'VISIBLE'
+            : args.visibility,
           index,
         })
 

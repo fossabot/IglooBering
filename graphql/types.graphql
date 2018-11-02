@@ -151,7 +151,7 @@ type Mutation {
     # whether the value should be READ_ONLY or READ_WRITE in Igloo Aurora
     permission: ValuePermission!
     # whether the value should be VISIBLE, HIDDEN or INVISIBLE in Igloo Aurora
-    visibility: ValueVisibility!
+    visibility: ValueVisibility
     # additional details about the value
     valueDetails: String
     value: Float!
@@ -173,7 +173,7 @@ type Mutation {
     # whether the value should be READ_ONLY or READ_WRITE in Igloo Aurora
     permission: ValuePermission!
     # whether the value should be VISIBLE, HIDDEN or INVISIBLE in Igloo Aurora
-    visibility: ValueVisibility!
+    visibility: ValueVisibility
     # additional details about the value
     valueDetails: String
     value: String!
@@ -195,7 +195,7 @@ type Mutation {
     # whether the value should be READ_ONLY or READ_WRITE in Igloo Aurora
     permission: ValuePermission!
     # whether the value should be VISIBLE, HIDDEN or INVISIBLE in Igloo Aurora
-    visibility: ValueVisibility!
+    visibility: ValueVisibility
     # additional details about the value
     valueDetails: String
     value: Boolean!
@@ -213,7 +213,7 @@ type Mutation {
     # whether the value should be READ_ONLY or READ_WRITE in Igloo Aurora
     permission: ValuePermission!
     # whether the value should be VISIBLE, HIDDEN or INVISIBLE in Igloo Aurora
-    visibility: ValueVisibility!
+    visibility: ValueVisibility
     # additional details about the value
     valueDetails: String
     # hex code
@@ -234,7 +234,7 @@ type Mutation {
     # whether the value should be READ_ONLY or READ_WRITE in Igloo Aurora
     permission: ValuePermission!
     # whether the value should be VISIBLE, HIDDEN or INVISIBLE in Igloo Aurora
-    visibility: ValueVisibility!
+    visibility: ValueVisibility
     # additional details about the value
     valueDetails: String
     # name of the value, displayed in Igloo Aurora
@@ -256,7 +256,7 @@ type Mutation {
     # whether the value should be READ_ONLY or READ_WRITE in Igloo Aurora
     permission: ValuePermission!
     # whether the value should be VISIBLE, HIDDEN or INVISIBLE in Igloo Aurora
-    visibility: ValueVisibility!
+    visibility: ValueVisibility
     # additional details about the value
     valueDetails: String
     # used when the end-user reads or modifies the value
@@ -288,7 +288,7 @@ type Mutation {
     # whether the value should be READ_ONLY or READ_WRITE in Igloo Aurora
     permission: ValuePermission!
     # whether the value should be VISIBLE, HIDDEN or INVISIBLE in Igloo Aurora
-    visibility: ValueVisibility!
+    visibility: ValueVisibility
     # additional details about the value
     valueDetails: String
     # name of the value, displayed in Igloo Aurora
@@ -808,7 +808,7 @@ interface Value {
   editors: [User!]!
   spectators: [User!]!
   permission: ValuePermission! @defaultValue(value: READ_WRITE)
-  visibility: ValueVisibility! @defaultValue(value: NORMAL)
+  visibility: ValueVisibility! @defaultValue(value: VISIBLE)
   valueDetails: String
   tileSize: TileSize!
   customName: String
