@@ -210,8 +210,7 @@ app.get('/file/:file', async (req, res) => {
     const objectOwner = await getObjectOwner(s3, getParams)
 
     if (objectOwner === req.user.userId) {
-      s3
-        .getObject(getParams)
+      s3.getObject(getParams)
         .createReadStream()
         .pipe(res)
     } else {
@@ -271,7 +270,7 @@ app.get('/verifyEmail/:verificationToken', async (req, res) => {
       } else {
         foundUser.update({ emailIsVerified: true })
 
-        res.redirect('https://igloocloud.github.io/IglooAurora')
+        res.redirect('https://igloo.ooo')
       }
     }
   } catch (e) {
