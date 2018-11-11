@@ -1170,6 +1170,7 @@ const MutationResolver = (
       )
     },
     device(root, args, context) {
+      const authorizationNeeded = isNotNullNorUndefined(args.boardId) ? 4 : 2
       return logErrorsPromise(
         'device mutation',
         116,
@@ -1178,9 +1179,9 @@ const MutationResolver = (
           context,
           Device,
           User,
-          2,
+          authorizationNeeded,
           async (resolve, reject, deviceFound, deviceAndBoard) => {
-            // checks that batteryStatus and signalStatus are within boundaries [0,100]
+            // runs sanity checks on the args
             if (
               isNotNullNorUndefined(args.batteryStatus) &&
               isOutOfBoundaries([0, 100], args.batteryStatus)
@@ -1202,6 +1203,19 @@ const MutationResolver = (
             } else if (Object.keys(args).length === 1) {
               reject('You cannot make a mutation with only the id field')
               return
+            } else if (args.boardId === null) {
+              reject('boardId cannot be set to null')
+              return
+            } else if (args.boardId) {
+              // devices can be moved only to boards owned by the user
+              const isOwnerOfTargetBoard = await new Promise(resolve =>
+                authorized(args.boardId, context, Board, User, 4, () => {
+                  resolve(true)
+                })(() => {}, () => resolve(false)))
+              if (!isOwnerOfTargetBoard) {
+                reject('You can only move devices to boards you own')
+                return
+              }
             }
 
             if (
