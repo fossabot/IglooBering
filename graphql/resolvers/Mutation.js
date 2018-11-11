@@ -1009,7 +1009,11 @@ const MutationResolver = (
       if (args.displayName === null || args.displayName === '') {
         reject('displayName cannot be null or empty')
         return
+      } else if (Object.keys(args).length === 1) {
+        reject('You cannot make a mutation with only the id field')
+        return
       }
+
       if (mutationFields.length === 1 && mutationFields[0] === 'usageCap') {
         permissionRequired = ['TEMPORARY', 'PERMANENT', 'CHANGE_USAGE_CAP']
       } else if (
@@ -1136,6 +1140,9 @@ const MutationResolver = (
             if (args.customName === '' || args.customName === null) {
               reject('customName cannot be null or an empty string')
               return
+            } else if (Object.keys(args).length === 1) {
+              reject('You cannot make a mutation with only the id field')
+              return
             }
 
             const updateQuery = args
@@ -1192,6 +1199,9 @@ const MutationResolver = (
             } else if (args.quietMode === null) {
               reject('quietMode cannot be null')
               return
+            } else if (Object.keys(args).length === 1) {
+              reject('You cannot make a mutation with only the id field')
+              return
             }
 
             if (
@@ -1204,7 +1214,7 @@ const MutationResolver = (
                 {},
                 {
                   deviceId: deviceFound.id,
-                  content: 'Low battery: below 10%',
+                  content: 'My battery is running low',
                   date: new Date().toISOString(),
                 },
                 context,
@@ -1418,6 +1428,11 @@ const MutationResolver = (
             plotValueFound,
             plotAndParents,
           ) => {
+            if (Object.keys(args).length === 1) {
+              reject('You cannot make a mutation with only the id field')
+              return
+            }
+
             const newNode = await plotNodeFound.update(args)
 
             const resolveObj = {
@@ -1463,6 +1478,10 @@ const MutationResolver = (
             plotValueFound,
             plotAndParents,
           ) => {
+            if (Object.keys(args).length === 1) {
+              reject('You cannot make a mutation with only the id field')
+              return
+            }
             const newNode = await plotNodeFound.update(args)
 
             const resolveObj = {
@@ -1622,8 +1641,10 @@ const MutationResolver = (
               if (args.content === '' || args.content === null) {
                 reject('content cannot be null or an empty string')
                 return
+              } else if (Object.keys(args).length === 1) {
+                reject('You cannot make a mutation with only the id field')
+                return
               }
-
               const updateQuery = args
 
               if (updateQuery.visualized === true) {

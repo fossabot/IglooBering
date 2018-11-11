@@ -30,9 +30,7 @@ const colorizedFormat = printf((info) => {
       ? chalk.red
       : info.level === 'warn'
         ? chalk.yellow
-        : info.level === 'info'
-          ? chalk.blue
-          : id => id
+        : info.level === 'info' ? chalk.blue : id => id
 
   return colorizer(formatString(info))
 })
@@ -267,6 +265,9 @@ const genericValueMutation = (
         if (!checkArgs(args, valueFound, reject)) return
         if (args.customName === null || args.customName === '') {
           reject('customName cannot be null or an empty string')
+          return
+        } else if (args.length === 1) {
+          reject('You cannot make a mutation with only the id field')
           return
         }
 
