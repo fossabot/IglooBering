@@ -21,7 +21,6 @@ const DeviceResolver = ({
   PlotValue,
   StringPlotValue,
   MapValue,
-  ColourValue,
   Notification,
   joinTables,
 }) => ({
@@ -59,7 +58,6 @@ const DeviceResolver = ({
               BoolValue,
               FloatValue,
               StringValue,
-              ColourValue,
               PlotValue,
               StringPlotValue,
               MapValue,

@@ -30,7 +30,6 @@ const {
   StringPlotValue,
   StringPlotNode,
   MapValue,
-  ColourValue,
   Notification,
   PermanentToken,
   WebPushSubscription,
@@ -50,7 +49,6 @@ const setup = async () => {
     await StringPlotValue.sync({ force: true })
     await StringPlotNode.sync({ force: true })
     await MapValue.sync({ force: true })
-    await ColourValue.sync({ force: true })
     await Notification.sync({ force: true })
     await PermanentToken.sync({ force: true })
     await WebPushSubscription.sync({ force: true })

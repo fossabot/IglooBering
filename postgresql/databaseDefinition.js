@@ -310,15 +310,6 @@ const databaseDefinition = (sequelize) => {
       type: Sequelize.TEXT,
     },
   })
-  const ColourValue = sequelize.define('colourValue', {
-    ...Value,
-    value: {
-      type: Sequelize.STRING,
-    },
-    allowedValues: {
-      type: Sequelize.ARRAY(Sequelize.STRING),
-    },
-  })
 
   Board.hasMany(Device)
   Device.belongsTo(Board)
@@ -336,7 +327,6 @@ const databaseDefinition = (sequelize) => {
     BoolValue,
     FloatValue,
     StringValue,
-    ColourValue,
     MapValue,
     PlotValue,
     StringPlotValue,
@@ -356,7 +346,6 @@ const databaseDefinition = (sequelize) => {
     PlotValue,
     StringPlotValue,
     MapValue,
-    ColourValue,
   }
   const modelNames = Object.keys(models)
   const modelObjects = Object.values(models)
@@ -424,7 +413,6 @@ const databaseDefinition = (sequelize) => {
     PlotValue,
     PlotNode,
     MapValue,
-    ColourValue,
     Notification,
     WebPushSubscription,
     StringPlotValue,

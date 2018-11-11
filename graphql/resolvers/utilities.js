@@ -367,20 +367,13 @@ const firstResolve = promises =>
 // !! doesn't check if the user has the authorizations needed
 const findAllValues = (
   {
-    BoolValue,
-    FloatValue,
-    StringValue,
-    ColourValue,
-    PlotValue,
-    StringPlotValue,
-    MapValue,
+    BoolValue, FloatValue, StringValue, PlotValue, StringPlotValue, MapValue,
   },
   query,
 ) => {
   const booleanValues = BoolValue.findAll(query)
   const floatValues = FloatValue.findAll(query)
   const stringValues = StringValue.findAll(query)
-  const colourValues = ColourValue.findAll(query)
   const plotValues = PlotValue.findAll(query)
   const stringPlotValues = StringPlotValue.findAll(query)
   const mapValues = MapValue.findAll(query)
@@ -389,7 +382,6 @@ const findAllValues = (
     booleanValues,
     floatValues,
     stringValues,
-    colourValues,
     plotValues,
     stringPlotValues,
     mapValues,
@@ -397,7 +389,6 @@ const findAllValues = (
     booleanValues,
     floatValues,
     stringValues,
-    colourValues,
     plotValues,
     stringPlotValues,
     mapValues,
@@ -419,12 +410,6 @@ const findAllValues = (
       owner: { id: value.dataValues.ownerId },
       device: { id: value.dataValues.deviceId },
       __resolveType: 'StringValue',
-    })),
-    ...colourValues.map(value => ({
-      ...value.dataValues,
-      owner: { id: value.dataValues.ownerId },
-      device: { id: value.dataValues.deviceId },
-      __resolveType: 'ColourValue',
     })),
     ...plotValues.map(value => ({
       ...value.dataValues,
@@ -450,13 +435,7 @@ const findAllValues = (
 // try refactoring this with firstResolve
 const findValue = (
   {
-    BoolValue,
-    FloatValue,
-    StringValue,
-    ColourValue,
-    PlotValue,
-    StringPlotValue,
-    MapValue,
+    BoolValue, FloatValue, StringValue, PlotValue, StringPlotValue, MapValue,
   },
   Device,
   Board,
@@ -488,15 +467,6 @@ const findValue = (
         user: { id: value.dataValues.userId },
         device: { id: value.dataValues.deviceId },
         __resolveType: 'StringValue',
-      }
-      : value))
-  const colourValue = ColourValue.find(query).then(value =>
-    (value
-      ? {
-        ...value.dataValues,
-        user: { id: value.dataValues.userId },
-        device: { id: value.dataValues.deviceId },
-        __resolveType: 'ColourValue',
       }
       : value))
 
@@ -534,7 +504,6 @@ const findValue = (
     booleanValue,
     floatValue,
     stringValue,
-    colourValue,
     mapValue,
     plotValue,
     stringPlotValue,

@@ -156,7 +156,6 @@ const MutationResolver = (
     FloatValue,
     StringValue,
     BoolValue,
-    ColourValue,
     MapValue,
     PlotValue,
     PlotNode,
@@ -520,7 +519,6 @@ const MutationResolver = (
             FloatValue,
             StringValue,
             BoolValue,
-            ColourValue,
             MapValue,
             PlotValue,
             StringPlotValue,
@@ -572,7 +570,6 @@ const MutationResolver = (
             FloatValue,
             StringValue,
             BoolValue,
-            ColourValue,
             MapValue,
             PlotValue,
             StringPlotValue,
@@ -757,7 +754,6 @@ const MutationResolver = (
         FloatValue,
         StringValue,
         BoolValue,
-        ColourValue,
         MapValue,
         PlotValue,
         StringPlotValue,
@@ -791,7 +787,6 @@ const MutationResolver = (
         FloatValue,
         StringValue,
         BoolValue,
-        ColourValue,
         MapValue,
         PlotValue,
         StringPlotValue,
@@ -827,39 +822,11 @@ const MutationResolver = (
         FloatValue,
         StringValue,
         BoolValue,
-        ColourValue,
         MapValue,
         PlotValue,
         StringPlotValue,
       ],
       pubsub,
-    ),
-    CreateColourValue: CreateGenericValue(
-      User,
-      Device,
-      Board,
-      ColourValue,
-      'ColourValue',
-      [
-        FloatValue,
-        StringValue,
-        BoolValue,
-        ColourValue,
-        MapValue,
-        PlotValue,
-        StringPlotValue,
-      ],
-      pubsub,
-      (args, reject) => {
-        if (
-          isNotNullNorUndefined(args.allowedValues) &&
-          args.allowedValues.indexOf(args.value) === -1
-        ) {
-          reject('Value is not among the allowedValues')
-          return false
-        }
-        return true
-      },
     ),
     CreateMapValue: CreateGenericValue(
       User,
@@ -871,7 +838,6 @@ const MutationResolver = (
         FloatValue,
         StringValue,
         BoolValue,
-        ColourValue,
         MapValue,
         PlotValue,
         StringPlotValue,
@@ -888,7 +854,6 @@ const MutationResolver = (
         FloatValue,
         StringValue,
         BoolValue,
-        ColourValue,
         MapValue,
         PlotValue,
         StringPlotValue,
@@ -905,7 +870,6 @@ const MutationResolver = (
         FloatValue,
         StringValue,
         BoolValue,
-        ColourValue,
         MapValue,
         PlotValue,
         StringPlotValue,
@@ -1370,35 +1334,6 @@ const MutationResolver = (
       Device,
       Board,
     ),
-    colourValue: genericValueMutation(
-      ColourValue,
-      'ColourValue',
-      pubsub,
-      User,
-      Device,
-      Board,
-      (args, valueFound, reject) => {
-        if (
-          isNotNullNorUndefined(args.value) &&
-          (isNotNullNorUndefined(args.allowedValues) ||
-            isNotNullNorUndefined(valueFound.allowedValues)) &&
-          (isNotNullNorUndefined(args.allowedValues)
-            ? args.allowedValues.indexOf(args.value) === -1
-            : valueFound.allowedValues.indexOf(args.value) === -1)
-        ) {
-          reject('The value is not among the allowedValues')
-          return false
-        } else if (
-          !isNotNullNorUndefined(args.value) &&
-          isNotNullNorUndefined(args.allowedValues) &&
-          args.allowedValues.indexOf(valueFound.value) === -1
-        ) {
-          reject('Current value is not among the allowedValues')
-          return false
-        }
-        return true
-      },
-    ),
     mapValue: genericValueMutation(
       MapValue,
       'MapValue',
@@ -1778,7 +1713,6 @@ const MutationResolver = (
             FloatValue,
             StringValue,
             BoolValue,
-            ColourValue,
             MapValue,
             PlotValue,
             StringPlotValue,
@@ -1824,7 +1758,6 @@ const MutationResolver = (
             await Promise.all([
               FloatValue,
               StringValue,
-              ColourValue,
               BoolValue,
               MapValue,
               PlotValue,
@@ -1874,7 +1807,6 @@ const MutationResolver = (
               await Promise.all([
                 FloatValue,
                 StringValue,
-                ColourValue,
                 BoolValue,
                 MapValue,
                 PlotValue,
@@ -1993,7 +1925,6 @@ const MutationResolver = (
             await Promise.all([
               FloatValue,
               StringValue,
-              ColourValue,
               BoolValue,
               PlotValue,
               StringPlotValue,

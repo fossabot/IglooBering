@@ -74,15 +74,6 @@ const StringValueResolver = (Model, User, Device, Board) => ({
     valueToParents(Device, Board),
   ),
 })
-const ColourValueResolver = (Model, User, Device, Board) => ({
-  ...GenericResolver(Model, User, Device, Board),
-  ...authorizedScalarPropsResolvers(
-    Model,
-    User,
-    ['allowedValues'],
-    valueToParents(Device, Board),
-  ),
-})
 const PlotValueResolver = (PlotValue, PlotNode, User, Device, Board) => ({
   ...GenericResolver(PlotValue, User, Device, Board),
   ...authorizedScalarPropsResolvers(
@@ -241,7 +232,6 @@ export default (
     BoolValue,
     FloatValue,
     StringValue,
-    ColourValue,
     PlotValue,
     PlotNode,
     StringPlotValue,
@@ -254,7 +244,6 @@ export default (
   BooleanValue: BooleanValueResolver(BoolValue, User, Device, Board),
   FloatValue: FloatValueResolver(FloatValue, User, Device, Board),
   StringValue: StringValueResolver(StringValue, User, Device, Board),
-  ColourValue: ColourValueResolver(ColourValue, User, Device, Board),
   PlotValue: PlotValueResolver(PlotValue, PlotNode, User, Device, Board),
   PlotNode: PlotNodeResolver(PlotNode, PlotValue, User, Device, Board),
   StringPlotValue: StringPlotValueResolver(

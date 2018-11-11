@@ -206,27 +206,6 @@ type Mutation {
     index: Int
   ): BooleanValue
 
-  # Creates a ColourValue
-  CreateColourValue(
-    # device owning the value
-    deviceId: ID!
-    # whether the value should be READ_ONLY or READ_WRITE in Igloo Aurora
-    permission: ValuePermission!
-    # whether the value should be VISIBLE, HIDDEN or INVISIBLE in Igloo Aurora
-    visibility: ValueVisibility
-    # additional details about the value
-    valueDetails: String
-    # hex code
-    value: String!
-    # name of the value, displayed in Igloo Aurora
-    customName: String!
-    # tile size in Igloo Aurora
-    tileSize: TileSize
-    # allowed colours
-    allowedValues: [String!]
-    index: Int
-  ): ColourValue
-
   # Creates a MapValue
   CreateMapValue(
     # device owning the value
@@ -424,27 +403,6 @@ type Mutation {
     tileSize: TileSize
     index: Int
   ): BooleanValue
-
-  # changes colourValue's data
-  colourValue(
-    # value id
-    id: ID!
-    # whether the value should be READ_ONLY or READ_WRITE in Igloo Aurora
-    permission: ValuePermission
-    # whether the value should be VISIBLE, HIDDEN or INVISIBLE in Igloo Aurora
-    visibility: ValueVisibility
-    # additional details about the value
-    valueDetails: String
-    # hex code
-    value: String
-    # name of the value, displayed in Igloo Aurora
-    customName: String
-    # tile size in Igloo Aurora
-    tileSize: TileSize
-    # allowed colours
-    allowedValues: [String!]
-    index: Int
-  ): ColourValue
 
   # changes mapValue's data
   mapValue(
@@ -921,27 +879,6 @@ type BooleanValue implements Value {
   tileSize: TileSize!
   customName: String
   index: Int
-}
-
-type ColourValue implements Value {
-  id: ID! @isUnique
-  createdAt: DateTime!
-  updatedAt: DateTime!
-  device: Device!
-  myRole: RoleExtended!
-  owner: User!
-  admins: [User!]!
-  editors: [User!]!
-  spectators: [User!]!
-  permission: ValuePermission! @defaultValue(value: READ_WRITE)
-  visibility: ValueVisibility! @defaultValue(value: NORMAL)
-  valueDetails: String
-  # hex value prefixed with #
-  value: String!
-  tileSize: TileSize!
-  customName: String
-  index: Int
-  allowedValues: [String!]
 }
 
 type MapValue implements Value {
