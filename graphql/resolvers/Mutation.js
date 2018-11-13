@@ -24,6 +24,7 @@ import {
   randomUserIconColor,
   instanceToRole,
   GenerateUserBillingBatcher,
+  boardToParent,
 } from './utilities'
 import webpush from 'web-push'
 import Stripe from 'stripe'
@@ -1130,6 +1131,7 @@ const MutationResolver = (
 
             context.billingUpdater.update(MUTATION_COST)
           },
+          boardToParent,
         ),
       )
     },
@@ -1173,9 +1175,17 @@ const MutationResolver = (
             } else if (args.boardId) {
               // devices can be moved only to boards owned by the user
               const isOwnerOfTargetBoard = await new Promise(resolve =>
-                authorized(args.boardId, context, Board, User, 4, () => {
-                  resolve(true)
-                })(() => {}, () => resolve(false)))
+                authorized(
+                  args.boardId,
+                  context,
+                  Board,
+                  User,
+                  4,
+                  () => {
+                    resolve(true)
+                  },
+                  boardToParent,
+                )(() => {}, () => resolve(false)))
               if (!isOwnerOfTargetBoard) {
                 reject('You can only move devices to boards you own')
                 return
@@ -1829,6 +1839,7 @@ const MutationResolver = (
 
             context.billingUpdater.update(MUTATION_COST)
           },
+          boardToParent,
         ),
       ),
     deletePlotNode(root, args, context) {

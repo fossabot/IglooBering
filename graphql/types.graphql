@@ -103,12 +103,6 @@ type Mutation {
   shareBoard(boardId: ID!, email: String!, role: Role!): Board
   stopSharingBoard(boardId: ID!, email: String!): Board
 
-  shareDevice(deviceId: ID!, email: String!, role: Role!): Device
-  stopSharingDevice(deviceId: ID!, email: String!): Device
-
-  shareValue(valueId: ID!, email: String!, role: Role!): Value
-  stopSharingValue(valueId: ID!, email: String!): Value
-
   # Creates a Board
   CreateBoard(
     customName: String!
@@ -556,16 +550,8 @@ type Subscription {
   notificationCreated: Notification
   # subscribes to board shares
   boardShared: Board
-  # subscribes to device shares
-  deviceShared: Device
-  # subscribes to value shares
-  valueShared: Value
   # subscribes to board unshares
   boardStoppedSharing: ID
-  # subscribes to device unshares
-  deviceStoppedSharing: ID
-  # subscribes to values unshares
-  valueStoppedSharing: ID
   # subscribes to value updates
   userUpdated: User
   # subscribes to device updates

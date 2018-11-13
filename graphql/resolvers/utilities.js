@@ -1124,6 +1124,9 @@ const updateUserBilling = (User, auth) => async (bill) => {
 const GenerateUserBillingBatcher = (User, auth) =>
   new UpdateBatcher(updateUserBilling(User, auth))
 
+// a board is it's own parent
+const boardToParent = x => x
+
 module.exports = {
   authenticated,
   generateAuthenticationToken,
@@ -1166,4 +1169,5 @@ module.exports = {
   randomUserIconColor,
   updateUserBilling,
   GenerateUserBillingBatcher,
+  boardToParent,
 }

@@ -4,6 +4,7 @@ import {
   authorized,
   rolesResolver,
   instanceToRole,
+  boardToParent,
 } from './utilities'
 import { Op } from 'sequelize'
 
@@ -37,12 +38,13 @@ const BoardResolver = ({
 
           context.billingUpdater.update(QUERY_COST)
         },
+        boardToParent,
       ),
     )
   },
-  admins: rolesResolver('admin', Board, User),
-  editors: rolesResolver('editor', Board, User),
-  spectators: rolesResolver('spectator', Board, User),
+  admins: rolesResolver('admin', Board, User, boardToParent),
+  editors: rolesResolver('editor', Board, User, boardToParent),
+  spectators: rolesResolver('spectator', Board, User, boardToParent),
   devices(root, args, context) {
     return logErrorsPromise(
       'devices BoardResolver',
@@ -60,6 +62,7 @@ const BoardResolver = ({
 
           context.billingUpdater.update(QUERY_COST * devices.length)
         },
+        boardToParent,
       ),
     )
   },
@@ -95,6 +98,7 @@ const BoardResolver = ({
           resolve(totalCount)
           context.billingUpdater.update(QUERY_COST)
         },
+        boardToParent,
       ),
     )
   },
@@ -113,6 +117,7 @@ const BoardResolver = ({
 
           resolve(myRole)
         },
+        boardToParent,
       ),
     )
   },
@@ -132,6 +137,7 @@ const BoardResolver = ({
 
           resolve(favorite)
         },
+        boardToParent,
       ),
     )
   },

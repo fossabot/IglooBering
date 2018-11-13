@@ -6,6 +6,7 @@ import {
   deviceToParents,
   notificationToParent,
   inheritAuthorized,
+  boardToParent,
 } from './utilities'
 import bcrypt from 'bcryptjs'
 
@@ -66,6 +67,7 @@ const QueryResolver = ({
           resolve(boardFound.dataValues)
           context.billingUpdater.update(QUERY_COST)
         },
+        boardToParent,
       ),
     )
   },
