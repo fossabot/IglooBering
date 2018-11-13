@@ -1,6 +1,6 @@
 ![Igloo Houston](https://github.com/hellowitlab/iglooHouston/blob/master/iglooHouston.png?raw=true "Igloo Houston")
 # Igloo Houston
-Igloo Houston is the back-end service of Igloo Cloud Framework.
+Houston is the back-end service of Igloo.
 
 This service is still in development, some features may be missing. If your Igloo-based project needs a missing feature in order to work, please open an issue or help us by contributing.
 
