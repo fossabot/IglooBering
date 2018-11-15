@@ -120,6 +120,7 @@ const genericStopSharing = (
       3,
       async (resolve, reject, found, foundAndParents) => {
         const userFound = await User.find({ where: { email: args.email } })
+        // instanceToRole now accepts an instance not an array
         const role = await instanceToRole(foundAndParents, userFound)
 
         if (!userFound) {

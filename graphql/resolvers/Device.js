@@ -5,7 +5,6 @@ import {
   authorizedScalarPropsResolvers,
   rolesResolver,
   deviceToParent,
-  instanceToRole,
 } from './utilities'
 import { Op } from 'sequelize'
 
@@ -70,31 +69,6 @@ const DeviceResolver = ({
           resolve(valuesFound)
 
           context.billingUpdater.update(QUERY_COST * valuesFound.length)
-        },
-        deviceToParent(Board),
-      ),
-    )
-  },
-  myRole(root, args, context) {
-    return logErrorsPromise(
-      'myRole BoardResolver',
-      902,
-      authorized(
-        root.id,
-        context,
-        Device,
-        User,
-        1,
-        async (
-          resolve,
-          reject,
-          deviceFound,
-          deviceAndParentFound,
-          userFound,
-        ) => {
-          const myRole = await instanceToRole(deviceAndParentFound, userFound)
-
-          resolve(myRole)
         },
         deviceToParent(Board),
       ),

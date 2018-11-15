@@ -4,7 +4,6 @@ import {
   logErrorsPromise,
   authorizedValue,
   firstResolve,
-  instanceToRole,
 } from './utilities'
 
 const QUERY_COST = 1
@@ -47,21 +46,6 @@ const ValueResolver = (Values, User, Device, Board) => ({
     Device,
     Board,
   ),
-  myRole(root, args, context) {
-    return authorizedValue(
-      root.id,
-      context,
-      Values,
-      User,
-      1,
-      async (resolve, reject, valueFound, valueAndParents, userFound) => {
-        const myRole = await instanceToRole(valueAndParents, userFound)
-        resolve(myRole)
-      },
-      Device,
-      Board,
-    )
-  },
   __resolveType: (root, context) =>
     logErrorsPromise(
       'value resolve type',

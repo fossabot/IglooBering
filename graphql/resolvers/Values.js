@@ -1,11 +1,9 @@
 import {
   authenticated,
   authorized,
-  retrieveScalarProp,
   authorizedScalarPropsResolvers,
   logErrorsPromise,
   valueToParent,
-  instanceToRole,
   inheritAuthorizedScalarPropsResolvers,
   inheritAuthorized,
 } from './utilities'
@@ -29,30 +27,6 @@ const GenericResolver = (Model, User, Device, Board) => ({
     ],
     valueToParent(Board),
   ),
-  myRole(root, args, context) {
-    return logErrorsPromise(
-      'GenericValueResolver myRole',
-      932,
-      authorized(
-        root.id,
-        context,
-        Model,
-        User,
-        1,
-        async (
-          resolve,
-          reject,
-          valueFound,
-          valueAndParentsFound,
-          userFound,
-        ) => {
-          const myRole = await instanceToRole(valueAndParentsFound, userFound)
-          resolve(myRole)
-        },
-        valueToParent(Board),
-      ),
-    )
-  },
 })
 
 const BooleanValueResolver = GenericResolver

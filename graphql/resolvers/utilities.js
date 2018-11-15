@@ -116,27 +116,6 @@ const generatePasswordRecoveryToken = (userId, JWT_SECRET) =>
     'HS512',
   )
 
-const retrieveScalarProp = (Model, prop) => (root, args, context) =>
-  new Promise(authenticated(context, async (resolve, reject) => {
-    try {
-      const resourceFound = await Model.find({
-        where: { id: root.id },
-      })
-      /* istanbul ignore next */
-      if (!resourceFound) {
-        reject('The requested resource does not exist')
-      } else if (resourceFound.userId !== context.auth.userId) {
-        /* istanbul ignore next */
-        reject('You are not allowed to access details about this resource')
-      } else {
-        resolve(resourceFound[prop])
-      }
-    } catch (e) /* istanbul ignore next */ {
-      logger.error(e, { label: 'retrieveScalarProp', code: 109 })
-      reject('109 - An internal error occured, please contact us. The error code is 109')
-    }
-  }))
-
 const getPropsIfDefined = (args, props) => {
   const propObject = {}
   for (let i = 0; i < props.length; i += 1) {
@@ -301,6 +280,7 @@ const create2FSecret = (user) => {
   secret = GA.encode(secret)
   return { secret, qrCode: GA.qrCode(user, 'igloo', secret) }
 }
+
 const check2FCode = (code, secret) => {
   try {
     const { delta } = GA.verify(code, secret)
@@ -510,23 +490,11 @@ const findValue = (
     .then(async (value) => {
       if (!value) throw new Error('The requested resource does not exist')
       else {
-        const deviceFound = await Device.find({
-          where: { id: value.deviceId },
+        const boardFound = await Board.find({
+          where: { id: value.boardId },
         })
-        const boardFound = deviceFound.boardId
-          ? await Board.find({
-            where: { id: deviceFound.boardId },
-          })
-          : null
 
-        if (
-          (await authorizationLevel(
-            boardFound
-              ? [value, deviceFound, boardFound]
-              : [value, deviceFound],
-            userFound,
-          )) < 1
-        ) {
+        if ((await authorizationLevel(boardFound, userFound)) < 1) {
           throw new Error('You are not allowed to access details about this resource')
         } else return value
       }
@@ -674,22 +642,11 @@ const sendTokenCreatedEmail = (email) => {
   )
 }
 
-const scalarPropsResolvers = (Model, props) =>
-  props.reduce((acc, prop) => {
-    acc[prop] = retrieveScalarProp(Model, prop)
-    return acc
-  }, {})
-
 async function authorizationLevel(instance, userFound) {
-  // FIXME: probably doesn't work with FloatValue, BooleanValue, ...
-  const modelNameLowerCase = instance._modelOptions.name.singular
-  const ModelName =
-    modelNameLowerCase[0].toUpperCase() + modelNameLowerCase.slice(1)
-
-  const isOwner = await userFound[`hasOwn${ModelName}`](instance)
-  const isAdmin = await userFound[`hasAdmin${ModelName}`](instance)
-  const isEditor = await userFound[`hasEditor${ModelName}`](instance)
-  const isSpectator = await userFound[`hasSpectator${ModelName}`](instance)
+  const isOwner = await userFound.hasOwnBoard(instance)
+  const isAdmin = await userFound.hasAdminBoard(instance)
+  const isEditor = await userFound.hasEditorBoard(instance)
+  const isSpectator = await userFound.hasSpectatorBoard(instance)
 
   if (isOwner) return 4
   else if (isAdmin) return 3
@@ -813,7 +770,7 @@ const deviceToParent = Board => async (deviceFound) => {
 }
 
 const valueToParent = Board => async (valueFound) => {
-  const boardFound = await Board.find({ where: { id: deviceFound.boardId } })
+  const boardFound = await Board.find({ where: { id: valueFound.boardId } })
 
   return boardFound
 }
@@ -878,8 +835,8 @@ const authorizedValue = (
     return callbackFunc(resolve, reject, ...resourcesFound, userFound)
   })
 
-const instanceToRole = async (instances, userFound) => {
-  const roleLevel = await authorizationLevel(instances, userFound)
+const instanceToRole = async (instance, userFound) => {
+  const roleLevel = await authorizationLevel(instance, userFound)
 
   switch (roleLevel) {
     case 4:
@@ -1097,7 +1054,6 @@ const boardToParent = x => x
 module.exports = {
   authenticated,
   generateAuthenticationToken,
-  retrieveScalarProp,
   CreateGenericValue,
   getPropsIfDefined,
   genericValueMutation,
@@ -1115,7 +1071,6 @@ module.exports = {
   sendPasswordRecoveryEmail,
   sendPasswordUpdatedEmail,
   sendTokenCreatedEmail,
-  scalarPropsResolvers,
   authorizationLevel,
   authorized,
   authorizedScalarPropsResolvers,
