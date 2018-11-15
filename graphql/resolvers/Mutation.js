@@ -15,11 +15,11 @@ import {
   sendPasswordUpdatedEmail,
   sendTokenCreatedEmail,
   authorized,
-  deviceToParents,
+  deviceToParent,
   authorizedValue,
-  instancesToSharedIds,
+  instanceToSharedIds,
   inheritAuthorized,
-  valueToParents,
+  valueToParent,
   randomBoardAvatar,
   randomUserIconColor,
   instanceToRole,
@@ -57,7 +57,7 @@ const genericShare = (
   User,
   pubsub,
   subscription,
-  childToParents,
+  childToParent,
 ) => (root, args, context) =>
   logErrorsPromise(
     'genericShare',
@@ -97,7 +97,7 @@ const genericShare = (
           })
         }
       },
-      childToParents,
+      childToParent,
     ),
   )
 
@@ -107,7 +107,7 @@ const genericStopSharing = (
   User,
   pubsub,
   subscription,
-  childToParents,
+  childToParent,
 ) => (root, args, context) =>
   logErrorsPromise(
     'genericShare',
@@ -145,7 +145,7 @@ const genericStopSharing = (
           })
         }
       },
-      childToParents,
+      childToParent,
     ),
   )
 const MutationResolver = (
@@ -493,122 +493,6 @@ const MutationResolver = (
       pubsub,
       'boardStoppedSharing',
     ),
-    shareDevice: genericShare(
-      Device,
-      'deviceId',
-      User,
-      pubsub,
-      'deviceShared',
-      deviceToParents(Board),
-    ),
-    stopSharingDevice: genericStopSharing(
-      Device,
-      'deviceId',
-      User,
-      pubsub,
-      'deviceStoppedSharing',
-      deviceToParents(Board),
-    ),
-    shareValue: (root, args, context) =>
-      logErrorsPromise(
-        'shareValue',
-        921,
-        authorizedValue(
-          args.valueId,
-          context,
-          {
-            FloatValue,
-            StringValue,
-            BoolValue,
-            MapValue,
-            PlotValue,
-            StringPlotValue,
-          },
-          User,
-          3,
-          async (resolve, reject, valueFound) => {
-            const userFound = await User.find({ where: { email: args.email } })
-
-            if (!userFound) {
-              reject("This account doesn't exist, check the email passed")
-            } else if (userFound.id === context.auth.userId) {
-              reject("You can't share a resource with yourself")
-            } else {
-              // remove old role
-              await Promise.all([
-                userFound[`remove${valueFound.Model.Admins}`](valueFound),
-                userFound[`remove${valueFound.Model.Editors}`](valueFound),
-                userFound[`remove${valueFound.Model.Spectators}`](valueFound),
-              ])
-
-              // add new role
-              const parsedRole = `${args.role[0] +
-                args.role.slice(1).toLowerCase()}s`
-              await userFound[`add${valueFound.Model[parsedRole]}`](valueFound)
-
-              resolve(valueFound)
-
-              pubsub.publish('valueShared', {
-                valueShared: valueFound,
-                userId: userFound.id,
-              })
-
-              context.billingUpdater.update(MUTATION_COST)
-            }
-          },
-          Device,
-          Board,
-        ),
-      ),
-    stopSharingValue: (root, args, context) =>
-      logErrorsPromise(
-        'shareValue',
-        921,
-        authorizedValue(
-          args.valueId,
-          context,
-          {
-            FloatValue,
-            StringValue,
-            BoolValue,
-            MapValue,
-            PlotValue,
-            StringPlotValue,
-          },
-          User,
-          3,
-          async (resolve, reject, valueFound, valueAndParents) => {
-            const userFound = await User.find({ where: { email: args.email } })
-            const role = await instanceToRole(valueAndParents, userFound)
-
-            if (!userFound) {
-              reject("This account doesn't exist, check the email passed")
-            } else if (!role) {
-              reject("This resource isn't shared with that user")
-            } else if (role === 'OWNER') {
-              reject('You cannot stop sharing a resource with its owner')
-            } else {
-              // remove old role
-              await Promise.all([
-                userFound[`remove${valueFound.Model.Admins}`](valueFound),
-                userFound[`remove${valueFound.Model.Editors}`](valueFound),
-                userFound[`remove${valueFound.Model.Spectators}`](valueFound),
-              ])
-
-              resolve(valueFound)
-
-              pubsub.publish('valueStoppedSharing', {
-                valueStoppedSharing: args.id,
-                userId: userFound.id,
-              })
-
-              context.billingUpdater.update(MUTATION_COST)
-            }
-          },
-          Device,
-          Board,
-        ),
-      ),
     CreateBoard(root, args, context) {
       return logErrorsPromise(
         'CreateBoard',
@@ -667,15 +551,12 @@ const MutationResolver = (
           })
 
           const boards = await userFound.getOwnBoards()
-          const board =
-            boards.length === 1
-              ? boards[0]
-              : boards.reduce((acc, curr) =>
-                (new Date(acc.createdAt) < new Date(curr.createdAt)
-                  ? acc
-                  : curr))
 
-          boardId = board.id
+          if (boards.length === 1) {
+            boardId = boards[0].id
+          } else {
+            reject('You need to specify the boardId when the user has more than one board')
+          }
         }
 
         return authorized(
@@ -710,7 +591,7 @@ const MutationResolver = (
               args.index !== null && args.index !== undefined
                 ? args.index
                 : await Device.count({
-                  where: { ownerId: context.auth.userId },
+                  where: { boardId },
                 })
 
             const newDevice = await Device.create({
@@ -719,10 +600,6 @@ const MutationResolver = (
               boardId,
               index,
             })
-
-            const userFound = await boardFound.getOwner()
-            await userFound.addOwnDevice(newDevice)
-            await newDevice.setOwner(userFound)
 
             const resolveValue = {
               ...newDevice.dataValues,
@@ -735,13 +612,14 @@ const MutationResolver = (
 
             pubsub.publish('deviceCreated', {
               deviceCreated: resolveValue,
-              userIds: await instancesToSharedIds([boardFound]),
+              userIds: await instanceToSharedIds(boardFound),
             })
 
             resolve(resolveValue)
 
             context.billingUpdater.update(MUTATION_COST)
           },
+          boardToParent,
         )(resolve, reject)
       })
     },
@@ -887,7 +765,7 @@ const MutationResolver = (
           PlotValue,
           User,
           2,
-          async (resolve, reject, plotValueFound, plotAndParents) => {
+          async (resolve, reject, plotValueFound, [_, boardFound]) => {
             const plotNode = await PlotNode.create({
               ...args,
               timestamp: args.timestamp || new Date(),
@@ -914,12 +792,12 @@ const MutationResolver = (
             resolve(resolveObj)
             pubsub.publish('plotNodeCreated', {
               plotNodeCreated: resolveObj,
-              userIds: await instancesToSharedIds(plotAndParents),
+              userIds: await instanceToSharedIds(boardFound),
             })
 
             context.billingUpdater.update(MUTATION_COST)
           },
-          valueToParents(Device, Board),
+          valueToParent(Board),
         ),
       )
     },
@@ -933,7 +811,7 @@ const MutationResolver = (
           StringPlotValue,
           User,
           2,
-          async (resolve, reject, plotValueFound, plotAndParents) => {
+          async (resolve, reject, plotValueFound, [_, boardFound]) => {
             const plotNode = await StringPlotNode.create({
               ...args,
               timestamp: args.timestamp || new Date(),
@@ -960,11 +838,11 @@ const MutationResolver = (
             resolve(resolveObj)
             pubsub.publish('stringPlotNodeCreated', {
               stringPlotNodeCreated: resolveObj,
-              userIds: await instancesToSharedIds(plotAndParents),
+              userIds: await instanceToSharedIds(boardFound),
             })
             context.billingUpdater.update(MUTATION_COST)
           },
-          valueToParents(Device, Board),
+          valueToParent(Board),
         ),
       )
     },
@@ -1126,7 +1004,7 @@ const MutationResolver = (
             resolve(newBoard.dataValues)
             pubsub.publish('boardUpdated', {
               boardUpdated: newBoard.dataValues,
-              userIds: await instancesToSharedIds([boardFound]),
+              userIds: await instanceToSharedIds(boardFound),
             })
 
             context.billingUpdater.update(MUTATION_COST)
@@ -1146,7 +1024,7 @@ const MutationResolver = (
           Device,
           User,
           authorizationNeeded,
-          async (resolve, reject, deviceFound, deviceAndBoard) => {
+          async (resolve, reject, deviceFound, [_, boardFound]) => {
             // runs sanity checks on the args
             if (
               isNotNullNorUndefined(args.batteryStatus) &&
@@ -1213,11 +1091,11 @@ const MutationResolver = (
             resolve(newDevice.dataValues)
             pubsub.publish('deviceUpdated', {
               deviceUpdated: newDevice.dataValues,
-              userIds: await instancesToSharedIds(deviceAndBoard),
+              userIds: await instanceToSharedIds(boardFound),
             })
             context.billingUpdater.update(MUTATION_COST)
           },
-          deviceToParents(Board),
+          deviceToParent(Board),
         ),
       )
     },
@@ -1231,16 +1109,16 @@ const MutationResolver = (
           Device,
           User,
           2,
-          async (resolve, reject, deviceFound, deviceAndBoard) => {
+          async (resolve, reject, deviceFound, [_, boardFound]) => {
             const newDevice = await deviceFound.update({ online: null })
             resolve(newDevice.dataValues)
             pubsub.publish('deviceUpdated', {
               deviceUpdated: newDevice.dataValues,
-              userIds: await instancesToSharedIds(deviceAndBoard),
+              userIds: await instanceToSharedIds(boardFound),
             })
             context.billingUpdater.update(MUTATION_COST)
           },
-          deviceToParents(Board),
+          deviceToParent(Board),
         ),
       )
     },
@@ -1385,7 +1263,7 @@ const MutationResolver = (
             reject,
             plotNodeFound,
             plotValueFound,
-            plotAndParents,
+            [_, boardFound],
           ) => {
             if (Object.keys(args).length === 1) {
               reject('You cannot make a mutation with only the id field')
@@ -1409,12 +1287,12 @@ const MutationResolver = (
             resolve(resolveObj)
             pubsub.publish('plotNodeUpdated', {
               plotNodeUpdated: resolveObj,
-              userIds: await instancesToSharedIds(plotAndParents),
+              userIds: await instanceToSharedIds(boardFound),
             })
 
             context.billingUpdater.update(MUTATION_COST)
           },
-          valueToParents(Device, Board),
+          valueToParent(Board),
         ),
       )
     },
@@ -1435,7 +1313,7 @@ const MutationResolver = (
             reject,
             plotNodeFound,
             plotValueFound,
-            plotAndParents,
+            [_, boardFound],
           ) => {
             if (Object.keys(args).length === 1) {
               reject('You cannot make a mutation with only the id field')
@@ -1458,12 +1336,12 @@ const MutationResolver = (
             resolve(resolveObj)
             pubsub.publish('stringPlotNodeUpdated', {
               stringPlotNodeUpdated: resolveObj,
-              userIds: await instancesToSharedIds(plotAndParents),
+              userIds: await instanceToSharedIds(boardFound),
             })
 
             context.billingUpdater.update(MUTATION_COST)
           },
-          valueToParents(Device, Board),
+          valueToParent(Board),
         ),
       )
     },
@@ -1477,7 +1355,7 @@ const MutationResolver = (
           Device,
           User,
           2,
-          async (resolve, reject, deviceFound, deviceAndBoard) => {
+          async (resolve, reject, deviceFound, [_, boardFound]) => {
             if (args.content === '' || args.content === null) {
               reject('content cannot be null or an empty string')
               return
@@ -1518,7 +1396,7 @@ const MutationResolver = (
 
             resolve(resolveValue)
 
-            const deviceSharedIds = await instancesToSharedIds(deviceAndBoard)
+            const deviceSharedIds = await instanceToSharedIds(boardFound)
             pubsub.publish('notificationCreated', {
               notificationCreated: resolveValue,
               userIds: deviceSharedIds,
@@ -1537,7 +1415,7 @@ const MutationResolver = (
               })
               pubsub.publish('boardUpdated', {
                 boardUpdated: boardFound.dataValues,
-                userIds: await instancesToSharedIds([boardFound]),
+                userIds: await instanceToSharedIds(boardFound),
               })
             }
             context.billingUpdater.update(MUTATION_COST)
@@ -1574,7 +1452,7 @@ const MutationResolver = (
                 ))
             }
           },
-          deviceToParents(Board),
+          deviceToParent(Board),
         ),
       )
     },
@@ -1596,7 +1474,7 @@ const MutationResolver = (
             Device,
             User,
             2,
-            async (resolve, reject, deviceFound, deviceAndParent) => {
+            async (resolve, reject, deviceFound, [_, boardFound]) => {
               if (args.content === '' || args.content === null) {
                 reject('content cannot be null or an empty string')
                 return
@@ -1648,7 +1526,7 @@ const MutationResolver = (
 
               resolve(resolveValue)
 
-              const deviceSharedIds = await instancesToSharedIds(deviceAndParent)
+              const deviceSharedIds = await instanceToSharedIds(boardFound)
               pubsub.publish('notificationUpdated', {
                 notificationUpdated: resolveValue,
                 userIds: deviceSharedIds,
@@ -1656,7 +1534,7 @@ const MutationResolver = (
 
               context.billingUpdater.update(MUTATION_COST)
             },
-            deviceToParents(Board),
+            deviceToParent(Board),
           ),
         )
       }
@@ -1678,12 +1556,12 @@ const MutationResolver = (
             Device,
             User,
             2,
-            async (resolve, reject, deviceFound, deviceAndParent) => {
+            async (resolve, reject, deviceFound, [_, boardFound]) => {
               await notificationFound.destroy()
 
               resolve(args.id)
 
-              const deviceSharedIds = await instancesToSharedIds(deviceAndParent)
+              const deviceSharedIds = await instanceToSharedIds(boardFound)
               pubsub.publish('notificationDeleted', {
                 notificationDeleted: args.id,
                 userIds: deviceSharedIds,
@@ -1702,12 +1580,12 @@ const MutationResolver = (
                 })
                 pubsub.publish('boardUpdated', {
                   boardUpdated: boardFound.dataValues,
-                  userIds: await instancesToSharedIds([boardFound]),
+                  userIds: await instanceToSharedIds(boardFound),
                 })
               }
               context.billingUpdater.update(MUTATION_COST)
             },
-            deviceToParents(Board),
+            deviceToParent(Board),
           ),
         )
       }
@@ -1729,8 +1607,8 @@ const MutationResolver = (
           },
           User,
           3,
-          async (resolve, reject, valueFound, valueAndParents) => {
-            const authorizedUsersIds = await instancesToSharedIds(valueAndParents)
+          async (resolve, reject, valueFound, [_, boardFound]) => {
+            const authorizedUsersIds = await instanceToSharedIds(boardFound)
 
             // TODO: if value is plot remove nodes
             await valueFound.destroy()
@@ -1756,8 +1634,8 @@ const MutationResolver = (
           Device,
           User,
           3,
-          async (resolve, reject, deviceFound, deviceAndParent) => {
-            const authorizedUsersIds = await instancesToSharedIds(deviceAndParent)
+          async (resolve, reject, deviceFound, [_, boardFound]) => {
+            const authorizedUsersIds = await instanceToSharedIds(boardFound)
             const deleteChild = Model =>
               Model.destroy({
                 where: {
@@ -1787,7 +1665,7 @@ const MutationResolver = (
             resolve(args.id)
             context.billingUpdater.update(MUTATION_COST)
           },
-          deviceToParents(Board),
+          deviceToParent(Board),
         ),
       ),
     deleteBoard: (root, args, context) =>
@@ -1801,7 +1679,7 @@ const MutationResolver = (
           User,
           3,
           async (resolve, reject, boardFound, boardAndParents, userFound) => {
-            const authorizedUsersIds = await instancesToSharedIds([boardFound])
+            const authorizedUsersIds = await instanceToSharedIds(boardFound)
             const devices = await Device.findAll({
               where: { boardId: boardFound.id },
             })
@@ -1859,19 +1737,19 @@ const MutationResolver = (
             reject,
             plotNodeFound,
             plotValueFound,
-            plotAndParents,
+            [_, boardFound],
           ) => {
             await plotNodeFound.destroy()
 
             resolve(args.id)
             pubsub.publish('plotNodeDeleted', {
               plotNodeDeleted: args.id,
-              userIds: await instancesToSharedIds(plotAndParents),
+              userIds: await instanceToSharedIds(boardFound),
             })
 
             context.billingUpdater.update(MUTATION_COST)
           },
-          valueToParents(Device, Board),
+          valueToParent(Board),
         ),
       )
     },
@@ -1892,19 +1770,19 @@ const MutationResolver = (
             reject,
             plotNodeFound,
             plotValueFound,
-            plotAndParents,
+            [_, boardFound],
           ) => {
             await plotNodeFound.destroy()
 
             resolve(args.id)
             pubsub.publish('plotNodeDeleted', {
               plotNodeDeleted: args.id,
-              userIds: await instancesToSharedIds(plotAndParents),
+              userIds: await instanceToSharedIds(boardFound),
             })
 
             context.billingUpdater.update(MUTATION_COST)
           },
-          valueToParents(Device, Board),
+          valueToParent(Board),
         ),
       )
     },

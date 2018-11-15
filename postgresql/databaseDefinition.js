@@ -338,7 +338,7 @@ const databaseDefinition = (sequelize) => {
 
   Board.Owner = 'OwnBoards'
   Board.belongsTo(User, { as: 'owner' })
-  User.OwnBoards = User.hasMany(Boards, {
+  User.OwnBoards = User.hasMany(Board, {
     as: 'OwnBoards',
   })
 

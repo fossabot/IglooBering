@@ -94,23 +94,11 @@ const ValueResolver = (Values, User, Device, Board) => ({
               const userFound = await User.find({
                 where: { id: context.auth.userId },
               })
-              const deviceFound = await Device.find({
-                where: { id: resourceFound.deviceId },
+              const boardFound = await Board.find({
+                where: { id: resourceFound.boardId },
               })
-              const boardFound = deviceFound.boardId
-                ? await Board.find({
-                  where: { id: deviceFound.boardId },
-                })
-                : null
 
-              if (
-                (await authorizationLevel(
-                  boardFound
-                    ? [resourceFound, deviceFound, boardFound]
-                    : [resourceFound, deviceFound],
-                  userFound,
-                )) < 1
-              ) {
+              if ((await authorizationLevel(boardFound, userFound)) < 1) {
                 /* istanbul ignore next */
                 rejectInner(NOT_ALLOWED)
               } else {

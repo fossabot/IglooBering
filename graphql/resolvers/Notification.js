@@ -3,7 +3,7 @@ import {
   inheritAuthorized,
   logErrorsPromise,
   inheritAuthorizedScalarPropsResolvers,
-  deviceToParents,
+  deviceToParent,
 } from './utilities'
 
 const QUERY_COST = 1
@@ -18,7 +18,7 @@ const UserResolver = ({
     ['content', 'date'],
     notificationToParent,
     Device,
-    deviceToParents(Board),
+    deviceToParent(Board),
   ),
   user(root, args, context) {
     return logErrorsPromise(
@@ -36,7 +36,7 @@ const UserResolver = ({
           resolve({ id: notificationFound.userId })
           context.billingUpdater.update(QUERY_COST)
         },
-        deviceToParents(Board),
+        deviceToParent(Board),
       ),
     )
   },
@@ -56,7 +56,7 @@ const UserResolver = ({
           resolve({ id: notificationFound.deviceId })
           context.billingUpdater.update(QUERY_COST)
         },
-        deviceToParents(Board),
+        deviceToParent(Board),
       ),
     )
   },
@@ -76,7 +76,7 @@ const UserResolver = ({
           resolve(notificationFound.visualized.indexOf(context.auth.userId) !== -1)
           context.billingUpdater.update(QUERY_COST)
         },
-        deviceToParents(Board),
+        deviceToParent(Board),
       ),
     )
   },
@@ -96,7 +96,7 @@ const UserResolver = ({
           resolve(notificationFound.snackbarVisualized.indexOf(context.auth.userId) !== -1)
           context.billingUpdater.update(QUERY_COST)
         },
-        deviceToParents(Board),
+        deviceToParent(Board),
       ),
     )
   },

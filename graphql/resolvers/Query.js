@@ -3,7 +3,7 @@ import {
   logErrorsPromise,
   findValue,
   authorized,
-  deviceToParents,
+  deviceToParent,
   notificationToParent,
   inheritAuthorized,
   boardToParent,
@@ -49,7 +49,7 @@ const QueryResolver = ({
 
           context.billingUpdater.update(QUERY_COST)
         },
-        deviceToParents(Board),
+        deviceToParent(Board),
       ),
     )
   },
@@ -136,7 +136,7 @@ const QueryResolver = ({
           resolve(notificationFound)
           context.billingUpdater.update(QUERY_COST)
         },
-        deviceToParents(Board),
+        deviceToParent(Board),
       ),
     )
   },

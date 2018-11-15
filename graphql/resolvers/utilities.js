@@ -169,7 +169,7 @@ const CreateGenericValue = (
       Device,
       User,
       2,
-      async (resolve, reject, deviceFound, deviceAndParent, userFound) => {
+      async (resolve, reject, deviceFound, [_, boardFound], userFound) => {
         if (!argsChecks(args, reject)) {
           return
         }
@@ -203,9 +203,7 @@ const CreateGenericValue = (
           index,
         })
 
-        const ownerFound = await deviceFound.getOwner()
-        await ownerFound[`addOwn${ModelName}`](newValue)
-        await newValue.setOwner(ownerFound)
+        await boardFound[`add${ModelName}`](newValue)
 
         const resolveObj = {
           ...newValue.dataValues,
@@ -217,15 +215,15 @@ const CreateGenericValue = (
           },
         }
 
+        resolve(resolveObj)
+
         pubsub.publish('valueCreated', {
           valueCreated: resolveObj,
-          userIds: await instancesToSharedIds(deviceAndParent),
+          userIds: await instanceToSharedIds(boardFound),
         })
-
-        resolve(resolveObj)
         context.billingUpdater.update(MUTATION_COST)
       },
-      deviceToParents(Board),
+      deviceToParent(Board),
     ),
   )
 
@@ -261,7 +259,7 @@ const genericValueMutation = (
       childModel,
       User,
       2,
-      async (resolve, reject, valueFound, valueAndParents) => {
+      async (resolve, reject, valueFound, [_, boardFound]) => {
         if (!checkArgs(args, valueFound, reject)) return
         if (args.customName === null || args.customName === '') {
           reject('customName cannot be null or an empty string')
@@ -285,11 +283,11 @@ const genericValueMutation = (
 
         pubsub.publish('valueUpdated', {
           valueUpdated: { ...resolveObj, __resolveType },
-          userIds: await instancesToSharedIds(valueAndParents),
+          userIds: await instanceToSharedIds(boardFound),
         })
         context.billingUpdater.update(MUTATION_COST)
       },
-      valueToParents(Device, Board),
+      valueToParent(Board),
     ),
   )
 
@@ -682,7 +680,7 @@ const scalarPropsResolvers = (Model, props) =>
     return acc
   }, {})
 
-async function instanceAuthorizationLevel(instance, userFound) {
+async function authorizationLevel(instance, userFound) {
   // FIXME: probably doesn't work with FloatValue, BooleanValue, ...
   const modelNameLowerCase = instance._modelOptions.name.singular
   const ModelName =
@@ -700,13 +698,6 @@ async function instanceAuthorizationLevel(instance, userFound) {
   return 0
 }
 
-async function authorizationLevel(instances, userFound) {
-  const authorizations = await Promise.all(instances.map(instance => instanceAuthorizationLevel(instance, userFound)))
-  const maxAuthorization = Math.max(...authorizations)
-
-  return maxAuthorization
-}
-
 function authorized(
   id,
   context,
@@ -714,7 +705,7 @@ function authorized(
   User,
   authorizationRequired,
   callback,
-  childToParents = found => Promise.resolve([]),
+  childToParent,
   acceptedTokenTypes,
 ) {
   return authenticated(
@@ -725,19 +716,18 @@ function authorized(
       if (!found) {
         reject('The requested resource does not exist')
       } else {
-        const others = await childToParents(found)
+        const parent = await childToParent(found)
         const userFound = await User.find({
           where: { id: context.auth.userId },
         })
 
         if (
-          (await authorizationLevel([found, ...others], userFound)) <
-          authorizationRequired
+          (await authorizationLevel(parent, userFound)) < authorizationRequired
         ) {
           /* istanbul ignore next */
           reject('You are not allowed to access details about this resource')
         } else {
-          return callback(resolve, reject, found, [found, ...others], userFound)
+          return callback(resolve, reject, found, [found, parent], userFound)
         }
       }
     },
@@ -749,7 +739,7 @@ const authorizedRetrieveScalarProp = (
   Model,
   User,
   prop,
-  childToParents,
+  childToParent,
   acceptedTokenTypes,
 ) => (root, args, context) =>
   logErrorsPromise(
@@ -764,7 +754,7 @@ const authorizedRetrieveScalarProp = (
       async (resolve, reject, resourceFound) => {
         resolve(resourceFound[prop])
       },
-      childToParents,
+      childToParent,
       acceptedTokenTypes,
     ),
   )
@@ -773,7 +763,7 @@ const authorizedScalarPropsResolvers = (
   Model,
   User,
   props,
-  childToParents,
+  childToParent,
   acceptedTokenTypes,
 ) =>
   props.reduce((acc, prop) => {
@@ -781,14 +771,14 @@ const authorizedScalarPropsResolvers = (
       Model,
       User,
       prop,
-      childToParents,
+      childToParent,
       acceptedTokenTypes,
     )
     return acc
   }, {})
 
 const QUERY_COST = 1
-const rolesResolver = (roleName, Model, User, childToParents) => (
+const rolesResolver = (roleName, Model, User, childToParent) => (
   root,
   args,
   context,
@@ -812,28 +802,20 @@ const rolesResolver = (roleName, Model, User, childToParents) => (
 
         context.billingUpdater.update(QUERY_COST * modelFound[roleName].length)
       },
-      childToParents,
+      childToParent,
     ),
   )
 
-const deviceToParents = Board => async (deviceFound) => {
-  const boardFound = deviceFound.boardId
-    ? await Board.find({ where: { id: deviceFound.boardId } })
-    : null
+const deviceToParent = Board => async (deviceFound) => {
+  const boardFound = await Board.find({ where: { id: deviceFound.boardId } })
 
-  if (boardFound) return [boardFound]
-  return []
+  return boardFound
 }
 
-const valueToParents = (Device, Board) => async (valueFound) => {
-  const deviceFound = await Device.find({
-    where: { id: valueFound.deviceId },
-  })
-  const boardFound = deviceFound.boardId
-    ? await Board.find({ where: { id: deviceFound.boardId } })
-    : null
+const valueToParent = Board => async (valueFound) => {
+  const boardFound = await Board.find({ where: { id: deviceFound.boardId } })
 
-  return boardFound ? [deviceFound, boardFound] : [deviceFound]
+  return boardFound
 }
 
 const authorizedValue = (
@@ -862,26 +844,18 @@ const authorizedValue = (
       if (!resourceFound) {
         throw new Error(NOT_EXIST)
       } else {
-        const deviceFound = await Device.find({
-          where: { id: resourceFound.deviceId },
+        const boardFound = await Board.find({
+          where: { id: deviceFound.boardId },
         })
-        const boardFound = deviceFound.boardId
-          ? await Board.find({
-            where: { id: deviceFound.boardId },
-          })
-          : null
 
-        const valueAndParents = boardFound
-          ? [resourceFound, deviceFound, boardFound]
-          : [resourceFound, deviceFound]
         if (
-          (await authorizationLevel(valueAndParents, userFound)) <
+          (await authorizationLevel(boardFound, userFound)) <
           authorizationRequired
         ) {
           throw new Error(NOT_ALLOWED)
         } else {
           resourceFound.Model = Model
-          return [resourceFound, valueAndParents]
+          return [resourceFound, boardFound]
         }
       }
     })
@@ -930,13 +904,6 @@ const instanceToSharedIds = async (instance) => {
   return [owner, ...admins, ...editors, ...spectators].map(user => user.id)
 }
 
-const instancesToSharedIds = async (instances) => {
-  const idsList = await Promise.all(instances.map(instanceToSharedIds))
-  const flattenedIdsList = idsList.reduce((acc, curr) => [...acc, ...curr], [])
-
-  return flattenedIdsList
-}
-
 const inheritAuthorized = (
   ownId,
   ownModel,
@@ -946,7 +913,7 @@ const inheritAuthorized = (
   parentModel,
   authorizationRequired,
   callback,
-  childToParents,
+  childToParent,
   acceptedTokenTypes,
 ) => async (resolve, reject) => {
   const entityFound = await ownModel.find({
@@ -964,7 +931,7 @@ const inheritAuthorized = (
       authorizationRequired,
       (resolve, reject, parentFound, allParents) =>
         callback(resolve, reject, entityFound, parentFound, allParents),
-      childToParents,
+      childToParent,
       acceptedTokenTypes,
     )(resolve, reject)
   }
@@ -976,7 +943,7 @@ const inheritAuthorizedRetrieveScalarProp = (
   prop,
   ownIstanceToParentId,
   parentModel,
-  childToParents,
+  childToParent,
   acceptedTokenTypes,
 ) => (root, args, context) =>
   logErrorsPromise(
@@ -991,7 +958,7 @@ const inheritAuthorizedRetrieveScalarProp = (
       parentModel,
       1,
       (resolve, reject, resourceFound) => resolve(resourceFound[prop]),
-      childToParents,
+      childToParent,
       acceptedTokenTypes,
     ),
   )
@@ -1002,7 +969,7 @@ const inheritAuthorizedScalarPropsResolvers = (
   props,
   ownIstanceToParentId,
   parentModel,
-  childToParents,
+  childToParent,
   acceptedTokenTypes,
 ) =>
   props.reduce((acc, prop) => {
@@ -1012,7 +979,7 @@ const inheritAuthorizedScalarPropsResolvers = (
       prop,
       ownIstanceToParentId,
       parentModel,
-      childToParents,
+      childToParent,
       acceptedTokenTypes,
     )
     return acc
@@ -1153,12 +1120,12 @@ module.exports = {
   authorized,
   authorizedScalarPropsResolvers,
   rolesResolver,
-  deviceToParents,
-  valueToParents,
+  deviceToParent,
+  valueToParent,
   authorizedValue,
   firstResolve,
   instanceToRole,
-  instancesToSharedIds,
+  instanceToSharedIds,
   subscriptionFilterOwnedOrShared,
   inheritAuthorized,
   inheritAuthorizedScalarPropsResolvers,

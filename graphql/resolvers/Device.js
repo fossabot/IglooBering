@@ -4,7 +4,7 @@ import {
   findAllValues,
   authorizedScalarPropsResolvers,
   rolesResolver,
-  deviceToParents,
+  deviceToParent,
   instanceToRole,
 } from './utilities'
 import { Op } from 'sequelize'
@@ -40,7 +40,7 @@ const DeviceResolver = ({
       'batteryCharging',
       'firmware',
     ],
-    deviceToParents(Board),
+    deviceToParent(Board),
   ),
   values(root, args, context) {
     return logErrorsPromise(
@@ -71,7 +71,7 @@ const DeviceResolver = ({
 
           context.billingUpdater.update(QUERY_COST * valuesFound.length)
         },
-        deviceToParents(Board),
+        deviceToParent(Board),
       ),
     )
   },
@@ -96,7 +96,7 @@ const DeviceResolver = ({
 
           resolve(myRole)
         },
-        deviceToParents(Board),
+        deviceToParent(Board),
       ),
     )
   },
@@ -117,13 +117,13 @@ const DeviceResolver = ({
 
           context.billingUpdater.update(QUERY_COST)
         },
-        deviceToParents(Board),
+        deviceToParent(Board),
       ),
     )
   },
-  admins: rolesResolver('admin', Device, User, deviceToParents(Board)),
-  editors: rolesResolver('editor', Device, User, deviceToParents(Board)),
-  spectators: rolesResolver('spectator', Device, User, deviceToParents(Board)),
+  admins: rolesResolver('admin', Device, User, deviceToParent(Board)),
+  editors: rolesResolver('editor', Device, User, deviceToParent(Board)),
+  spectators: rolesResolver('spectator', Device, User, deviceToParent(Board)),
   board(root, args, context) {
     return logErrorsPromise(
       'Device board resolver',
@@ -141,7 +141,7 @@ const DeviceResolver = ({
 
           if (deviceFound.boardId) context.billingUpdater.update(QUERY_COST)
         },
-        deviceToParents(Board),
+        deviceToParent(Board),
       ),
     )
   },
@@ -161,7 +161,7 @@ const DeviceResolver = ({
           resolve(notifications)
           context.billingUpdater.update(QUERY_COST * notifications.length)
         },
-        deviceToParents(Board),
+        deviceToParent(Board),
       ),
     )
   },
@@ -187,7 +187,7 @@ const DeviceResolver = ({
 
           resolve(count)
         },
-        deviceToParents(Board),
+        deviceToParent(Board),
       ),
     )
   },

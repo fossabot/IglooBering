@@ -130,18 +130,16 @@ const UserResolver = ({
         if (context.auth.userId !== root.id) {
           reject('You are not allowed to access details about this user')
         } else {
-          const devices = await getAll(Device, User, root.id)
           const devicesInheritedByBoards = await getAll(Board, User, root.id, [
             { model: Device },
           ])
 
-          resolve(mergeIgnoringDuplicates(
-            devices,
-            devicesInheritedByBoards.reduce(
-              (acc, curr) => [...acc, ...curr.devices],
-              [],
-            ),
-          ))
+          const devices = devicesInheritedByBoards.reduce(
+            (acc, curr) => [...acc, ...curr.devices],
+            [],
+          )
+
+          resolve(devices)
           context.billingUpdater.update(QUERY_COST * devices.length)
         }
       }),
