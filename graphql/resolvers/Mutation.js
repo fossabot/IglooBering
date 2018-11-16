@@ -541,6 +541,8 @@ const MutationResolver = (
     CreateDevice(root, args, context) {
       return logErrorsPromise('CreateDevice', 104, async (resolve, reject) => {
         let boardId
+
+        // if boardId is not specified and there is only one board choose that board
         if (args.boardId) {
           boardId = args.boardId
         } else {
@@ -548,6 +550,7 @@ const MutationResolver = (
             where: { id: context.auth.userId },
           })
 
+          // TODO: is it possible to just use a count or at least fetch only the ids?
           const boards = await userFound.getOwnBoards()
 
           if (boards.length === 1) {
@@ -845,28 +848,32 @@ const MutationResolver = (
       )
     },
     user(root, args, context) {
-      let permissionRequired
-      const mutationFields = Object.keys(args)
-      if (args.displayName === null || args.displayName === '') {
-        reject('displayName cannot be null or empty')
-        return
-      } else if (Object.keys(args).length === 1) {
-        reject('You cannot make a mutation with only the id field')
-        return
-      }
+      return logErrorsPromise('user mutation', 115, (resolve, reject) => {
+        if (args.fullName === null || args.fullName === '') {
+          reject('fullName cannot be null or empty')
+          return
+        } else if (
+          args.email === null ||
+          args.settings_lengthAndMass === null ||
+          args.settings_temperature === null ||
+          args.settings_dateFormat === null ||
+          args.settings_timeFormat === null
+        ) {
+          reject('You passed null to a parameter that cannot be null')
+          return
+        }
 
-      if (mutationFields.length === 1 && mutationFields[0] === 'usageCap') {
-        permissionRequired = ['TEMPORARY', 'PERMANENT', 'CHANGE_USAGE_CAP']
-      } else if (
-        mutationFields.length === 1 &&
-        mutationFields[0] === 'paymentPlan'
-      ) {
-        permissionRequired = ['TEMPORARY', 'PERMANENT', 'SWITCH_TO_PAYING']
-      }
+        const mutationFields = Object.keys(args)
+        let permissionRequired
+        if (mutationFields.length === 1 && mutationFields[0] === 'usageCap') {
+          permissionRequired = ['TEMPORARY', 'PERMANENT', 'CHANGE_USAGE_CAP']
+        } else if (
+          mutationFields.length === 1 &&
+          mutationFields[0] === 'paymentPlan'
+        ) {
+          permissionRequired = ['TEMPORARY', 'PERMANENT', 'SWITCH_TO_PAYING']
+        }
 
-      return logErrorsPromise(
-        'user mutation',
-        115,
         authenticated(
           context,
           async (resolve, reject) => {
@@ -877,17 +884,6 @@ const MutationResolver = (
             if (!userFound) {
               reject("User doesn't exist. Use `SignupUser` to create one")
             } else {
-              if (
-                (args.email === null ||
-                  args.settings_lengthAndMass === null ||
-                  args.settings_temperature === null ||
-                  args.settings_dateFormat === null,
-                  args.settings_timeFormat === null)
-              ) {
-                reject('You passed null to a parameter that cannot be null')
-                return
-              }
-
               if (args.email) {
                 const sameEmailUserFound = await User.find({
                   where: { email: args.email },
@@ -930,8 +926,8 @@ const MutationResolver = (
             }
           },
           permissionRequired,
-        ),
-      )
+        )(resolve, reject)
+      })
     },
     updatePaymentInfo(root, args, context) {
       return logErrorsPromise(
@@ -1039,6 +1035,9 @@ const MutationResolver = (
               return
             } else if (args.boardId) {
               // devices can be moved only to boards owned by the user
+
+              // uses authorized passing mock reject and resolve, so that if the authorization
+              // throws error the resolve value of the promise is false and true otherwise
               const isOwnerOfTargetBoard = await new Promise(resolve =>
                 authorized(
                   args.boardId,
@@ -1051,6 +1050,7 @@ const MutationResolver = (
                   },
                   boardToParent,
                 )(() => {}, () => resolve(false)))
+
               if (!isOwnerOfTargetBoard) {
                 reject('You can only move devices to boards you own')
                 return
@@ -1342,7 +1342,7 @@ const MutationResolver = (
           Device,
           User,
           2,
-          async (resolve, reject, deviceFound, [_, boardFound]) => {
+          async (resolve, reject, deviceFound, [_, boardFound], userFound) => {
             if (args.content === '' || args.content === null) {
               reject('content cannot be null or an empty string')
               return
@@ -1395,21 +1395,12 @@ const MutationResolver = (
               },
               userIds: deviceSharedIds,
             })
-            if (deviceFound.boardId) {
-              const boardFound = await Board.find({
-                where: { id: deviceFound.boardId },
-              })
-              pubsub.publish('boardUpdated', {
-                boardUpdated: boardFound.dataValues,
-                userIds: await instanceToSharedIds(boardFound),
-              })
-            }
-            context.billingUpdater.update(MUTATION_COST)
-
-            // TODO: get userFound from callback
-            const userFound = await User.find({
-              where: { id: context.auth.userId },
+            pubsub.publish('boardUpdated', {
+              boardUpdated: boardFound.dataValues,
+              userIds: deviceSharedIds,
             })
+
+            context.billingUpdater.update(MUTATION_COST)
 
             if (!userFound.quietMode) {
               const notificationSubscriptions = await WebPushSubscription.findAll({
@@ -1548,15 +1539,10 @@ const MutationResolver = (
                 },
                 userIds: deviceSharedIds,
               })
-              if (deviceFound.boardId) {
-                const boardFound = await Board.find({
-                  where: { id: deviceFound.boardId },
-                })
-                pubsub.publish('boardUpdated', {
-                  boardUpdated: boardFound.dataValues,
-                  userIds: await instanceToSharedIds(boardFound),
-                })
-              }
+              pubsub.publish('boardUpdated', {
+                boardUpdated: boardFound.dataValues,
+                userIds: await instanceToSharedIds(boardFound),
+              })
               context.billingUpdater.update(MUTATION_COST)
             },
             deviceToParent(Board),
@@ -1610,6 +1596,8 @@ const MutationResolver = (
           3,
           async (resolve, reject, deviceFound, [_, boardFound]) => {
             const authorizedUsersIds = await instanceToSharedIds(boardFound)
+
+            // TODO: send deleted notifications also for children
             const deleteChild = Model =>
               Model.destroy({
                 where: {
@@ -1658,6 +1646,7 @@ const MutationResolver = (
               where: { boardId: boardFound.id },
             })
 
+            // TODO: send deleted notifications for children
             const deleteDevicesPromises = devices.map(async (device) => {
               const deleteChild = Model =>
                 Model.destroy({

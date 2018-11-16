@@ -243,7 +243,7 @@ const genericValueMutation = (
         if (args.customName === null || args.customName === '') {
           reject('customName cannot be null or an empty string')
           return
-        } else if (args.length === 1) {
+        } else if (Object.keys(args).length === 1) {
           reject('You cannot make a mutation with only the id field')
           return
         }
