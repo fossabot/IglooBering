@@ -107,7 +107,6 @@ type Mutation {
   CreateBoard(
     customName: String!
     avatar: BoardPicture
-    favorite: Boolean
     index: Int
     quietMode: Boolean
   ): Board
@@ -309,7 +308,6 @@ type Mutation {
     id: ID!
     customName: String
     avatar: BoardPicture
-    favorite: Boolean
     index: Int
     quietMode: Boolean
   ): Board
@@ -638,7 +636,6 @@ type Board {
   customName: String!
   avatar: BoardPicture!
   devices: [Device!]!
-  favorite: Boolean!
   notificationsCount: Int!
   index: Int!
   quietMode: Boolean!

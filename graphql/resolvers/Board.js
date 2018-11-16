@@ -77,6 +77,7 @@ const BoardResolver = ({
         User,
         1,
         async (resolve, reject, boardFound) => {
+          // TODO: consider changing implementation to that of user.notifications
           const devices = await Device.findAll({
             where: { boardId: root.id },
             attributes: ['id'],
@@ -116,26 +117,6 @@ const BoardResolver = ({
           const myRole = await instanceToRole(boardFound, userFound)
 
           resolve(myRole)
-        },
-        boardToParent,
-      ),
-    )
-  },
-  favorite(root, args, context) {
-    return logErrorsPromise(
-      'favorite BoardResolver',
-      932,
-      authorized(
-        root.id,
-        context,
-        Board,
-        User,
-        1,
-        async (resolve, reject, boardFound, boardAndParents, userFound) => {
-          const favorite =
-            boardFound.favorite.indexOf(context.auth.userId) !== -1
-
-          resolve(favorite)
         },
         boardToParent,
       ),

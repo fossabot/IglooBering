@@ -102,9 +102,6 @@ const databaseDefinition = (sequelize) => {
     avatar: {
       type: Sequelize.STRING,
     },
-    favorite: {
-      type: Sequelize.ARRAY(Sequelize.UUID),
-    },
     index: {
       type: Sequelize.INTEGER,
     },
