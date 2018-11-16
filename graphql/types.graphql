@@ -490,7 +490,6 @@ type Mutation {
     date: DateTime
     # whether the notification has already been visualized
     visualized: Boolean
-    snackbarVisualized: Boolean
   ): Notification
 
   # delete notification
@@ -697,7 +696,6 @@ type Notification {
   content: String!
   date: DateTime!
   visualized: Boolean!
-  snackbarVisualized: Boolean!
 }
 
 type PlotNode {

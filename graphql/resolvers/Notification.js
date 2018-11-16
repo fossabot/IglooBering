@@ -80,26 +80,6 @@ const UserResolver = ({
       ),
     )
   },
-  snackbarVisualized(root, args, context) {
-    return logErrorsPromise(
-      'Notification device resolver',
-      121,
-      inheritAuthorized(
-        root.id,
-        Notification,
-        User,
-        notificationToParent,
-        context,
-        Device,
-        1,
-        async (resolve, reject, notificationFound) => {
-          resolve(notificationFound.snackbarVisualized.indexOf(context.auth.userId) !== -1)
-          context.billingUpdater.update(QUERY_COST)
-        },
-        deviceToParent(Board),
-      ),
-    )
-  },
 })
 
 export default UserResolver

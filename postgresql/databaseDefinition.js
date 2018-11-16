@@ -186,9 +186,6 @@ const databaseDefinition = (sequelize) => {
     visualized: {
       type: Sequelize.ARRAY(Sequelize.UUID),
     },
-    snackbarVisualized: {
-      type: Sequelize.ARRAY(Sequelize.UUID),
-    },
   })
 
   const Value = {

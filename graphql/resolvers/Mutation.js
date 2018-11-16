@@ -1352,7 +1352,6 @@ const MutationResolver = (
             const newNotification = await Notification.create({
               ...args,
               visualized: [],
-              snackbarVisualized: [],
               userId: context.auth.userId,
               date: args.date || new Date(),
             })
@@ -1480,18 +1479,6 @@ const MutationResolver = (
                     : notificationFound.visualized
               } else if (updateQuery.visualized === false) {
                 updateQuery.visualized = notificationFound.visualized.filter(id => id !== context.auth.userId)
-              }
-
-              if (updateQuery.snackbarVisualized === true) {
-                updateQuery.snackbarVisualized =
-                  notificationFound.snackbarVisualized.indexOf(context.auth.userId) === -1
-                    ? [
-                      ...notificationFound.snackbarVisualized,
-                      context.auth.userId,
-                    ]
-                    : notificationFound.snackbarVisualized
-              } else if (updateQuery.snackbarVisualized === false) {
-                updateQuery.snackbarVisualized = notificationFound.snackbarVisualized.filter(id => id !== context.auth.userId)
               }
 
               const {
