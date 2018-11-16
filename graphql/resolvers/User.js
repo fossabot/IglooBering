@@ -82,7 +82,6 @@ const UserResolver = ({
     'language',
     'timeZone',
     'devMode',
-    'nightMode',
     'monthUsage',
     'emailIsVerified',
     'settings_lengthAndMass',

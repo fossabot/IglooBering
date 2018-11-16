@@ -37,6 +37,7 @@ const DeviceResolver = ({
       'signalStatus',
       'batteryStatus',
       'batteryCharging',
+      'quietMode',
       'firmware',
     ],
     deviceToParent(Board),

@@ -52,9 +52,6 @@ const databaseDefinition = (sequelize) => {
     devMode: {
       type: Sequelize.BOOLEAN,
     },
-    nightMode: {
-      type: Sequelize.BOOLEAN,
-    },
     stripeCustomerId: {
       type: Sequelize.STRING,
     },

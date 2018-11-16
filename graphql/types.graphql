@@ -289,7 +289,6 @@ type Mutation {
     # If active push notifications aren't sent
     quietMode: Boolean
     devMode: Boolean
-    nightMode: Boolean
     usageCap: Int
     paymentPlan: PaymentPlan
     fullName: String
@@ -600,7 +599,6 @@ type User {
   permanentTokens: [PermanentToken!]!
   quietMode: Boolean
   devMode: Boolean
-  nightMode: Boolean
   language: String
   timeZone: String
   monthUsage: Int

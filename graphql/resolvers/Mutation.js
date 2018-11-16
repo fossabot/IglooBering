@@ -344,7 +344,6 @@ const MutationResolver = (
               language: 'en-GB',
               timeZone: '+00:00_Greenwich', // TODO: Daylight Saving Time
               devMode: false,
-              nightMode: false,
               monthUsage: 0,
               paymentPlan: 'FREE',
               emailIsVerified: false,
