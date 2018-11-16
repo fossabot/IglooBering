@@ -74,30 +74,6 @@ const DeviceResolver = ({
       ),
     )
   },
-  owner(root, args, context) {
-    return logErrorsPromise(
-      'user BoardResolver',
-      902,
-      authorized(
-        root.id,
-        context,
-        Device,
-        User,
-        1,
-        async (resolve, reject, deviceFound) => {
-          resolve({
-            id: deviceFound.ownerId,
-          })
-
-          context.billingUpdater.update(QUERY_COST)
-        },
-        deviceToParent(Board),
-      ),
-    )
-  },
-  admins: rolesResolver('admin', Device, User, deviceToParent(Board)),
-  editors: rolesResolver('editor', Device, User, deviceToParent(Board)),
-  spectators: rolesResolver('spectator', Device, User, deviceToParent(Board)),
   board(root, args, context) {
     return logErrorsPromise(
       'Device board resolver',
@@ -111,9 +87,9 @@ const DeviceResolver = ({
         async (resolve, reject, deviceFound) => {
           // the Board resolver will take care of loading the other props,
           // it only needs to know the board id
-          resolve(deviceFound.boardId ? { id: deviceFound.boardId } : null)
+          resolve({ id: deviceFound.boardId })
 
-          if (deviceFound.boardId) context.billingUpdater.update(QUERY_COST)
+          context.billingUpdater.update(QUERY_COST)
         },
         deviceToParent(Board),
       ),
