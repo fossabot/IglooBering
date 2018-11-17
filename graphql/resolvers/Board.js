@@ -13,14 +13,12 @@ const QUERY_COST = 1
 const BoardResolver = ({
   User, Board, Device, Notification, joinTables,
 }) => ({
-  ...authorizedScalarPropsResolvers(Board, User, [
-    'customName',
-    'avatar',
-    'createdAt',
-    'updatedAt',
-    'index',
-    'quietMode',
-  ]),
+  ...authorizedScalarPropsResolvers(
+    Board,
+    User,
+    ['customName', 'avatar', 'createdAt', 'updatedAt', 'index', 'quietMode'],
+    boardToParent,
+  ),
   owner(root, args, context) {
     return logErrorsPromise(
       'user BoardResolver',
