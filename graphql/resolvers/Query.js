@@ -3,9 +3,10 @@ import {
   logErrorsPromise,
   findValue,
   authorized,
-  deviceToParents,
+  deviceToParent,
   notificationToParent,
   inheritAuthorized,
+  boardToParent,
 } from './utilities'
 import bcrypt from 'bcryptjs'
 
@@ -48,7 +49,7 @@ const QueryResolver = ({
 
           context.billingUpdater.update(QUERY_COST)
         },
-        deviceToParents(Board),
+        deviceToParent(Board),
       ),
     )
   },
@@ -66,6 +67,7 @@ const QueryResolver = ({
           resolve(boardFound.dataValues)
           context.billingUpdater.update(QUERY_COST)
         },
+        boardToParent,
       ),
     )
   },
@@ -134,7 +136,7 @@ const QueryResolver = ({
           resolve(notificationFound)
           context.billingUpdater.update(QUERY_COST)
         },
-        deviceToParents(Board),
+        deviceToParent(Board),
       ),
     )
   },

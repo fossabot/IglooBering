@@ -52,9 +52,6 @@ const databaseDefinition = (sequelize) => {
     devMode: {
       type: Sequelize.BOOLEAN,
     },
-    nightMode: {
-      type: Sequelize.BOOLEAN,
-    },
     stripeCustomerId: {
       type: Sequelize.STRING,
     },
@@ -101,9 +98,6 @@ const databaseDefinition = (sequelize) => {
     },
     avatar: {
       type: Sequelize.STRING,
-    },
-    favorite: {
-      type: Sequelize.ARRAY(Sequelize.UUID),
     },
     index: {
       type: Sequelize.INTEGER,
@@ -187,9 +181,6 @@ const databaseDefinition = (sequelize) => {
       defaultValue: Sequelize.NOW,
     },
     visualized: {
-      type: Sequelize.ARRAY(Sequelize.UUID),
-    },
-    snackbarVisualized: {
       type: Sequelize.ARRAY(Sequelize.UUID),
     },
   })
@@ -336,71 +327,53 @@ const databaseDefinition = (sequelize) => {
     Board.hasMany(Value)
   })
 
-  // sets up all the OWNER, ADMIN, EDITOR, SPECTATOR relationships using a join table for the last 3
-  const models = {
-    Board,
-    Device,
-    BoolValue,
-    FloatValue,
-    StringValue,
-    PlotValue,
-    StringPlotValue,
-    MapValue,
-  }
-  const modelNames = Object.keys(models)
-  const modelObjects = Object.values(models)
+  Board.Owner = 'OwnBoards'
+  Board.belongsTo(User, { as: 'owner' })
+  User.OwnBoards = User.hasMany(Board, {
+    as: 'OwnBoards',
+  })
 
   const associations = []
   const joinTables = {}
-  for (let i = 0; i < modelNames.length; i++) {
-    modelObjects[i].Owner = `Own${modelNames[i]}s`
-    modelObjects[i].belongsTo(User, { as: 'owner' })
-    User[`Own${modelNames[i]}s`] = User.hasMany(modelObjects[i], {
-      as: `Own${modelNames[i]}s`,
-    })
 
-    const adminAssociation = sequelize.define(`${modelNames[i]}Admins`, {})
-    associations.push(adminAssociation)
-    joinTables[`${modelNames[i]}Admins`] = adminAssociation
-    modelObjects[i].Admins = `Admin${modelNames[i]}s`
-    modelObjects[i].belongsToMany(User, {
-      as: 'admin',
-      through: `${modelNames[i]}Admins`,
-    })
-    User[`Admin${modelNames[i]}s`] = User.belongsToMany(modelObjects[i], {
-      through: `${modelNames[i]}Admins`,
-      as: `Admin${modelNames[i]}s`,
-    })
+  const adminAssociation = sequelize.define('BoardAdmins', {})
+  associations.push(adminAssociation)
+  joinTables.BoardAdmins = adminAssociation
+  Board.Admins = 'AdminBoards'
+  Board.belongsToMany(User, {
+    as: 'admin',
+    through: 'BoardAdmins',
+  })
+  User.AdminBoards = User.belongsToMany(Board, {
+    through: 'BoardAdmins',
+    as: 'AdminBoards',
+  })
 
-    const editorAssociation = sequelize.define(`${modelNames[i]}Editors`, {})
-    joinTables[`${modelNames[i]}Editors`] = editorAssociation
-    associations.push(editorAssociation)
-    modelObjects[i].Editors = `Editor${modelNames[i]}s`
-    modelObjects[i].belongsToMany(User, {
-      as: 'editor',
-      through: `${modelNames[i]}Editors`,
-    })
-    User[`Editor${modelNames[i]}s`] = User.belongsToMany(modelObjects[i], {
-      as: `Editor${modelNames[i]}s`,
-      through: `${modelNames[i]}Editors`,
-    })
+  const editorAssociation = sequelize.define('BoardEditors', {})
+  joinTables.BoardEditors = editorAssociation
+  associations.push(editorAssociation)
+  Board.Editors = 'EditorBoards'
+  Board.belongsToMany(User, {
+    as: 'editor',
+    through: 'BoardEditors',
+  })
+  User.EditorBoards = User.belongsToMany(Board, {
+    as: 'EditorBoards',
+    through: 'BoardEditors',
+  })
 
-    const spectatorAssociation = sequelize.define(
-      `${modelNames[i]}Spectators`,
-      {},
-    )
-    joinTables[`${modelNames[i]}Spectators`] = spectatorAssociation
-    associations.push(spectatorAssociation)
-    modelObjects[i].Spectators = `Spectator${modelNames[i]}s`
-    modelObjects[i].belongsToMany(User, {
-      as: 'spectator',
-      through: `${modelNames[i]}Spectators`,
-    })
-    User[`Spectator${modelNames[i]}s`] = User.belongsToMany(modelObjects[i], {
-      as: `Spectator${modelNames[i]}s`,
-      through: `${modelNames[i]}Spectators`,
-    })
-  }
+  const spectatorAssociation = sequelize.define('BoardSpectators', {})
+  joinTables.BoardSpectators = spectatorAssociation
+  associations.push(spectatorAssociation)
+  Board.Spectators = 'SpectatorBoards'
+  Board.belongsToMany(User, {
+    as: 'spectator',
+    through: 'BoardSpectators',
+  })
+  User.SpectatorBoards = User.belongsToMany(Board, {
+    as: 'SpectatorBoards',
+    through: 'BoardSpectators',
+  })
 
   return {
     User,

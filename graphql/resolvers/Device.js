@@ -3,9 +3,7 @@ import {
   logErrorsPromise,
   findAllValues,
   authorizedScalarPropsResolvers,
-  rolesResolver,
-  deviceToParents,
-  instanceToRole,
+  deviceToParent,
 } from './utilities'
 import { Op } from 'sequelize'
 
@@ -38,9 +36,10 @@ const DeviceResolver = ({
       'signalStatus',
       'batteryStatus',
       'batteryCharging',
+      'quietMode',
       'firmware',
     ],
-    deviceToParents(Board),
+    deviceToParent(Board),
   ),
   values(root, args, context) {
     return logErrorsPromise(
@@ -71,59 +70,10 @@ const DeviceResolver = ({
 
           context.billingUpdater.update(QUERY_COST * valuesFound.length)
         },
-        deviceToParents(Board),
+        deviceToParent(Board),
       ),
     )
   },
-  myRole(root, args, context) {
-    return logErrorsPromise(
-      'myRole BoardResolver',
-      902,
-      authorized(
-        root.id,
-        context,
-        Device,
-        User,
-        1,
-        async (
-          resolve,
-          reject,
-          deviceFound,
-          deviceAndParentFound,
-          userFound,
-        ) => {
-          const myRole = await instanceToRole(deviceAndParentFound, userFound)
-
-          resolve(myRole)
-        },
-        deviceToParents(Board),
-      ),
-    )
-  },
-  owner(root, args, context) {
-    return logErrorsPromise(
-      'user BoardResolver',
-      902,
-      authorized(
-        root.id,
-        context,
-        Device,
-        User,
-        1,
-        async (resolve, reject, deviceFound) => {
-          resolve({
-            id: deviceFound.ownerId,
-          })
-
-          context.billingUpdater.update(QUERY_COST)
-        },
-        deviceToParents(Board),
-      ),
-    )
-  },
-  admins: rolesResolver('admin', Device, User, deviceToParents(Board)),
-  editors: rolesResolver('editor', Device, User, deviceToParents(Board)),
-  spectators: rolesResolver('spectator', Device, User, deviceToParents(Board)),
   board(root, args, context) {
     return logErrorsPromise(
       'Device board resolver',
@@ -137,11 +87,11 @@ const DeviceResolver = ({
         async (resolve, reject, deviceFound) => {
           // the Board resolver will take care of loading the other props,
           // it only needs to know the board id
-          resolve(deviceFound.boardId ? { id: deviceFound.boardId } : null)
+          resolve({ id: deviceFound.boardId })
 
-          if (deviceFound.boardId) context.billingUpdater.update(QUERY_COST)
+          context.billingUpdater.update(QUERY_COST)
         },
-        deviceToParents(Board),
+        deviceToParent(Board),
       ),
     )
   },
@@ -161,7 +111,7 @@ const DeviceResolver = ({
           resolve(notifications)
           context.billingUpdater.update(QUERY_COST * notifications.length)
         },
-        deviceToParents(Board),
+        deviceToParent(Board),
       ),
     )
   },
@@ -187,7 +137,7 @@ const DeviceResolver = ({
 
           resolve(count)
         },
-        deviceToParents(Board),
+        deviceToParent(Board),
       ),
     )
   },

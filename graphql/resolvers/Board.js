@@ -2,24 +2,46 @@ import {
   logErrorsPromise,
   authorizedScalarPropsResolvers,
   authorized,
-  rolesResolver,
   instanceToRole,
+  boardToParent,
 } from './utilities'
 import { Op } from 'sequelize'
 
 const QUERY_COST = 1
 
+const rolesResolver = (roleName, Board, User) => (root, args, context) =>
+  logErrorsPromise(
+    'rolesIds resolver',
+    922,
+    authorized(
+      root.id,
+      context,
+      Board,
+      User,
+      1,
+      async (resolve, reject, found) => {
+        const boardFound = await Board.find({
+          where: { id: root.id },
+          include: [{ model: User, as: roleName }],
+        })
+
+        resolve(boardFound[roleName])
+
+        context.billingUpdater.update(QUERY_COST * boardFound[roleName].length)
+      },
+      boardToParent,
+    ),
+  )
+
 const BoardResolver = ({
   User, Board, Device, Notification, joinTables,
 }) => ({
-  ...authorizedScalarPropsResolvers(Board, User, [
-    'customName',
-    'avatar',
-    'createdAt',
-    'updatedAt',
-    'index',
-    'quietMode',
-  ]),
+  ...authorizedScalarPropsResolvers(
+    Board,
+    User,
+    ['customName', 'avatar', 'createdAt', 'updatedAt', 'index', 'quietMode'],
+    boardToParent,
+  ),
   owner(root, args, context) {
     return logErrorsPromise(
       'user BoardResolver',
@@ -37,6 +59,7 @@ const BoardResolver = ({
 
           context.billingUpdater.update(QUERY_COST)
         },
+        boardToParent,
       ),
     )
   },
@@ -60,6 +83,7 @@ const BoardResolver = ({
 
           context.billingUpdater.update(QUERY_COST * devices.length)
         },
+        boardToParent,
       ),
     )
   },
@@ -74,6 +98,7 @@ const BoardResolver = ({
         User,
         1,
         async (resolve, reject, boardFound) => {
+          // TODO: consider changing implementation to that of user.notifications
           const devices = await Device.findAll({
             where: { boardId: root.id },
             attributes: ['id'],
@@ -95,6 +120,7 @@ const BoardResolver = ({
           resolve(totalCount)
           context.billingUpdater.update(QUERY_COST)
         },
+        boardToParent,
       ),
     )
   },
@@ -109,29 +135,11 @@ const BoardResolver = ({
         User,
         1,
         async (resolve, reject, boardFound, boardAndParents, userFound) => {
-          const myRole = await instanceToRole([boardFound], userFound)
+          const myRole = await instanceToRole(boardFound, userFound)
 
           resolve(myRole)
         },
-      ),
-    )
-  },
-  favorite(root, args, context) {
-    return logErrorsPromise(
-      'favorite BoardResolver',
-      932,
-      authorized(
-        root.id,
-        context,
-        Board,
-        User,
-        1,
-        async (resolve, reject, boardFound, boardAndParents, userFound) => {
-          const favorite =
-            boardFound.favorite.indexOf(context.auth.userId) !== -1
-
-          resolve(favorite)
-        },
+        boardToParent,
       ),
     )
   },

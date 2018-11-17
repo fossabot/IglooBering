@@ -103,17 +103,10 @@ type Mutation {
   shareBoard(boardId: ID!, email: String!, role: Role!): Board
   stopSharingBoard(boardId: ID!, email: String!): Board
 
-  shareDevice(deviceId: ID!, email: String!, role: Role!): Device
-  stopSharingDevice(deviceId: ID!, email: String!): Device
-
-  shareValue(valueId: ID!, email: String!, role: Role!): Value
-  stopSharingValue(valueId: ID!, email: String!): Value
-
   # Creates a Board
   CreateBoard(
     customName: String!
     avatar: BoardPicture
-    favorite: Boolean
     index: Int
     quietMode: Boolean
   ): Board
@@ -296,7 +289,6 @@ type Mutation {
     # If active push notifications aren't sent
     quietMode: Boolean
     devMode: Boolean
-    nightMode: Boolean
     usageCap: Int
     paymentPlan: PaymentPlan
     fullName: String
@@ -315,7 +307,6 @@ type Mutation {
     id: ID!
     customName: String
     avatar: BoardPicture
-    favorite: Boolean
     index: Int
     quietMode: Boolean
   ): Board
@@ -498,7 +489,6 @@ type Mutation {
     date: DateTime
     # whether the notification has already been visualized
     visualized: Boolean
-    snackbarVisualized: Boolean
   ): Notification
 
   # delete notification
@@ -556,16 +546,8 @@ type Subscription {
   notificationCreated: Notification
   # subscribes to board shares
   boardShared: Board
-  # subscribes to device shares
-  deviceShared: Device
-  # subscribes to value shares
-  valueShared: Value
   # subscribes to board unshares
   boardStoppedSharing: ID
-  # subscribes to device unshares
-  deviceStoppedSharing: ID
-  # subscribes to values unshares
-  valueStoppedSharing: ID
   # subscribes to value updates
   userUpdated: User
   # subscribes to device updates
@@ -617,7 +599,6 @@ type User {
   permanentTokens: [PermanentToken!]!
   quietMode: Boolean
   devMode: Boolean
-  nightMode: Boolean
   language: String
   timeZone: String
   monthUsage: Int
@@ -652,7 +633,6 @@ type Board {
   customName: String!
   avatar: BoardPicture!
   devices: [Device!]!
-  favorite: Boolean!
   notificationsCount: Int!
   index: Int!
   quietMode: Boolean!
@@ -677,12 +657,7 @@ type Device {
   # Custom name gave by the end-user to the device
   customName: String
   values: [Value!]!
-  myRole: RoleExtended!
-  owner: User!
-  admins: [User!]!
-  editors: [User!]!
-  spectators: [User!]!
-  board: Board
+  board: Board!
   icon: String
   notifications: [Notification!]!
   notificationsCount: Int!
@@ -719,7 +694,6 @@ type Notification {
   content: String!
   date: DateTime!
   visualized: Boolean!
-  snackbarVisualized: Boolean!
 }
 
 type PlotNode {
@@ -760,11 +734,6 @@ interface Value {
   createdAt: DateTime!
   updatedAt: DateTime!
   device: Device!
-  myRole: RoleExtended!
-  owner: User!
-  admins: [User!]!
-  editors: [User!]!
-  spectators: [User!]!
   permission: ValuePermission! @defaultValue(value: READ_WRITE)
   visibility: ValueVisibility! @defaultValue(value: VISIBLE)
   valueDetails: String
@@ -778,11 +747,6 @@ type FloatValue implements Value {
   createdAt: DateTime!
   updatedAt: DateTime!
   device: Device!
-  myRole: RoleExtended!
-  owner: User!
-  admins: [User!]!
-  editors: [User!]!
-  spectators: [User!]!
   permission: ValuePermission! @defaultValue(value: READ_WRITE)
   visibility: ValueVisibility! @defaultValue(value: NORMAL)
   valueDetails: String
@@ -801,11 +765,6 @@ type StringValue implements Value {
   createdAt: DateTime!
   updatedAt: DateTime!
   device: Device!
-  myRole: RoleExtended!
-  owner: User!
-  admins: [User!]!
-  editors: [User!]!
-  spectators: [User!]!
   permission: ValuePermission! @defaultValue(value: READ_WRITE)
   visibility: ValueVisibility! @defaultValue(value: NORMAL)
   valueDetails: String
@@ -822,11 +781,6 @@ type PlotValue implements Value {
   createdAt: DateTime!
   updatedAt: DateTime!
   device: Device!
-  myRole: RoleExtended!
-  owner: User!
-  admins: [User!]!
-  editors: [User!]!
-  spectators: [User!]!
   permission: ValuePermission! @defaultValue(value: READ_WRITE)
   visibility: ValueVisibility! @defaultValue(value: NORMAL)
   valueDetails: String
@@ -847,11 +801,6 @@ type StringPlotValue implements Value {
   createdAt: DateTime!
   updatedAt: DateTime!
   device: Device!
-  myRole: RoleExtended!
-  owner: User!
-  admins: [User!]!
-  editors: [User!]!
-  spectators: [User!]!
   permission: ValuePermission! @defaultValue(value: READ_WRITE)
   visibility: ValueVisibility! @defaultValue(value: NORMAL)
   valueDetails: String
@@ -867,11 +816,6 @@ type BooleanValue implements Value {
   createdAt: DateTime!
   updatedAt: DateTime!
   device: Device!
-  myRole: RoleExtended!
-  owner: User!
-  admins: [User!]!
-  editors: [User!]!
-  spectators: [User!]!
   permission: ValuePermission! @defaultValue(value: READ_WRITE)
   visibility: ValueVisibility! @defaultValue(value: NORMAL)
   valueDetails: String
@@ -886,11 +830,6 @@ type MapValue implements Value {
   createdAt: DateTime!
   updatedAt: DateTime!
   device: Device!
-  myRole: RoleExtended!
-  owner: User!
-  admins: [User!]!
-  editors: [User!]!
-  spectators: [User!]!
   permission: ValuePermission! @defaultValue(value: READ_WRITE)
   visibility: ValueVisibility! @defaultValue(value: NORMAL)
   valueDetails: String
