@@ -3,7 +3,6 @@ import {
   logErrorsPromise,
   findAllValues,
   authorizedScalarPropsResolvers,
-  rolesResolver,
   deviceToParent,
 } from './utilities'
 import { Op } from 'sequelize'

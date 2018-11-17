@@ -734,35 +734,6 @@ const authorizedScalarPropsResolvers = (
     return acc
   }, {})
 
-const QUERY_COST = 1
-const rolesResolver = (roleName, Model, User, childToParent) => (
-  root,
-  args,
-  context,
-) =>
-  logErrorsPromise(
-    'rolesIds resolver',
-    922,
-    authorized(
-      root.id,
-      context,
-      Model,
-      User,
-      1,
-      async (resolve, reject, found) => {
-        const modelFound = await Model.find({
-          where: { id: root.id },
-          include: [{ model: User, as: roleName }],
-        })
-
-        resolve(modelFound[roleName])
-
-        context.billingUpdater.update(QUERY_COST * modelFound[roleName].length)
-      },
-      childToParent,
-    ),
-  )
-
 const deviceToParent = Board => async (deviceFound) => {
   const boardFound = await Board.find({ where: { id: deviceFound.boardId } })
 
@@ -1061,7 +1032,6 @@ module.exports = {
   authorizationLevel,
   authorized,
   authorizedScalarPropsResolvers,
-  rolesResolver,
   deviceToParent,
   valueToParent,
   authorizedValue,

@@ -51,104 +51,6 @@ const isNotNullNorUndefined = value => value !== undefined && value !== null
 const isOutOfBoundaries = (boundaries, value) =>
   value < boundaries[0] || value > boundaries[1]
 
-const genericShare = (
-  Model,
-  idField,
-  User,
-  pubsub,
-  subscription,
-  childToParent,
-) => (root, args, context) =>
-  logErrorsPromise(
-    'genericShare',
-    921,
-    authorized(
-      args[idField],
-      context,
-      Model,
-      User,
-      3,
-      async (resolve, reject, found) => {
-        const userFound = await User.find({ where: { email: args.email } })
-
-        if (!userFound) {
-          reject("This account doesn't exist, check the email passed")
-        } else if (userFound.id === context.auth.userId) {
-          reject("You can't share a resource with yourself")
-        } else {
-          // remove old role
-          await Promise.all([
-            userFound[`remove${Model.Admins}`](found),
-            userFound[`remove${Model.Editors}`](found),
-            userFound[`remove${Model.Spectators}`](found),
-          ])
-
-          // add new role
-          const parsedRole = `${args.role[0] +
-            args.role.slice(1).toLowerCase()}s`
-          await userFound[`add${Model[parsedRole]}`](found)
-
-          resolve(found)
-          context.billingUpdater.update(MUTATION_COST)
-
-          pubsub.publish(subscription, {
-            [subscription]: found,
-            userId: userFound.id,
-          })
-        }
-      },
-      childToParent,
-    ),
-  )
-
-const genericStopSharing = (
-  Model,
-  idField,
-  User,
-  pubsub,
-  subscription,
-  childToParent,
-) => (root, args, context) =>
-  logErrorsPromise(
-    'genericShare',
-    921,
-    authorized(
-      args[idField],
-      context,
-      Model,
-      User,
-      3,
-      async (resolve, reject, found, foundAndParents) => {
-        const userFound = await User.find({ where: { email: args.email } })
-        // instanceToRole now accepts an instance not an array
-        const role = await instanceToRole(foundAndParents, userFound)
-
-        if (!userFound) {
-          reject("This account doesn't exist, check the email passed")
-        } else if (!role) {
-          reject("This resource isn't shared with that user")
-        } else if (role === 'OWNER') {
-          reject('You cannot stop sharing a resource with its owner')
-        } else {
-          // remove old role
-          await Promise.all([
-            userFound[`remove${Model.Admins}`](found),
-            userFound[`remove${Model.Editors}`](found),
-            userFound[`remove${Model.Spectators}`](found),
-          ])
-
-          resolve(found)
-          context.billingUpdater.update(MUTATION_COST)
-
-          pubsub.publish(subscription, {
-            [subscription]: args[idField],
-            userId: userFound.id,
-          })
-        }
-      },
-      childToParent,
-    ),
-  )
 const MutationResolver = (
   {
     User,
@@ -484,14 +386,89 @@ const MutationResolver = (
         }),
       )
     },
-    shareBoard: genericShare(Board, 'boardId', User, pubsub, 'boardShared'),
-    stopSharingBoard: genericStopSharing(
-      Board,
-      'boardId',
-      User,
-      pubsub,
-      'boardStoppedSharing',
-    ),
+    shareBoard: (root, args, context) =>
+      logErrorsPromise(
+        'genericShare',
+        921,
+        authorized(
+          args.boardId,
+          context,
+          Board,
+          User,
+          3,
+          async (resolve, reject, found) => {
+            const userFound = await User.find({ where: { email: args.email } })
+
+            if (!userFound) {
+              reject("This account doesn't exist, check the email passed")
+            } else if (userFound.id === context.auth.userId) {
+              reject("You can't share a resource with yourself")
+            } else {
+              // remove old role
+              await Promise.all([
+                userFound[`remove${Board.Admins}`](found),
+                userFound[`remove${Board.Editors}`](found),
+                userFound[`remove${Board.Spectators}`](found),
+              ])
+
+              // add new role
+              const parsedRole = `${args.role[0] +
+                args.role.slice(1).toLowerCase()}s`
+              await userFound[`add${Board[parsedRole]}`](found)
+
+              resolve(found)
+              context.billingUpdater.update(MUTATION_COST)
+
+              pubsub.publish('boardShared', {
+                boardShared: found,
+                userId: userFound.id,
+              })
+            }
+          },
+          boardToParent,
+        ),
+      ),
+    stopSharingBoard: (root, args, context) =>
+      logErrorsPromise(
+        'genericShare',
+        921,
+        authorized(
+          args.boardId,
+          context,
+          Board,
+          User,
+          3,
+          async (resolve, reject, found, [_, boardFound]) => {
+            const userFound = await User.find({ where: { email: args.email } })
+            // instanceToRole now accepts an instance not an array
+            const role = await instanceToRole(boardFound, userFound)
+
+            if (!userFound) {
+              reject("This account doesn't exist, check the email passed")
+            } else if (!role) {
+              reject("This resource isn't shared with that user")
+            } else if (role === 'OWNER') {
+              reject('You cannot stop sharing a resource with its owner')
+            } else {
+              // remove old role
+              await Promise.all([
+                userFound[`remove${Board.Admins}`](found),
+                userFound[`remove${Board.Editors}`](found),
+                userFound[`remove${Board.Spectators}`](found),
+              ])
+
+              resolve(found)
+              context.billingUpdater.update(MUTATION_COST)
+
+              pubsub.publish('boardStoppedSharing', {
+                boardStoppedSharing: args[idField],
+                userId: userFound.id,
+              })
+            }
+          },
+          boardToParent,
+        ),
+      ),
     CreateBoard(root, args, context) {
       return logErrorsPromise(
         'CreateBoard',
