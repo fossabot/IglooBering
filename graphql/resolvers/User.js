@@ -199,7 +199,9 @@ const UserResolver = ({
           [],
         )
 
-        const totalCount = allNotifications.length
+        // count not visualized notifications
+        const totalCount = allNotifications.filter(notification =>
+          notification.visualized.indexOf(context.auth.userId) === -1).length
 
         resolve(totalCount)
         context.billingUpdater.update(QUERY_COST)
