@@ -532,8 +532,12 @@ const MutationResolver = (
 
           if (boards.length === 1) {
             boardId = boards[0].id
+          } else if (board.length === 0) {
+            reject('To create a device you need to have at least 1 board')
+            return
           } else {
             reject('You need to specify the boardId when the user has more than one board')
+            return
           }
         }
 
@@ -950,9 +954,15 @@ const MutationResolver = (
           Board,
           User,
           2,
-          async (resolve, reject, boardFound) => {
+          async (resolve, reject, boardFound, _, userFound) => {
             if (args.customName === '' || args.customName === null) {
               reject('customName cannot be null or an empty string')
+              return
+            } else if (
+              userFound.quietMode &&
+              isNotNullNorUndefined(args.quietMode)
+            ) {
+              reject('Cannot change quietMode at board level when it is enabled at user level')
               return
             } else if (Object.keys(args).length === 1) {
               reject('You cannot make a mutation with only the id field')
@@ -984,7 +994,7 @@ const MutationResolver = (
           Device,
           User,
           authorizationNeeded,
-          async (resolve, reject, deviceFound, [_, boardFound]) => {
+          async (resolve, reject, deviceFound, [_, boardFound], userFound) => {
             // runs sanity checks on the args
             if (
               isNotNullNorUndefined(args.batteryStatus) &&
@@ -1009,6 +1019,12 @@ const MutationResolver = (
               return
             } else if (args.boardId === null) {
               reject('boardId cannot be set to null')
+              return
+            } else if (
+              (boardFound.quietMode || userFound.quietMode) &&
+              isNotNullNorUndefined(args.quietMode)
+            ) {
+              reject('Cannot change quietMode at device level when it is enabled at board or user level')
               return
             } else if (args.boardId) {
               // devices can be moved only to boards owned by the user

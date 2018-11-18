@@ -36,7 +36,6 @@ const DeviceResolver = ({
       'signalStatus',
       'batteryStatus',
       'batteryCharging',
-      'quietMode',
       'firmware',
     ],
     deviceToParent(Board),
@@ -69,6 +68,29 @@ const DeviceResolver = ({
           resolve(valuesFound)
 
           context.billingUpdater.update(QUERY_COST * valuesFound.length)
+        },
+        deviceToParent(Board),
+      ),
+    )
+  },
+  quietMode(root, args, context) {
+    return logErrorsPromise(
+      'Device board resolver',
+      903,
+      authorized(
+        root.id,
+        context,
+        Device,
+        User,
+        1,
+        async (resolve, reject, deviceFound, [_, boardFound], userFound) => {
+          // the Board resolver will take care of loading the other props,
+          // it only needs to know the board id
+          resolve(deviceFound.quietMode ||
+              boardFound.quietMode ||
+              userFound.quietMode)
+
+          context.billingUpdater.update(QUERY_COST)
         },
         deviceToParent(Board),
       ),

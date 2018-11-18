@@ -39,9 +39,28 @@ const BoardResolver = ({
   ...authorizedScalarPropsResolvers(
     Board,
     User,
-    ['customName', 'avatar', 'createdAt', 'updatedAt', 'index', 'quietMode'],
+    ['customName', 'avatar', 'createdAt', 'updatedAt', 'index'],
     boardToParent,
   ),
+  quietMode(root, args, context) {
+    return logErrorsPromise(
+      'quietMode BoardResolver',
+      902,
+      authorized(
+        root.id,
+        context,
+        Board,
+        User,
+        1,
+        async (resolve, reject, boardFound, _, userFound) => {
+          resolve(boardFound.quietMode || userFound.quietMode)
+
+          context.billingUpdater.update(QUERY_COST)
+        },
+        boardToParent,
+      ),
+    )
+  },
   owner(root, args, context) {
     return logErrorsPromise(
       'user BoardResolver',
