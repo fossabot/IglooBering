@@ -308,6 +308,9 @@ const databaseDefinition = (sequelize) => {
   Device.hasMany(Notification)
   Notification.belongsTo(Device)
 
+  Board.hasMany(Notification)
+  Notification.belongsTo(Board)
+
   PlotValue.hasMany(PlotNode)
   PlotNode.belongsTo(PlotValue, { as: 'plot' })
 

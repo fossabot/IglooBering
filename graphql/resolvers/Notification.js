@@ -60,6 +60,26 @@ const UserResolver = ({
       ),
     )
   },
+  board(root, args, context) {
+    return logErrorsPromise(
+      'Notification board resolver',
+      121,
+      inheritAuthorized(
+        root.id,
+        Notification,
+        User,
+        notificationToParent,
+        context,
+        Device,
+        1,
+        async (resolve, reject, notificationFound) => {
+          resolve({ id: notificationFound.boardId })
+          context.billingUpdater.update(QUERY_COST)
+        },
+        deviceToParent(Board),
+      ),
+    )
+  },
   visualized(root, args, context) {
     return logErrorsPromise(
       'Notification device resolver',

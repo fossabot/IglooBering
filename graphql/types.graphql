@@ -690,6 +690,7 @@ enum TileSize {
 type Notification {
   id: ID! @isUnique
   device: Device!
+  board: Board!
   user: User!
   content: String!
   date: DateTime!
@@ -734,6 +735,7 @@ interface Value {
   createdAt: DateTime!
   updatedAt: DateTime!
   device: Device!
+  board: Board!
   permission: ValuePermission! @defaultValue(value: READ_WRITE)
   visibility: ValueVisibility! @defaultValue(value: VISIBLE)
   valueDetails: String
@@ -747,6 +749,7 @@ type FloatValue implements Value {
   createdAt: DateTime!
   updatedAt: DateTime!
   device: Device!
+  board: Board!
   permission: ValuePermission! @defaultValue(value: READ_WRITE)
   visibility: ValueVisibility! @defaultValue(value: NORMAL)
   valueDetails: String
@@ -765,6 +768,7 @@ type StringValue implements Value {
   createdAt: DateTime!
   updatedAt: DateTime!
   device: Device!
+  board: Board!
   permission: ValuePermission! @defaultValue(value: READ_WRITE)
   visibility: ValueVisibility! @defaultValue(value: NORMAL)
   valueDetails: String
@@ -781,6 +785,7 @@ type PlotValue implements Value {
   createdAt: DateTime!
   updatedAt: DateTime!
   device: Device!
+  board: Board!
   permission: ValuePermission! @defaultValue(value: READ_WRITE)
   visibility: ValueVisibility! @defaultValue(value: NORMAL)
   valueDetails: String
@@ -801,6 +806,7 @@ type StringPlotValue implements Value {
   createdAt: DateTime!
   updatedAt: DateTime!
   device: Device!
+  board: Board!
   permission: ValuePermission! @defaultValue(value: READ_WRITE)
   visibility: ValueVisibility! @defaultValue(value: NORMAL)
   valueDetails: String
@@ -816,6 +822,7 @@ type BooleanValue implements Value {
   createdAt: DateTime!
   updatedAt: DateTime!
   device: Device!
+  board: Board!
   permission: ValuePermission! @defaultValue(value: READ_WRITE)
   visibility: ValueVisibility! @defaultValue(value: NORMAL)
   valueDetails: String
@@ -830,6 +837,7 @@ type MapValue implements Value {
   createdAt: DateTime!
   updatedAt: DateTime!
   device: Device!
+  board: Board!
   permission: ValuePermission! @defaultValue(value: READ_WRITE)
   visibility: ValueVisibility! @defaultValue(value: NORMAL)
   valueDetails: String

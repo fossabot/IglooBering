@@ -1348,13 +1348,18 @@ const MutationResolver = (
 
             const newNotification = await Notification.create({
               ...args,
+              boardId: boardFound.id,
               visualized: [],
               userId: context.auth.userId,
               date: args.date || new Date(),
             })
 
+            // TODO: is this stuff useful?
             deviceFound.addNotification(newNotification)
             newNotification.setDevice(deviceFound)
+
+            boardFound.addNotification(newNotification)
+            newNotification.setBoard(boardFound)
 
             const {
               visualized,
@@ -1362,6 +1367,7 @@ const MutationResolver = (
               date,
               userId,
               deviceId,
+              boardId,
               id,
             } = newNotification.dataValues
 
@@ -1375,6 +1381,9 @@ const MutationResolver = (
               },
               device: {
                 id: deviceId,
+              },
+              board: {
+                id: boardId,
               },
             }
 

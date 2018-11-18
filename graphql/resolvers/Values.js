@@ -27,6 +27,40 @@ const GenericResolver = (Model, User, Device, Board) => ({
     ],
     valueToParent(Board),
   ),
+  device: (root, args, context) =>
+    logErrorsPromise(
+      'device ValueResolver',
+      135,
+      authorized(
+        root.id,
+        context,
+        Model,
+        User,
+        1,
+        async (resolve, reject, valueFound) => {
+          resolve({ id: valueFound.deviceId })
+          context.billingUpdater.update(QUERY_COST)
+        },
+        valueToParent(Board),
+      ),
+    ),
+  board: (root, args, context) =>
+    logErrorsPromise(
+      'board ValueResolver',
+      135,
+      authorized(
+        root.id,
+        context,
+        Model,
+        User,
+        1,
+        async (resolve, reject, valueFound) => {
+          resolve({ id: valueFound.boardId })
+          context.billingUpdater.update(QUERY_COST)
+        },
+        valueToParent(Board),
+      ),
+    ),
 })
 
 const BooleanValueResolver = GenericResolver
