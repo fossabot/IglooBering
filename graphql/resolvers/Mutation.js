@@ -223,7 +223,15 @@ const MutationResolver = (
     SignupUser(root, args, context) {
       return logErrorsPromise('SignupUser', 102, async (resolve, reject) => {
         // check password strength
-        if (zxcvbn(args.password).score < 2) {
+        const zxcvbnDictionary = [
+          args.email,
+          args.email.split('@')[0],
+          args.fullName,
+          'igloo',
+          'igloo aurora',
+          'aurora',
+        ]
+        if (zxcvbn(args.password, zxcvbnDictionary).score < 2) {
           reject('Password too weak, avoid easily guessable password or short ones')
           return
         }
@@ -243,14 +251,14 @@ const MutationResolver = (
               email: args.email,
               password: encryptedPass,
               quietMode: false,
-              language: 'en-GB',
-              timeZone: '+00:00_Greenwich', // TODO: Daylight Saving Time
               devMode: false,
               monthUsage: 0,
               paymentPlan: 'FREE',
               emailIsVerified: false,
               fullName: args.fullName,
               profileIconColor: randomUserIconColor(),
+              settings_language: 'en-GB',
+              settings_timeZone: '+00:00_Greenwich', // TODO: Daylight Saving Time
               settings_lengthAndMass: 'SI',
               settings_temperature: 'CELSIUS',
               settings_dateFormat: 'DMY',
@@ -833,14 +841,8 @@ const MutationResolver = (
         if (args.fullName === null || args.fullName === '') {
           reject('fullName cannot be null or empty')
           return
-        } else if (
-          args.email === null ||
-          args.settings_lengthAndMass === null ||
-          args.settings_temperature === null ||
-          args.settings_dateFormat === null ||
-          args.settings_timeFormat === null
-        ) {
-          reject('You passed null to a parameter that cannot be null')
+        } else if (args.email === null) {
+          reject('Email cannot be set to null')
           return
         }
 
@@ -909,6 +911,56 @@ const MutationResolver = (
           permissionRequired,
         )(resolve, reject)
       })
+    },
+    settings(root, args, context) {
+      return logErrorsPromise(
+        'settings Mutation',
+        1834,
+        authenticated(context, async (resolve, reject) => {
+          const userFound = await User.find({
+            where: { id: context.auth.userId },
+          })
+          if (!userFound) {
+            reject("User doesn't exist. Use `SignupUser` to create one")
+          } else if (
+            args.timeZone === null ||
+            args.language === null ||
+            args.lengthAndMass === null ||
+            args.temperature === null ||
+            args.dateFormat === null ||
+            args.timeFormat === null
+          ) {
+            reject("You passed null for a parameter that doesn't accept null")
+          } else {
+            const updateQuery = {}
+            const fields = [
+              'timeZone',
+              'language',
+              'lengthAndMass',
+              'temperature',
+              'dateFormat',
+              'timeFormat',
+            ]
+            fields.forEach((field) => {
+              if (isNotNullNorUndefined(args[field])) {
+                updateQuery[`settings_${field}`] = args[field]
+              }
+            })
+
+            userFound.update(updateQuery)
+
+            resolve({
+              timeZone: userFound.settings_timeZone,
+              language: userFound.settings_language,
+              lengthAndMass: userFound.settings_lengthAndMass,
+              temperature: userFound.settings_temperature,
+              dateFormat: userFound.settings_dateFormat,
+              timeFormat: userFound.settings_timeFormat,
+            })
+            context.billingUpdater.update(MUTATION_COST)
+          }
+        }),
+      )
     },
     updatePaymentInfo(root, args, context) {
       return logErrorsPromise(

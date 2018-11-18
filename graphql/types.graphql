@@ -284,8 +284,6 @@ type Mutation {
   # Change user's data
   user(
     email: String
-    timeZone: String
-    language: String
     # If active push notifications aren't sent
     quietMode: Boolean
     devMode: Boolean
@@ -294,11 +292,16 @@ type Mutation {
     fullName: String
     profileIcon: String
     profileIconColor: String
-    settings_lengthAndMass: LengthAndMass
-    settings_temperature: Temperature
-    settings_dateFormat: DateFormat
-    settings_timeFormat: TimeFormat
   ): User
+
+  settings(
+    timeZone: String
+    language: String
+    lengthAndMass: LengthAndMass
+    temperature: Temperature
+    dateFormat: DateFormat
+    timeFormat: TimeFormat
+  ): Settings
 
   updatePaymentInfo(stripeToken: String!): Boolean
 
@@ -585,6 +588,15 @@ enum PaymentPlan {
   PAYING
 }
 
+type Settings {
+  lengthAndMass: LengthAndMass!
+  temperature: Temperature!
+  timeFormat: TimeFormat!
+  dateFormat: DateFormat!
+  language: String!
+  timeZone: String!
+}
+
 type User {
   id: ID! @isUnique
   createdAt: DateTime!
@@ -599,8 +611,6 @@ type User {
   permanentTokens: [PermanentToken!]!
   quietMode: Boolean
   devMode: Boolean
-  language: String
-  timeZone: String
   monthUsage: Int
   paymentPlan: PaymentPlan
   usageCap: Int
@@ -608,10 +618,7 @@ type User {
   profileIcon: String
   profileIconColor: String
   emailIsVerified: Boolean
-  settings_lengthAndMass: LengthAndMass!
-  settings_temperature: Temperature!
-  settings_timeFormat: TimeFormat!
-  settings_dateFormat: DateFormat!
+  settings: Settings!
 }
 
 enum RoleExtended {

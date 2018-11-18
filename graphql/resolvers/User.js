@@ -79,15 +79,9 @@ const UserResolver = ({
     'createdAt',
     'updatedAt',
     'quietMode',
-    'language',
-    'timeZone',
     'devMode',
     'monthUsage',
     'emailIsVerified',
-    'settings_lengthAndMass',
-    'settings_temperature',
-    'settings_dateFormat',
-    'settings_timeFormat',
   ]),
   email: retrievePublicUserScalarProp(User, 'email', [
     'TEMPORARY',
@@ -119,12 +113,34 @@ const UserResolver = ({
     'PERMANENT',
     'CHANGE_USAGE_CAP',
   ]),
+  settings(root, args, context) {
+    return logErrorsPromise(
+      'User devices resolver',
+      107,
+      authenticated(context, async (resolve, reject) => {
+        if (context.auth.userId !== root.id) {
+          reject('You are not allowed to access details about this user')
+        } else {
+          const userFound = await User.find({ where: { id: root.id } })
+
+          resolve({
+            timeZone: userFound.settings_timeZone,
+            language: userFound.settings_language,
+            lengthAndMass: userFound.settings_lengthAndMass,
+            temperature: userFound.settings_temperature,
+            dateFormat: userFound.settings_dateFormat,
+            timeFormat: userFound.settings_timeFormat,
+          })
+          context.billingUpdater.update(QUERY_COST)
+        }
+      }),
+    )
+  },
   devices(root, args, context) {
     return logErrorsPromise(
       'User devices resolver',
       107,
       authenticated(context, async (resolve, reject) => {
-        /* istanbul ignore if - this should never be the case, so the error is not reproducible */
         if (context.auth.userId !== root.id) {
           reject('You are not allowed to access details about this user')
         } else {
@@ -148,7 +164,6 @@ const UserResolver = ({
       'User boards resolver',
       904,
       authenticated(context, async (resolve, reject) => {
-        /* istanbul ignore if - this should never be the case, so the error is not reproducible */
         if (context.auth.userId !== root.id) {
           reject('You are not allowed to access details about this user')
         } else {
@@ -166,7 +181,6 @@ const UserResolver = ({
       'User boards resolver',
       904,
       authenticated(context, async (resolve, reject) => {
-        /* istanbul ignore if - this should never be the case, so the error is not reproducible */
         if (context.auth.userId !== root.id) {
           reject('You are not allowed to access details about this user')
         } else {
@@ -182,29 +196,33 @@ const UserResolver = ({
     return logErrorsPromise(
       'notificationsCount UserResolver',
       925,
-      authenticated(context, async (resolve, reject, boardFound) => {
-        const devicesInheritedByBoards = await getAll(Board, User, root.id, [
-          { model: Device, include: [{ model: Notification }] },
-        ])
+      authenticated(context, async (resolve, reject) => {
+        if (context.auth.userId !== root.id) {
+          reject('You are not allowed to access details about this user')
+        } else {
+          const devicesInheritedByBoards = await getAll(Board, User, root.id, [
+            { model: Device, include: [{ model: Notification }] },
+          ])
 
-        // flattens the notifications
-        const allNotifications = devicesInheritedByBoards.reduce(
-          (acc, board) => [
-            ...acc,
-            ...board.devices.reduce(
-              (acc, device) => [...acc, ...device.notifications],
-              [],
-            ),
-          ],
-          [],
-        )
+          // flattens the notifications
+          const allNotifications = devicesInheritedByBoards.reduce(
+            (acc, board) => [
+              ...acc,
+              ...board.devices.reduce(
+                (acc, device) => [...acc, ...device.notifications],
+                [],
+              ),
+            ],
+            [],
+          )
 
-        // count not visualized notifications
-        const totalCount = allNotifications.filter(notification =>
-          notification.visualized.indexOf(context.auth.userId) === -1).length
+          // count not visualized notifications
+          const totalCount = allNotifications.filter(notification =>
+            notification.visualized.indexOf(context.auth.userId) === -1).length
 
-        resolve(totalCount)
-        context.billingUpdater.update(QUERY_COST)
+          resolve(totalCount)
+          context.billingUpdater.update(QUERY_COST)
+        }
       }),
     )
   },
@@ -243,7 +261,6 @@ const UserResolver = ({
       'User values resolver',
       108,
       authenticated(context, async (resolve, reject) => {
-        /* istanbul ignore if - this should never be the case, so the error is not reproducible */
         if (context.auth.userId !== root.id) {
           reject('You are not allowed to access details about this user')
         } else {
@@ -293,7 +310,6 @@ const UserResolver = ({
       'user permanentTokens',
       127,
       authenticated(context, async (resolve, reject) => {
-        /* istanbul ignore if - this should never be the case, so the error is not reproducible */
         if (context.auth.userId !== root.id) {
           reject('You are not allowed to access details about this user')
         } else {

@@ -40,12 +40,6 @@ const databaseDefinition = (sequelize) => {
     twoFactorSecret: {
       type: Sequelize.STRING,
     },
-    language: {
-      type: Sequelize.STRING,
-    },
-    timeZone: {
-      type: Sequelize.STRING,
-    },
     quietMode: {
       type: Sequelize.BOOLEAN,
     },
@@ -75,6 +69,12 @@ const databaseDefinition = (sequelize) => {
     },
     emailIsVerified: {
       type: Sequelize.BOOLEAN,
+    },
+    settings_language: {
+      type: Sequelize.STRING,
+    },
+    settings_timeZone: {
+      type: Sequelize.STRING,
     },
     settings_lengthAndMass: {
       type: Sequelize.STRING,
