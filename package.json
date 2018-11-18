@@ -5,28 +5,19 @@
   "scripts": {
     "dev": "nodemon ./server.js --exec babel-node --inspect -e js,graphql,env",
     "start": "npm run build && node ./build/server.js",
-    "build": "babel server.js app.js s3helpers.js shared.js -d build --source-maps && babel postgresql -d build/postgresql --source-maps && babel graphql -d build/graphql --source-maps",
+    "build":
+      "babel server.js app.js s3helpers.js shared.js -d build --source-maps && babel postgresql -d build/postgresql --source-maps && babel graphql -d build/graphql --source-maps",
     "setupDatabase": "node ./postgresql/setup.js",
-    "test": "jest --forceExit --c=jest.config.json",
-    "pretest": "npm run setupDatabase",
+    "test": "jest --c=jest.config.json",
     "coveralls": "cat ./coverage/lcov.info | ./node_modules/.bin/coveralls",
     "lint": "prettier-eslint **/*.js --write",
     "precommit": "lint-staged",
     "bill": "babel-node ./monthlyBilling"
   },
   "lint-staged": {
-    "*.js": [
-      "prettier-eslint --write",
-      "git add"
-    ],
-    "*.json": [
-      "prettier-eslint --write",
-      "git add"
-    ],
-    "*.graphql": [
-      "prettier-eslint --write",
-      "git add"
-    ]
+    "*.js": ["prettier-eslint --write", "git add"],
+    "*.json": ["prettier-eslint --write", "git add"],
+    "*.graphql": ["prettier-eslint --write", "git add"]
   },
   "repository": {
     "type": "git",

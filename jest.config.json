@@ -1,5 +1,4 @@
 {
   "collectCoverage": true,
-  "bail": true,
   "coveragePathIgnorePatterns": ["/node_modules/", "/tests/"]
 }
