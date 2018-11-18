@@ -2,50 +2,12 @@ import {
   authenticated,
   authorizationLevel,
   logErrorsPromise,
-  authorizedValue,
   firstResolve,
 } from './utilities'
 
 const QUERY_COST = 1
 
-const retrieveValueScalarProp = (Values, prop, Device, Board) => (
-  root,
-  context,
-) =>
-  authorizedValue(
-    root.id,
-    context,
-    Values,
-    User,
-    1,
-    (resolve, reject, valueFound) => resolve(valueFound[prop]),
-    Device,
-    Board,
-  )
-
-const valueScalarPropsResolvers = (Model, User, props, Device, Board) =>
-  props.reduce((acc, prop) => {
-    acc[prop] = retrieveValueScalarProp(Model, prop, Device, Board)
-    return acc
-  }, {})
-
 const ValueResolver = (Values, User, Device, Board) => ({
-  ...valueScalarPropsResolvers(
-    Values,
-    User,
-    [
-      'createdAt',
-      'updatedAt',
-      'permission',
-      'visibility',
-      'valueDetails',
-      'tileSize',
-      'customName',
-      'index',
-    ],
-    Device,
-    Board,
-  ),
   __resolveType: (root, context) =>
     logErrorsPromise(
       'value resolve type',

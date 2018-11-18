@@ -1094,6 +1094,8 @@ const MutationResolver = (
       Device,
       Board,
       (args, valueFound, reject) => {
+        const expectedNewValue = { ...valueFound.dataValues, ...args }
+
         if (
           isNotNullNorUndefined(args.boundaries) &&
           args.boundaries.length !== 2
@@ -1106,25 +1108,21 @@ const MutationResolver = (
         ) {
           reject('The min value should be less than the max value, boundaries should be an array [min, max]')
         } else if (
-          isNotNullNorUndefined(args.value) &&
-          (isNotNullNorUndefined(args.boundaries) ||
-            isNotNullNorUndefined(valueFound.boundaries)) &&
-          (isNotNullNorUndefined(args.boundaries)
-            ? isOutOfBoundaries(args.boundaries, args.value)
-            : isOutOfBoundaries(valueFound.boundaries, args.value))
+          isNotNullNorUndefined(expectedNewValue.value) &&
+          isNotNullNorUndefined(expectedNewValue.boundaries) &&
+          isOutOfBoundaries(expectedNewValue.boundaries, expectedNewValue.value)
         ) {
-          reject('Value is out of boundaries')
+          reject('value is out of boundaries')
           return false
         } else if (
-          !isNotNullNorUndefined(args.value) &&
-          isNotNullNorUndefined(args.boundaries) &&
-          isOutOfBoundaries(args.boundaries, valueFound.value)
+          expectedNewValue.boundaries === null &&
+          (expectedNewValue.tileSize === 'WIDE' ||
+            expectedNewValue.tileSize === 'TALL')
         ) {
-          reject('Current value is out of boundaries')
+          reject('FloatValue with no boundaries cannot have tileSize set to WIDE or TALL')
           return false
-        } else {
-          return true
         }
+        return true
       },
     ),
     stringValue: genericValueMutation(
@@ -1136,27 +1134,22 @@ const MutationResolver = (
       Board,
       (args, valueFound, reject) => {
         // Current or new value should respect maxChars and allowedValue
+        const expectedNewValue = { ...valueFound.dataValues, ...args }
 
         if (isNotNullNorUndefined(args.maxChars) && args.maxChars <= 0) {
           reject('maxChars must be greater than 0')
           return false
         } else if (
           isNotNullNorUndefined(args.value) &&
-          (isNotNullNorUndefined(args.maxChars) ||
-            isNotNullNorUndefined(valueFound.maxChars)) &&
-          (isNotNullNorUndefined(args.maxChars)
-            ? args.value.length > args.maxChars
-            : args.value.length > valueFound.maxChars)
+          isNotNullNorUndefined(expectedNewValue.maxChars) &&
+          args.value.length > expectedNewValue.maxChars
         ) {
           reject('The value provided exceeds the maxChars')
           return false
         } else if (
           isNotNullNorUndefined(args.value) &&
-          (isNotNullNorUndefined(args.allowedValues) ||
-            isNotNullNorUndefined(valueFound.allowedValues)) &&
-          (isNotNullNorUndefined(args.allowedValues)
-            ? args.allowedValues.indexOf(args.value) === -1
-            : valueFound.allowedValues.indexOf(args.value) === -1)
+          isNotNullNorUndefined(expectedNewValue.allowedValues) &&
+          expectedNewValue.allowedValues.indexOf(args.value) === -1
         ) {
           reject('The value is not among the allowedValues')
           return false
@@ -1173,6 +1166,18 @@ const MutationResolver = (
           valueFound.value.length > args.maxChars
         ) {
           reject('Current value exceeds maxChars')
+          return false
+        } else if (
+          isNotNullNorUndefined(expectedNewValue.maxChars) &&
+          isNotNullNorUndefined(expectedNewValue.allowedValues)
+        ) {
+          reject('Cannot have maxChars and allowedValues set at the same time, use only one')
+          return false
+        } else if (
+          isNotNullNorUndefined(expectedNewValue.maxChars) &&
+          expectedNewValue.permission === 'READ_ONLY'
+        ) {
+          reject('Cannot set maxChars for a Read-Only value')
           return false
         }
         return true

@@ -240,7 +240,10 @@ const genericValueMutation = (
       2,
       async (resolve, reject, valueFound, [_, boardFound]) => {
         if (!checkArgs(args, valueFound, reject)) return
-        if (args.customName === null || args.customName === '') {
+        if (args.value === null) {
+          reject('value cannot be null')
+          return
+        } else if (args.customName === null || args.customName === '') {
           reject('customName cannot be null or an empty string')
           return
         } else if (Object.keys(args).length === 1) {
