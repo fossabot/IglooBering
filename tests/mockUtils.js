@@ -7,12 +7,17 @@ module.exports = () => {
       avatar: 'fake avatar',
       index: 0,
       quietMode: false,
+      createdAt: '2018-11-19T17:42:05.045Z',
+      updateAt: '2018-11-19T17:42:05.045Z',
     },
   ]
 
   const mockUserData = [
     {
       id: 'mockUserId',
+      quietMode: false,
+      createdAt: '2018-11-19T17:42:05.045Z',
+      updateAt: '2018-11-19T17:42:05.045Z',
       hasOwnBoard: () => true,
       hasAdminBoard: () => true,
       hasEditorBoard: () => true,

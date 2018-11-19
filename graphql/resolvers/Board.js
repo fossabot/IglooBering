@@ -54,8 +54,6 @@ const BoardResolver = ({
         1,
         async (resolve, reject, boardFound, _, userFound) => {
           resolve(boardFound.quietMode || userFound.quietMode)
-
-          context.billingUpdater.update(QUERY_COST)
         },
         boardToParent,
       ),

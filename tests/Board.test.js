@@ -1,5 +1,6 @@
 import BoardResolverFactory from '../graphql/resolvers/Board'
 import MocksGenerator from './mockUtils'
+import { testScalarProp, unauthenticatedShouldFail } from './testUtils'
 
 const {
   MockedBoard,
@@ -14,45 +15,60 @@ const BoardResolver = BoardResolverFactory({
 })
 
 describe('Board', () => {
-  test('customName is resolved correctly', async (done) => {
-    const customNameFound = await BoardResolver.customName(
+  const testBoardScalarProp = testScalarProp(
+    BoardResolver,
+    { id: 'mockBoardId' },
+    mockBoardData[0],
+  )
+  const testUnauthenticated = unauthenticatedShouldFail(BoardResolver, {
+    id: 'mockBoardId',
+  })
+
+  // not using a for loop because this syntax integrates better with the IDE
+  test('customName is resolved correctly', testBoardScalarProp('customName'))
+  test('avatar is resolved correctly', testBoardScalarProp('avatar'))
+  test('index is resolved correctly', testBoardScalarProp('index'))
+  test('createdAt is resolved correctly', testBoardScalarProp('createdAt'))
+  test('updatedAt is resolved correctly', testBoardScalarProp('updatedAt'))
+
+  test('quietMode is resolved correctly', async (done) => {
+    const quietModeFound = await BoardResolver.quietMode(
       { id: 'mockBoardId' },
       {},
       { auth: { userId: 'mockUserId', tokenType: 'TEMPORARY' } },
     )
 
-    expect(customNameFound).toBe(mockBoardData[0].customName)
+    const correctQuietMode =
+      mockBoardData[0].quietMode || mockUserData[0].quietMode
+    expect(quietModeFound).toBe(correctQuietMode)
 
     done()
   })
 
-  test('updating a mockedValue works', async (done) => {
-    const boardFound = await MockedBoard.find({ where: { id: 'mockBoardId' } })
-    const boardReturned = await boardFound.update({ quietMode: true })
-    const boardFound2 = await MockedBoard.find({ where: { id: 'mockBoardId' } })
-
-    expect(boardFound2.quietMode).toBe(true)
-    done()
-  })
-
-  test('create works', async (done) => {
-    const boardsFound = await MockedBoard.findAll({ where: {} })
-    await MockedBoard.create({
-      id: 'mockedBoardId2',
-      userId: 'mockedUserId',
-      quietMode: true,
-    })
-    const boardsFound2 = await MockedBoard.findAll({ where: {} })
-
-    expect(boardsFound2.length).toBe(boardsFound.length + 1)
-    done()
-  })
-
-  test('update works', async (done) => {
-    const boardsFound = await MockedBoard.findAll({ where: {} })
-    const count = await MockedBoard.update({ quietMode: true }, {})
-
-    expect(count).toBe(boardsFound.length)
-    done()
-  })
+  test(
+    'fetch customName fails if unauthenticated',
+    testUnauthenticated('customName'),
+  )
+  test('fetch avatar fails if unauthenticated', testUnauthenticated('avatar'))
+  test('fetch index fails if unauthenticated', testUnauthenticated('index'))
+  test(
+    'fetch createdAt fails if unauthenticated',
+    testUnauthenticated('createdAt'),
+  )
+  test(
+    'fetch updatedAt fails if unauthenticated',
+    testUnauthenticated('updatedAt'),
+  )
+  test(
+    'fetch quietMode fails if unauthenticated',
+    testUnauthenticated('quietMode'),
+  )
+  test('fetch devices fails if unauthenticated', testUnauthenticated('devices'))
+  test('fetch owner fails if unauthenticated', testUnauthenticated('owner'))
+  test('fetch admins fails if unauthenticated', testUnauthenticated('admins'))
+  test('fetch editors fails if unauthenticated', testUnauthenticated('editors'))
+  test(
+    'fetch spectators fails if unauthenticated',
+    testUnauthenticated('spectators'),
+  )
 })
