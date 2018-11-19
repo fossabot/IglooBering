@@ -1,47 +1,49 @@
-import jwt from 'jwt-simple'
-import moment from 'moment'
-import chalk from 'chalk'
-import OTP from 'otp.js'
-import fortuna from 'javascript-fortuna'
-import { withFilter } from 'graphql-subscriptions'
-import winston from 'winston'
-import AWS from 'aws-sdk'
-import UpdateBatcher from 'update-batcher'
-import { isNullOrUndefined } from 'util'
+import jwt from "jwt-simple"
+import moment from "moment"
+import chalk from "chalk"
+import OTP from "otp.js"
+import fortuna from "javascript-fortuna"
+import { withFilter } from "graphql-subscriptions"
+import winston from "winston"
+import AWS from "aws-sdk"
+import UpdateBatcher from "update-batcher"
+import { isNullOrUndefined } from "util"
 
-require('dotenv').config()
+require("dotenv").config()
 
 /* istanbul ignore if */
 if (!process.env.JWT_SECRET) {
-  throw new Error('Could not load .env')
+  throw new Error("Could not load .env")
 }
 
-const ses = new AWS.SES({ region: 'eu-west-1' })
+const ses = new AWS.SES({ region: "eu-west-1" })
 
 const { combine, timestamp, printf } = winston.format
 
 const formatString = info =>
-  `${info.timestamp} [${info.label ? info.label : 'generic'}${chalk.bold(info.code ? ` ${info.code}` : '')}] ${info.level}: ${info.message}`
+  `${info.timestamp} [${info.label ? info.label : "generic"}${chalk.bold(
+    info.code ? ` ${info.code}` : ""
+  )}] ${info.level}: ${info.message}`
 
-const colorizedFormat = printf((info) => {
+const colorizedFormat = printf(info => {
   /* istanbul ignore next */
   const colorizer =
-    info.level === 'error'
+    info.level === "error"
       ? chalk.red
-      : info.level === 'warn'
+      : info.level === "warn"
         ? chalk.yellow
-        : info.level === 'info' ? chalk.blue : id => id
+        : info.level === "info" ? chalk.blue : id => id
 
   return colorizer(formatString(info))
 })
 const logger = winston.createLogger({
-  level: 'verbose',
+  level: "verbose",
   transports: [
     new winston.transports.Console({
       format: combine(timestamp(), colorizedFormat),
     }),
     new winston.transports.File({
-      filename: 'logs.log',
+      filename: "logs.log",
       format: combine(timestamp(), printf(formatString)), // do not colorize file logs
     }),
   ],
@@ -55,19 +57,21 @@ fortuna.init()
 const authenticated = (
   context,
   callback,
-  acceptedTokenTypes = ['TEMPORARY', 'PERMANENT'],
+  acceptedTokenTypes = ["TEMPORARY", "PERMANENT"]
 ) =>
-  (context.auth && acceptedTokenTypes.indexOf(context.auth.tokenType) > -1
+  context.auth && acceptedTokenTypes.indexOf(context.auth.tokenType) > -1
     ? callback
     : (resolve, reject) => {
-      if (!context.auth) {
-        reject('You are not authenticated. Use `AuthenticateUser` to obtain an authentication token')
-      } else if (context.auth.tokenType === 'SWITCH_TO_PAYING') {
-        reject('You exceeded the free usage quota')
-      } else if (context.auth.tokenType === 'CHANGE_USAGE_CAP') {
-        reject('You exceeded the usage cap that you set')
-      } else reject("This token doesn't have the required authorizations")
-    })
+        if (!context.auth) {
+          reject(
+            "You are not authenticated. Use `AuthenticateUser` to obtain an authentication token"
+          )
+        } else if (context.auth.tokenType === "SWITCH_TO_PAYING") {
+          reject("You exceeded the free usage quota")
+        } else if (context.auth.tokenType === "CHANGE_USAGE_CAP") {
+          reject("You exceeded the usage cap that you set")
+        } else reject("This token doesn't have the required authorizations")
+      }
 
 const generateAuthenticationToken = (userId, JWT_SECRET) =>
   jwt.encode(
@@ -77,28 +81,28 @@ const generateAuthenticationToken = (userId, JWT_SECRET) =>
         .add({ days: JWT_EXPIRE_DAYS })
         .unix(),
       userId,
-      accessLevel: 'OWNER',
-      tokenType: 'TEMPORARY',
+      accessLevel: "OWNER",
+      tokenType: "TEMPORARY",
     },
     JWT_SECRET,
-    'HS512',
+    "HS512"
   )
 
 const generatePermanentAuthenticationToken = (
   userId,
   tokenId,
   accessLevel,
-  JWT_SECRET,
+  JWT_SECRET
 ) =>
   jwt.encode(
     {
       userId,
       tokenId,
-      accessLevel: accessLevel || 'DEVICE',
-      tokenType: 'PERMANENT',
+      accessLevel: accessLevel || "DEVICE",
+      tokenType: "PERMANENT",
     },
     JWT_SECRET,
-    'HS512',
+    "HS512"
   )
 
 const generatePasswordRecoveryToken = (userId, JWT_SECRET) =>
@@ -109,11 +113,11 @@ const generatePasswordRecoveryToken = (userId, JWT_SECRET) =>
         .add({ hours: 1 })
         .unix(),
       userId,
-      accessLevel: 'OWNER',
-      tokenType: 'PASSWORD_RECOVERY',
+      accessLevel: "OWNER",
+      tokenType: "PASSWORD_RECOVERY",
     },
     JWT_SECRET,
-    'HS512',
+    "HS512"
   )
 
 const getPropsIfDefined = (args, props) => {
@@ -137,10 +141,10 @@ const CreateGenericValue = (
   ModelName,
   ValueModels,
   pubsub,
-  argsChecks = (args, reject) => true,
+  argsChecks = (args, reject) => true
 ) => (root, args, context) =>
   logErrorsPromise(
-    'CreateGenericValue',
+    "CreateGenericValue",
     112,
     authorized(
       args.deviceId,
@@ -153,14 +157,16 @@ const CreateGenericValue = (
           return
         }
 
-        if (args.customName === '') {
-          reject('customName cannot be an empty string')
+        if (args.customName === "") {
+          reject("customName cannot be an empty string")
           return
         }
 
         async function calculateIndex() {
-          const valuesCountPromises = ValueModels.map(async model =>
-            await model.count({ where: { deviceId: args.deviceId } }))
+          const valuesCountPromises = ValueModels.map(
+            async model =>
+              await model.count({ where: { deviceId: args.deviceId } })
+          )
           const valuesCount = await Promise.all(valuesCountPromises)
 
           const newIndex = valuesCount.reduce((a, b) => a + b)
@@ -174,10 +180,10 @@ const CreateGenericValue = (
 
         const newValue = await Model.create({
           ...args,
-          tileSize: args.tileSize || 'NORMAL',
+          tileSize: args.tileSize || "NORMAL",
           ownerId: context.auth.userId,
           visibility: isNullOrUndefined(args.visibility)
-            ? 'VISIBLE'
+            ? "VISIBLE"
             : args.visibility,
           index,
         })
@@ -196,14 +202,14 @@ const CreateGenericValue = (
 
         resolve(resolveObj)
 
-        pubsub.publish('valueCreated', {
+        pubsub.publish("valueCreated", {
           valueCreated: resolveObj,
           userIds: await instanceToSharedIds(boardFound),
         })
         context.billingUpdater.update(MUTATION_COST)
       },
-      deviceToParent(Board),
-    ),
+      deviceToParent(Board)
+    )
   )
 
 const logErrorsPromise = (name, code, callback) =>
@@ -211,11 +217,19 @@ const logErrorsPromise = (name, code, callback) =>
     try {
       await callback(resolve, reject)
     } catch (e) /* istanbul ignore next */ {
-      if (e.parent && e.parent.routine === 'string_to_uuid') {
-        reject(new Error('The ID you provided is not a valid ID, check for typing mistakes'))
+      if (e.parent && e.parent.routine === "string_to_uuid") {
+        reject(
+          new Error(
+            "The ID you provided is not a valid ID, check for typing mistakes"
+          )
+        )
       } else {
         logger.error(e.toString(), { label: name, code })
-        reject(new Error(`${code} - An internal error occured, please contact us. The error code is ${code}`))
+        reject(
+          new Error(
+            `${code} - An internal error occured, please contact us. The error code is ${code}`
+          )
+        )
       }
     }
   })
@@ -227,10 +241,10 @@ const genericValueMutation = (
   User,
   Device,
   Board,
-  checkArgs = (args, valueFound, reject) => true,
+  checkArgs = (args, valueFound, reject) => true
 ) => (root, args, context) =>
   logErrorsPromise(
-    'genericValue mutation',
+    "genericValue mutation",
     117,
     authorized(
       args.id,
@@ -241,13 +255,13 @@ const genericValueMutation = (
       async (resolve, reject, valueFound, [_, boardFound]) => {
         if (!checkArgs(args, valueFound, reject)) return
         if (args.value === null) {
-          reject('value cannot be null')
+          reject("value cannot be null")
           return
-        } else if (args.customName === null || args.customName === '') {
-          reject('customName cannot be null or an empty string')
+        } else if (args.customName === null || args.customName === "") {
+          reject("customName cannot be null or an empty string")
           return
         } else if (Object.keys(args).length === 1) {
-          reject('You cannot make a mutation with only the id field')
+          reject("You cannot make a mutation with only the id field")
           return
         }
 
@@ -263,25 +277,25 @@ const genericValueMutation = (
         }
         resolve(resolveObj)
 
-        pubsub.publish('valueUpdated', {
+        pubsub.publish("valueUpdated", {
           valueUpdated: { ...resolveObj, __resolveType },
           userIds: await instanceToSharedIds(boardFound),
         })
         context.billingUpdater.update(MUTATION_COST)
       },
-      valueToParent(Board),
-    ),
+      valueToParent(Board)
+    )
   )
 
-const create2FSecret = (user) => {
-  const allowedChars = 'QWERTYUIOPASDFGHJKLZXCVBNM234567'
-  let secret = ''
+const create2FSecret = user => {
+  const allowedChars = "QWERTYUIOPASDFGHJKLZXCVBNM234567"
+  let secret = ""
   for (let i = 0; i < 12; i += 1) {
     const randomNumber = Math.floor(fortuna.random() * allowedChars.length)
     secret += allowedChars[randomNumber]
   }
   secret = GA.encode(secret)
-  return { secret, qrCode: GA.qrCode(user, 'igloo', secret) }
+  return { secret, qrCode: GA.qrCode(user, "igloo", secret) }
 }
 
 const check2FCode = (code, secret) => {
@@ -299,10 +313,10 @@ const subscriptionFilterOnlyMine = (subscriptionName, pubsub) => ({
       const myUserId = context.auth.userId
       return withFilter(
         () => pubsub.asyncIterator(subscriptionName),
-        payload => payload.userId === myUserId,
+        payload => payload.userId === myUserId
       )(root, args, context, info)
     }
-    throw new Error('No authorization token')
+    throw new Error("No authorization token")
   },
 })
 
@@ -312,10 +326,10 @@ const subscriptionFilterOwnedOrShared = (subscriptionName, pubsub) => ({
       const myUserId = context.auth.userId
       return withFilter(
         () => pubsub.asyncIterator(subscriptionName),
-        payload => payload.userIds.indexOf(myUserId) !== -1,
+        payload => payload.userIds.indexOf(myUserId) !== -1
       )(root, args, context, info)
     }
-    throw new Error('No authorization token')
+    throw new Error("No authorization token")
   },
 })
 
@@ -327,7 +341,7 @@ const firstResolve = promises =>
     let resolved = false
     promises.forEach((promise, idx) => {
       promise
-        .then((found) => {
+        .then(found => {
           if (!resolved) {
             resolved = true
             resolve(found)
@@ -335,7 +349,7 @@ const firstResolve = promises =>
         })
         /* istanbul ignore next */
 
-        .catch((err) => {
+        .catch(err => {
           errors[idx] = err
           count += 1
           if (count === promises.length) {
@@ -347,10 +361,8 @@ const firstResolve = promises =>
 
 // !! doesn't check if the user has the authorizations needed
 const findAllValues = (
-  {
-    BoolValue, FloatValue, StringValue, PlotValue, StringPlotValue, MapValue,
-  },
-  query,
+  { BoolValue, FloatValue, StringValue, PlotValue, StringPlotValue, MapValue },
+  query
 ) => {
   const booleanValues = BoolValue.findAll(query)
   const floatValues = FloatValue.findAll(query)
@@ -366,120 +378,132 @@ const findAllValues = (
     plotValues,
     stringPlotValues,
     mapValues,
-  ]).then(([
-    booleanValues,
-    floatValues,
-    stringValues,
-    plotValues,
-    stringPlotValues,
-    mapValues,
-  ]) => [
-    ...booleanValues.map(value => ({
-      ...value.dataValues,
-      owner: { id: value.dataValues.ownerId },
-      device: { id: value.dataValues.deviceId },
-      __resolveType: 'BooleanValue',
-    })),
-    ...floatValues.map(value => ({
-      ...value.dataValues,
-      owner: { id: value.dataValues.ownerId },
-      device: { id: value.dataValues.deviceId },
-      __resolveType: 'FloatValue',
-    })),
-    ...stringValues.map(value => ({
-      ...value.dataValues,
-      owner: { id: value.dataValues.ownerId },
-      device: { id: value.dataValues.deviceId },
-      __resolveType: 'StringValue',
-    })),
-    ...plotValues.map(value => ({
-      ...value.dataValues,
-      owner: { id: value.dataValues.ownerId },
-      device: { id: value.dataValues.deviceId },
-      __resolveType: 'PlotValue',
-    })),
-    ...stringPlotValues.map(value => ({
-      ...value.dataValues,
-      owner: { id: value.dataValues.ownerId },
-      device: { id: value.dataValues.deviceId },
-      __resolveType: 'StringPlotValue',
-    })),
-    ...mapValues.map(value => ({
-      ...value.dataValues,
-      owner: { id: value.dataValues.ownerId },
-      device: { id: value.dataValues.deviceId },
-      __resolveType: 'MapValue',
-    })),
-  ])
+  ]).then(
+    ([
+      booleanValues,
+      floatValues,
+      stringValues,
+      plotValues,
+      stringPlotValues,
+      mapValues,
+    ]) => [
+      ...booleanValues.map(value => ({
+        ...value.dataValues,
+        owner: { id: value.dataValues.ownerId },
+        device: { id: value.dataValues.deviceId },
+        __resolveType: "BooleanValue",
+      })),
+      ...floatValues.map(value => ({
+        ...value.dataValues,
+        owner: { id: value.dataValues.ownerId },
+        device: { id: value.dataValues.deviceId },
+        __resolveType: "FloatValue",
+      })),
+      ...stringValues.map(value => ({
+        ...value.dataValues,
+        owner: { id: value.dataValues.ownerId },
+        device: { id: value.dataValues.deviceId },
+        __resolveType: "StringValue",
+      })),
+      ...plotValues.map(value => ({
+        ...value.dataValues,
+        owner: { id: value.dataValues.ownerId },
+        device: { id: value.dataValues.deviceId },
+        __resolveType: "PlotValue",
+      })),
+      ...stringPlotValues.map(value => ({
+        ...value.dataValues,
+        owner: { id: value.dataValues.ownerId },
+        device: { id: value.dataValues.deviceId },
+        __resolveType: "StringPlotValue",
+      })),
+      ...mapValues.map(value => ({
+        ...value.dataValues,
+        owner: { id: value.dataValues.ownerId },
+        device: { id: value.dataValues.deviceId },
+        __resolveType: "MapValue",
+      })),
+    ]
+  )
 }
 
 // try refactoring this with firstResolve
 const findValue = (
-  {
-    BoolValue, FloatValue, StringValue, PlotValue, StringPlotValue, MapValue,
-  },
+  { BoolValue, FloatValue, StringValue, PlotValue, StringPlotValue, MapValue },
   Device,
   Board,
   query,
-  userFound,
+  userFound
 ) => {
-  const booleanValue = BoolValue.find(query).then(value =>
-    (value
-      ? {
-        ...value.dataValues,
-        user: { id: value.dataValues.userId },
-        device: { id: value.dataValues.deviceId },
-        __resolveType: 'BooleanValue',
-      }
-      : value))
-  const floatValue = FloatValue.find(query).then(value =>
-    (value
-      ? {
-        ...value.dataValues,
-        user: { id: value.dataValues.userId },
-        device: { id: value.dataValues.deviceId },
-        __resolveType: 'FloatValue',
-      }
-      : value))
-  const stringValue = StringValue.find(query).then(value =>
-    (value
-      ? {
-        ...value.dataValues,
-        user: { id: value.dataValues.userId },
-        device: { id: value.dataValues.deviceId },
-        __resolveType: 'StringValue',
-      }
-      : value))
+  const booleanValue = BoolValue.find(query).then(
+    value =>
+      value
+        ? {
+            ...value.dataValues,
+            user: { id: value.dataValues.userId },
+            device: { id: value.dataValues.deviceId },
+            __resolveType: "BooleanValue",
+          }
+        : value
+  )
+  const floatValue = FloatValue.find(query).then(
+    value =>
+      value
+        ? {
+            ...value.dataValues,
+            user: { id: value.dataValues.userId },
+            device: { id: value.dataValues.deviceId },
+            __resolveType: "FloatValue",
+          }
+        : value
+  )
+  const stringValue = StringValue.find(query).then(
+    value =>
+      value
+        ? {
+            ...value.dataValues,
+            user: { id: value.dataValues.userId },
+            device: { id: value.dataValues.deviceId },
+            __resolveType: "StringValue",
+          }
+        : value
+  )
 
-  const mapValue = MapValue.find(query).then(value =>
-    (value
-      ? {
-        ...value.dataValues,
-        user: { id: value.dataValues.userId },
-        device: { id: value.dataValues.deviceId },
-        __resolveType: 'MapValue',
-      }
-      : value))
+  const mapValue = MapValue.find(query).then(
+    value =>
+      value
+        ? {
+            ...value.dataValues,
+            user: { id: value.dataValues.userId },
+            device: { id: value.dataValues.deviceId },
+            __resolveType: "MapValue",
+          }
+        : value
+  )
 
-  const plotValue = PlotValue.find(query).then(value =>
-    (value
-      ? {
-        ...value.dataValues,
-        user: { id: value.dataValues.userId },
-        device: { id: value.dataValues.deviceId },
-        __resolveType: 'PlotValue',
-      }
-      : value))
+  const plotValue = PlotValue.find(query).then(
+    value =>
+      value
+        ? {
+            ...value.dataValues,
+            user: { id: value.dataValues.userId },
+            device: { id: value.dataValues.deviceId },
+            __resolveType: "PlotValue",
+          }
+        : value
+  )
 
-  const stringPlotValue = StringPlotValue.find(query).then(value =>
-    (value
-      ? {
-        ...value.dataValues,
-        user: { id: value.dataValues.userId },
-        device: { id: value.dataValues.deviceId },
-        __resolveType: 'StringPlotValue',
-      }
-      : value))
+  const stringPlotValue = StringPlotValue.find(query).then(
+    value =>
+      value
+        ? {
+            ...value.dataValues,
+            user: { id: value.dataValues.userId },
+            device: { id: value.dataValues.deviceId },
+            __resolveType: "StringPlotValue",
+          }
+        : value
+  )
 
   return Promise.all([
     booleanValue,
@@ -490,15 +514,17 @@ const findValue = (
     stringPlotValue,
   ])
     .then(values => values.reduce((acc, val) => val || acc, null))
-    .then(async (value) => {
-      if (!value) throw new Error('The requested resource does not exist')
+    .then(async value => {
+      if (!value) throw new Error("The requested resource does not exist")
       else {
         const boardFound = await Board.find({
           where: { id: value.boardId },
         })
 
         if ((await authorizationLevel(boardFound, userFound)) < 1) {
-          throw new Error('You are not allowed to access details about this resource')
+          throw new Error(
+            "You are not allowed to access details about this resource"
+          )
         } else return value
       }
     })
@@ -512,16 +538,16 @@ const sendVerificationEmail = (email, userId) => {
     {
       userId,
       email,
-      tokenType: 'EMAIL_VERIFICATION',
+      tokenType: "EMAIL_VERIFICATION",
     },
     process.env.JWT_SECRET,
-    'HS512',
+    "HS512"
   )
 
   const GRAPHQL_PORT = process.env.PORT || 3000
   const serverLink =
-    process.env.NODE_ENV === 'production'
-      ? 'https://iglooql.herokuapp.com/verifyEmail/'
+    process.env.NODE_ENV === "production"
+      ? "https://iglooql.herokuapp.com/verifyEmail/"
       : `http://localhost:${GRAPHQL_PORT}/verifyEmail/`
   const emailVerificationLink = serverLink + verificationToken
 
@@ -533,21 +559,21 @@ const sendVerificationEmail = (email, userId) => {
       Message: {
         Body: {
           Html: {
-            Charset: 'UTF-8',
+            Charset: "UTF-8",
             Data: `Verify your account clicking this link: <a href="${emailVerificationLink}">VERIFY</a>`,
           },
           Text: {
-            Charset: 'UTF-8',
+            Charset: "UTF-8",
             Data: `Verify your account visiting this link: ${emailVerificationLink}`,
           },
         },
         Subject: {
-          Charset: 'UTF-8',
-          Data: 'Verify your account',
+          Charset: "UTF-8",
+          Data: "Verify your account",
         },
       },
     },
-    console.log,
+    console.log
   )
 }
 
@@ -555,7 +581,7 @@ const sendPasswordRecoveryEmail = (email, userId) => {
   // TODO: use different jwt secrets?
   const recoveryToken = generatePasswordRecoveryToken(
     userId,
-    process.env.JWT_SECRET,
+    process.env.JWT_SECRET
   )
 
   // TODO: update this with the real link
@@ -569,25 +595,25 @@ const sendPasswordRecoveryEmail = (email, userId) => {
       Message: {
         Body: {
           Html: {
-            Charset: 'UTF-8',
+            Charset: "UTF-8",
             Data: `Change your password clicking this link: <a href="${emailRecoverylink}">Recover password</a>`,
           },
           Text: {
-            Charset: 'UTF-8',
+            Charset: "UTF-8",
             Data: `Change your password at this link: ${emailRecoverylink}`,
           },
         },
         Subject: {
-          Charset: 'UTF-8',
-          Data: 'Recover your password',
+          Charset: "UTF-8",
+          Data: "Recover your password",
         },
       },
     },
-    console.log,
+    console.log
   )
 }
 
-const sendPasswordUpdatedEmail = (email) => {
+const sendPasswordUpdatedEmail = email => {
   // TODO: create a template for the email verification
   ses.sendEmail(
     {
@@ -596,27 +622,27 @@ const sendPasswordUpdatedEmail = (email) => {
       Message: {
         Body: {
           Html: {
-            Charset: 'UTF-8',
+            Charset: "UTF-8",
             Data:
-              'Your password has been changed, if it was you that changed it you can ignore this email',
+              "Your password has been changed, if it was you that changed it you can ignore this email",
           },
           Text: {
-            Charset: 'UTF-8',
+            Charset: "UTF-8",
             Data:
-              'Your password has been changed, if it was you that changed it you can ignore this email',
+              "Your password has been changed, if it was you that changed it you can ignore this email",
           },
         },
         Subject: {
-          Charset: 'UTF-8',
-          Data: 'Password has been changed',
+          Charset: "UTF-8",
+          Data: "Password has been changed",
         },
       },
     },
-    console.log,
+    console.log
   )
 }
 
-const sendTokenCreatedEmail = (email) => {
+const sendTokenCreatedEmail = email => {
   // TODO: create a template for the email verification
   ses.sendEmail(
     {
@@ -625,23 +651,23 @@ const sendTokenCreatedEmail = (email) => {
       Message: {
         Body: {
           Html: {
-            Charset: 'UTF-8',
+            Charset: "UTF-8",
             Data:
-              'A new permanent token has been created, if it was you that created it you can ignore this email',
+              "A new permanent token has been created, if it was you that created it you can ignore this email",
           },
           Text: {
-            Charset: 'UTF-8',
+            Charset: "UTF-8",
             Data:
-              'A new permanent token has been created, if it was you that created it you can ignore this email',
+              "A new permanent token has been created, if it was you that created it you can ignore this email",
           },
         },
         Subject: {
-          Charset: 'UTF-8',
-          Data: 'A new permanent token has been created',
+          Charset: "UTF-8",
+          Data: "A new permanent token has been created",
         },
       },
     },
-    console.log,
+    console.log
   )
 }
 
@@ -666,7 +692,7 @@ function authorized(
   authorizationRequired,
   callback,
   childToParent,
-  acceptedTokenTypes,
+  acceptedTokenTypes
 ) {
   return authenticated(
     context,
@@ -674,7 +700,7 @@ function authorized(
       const found = await Model.find({ where: { id } })
 
       if (!found) {
-        reject('The requested resource does not exist')
+        reject("The requested resource does not exist")
       } else {
         const parent = await childToParent(found)
         const userFound = await User.find({
@@ -685,13 +711,13 @@ function authorized(
           (await authorizationLevel(parent, userFound)) < authorizationRequired
         ) {
           /* istanbul ignore next */
-          reject('You are not allowed to access details about this resource')
+          reject("You are not allowed to access details about this resource")
         } else {
           return callback(resolve, reject, found, [found, parent], userFound)
         }
       }
     },
-    acceptedTokenTypes,
+    acceptedTokenTypes
   )
 }
 
@@ -700,10 +726,10 @@ const authorizedRetrieveScalarProp = (
   User,
   prop,
   childToParent,
-  acceptedTokenTypes,
+  acceptedTokenTypes
 ) => (root, args, context) =>
   logErrorsPromise(
-    'authorizedRetrieveScalarProp',
+    "authorizedRetrieveScalarProp",
     920,
     authorized(
       root.id,
@@ -715,8 +741,8 @@ const authorizedRetrieveScalarProp = (
         resolve(resourceFound[prop])
       },
       childToParent,
-      acceptedTokenTypes,
-    ),
+      acceptedTokenTypes
+    )
   )
 
 const authorizedScalarPropsResolvers = (
@@ -724,7 +750,7 @@ const authorizedScalarPropsResolvers = (
   User,
   props,
   childToParent,
-  acceptedTokenTypes,
+  acceptedTokenTypes
 ) =>
   props.reduce((acc, prop) => {
     acc[prop] = authorizedRetrieveScalarProp(
@@ -732,18 +758,18 @@ const authorizedScalarPropsResolvers = (
       User,
       prop,
       childToParent,
-      acceptedTokenTypes,
+      acceptedTokenTypes
     )
     return acc
   }, {})
 
-const deviceToParent = Board => async (deviceFound) => {
+const deviceToParent = Board => async deviceFound => {
   const boardFound = await Board.find({ where: { id: deviceFound.boardId } })
 
   return boardFound
 }
 
-const valueToParent = Board => async (valueFound) => {
+const valueToParent = Board => async valueFound => {
   const boardFound = await Board.find({ where: { id: valueFound.boardId } })
 
   return boardFound
@@ -757,17 +783,17 @@ const authorizedValue = (
   authorizationRequired,
   callbackFunc,
   Device,
-  Board,
+  Board
 ) =>
   authenticated(context, async (resolve, reject) => {
     const NOT_ALLOWED =
-      'You are not allowed to access details about this resource'
-    const NOT_EXIST = 'The requested resource does not exist'
+      "You are not allowed to access details about this resource"
+    const NOT_EXIST = "The requested resource does not exist"
     const models = Object.values(Values)
 
     const userFound = await User.find({ where: { id: context.auth.userId } })
 
-    const findPromises = models.map(async (Model) => {
+    const findPromises = models.map(async Model => {
       const resourceFound = await Model.find({
         where: { id },
       })
@@ -792,18 +818,20 @@ const authorizedValue = (
     })
     // race all the models to find the looked for id, if a value is found
     // it is returned otherwise the correct error is returned
-    const resourcesFound = await firstResolve(findPromises).catch((e) => {
+    const resourcesFound = await firstResolve(findPromises).catch(e => {
       // choose the correct error, because normally most models
       // will reject with NOT_EXIST, simply because the value
       // looked for is of another type
 
-      reject(e.reduce(
-        (acc, val) =>
-          (acc === NOT_ALLOWED || val === NOT_ALLOWED
-            ? NOT_ALLOWED
-            : NOT_EXIST),
-        NOT_EXIST,
-      ))
+      reject(
+        e.reduce(
+          (acc, val) =>
+            acc === NOT_ALLOWED || val === NOT_ALLOWED
+              ? NOT_ALLOWED
+              : NOT_EXIST,
+          NOT_EXIST
+        )
+      )
     })
 
     return callbackFunc(resolve, reject, ...resourcesFound, userFound)
@@ -814,19 +842,19 @@ const instanceToRole = async (instance, userFound) => {
 
   switch (roleLevel) {
     case 4:
-      return 'OWNER'
+      return "OWNER"
     case 3:
-      return 'ADMIN'
+      return "ADMIN"
     case 2:
-      return 'EDITOR'
+      return "EDITOR"
     case 1:
-      return 'SPECTATOR'
+      return "SPECTATOR"
     case 0:
       return null
   }
 }
 
-const instanceToSharedIds = async (instance) => {
+const instanceToSharedIds = async instance => {
   const owner = await instance.getOwner()
   const admins = await instance.getAdmin()
   const editors = await instance.getEditor()
@@ -845,14 +873,14 @@ const inheritAuthorized = (
   authorizationRequired,
   callback,
   childToParent,
-  acceptedTokenTypes,
+  acceptedTokenTypes
 ) => async (resolve, reject) => {
   const entityFound = await ownModel.find({
     where: { id: ownId },
   })
 
   if (!entityFound) {
-    throw new Error('The requested resource does not exist')
+    throw new Error("The requested resource does not exist")
   } else {
     return authorized(
       ownIstanceToParentId(entityFound),
@@ -863,7 +891,7 @@ const inheritAuthorized = (
       (resolve, reject, parentFound, allParents) =>
         callback(resolve, reject, entityFound, parentFound, allParents),
       childToParent,
-      acceptedTokenTypes,
+      acceptedTokenTypes
     )(resolve, reject)
   }
 }
@@ -875,10 +903,10 @@ const inheritAuthorizedRetrieveScalarProp = (
   ownIstanceToParentId,
   parentModel,
   childToParent,
-  acceptedTokenTypes,
+  acceptedTokenTypes
 ) => (root, args, context) =>
   logErrorsPromise(
-    'inheritAuthorizedRetrieveScalarProp',
+    "inheritAuthorizedRetrieveScalarProp",
     1003,
     inheritAuthorized(
       root.id,
@@ -890,8 +918,8 @@ const inheritAuthorizedRetrieveScalarProp = (
       1,
       (resolve, reject, resourceFound) => resolve(resourceFound[prop]),
       childToParent,
-      acceptedTokenTypes,
-    ),
+      acceptedTokenTypes
+    )
   )
 
 const inheritAuthorizedScalarPropsResolvers = (
@@ -901,7 +929,7 @@ const inheritAuthorizedScalarPropsResolvers = (
   ownIstanceToParentId,
   parentModel,
   childToParent,
-  acceptedTokenTypes,
+  acceptedTokenTypes
 ) =>
   props.reduce((acc, prop) => {
     acc[prop] = inheritAuthorizedRetrieveScalarProp(
@@ -911,7 +939,7 @@ const inheritAuthorizedScalarPropsResolvers = (
       ownIstanceToParentId,
       parentModel,
       childToParent,
-      acceptedTokenTypes,
+      acceptedTokenTypes
     )
     return acc
   }, {})
@@ -926,7 +954,7 @@ async function getAll(Model, User, userId, includesList = []) {
       const clonedInclude = {}
       for (const key in includes[i]) {
         if (includes[i].hasOwnProperty(key)) {
-          if (key !== 'include') {
+          if (key !== "include") {
             clonedInclude[key] = includes[i][key]
           } else {
             clonedInclude[key] = deepCloneIncludes(includes[i][key])
@@ -941,30 +969,30 @@ async function getAll(Model, User, userId, includesList = []) {
 
   const allAccessibles = await User.find({
     where: { id: userId },
-    attributes: ['id'],
+    attributes: ["id"],
     include: [
       {
         model: Model,
         as: Model.Owner,
-        attributes: ['id'],
+        attributes: ["id"],
         include: deepCloneIncludes(includesList),
       },
       {
         model: Model,
         as: Model.Admins,
-        attributes: ['id'],
+        attributes: ["id"],
         include: deepCloneIncludes(includesList),
       },
       {
         model: Model,
         as: Model.Editors,
-        attributes: ['id'],
+        attributes: ["id"],
         include: deepCloneIncludes(includesList),
       },
       {
         model: Model,
         as: Model.Spectators,
-        attributes: ['id'],
+        attributes: ["id"],
         include: deepCloneIncludes(includesList),
       },
     ],
@@ -990,18 +1018,18 @@ const randomChoice = (...args) => {
 }
 
 const randomBoardAvatar = () =>
-  randomChoice(['NORTHERN_LIGHTS', 'DENALI', 'FOX', 'PUFFIN', 'TREETOPS'])
+  randomChoice(["NORTHERN_LIGHTS", "DENALI", "FOX", "PUFFIN", "TREETOPS"])
 
-const randomUserIconColor = () => randomChoice(['blue', 'red', 'green'])
+const randomUserIconColor = () => randomChoice(["blue", "red", "green"])
 
-const updateUserBilling = (User, auth) => async (bill) => {
+const updateUserBilling = (User, auth) => async bill => {
   const userFound = await User.find({ where: { id: auth.userId } })
 
   // TODO: handle this failure gracefully
   if (!userFound) {
     throw new Error("User doesn't exist. Use `SignupUser` to create one")
   } else {
-    const newUser = await userFound.increment('monthUsage', { by: bill })
+    const newUser = await userFound.increment("monthUsage", { by: bill })
     return newUser.monthUsage
   }
 }

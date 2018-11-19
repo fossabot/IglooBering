@@ -4,8 +4,8 @@ import {
   findAllValues,
   authorizedScalarPropsResolvers,
   deviceToParent,
-} from './utilities'
-import { Op } from 'sequelize'
+} from "./utilities"
+import { Op } from "sequelize"
 
 const QUERY_COST = 1
 
@@ -26,23 +26,23 @@ const DeviceResolver = ({
     Device,
     User,
     [
-      'createdAt',
-      'updatedAt',
-      'deviceType',
-      'customName',
-      'icon',
-      'index',
-      'online',
-      'signalStatus',
-      'batteryStatus',
-      'batteryCharging',
-      'firmware',
+      "createdAt",
+      "updatedAt",
+      "deviceType",
+      "customName",
+      "icon",
+      "index",
+      "online",
+      "signalStatus",
+      "batteryStatus",
+      "batteryCharging",
+      "firmware",
     ],
-    deviceToParent(Board),
+    deviceToParent(Board)
   ),
   values(root, args, context) {
     return logErrorsPromise(
-      'Device values resolver',
+      "Device values resolver",
       110,
       authorized(
         root.id,
@@ -62,20 +62,20 @@ const DeviceResolver = ({
             },
             {
               where: { deviceId: deviceFound.id },
-            },
+            }
           )
 
           resolve(valuesFound)
 
           context.billingUpdater.update(QUERY_COST * valuesFound.length)
         },
-        deviceToParent(Board),
-      ),
+        deviceToParent(Board)
+      )
     )
   },
   quietMode(root, args, context) {
     return logErrorsPromise(
-      'Device board resolver',
+      "Device board resolver",
       903,
       authorized(
         root.id,
@@ -86,17 +86,19 @@ const DeviceResolver = ({
         async (resolve, reject, deviceFound, [_, boardFound], userFound) => {
           // the Board resolver will take care of loading the other props,
           // it only needs to know the board id
-          resolve(deviceFound.quietMode || boardFound.quietMode || userFound.quietMode)
+          resolve(
+            deviceFound.quietMode || boardFound.quietMode || userFound.quietMode
+          )
 
           context.billingUpdater.update(QUERY_COST)
         },
-        deviceToParent(Board),
-      ),
+        deviceToParent(Board)
+      )
     )
   },
   board(root, args, context) {
     return logErrorsPromise(
-      'Device board resolver',
+      "Device board resolver",
       903,
       authorized(
         root.id,
@@ -111,13 +113,13 @@ const DeviceResolver = ({
 
           context.billingUpdater.update(QUERY_COST)
         },
-        deviceToParent(Board),
-      ),
+        deviceToParent(Board)
+      )
     )
   },
   notifications(root, args, context) {
     return logErrorsPromise(
-      'User devices resolver',
+      "User devices resolver",
       119,
       authorized(
         root.id,
@@ -131,13 +133,13 @@ const DeviceResolver = ({
           resolve(notifications)
           context.billingUpdater.update(QUERY_COST * notifications.length)
         },
-        deviceToParent(Board),
-      ),
+        deviceToParent(Board)
+      )
     )
   },
   notificationsCount(root, args, context) {
     return logErrorsPromise(
-      'notificationsCount device resolver',
+      "notificationsCount device resolver",
       916,
       authorized(
         root.id,
@@ -157,8 +159,8 @@ const DeviceResolver = ({
 
           resolve(count)
         },
-        deviceToParent(Board),
-      ),
+        deviceToParent(Board)
+      )
     )
   },
 })

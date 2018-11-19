@@ -6,63 +6,64 @@ import {
   deviceToParent,
   logErrorsPromise,
   instanceToSharedIds,
-} from './utilities'
+} from "./utilities"
 
 const subscriptionResolver = (pubsub, { User, Device, Board }) => ({
-  boardShared: subscriptionFilterOnlyMine('boardShared', pubsub),
+  boardShared: subscriptionFilterOnlyMine("boardShared", pubsub),
   boardStoppedSharing: subscriptionFilterOnlyMine(
-    'boardStoppedSharing',
-    pubsub,
+    "boardStoppedSharing",
+    pubsub
   ),
-  boardCreated: subscriptionFilterOnlyMine('boardCreated', pubsub),
-  deviceCreated: subscriptionFilterOwnedOrShared('deviceCreated', pubsub),
-  valueCreated: subscriptionFilterOwnedOrShared('valueCreated', pubsub),
+  boardCreated: subscriptionFilterOnlyMine("boardCreated", pubsub),
+  deviceCreated: subscriptionFilterOwnedOrShared("deviceCreated", pubsub),
+  valueCreated: subscriptionFilterOwnedOrShared("valueCreated", pubsub),
   permanentTokenCreated: subscriptionFilterOnlyMine(
-    'permanentTokenCreated',
-    pubsub,
+    "permanentTokenCreated",
+    pubsub
   ),
-  plotNodeCreated: subscriptionFilterOwnedOrShared('plotNodeCreated', pubsub),
+  plotNodeCreated: subscriptionFilterOwnedOrShared("plotNodeCreated", pubsub),
   stringPlotNodeCreated: subscriptionFilterOwnedOrShared(
-    'stringPlotNodeCreated',
-    pubsub,
+    "stringPlotNodeCreated",
+    pubsub
   ),
   notificationCreated: subscriptionFilterOwnedOrShared(
-    'notificationCreated',
-    pubsub,
+    "notificationCreated",
+    pubsub
   ),
-  userUpdated: subscriptionFilterOnlyMine('userUpdated', pubsub),
-  deviceUpdated: subscriptionFilterOwnedOrShared('deviceUpdated', pubsub),
-  boardUpdated: subscriptionFilterOwnedOrShared('boardUpdated', pubsub),
-  valueUpdated: subscriptionFilterOwnedOrShared('valueUpdated', pubsub),
-  plotNodeUpdated: subscriptionFilterOwnedOrShared('plotNodeUpdated', pubsub),
+  userUpdated: subscriptionFilterOnlyMine("userUpdated", pubsub),
+  deviceUpdated: subscriptionFilterOwnedOrShared("deviceUpdated", pubsub),
+  boardUpdated: subscriptionFilterOwnedOrShared("boardUpdated", pubsub),
+  valueUpdated: subscriptionFilterOwnedOrShared("valueUpdated", pubsub),
+  plotNodeUpdated: subscriptionFilterOwnedOrShared("plotNodeUpdated", pubsub),
   stringPlotNodeUpdated: subscriptionFilterOwnedOrShared(
-    'stringPlotNodeUpdated',
-    pubsub,
+    "stringPlotNodeUpdated",
+    pubsub
   ),
   notificationUpdated: subscriptionFilterOwnedOrShared(
-    'notificationUpdated',
-    pubsub,
+    "notificationUpdated",
+    pubsub
   ),
   notificationDeleted: subscriptionFilterOwnedOrShared(
-    'notificationDeleted',
-    pubsub,
+    "notificationDeleted",
+    pubsub
   ),
-  valueDeleted: subscriptionFilterOwnedOrShared('valueDeleted', pubsub),
-  deviceDeleted: subscriptionFilterOwnedOrShared('deviceDeleted', pubsub),
-  boardDeleted: subscriptionFilterOwnedOrShared('boardDeleted', pubsub),
-  plotNodeDeleted: subscriptionFilterOwnedOrShared('plotNodeDeleted', pubsub),
+  valueDeleted: subscriptionFilterOwnedOrShared("valueDeleted", pubsub),
+  deviceDeleted: subscriptionFilterOwnedOrShared("deviceDeleted", pubsub),
+  boardDeleted: subscriptionFilterOwnedOrShared("boardDeleted", pubsub),
+  userDeleted: subscriptionFilterOnlyMine("userDeleted", pubsub),
+  plotNodeDeleted: subscriptionFilterOwnedOrShared("plotNodeDeleted", pubsub),
   stringPlotNodeDeleted: subscriptionFilterOwnedOrShared(
-    'stringPlotNodeDeleted',
-    pubsub,
+    "stringPlotNodeDeleted",
+    pubsub
   ),
   permanentTokenDeleted: subscriptionFilterOnlyMine(
-    'permanentTokenDeleted',
-    pubsub,
+    "permanentTokenDeleted",
+    pubsub
   ),
   keepOnline: {
     subscribe: (root, args, context) =>
       logErrorsPromise(
-        'keepOnlineSubscription',
+        "keepOnlineSubscription",
         1000,
         authorized(
           args.deviceId,
@@ -74,7 +75,7 @@ const subscriptionResolver = (pubsub, { User, Device, Board }) => ({
             const newDevice = await deviceFound.update({ online: true })
             const userIds = await instanceToSharedIds(boardFound)
 
-            pubsub.publish('deviceUpdated', {
+            pubsub.publish("deviceUpdated", {
               deviceUpdated: newDevice.dataValues,
               userIds,
             })
@@ -84,10 +85,10 @@ const subscriptionResolver = (pubsub, { User, Device, Board }) => ({
               userIds,
             }
 
-            resolve(pubsub.asyncIterator('bogusIterator')) // this iterator will never send any data
+            resolve(pubsub.asyncIterator("bogusIterator")) // this iterator will never send any data
           },
-          deviceToParent(Board),
-        ),
+          deviceToParent(Board)
+        )
       ),
   },
 })

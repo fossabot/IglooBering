@@ -4,25 +4,23 @@ import {
   logErrorsPromise,
   inheritAuthorizedScalarPropsResolvers,
   deviceToParent,
-} from './utilities'
+} from "./utilities"
 
 const QUERY_COST = 1
 const notificationToParent = notificationFound => notificationFound.deviceId
 
-const UserResolver = ({
-  Notification, User, Device, Board,
-}) => ({
+const UserResolver = ({ Notification, User, Device, Board }) => ({
   ...inheritAuthorizedScalarPropsResolvers(
     Notification,
     User,
-    ['content', 'date'],
+    ["content", "date"],
     notificationToParent,
     Device,
-    deviceToParent(Board),
+    deviceToParent(Board)
   ),
   user(root, args, context) {
     return logErrorsPromise(
-      'Notification user resolver',
+      "Notification user resolver",
       120,
       inheritAuthorized(
         root.id,
@@ -36,13 +34,13 @@ const UserResolver = ({
           resolve({ id: notificationFound.userId })
           context.billingUpdater.update(QUERY_COST)
         },
-        deviceToParent(Board),
-      ),
+        deviceToParent(Board)
+      )
     )
   },
   device(root, args, context) {
     return logErrorsPromise(
-      'Notification device resolver',
+      "Notification device resolver",
       121,
       inheritAuthorized(
         root.id,
@@ -56,13 +54,13 @@ const UserResolver = ({
           resolve({ id: notificationFound.deviceId })
           context.billingUpdater.update(QUERY_COST)
         },
-        deviceToParent(Board),
-      ),
+        deviceToParent(Board)
+      )
     )
   },
   board(root, args, context) {
     return logErrorsPromise(
-      'Notification board resolver',
+      "Notification board resolver",
       121,
       inheritAuthorized(
         root.id,
@@ -76,13 +74,13 @@ const UserResolver = ({
           resolve({ id: notificationFound.boardId })
           context.billingUpdater.update(QUERY_COST)
         },
-        deviceToParent(Board),
-      ),
+        deviceToParent(Board)
+      )
     )
   },
   visualized(root, args, context) {
     return logErrorsPromise(
-      'Notification device resolver',
+      "Notification device resolver",
       121,
       inheritAuthorized(
         root.id,
@@ -93,11 +91,13 @@ const UserResolver = ({
         Device,
         1,
         async (resolve, reject, notificationFound) => {
-          resolve(notificationFound.visualized.indexOf(context.auth.userId) !== -1)
+          resolve(
+            notificationFound.visualized.indexOf(context.auth.userId) !== -1
+          )
           context.billingUpdater.update(QUERY_COST)
         },
-        deviceToParent(Board),
-      ),
+        deviceToParent(Board)
+      )
     )
   },
 })

@@ -1,17 +1,17 @@
-const Sequelize = require('sequelize')
-const chalk = require('chalk')
+const Sequelize = require("sequelize")
+const chalk = require("chalk")
 
 const log = console.log
-require('dotenv').config()
+require("dotenv").config()
 
 /* istanbul ignore if */
 if (!process.env.JWT_SECRET) {
-  throw new Error('Could not load .env')
+  throw new Error("Could not load .env")
 }
 
 const sequelize = new Sequelize(process.env.DATABASE_URL, {
   ssl: true,
-  dialect: 'postgres',
+  dialect: "postgres",
   dialectOptions: {
     ssl: true,
   },
@@ -34,7 +34,7 @@ const {
   PermanentToken,
   WebPushSubscription,
   associations,
-} = require('./databaseDefinition')(sequelize)
+} = require("./databaseDefinition")(sequelize)
 
 const setup = async () => {
   try {
@@ -56,7 +56,7 @@ const setup = async () => {
       await associations[i].sync({ force: true })
     }
 
-    log(chalk.green('ALL WELL'))
+    log(chalk.green("ALL WELL"))
     sequelize.close()
   } catch (e) {
     log(chalk.red(e))

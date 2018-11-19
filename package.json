@@ -1,5 +1,5 @@
 {
-  "name": "igloo-graphql",
+  "name": "igloo-bering",
   "version": "0.1.0",
   "description": "Backend for the igloo platform",
   "scripts": {
@@ -15,21 +15,20 @@
     "bill": "babel-node ./monthlyBilling"
   },
   "lint-staged": {
-    "*.js": ["prettier-eslint --write", "git add"],
-    "*.json": ["prettier-eslint --write", "git add"],
-    "*.graphql": ["prettier-eslint --write", "git add"]
+    "*.js": ["prettier --write", "git add"],
+    "*.json": ["prettier --write", "git add"],
+    "*.graphql": ["prettier --write", "git add"]
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/hellowitlab/iglooQL"
+    "url": "https://github.com/IglooCloud/IglooBering"
   },
   "keywords": [],
   "author": "Igloo",
-  "license": "MIT",
   "bugs": {
-    "url": "https://github.com/hellowitlab/iglooQL/issues"
+    "url": "https://github.com/IglooCloud/IglooBering/issues"
   },
-  "homepage": "https://github.com/hellowitlab/iglooQL",
+  "homepage": "https://github.com/IglooCloud/IglooBering/iglooQL",
   "dependencies": {
     "apollo-server-express": "^1.0.2",
     "aws-sdk": "^2.229.1",

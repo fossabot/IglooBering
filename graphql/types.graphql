@@ -571,10 +571,12 @@ type Subscription {
   plotNodeDeleted: ID
   # subscribes to plot node deletes
   stringPlotNodeDeleted: ID
-  # subscribes to device deleted
+  # subscribes to device deletes
   deviceDeleted: ID
-  # subscribes to board deleted
+  # subscribes to board deletes
   boardDeleted: ID
+  # subscribes to user deletes
+  userDeleted: ID
   # subscribes to token deletes
   permanentTokenDeleted: ID
   # subscribes to notification deletes

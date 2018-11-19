@@ -1,5 +1,5 @@
-import bcrypt from 'bcryptjs'
-import OTP from 'otp.js'
+import bcrypt from "bcryptjs"
+import OTP from "otp.js"
 import {
   authenticated,
   generateAuthenticationToken,
@@ -25,27 +25,27 @@ import {
   instanceToRole,
   GenerateUserBillingBatcher,
   boardToParent,
-} from './utilities'
-import webpush from 'web-push'
-import Stripe from 'stripe'
-import { Op } from 'sequelize'
-import zxcvbn from 'zxcvbn'
+} from "./utilities"
+import webpush from "web-push"
+import Stripe from "stripe"
+import { Op } from "sequelize"
+import zxcvbn from "zxcvbn"
 
-require('dotenv').config()
+require("dotenv").config()
 /* istanbul ignore if */
 if (!process.env.JWT_SECRET) {
-  throw new Error('Could not load .env')
+  throw new Error("Could not load .env")
 }
 
 webpush.setVapidDetails(
-  'http://igloo.witlab.io/',
+  "http://igloo.witlab.io/",
   process.env.PUBLIC_VAPID_KEY,
-  process.env.PRIVATE_VAPID_KEY,
+  process.env.PRIVATE_VAPID_KEY
 )
 const SALT_ROUNDS = 10
 const MUTATION_COST = 2
 
-const stripe = Stripe('sk_test_pku6xMd2Tjlv5EU4GkZHw7aS')
+const stripe = Stripe("sk_test_pku6xMd2Tjlv5EU4GkZHw7aS")
 
 const isNotNullNorUndefined = value => value !== undefined && value !== null
 const isOutOfBoundaries = (boundaries, value) =>
@@ -69,7 +69,7 @@ const MutationResolver = (
   },
   WebPushSubscription,
   pubsub,
-  JWT_SECRET,
+  JWT_SECRET
 ) => {
   const resolvers = {
     // checks if the user exists, if so
@@ -77,7 +77,7 @@ const MutationResolver = (
     // and returns an access token
     AuthenticateUser(root, args, context) {
       return logErrorsPromise(
-        'AuthenticateUser',
+        "AuthenticateUser",
         103,
         async (resolve, reject) => {
           const userFound = await User.find({
@@ -88,24 +88,24 @@ const MutationResolver = (
           } else if (
             !bcrypt.compareSync(args.password, userFound.dataValues.password)
           ) {
-            reject('Wrong password')
+            reject("Wrong password")
           } else if (!userFound.twoFactorSecret) {
             // setting context so that the resolvers for user know that the user is authenticated
             context.auth = {
               userId: userFound.id,
-              accessLevel: 'OWNER',
-              tokenType: 'TEMPORARY',
+              accessLevel: "OWNER",
+              tokenType: "TEMPORARY",
             }
             context.billingUpdater = GenerateUserBillingBatcher(
               User,
-              context.auth,
+              context.auth
             )
 
             resolve({
               id: userFound.dataValues.id,
               token: generateAuthenticationToken(
                 userFound.dataValues.id,
-                JWT_SECRET,
+                JWT_SECRET
               ),
               user: userFound,
             })
@@ -115,31 +115,31 @@ const MutationResolver = (
             // setting context so that the resolvers for user know that the user is authenticated
             context.auth = {
               userId: userFound.id,
-              accessLevel: 'OWNER',
-              tokenType: 'TEMPORARY',
+              accessLevel: "OWNER",
+              tokenType: "TEMPORARY",
             }
             context.billingUpdater = GenerateUserBillingBatcher(
               User,
-              context.auth,
+              context.auth
             )
 
             resolve({
               id: userFound.dataValues.id,
               token: generateAuthenticationToken(
                 userFound.dataValues.id,
-                JWT_SECRET,
+                JWT_SECRET
               ),
               user: userFound,
             })
           } else {
-            reject('Wrong or missing 2-Factor Authentication Code')
+            reject("Wrong or missing 2-Factor Authentication Code")
           }
-        },
+        }
       )
     },
     SendPasswordRecoveryEmail(root, args, context) {
       return logErrorsPromise(
-        'SendPasswordRecoveryEmail',
+        "SendPasswordRecoveryEmail",
         901,
         async (resolve, reject) => {
           const userFound = await User.find({
@@ -152,16 +152,16 @@ const MutationResolver = (
 
             resolve(true)
           }
-        },
+        }
       )
     },
     GeneratePermanentAccessToken(root, args, context) {
       return logErrorsPromise(
-        'GeneratePermanentAccessToken',
+        "GeneratePermanentAccessToken",
         125,
         authenticated(context, async (resolve, reject) => {
-          if (args.customName === '') {
-            reject('Empty name is not allowed')
+          if (args.customName === "") {
+            reject("Empty name is not allowed")
           } else {
             const databaseToken = await PermanentToken.create({
               customName: args.customName,
@@ -173,8 +173,8 @@ const MutationResolver = (
               token: generatePermanentAuthenticationToken(
                 context.auth.userId,
                 databaseToken.id,
-                'DEVICE',
-                JWT_SECRET,
+                "DEVICE",
+                JWT_SECRET
               ),
             })
 
@@ -183,7 +183,7 @@ const MutationResolver = (
               customName: databaseToken.customName,
               user: { id: context.auth.userId },
             }
-            pubsub.publish('permanentTokenCreated', {
+            pubsub.publish("permanentTokenCreated", {
               permanentTokenCreated: resolveObj,
               userId: context.auth.userId,
             })
@@ -194,13 +194,13 @@ const MutationResolver = (
 
             sendTokenCreatedEmail(userFound.email)
           }
-        }),
+        })
       )
     },
 
     DeletePermanentAccesToken(root, args, context) {
       return logErrorsPromise(
-        'DeletePermanentAccesToken',
+        "DeletePermanentAccesToken",
         126,
         authenticated(context, async (resolve, reject) => {
           const databaseToken = await PermanentToken.find({
@@ -209,39 +209,41 @@ const MutationResolver = (
           if (!databaseToken) {
             reject("This token doesn't exist")
           } else if (databaseToken.userId !== context.auth.userId) {
-            reject('This token is not yours')
+            reject("This token is not yours")
           } else {
             await databaseToken.destroy()
 
             resolve(args.id)
-            pubsub.publish('permanentTokenDeleted', {
+            pubsub.publish("permanentTokenDeleted", {
               permanentTokenDeleted: args.id,
               userId: context.auth.userId,
             })
           }
-        }),
+        })
       )
     },
     // checks if a user with that email already exists
     // if not it creates one and returnes an access token
     SignupUser(root, args, context) {
-      return logErrorsPromise('SignupUser', 102, async (resolve, reject) => {
+      return logErrorsPromise("SignupUser", 102, async (resolve, reject) => {
         // check password strength
         const zxcvbnDictionary = [
           args.email,
-          args.email.split('@')[0],
+          args.email.split("@")[0],
           args.fullName,
-          'igloo',
-          'igloo aurora',
-          'aurora',
+          "igloo",
+          "igloo aurora",
+          "aurora",
         ]
         if (zxcvbn(args.password, zxcvbnDictionary).score < 2) {
-          reject('Password too weak, avoid easily guessable password or short ones')
+          reject(
+            "Password too weak, avoid easily guessable password or short ones"
+          )
           return
         }
 
         if (!args.fullName) {
-          reject('fullName required')
+          reject("fullName required")
           return
         }
 
@@ -249,7 +251,7 @@ const MutationResolver = (
           where: { email: args.email },
         })
         if (userFound) {
-          reject('A user with this email already exists')
+          reject("A user with this email already exists")
         } else {
           const encryptedPass = bcrypt.hashSync(args.password, SALT_ROUNDS)
           try {
@@ -259,20 +261,20 @@ const MutationResolver = (
               quietMode: false,
               devMode: false,
               monthUsage: 0,
-              paymentPlan: 'FREE',
+              paymentPlan: "FREE",
               emailIsVerified: false,
               fullName: args.fullName,
               profileIconColor: randomUserIconColor(),
-              settings_language: 'en-GB',
-              settings_timeZone: '+00:00_Greenwich', // TODO: Daylight Saving Time
-              settings_lengthAndMass: 'SI',
-              settings_temperature: 'CELSIUS',
-              settings_dateFormat: 'DMY',
-              settings_timeFormat: 'H24',
+              settings_language: "en-GB",
+              settings_timeZone: "+00:00_Greenwich", // TODO: Daylight Saving Time
+              settings_lengthAndMass: "SI",
+              settings_temperature: "CELSIUS",
+              settings_dateFormat: "DMY",
+              settings_timeFormat: "H24",
             })
 
             const newBoard = await Board.create({
-              customName: 'Home',
+              customName: "Home",
               avatar: randomBoardAvatar(),
               quietMode: false,
               index: 0,
@@ -284,19 +286,19 @@ const MutationResolver = (
             // setting context so that the resolvers for user know that the user is authenticated
             context.auth = {
               userId: newUser.id,
-              accessLevel: 'OWNER',
-              tokenType: 'TEMPORARY',
+              accessLevel: "OWNER",
+              tokenType: "TEMPORARY",
             }
             context.billingUpdater = GenerateUserBillingBatcher(
               User,
-              context.auth,
+              context.auth
             )
 
             resolve({
               id: newUser.dataValues.id,
               token: generateAuthenticationToken(
                 newUser.dataValues.id,
-                JWT_SECRET,
+                JWT_SECRET
               ),
               user: newUser,
             })
@@ -304,8 +306,8 @@ const MutationResolver = (
             sendVerificationEmail(args.email, newUser.id)
           } catch (e) {
             console.log(e)
-            if (e.errors[0].validatorKey === 'isEmail') {
-              reject('Invalid email')
+            if (e.errors[0].validatorKey === "isEmail") {
+              reject("Invalid email")
             } else {
               /* istanbul ignore next */
               throw e
@@ -316,7 +318,7 @@ const MutationResolver = (
     },
     UpgradeTo2FactorAuthentication(root, args, context) {
       return logErrorsPromise(
-        'UpgradeTo2FactorAuthentication',
+        "UpgradeTo2FactorAuthentication",
         118,
         authenticated(context, async (resolve, reject) => {
           const userFound = await User.find({
@@ -332,8 +334,8 @@ const MutationResolver = (
           } else {
             const qrCode = OTP.googleAuthenticator.qrCode(
               userFound.email,
-              'igloo',
-              userFound.twoFactorSecret,
+              "igloo",
+              userFound.twoFactorSecret
             )
 
             resolve({
@@ -341,13 +343,13 @@ const MutationResolver = (
               qrCode,
             })
           }
-        }),
+        })
       )
     },
     // changes the password and returns an access token
     ChangePassword(root, args, context) {
       return logErrorsPromise(
-        'ChangePassword',
+        "ChangePassword",
         101,
         authenticated(
           context,
@@ -360,7 +362,7 @@ const MutationResolver = (
             } else {
               const encryptedPass = bcrypt.hashSync(
                 args.newPassword,
-                SALT_ROUNDS,
+                SALT_ROUNDS
               )
 
               const newUser = await userFound.update({
@@ -370,20 +372,20 @@ const MutationResolver = (
                 id: newUser.dataValues.id,
                 token: generateAuthenticationToken(
                   newUser.dataValues.id,
-                  JWT_SECRET,
+                  JWT_SECRET
                 ),
               })
 
               sendPasswordUpdatedEmail(userFound.email)
             }
           },
-          ['TEMPORARY', 'PERMANENT', 'PASSWORD_RECOVERY'],
-        ),
+          ["TEMPORARY", "PERMANENT", "PASSWORD_RECOVERY"]
+        )
       )
     },
     ResendVerificationEmail(root, args, context) {
       return logErrorsPromise(
-        'ResendVerificationEmail',
+        "ResendVerificationEmail",
         900,
         authenticated(context, async (resolve, reject) => {
           const userFound = await User.find({
@@ -392,17 +394,17 @@ const MutationResolver = (
           if (!userFound) {
             reject("User doesn't exist. Use `SignupUser` to create one")
           } else if (userFound.emailIsVerified) {
-            reject('This user has already verified their email')
+            reject("This user has already verified their email")
           } else {
             resolve(true)
             sendVerificationEmail(userFound.email, userFound.id)
           }
-        }),
+        })
       )
     },
     shareBoard: (root, args, context) =>
       logErrorsPromise(
-        'genericShare',
+        "genericShare",
         921,
         authorized(
           args.boardId,
@@ -435,18 +437,18 @@ const MutationResolver = (
               resolve(found)
               context.billingUpdater.update(MUTATION_COST)
 
-              pubsub.publish('boardShared', {
+              pubsub.publish("boardShared", {
                 boardShared: found,
                 userId: userFound.id,
               })
             }
           },
-          boardToParent,
-        ),
+          boardToParent
+        )
       ),
     stopSharingBoard: (root, args, context) =>
       logErrorsPromise(
-        'genericShare',
+        "genericShare",
         921,
         authorized(
           args.boardId,
@@ -465,8 +467,8 @@ const MutationResolver = (
               reject("This account doesn't exist, check the email passed")
             } else if (!role) {
               reject("This resource isn't shared with that user")
-            } else if (role === 'OWNER') {
-              reject('You cannot stop sharing a resource with its owner')
+            } else if (role === "OWNER") {
+              reject("You cannot stop sharing a resource with its owner")
             } else {
               // remove old role
               await Promise.all([
@@ -478,22 +480,22 @@ const MutationResolver = (
               resolve(found)
               context.billingUpdater.update(MUTATION_COST)
 
-              pubsub.publish('boardStoppedSharing', {
+              pubsub.publish("boardStoppedSharing", {
                 boardStoppedSharing: args[idField],
                 userId: userFound.id,
               })
             }
           },
-          boardToParent,
-        ),
+          boardToParent
+        )
       ),
     CreateBoard(root, args, context) {
       return logErrorsPromise(
-        'CreateBoard',
+        "CreateBoard",
         910,
         authenticated(context, async (resolve, reject) => {
-          if (args.customName === '' || args.customName === null) {
-            reject('customName cannot be null or an empty string')
+          if (args.customName === "" || args.customName === null) {
+            reject("customName cannot be null or an empty string")
             return
           }
 
@@ -506,8 +508,8 @@ const MutationResolver = (
               args.index !== null && args.index !== undefined
                 ? args.index
                 : await Board.count({
-                  where: { ownerId: context.auth.userId },
-                }),
+                    where: { ownerId: context.auth.userId },
+                  }),
           })
 
           const userFound = await User.find({
@@ -522,7 +524,7 @@ const MutationResolver = (
             devices: [],
           }
 
-          pubsub.publish('boardCreated', {
+          pubsub.publish("boardCreated", {
             boardCreated: resolveValue,
             userId: context.auth.userId,
           })
@@ -530,11 +532,11 @@ const MutationResolver = (
           resolve(resolveValue)
 
           context.billingUpdater.update(MUTATION_COST)
-        }),
+        })
       )
     },
     CreateDevice(root, args, context) {
-      return logErrorsPromise('CreateDevice', 104, async (resolve, reject) => {
+      return logErrorsPromise("CreateDevice", 104, async (resolve, reject) => {
         let boardId
 
         // if boardId is not specified and there is only one board choose that board
@@ -551,10 +553,12 @@ const MutationResolver = (
           if (boards.length === 1) {
             boardId = boards[0].id
           } else if (board.length === 0) {
-            reject('To create a device you need to have at least 1 board')
+            reject("To create a device you need to have at least 1 board")
             return
           } else {
-            reject('You need to specify the boardId when the user has more than one board')
+            reject(
+              "You need to specify the boardId when the user has more than one board"
+            )
             return
           }
         }
@@ -571,19 +575,19 @@ const MutationResolver = (
               isNotNullNorUndefined(args.batteryStatus) &&
               isOutOfBoundaries([0, 100], args.batteryStatus)
             ) {
-              reject('batteryStatus is out of boundaries [0,100]')
+              reject("batteryStatus is out of boundaries [0,100]")
               return
             } else if (
               isNotNullNorUndefined(args.signalStatus) &&
               isOutOfBoundaries([0, 100], args.signalStatus)
             ) {
-              reject('signalStatus is out of boundaries [0,100]')
+              reject("signalStatus is out of boundaries [0,100]")
               return
-            } else if (args.customName === '') {
-              reject('Custom name cannot be an empty string')
+            } else if (args.customName === "") {
+              reject("Custom name cannot be an empty string")
               return
             } else if (args.quietMode === null) {
-              reject('quietMode cannot be null')
+              reject("quietMode cannot be null")
               return
             }
 
@@ -591,8 +595,8 @@ const MutationResolver = (
               args.index !== null && args.index !== undefined
                 ? args.index
                 : await Device.count({
-                  where: { boardId },
-                })
+                    where: { boardId },
+                  })
 
             const newDevice = await Device.create({
               ...args,
@@ -605,12 +609,12 @@ const MutationResolver = (
               ...newDevice.dataValues,
               board: newDevice.boardId
                 ? {
-                  id: newDevice.boardId,
-                }
+                    id: newDevice.boardId,
+                  }
                 : null,
             }
 
-            pubsub.publish('deviceCreated', {
+            pubsub.publish("deviceCreated", {
               deviceCreated: resolveValue,
               userIds: await instanceToSharedIds(boardFound),
             })
@@ -619,7 +623,7 @@ const MutationResolver = (
 
             context.billingUpdater.update(MUTATION_COST)
           },
-          boardToParent,
+          boardToParent
         )(resolve, reject)
       })
     },
@@ -628,7 +632,7 @@ const MutationResolver = (
       Device,
       Board,
       FloatValue,
-      'FloatValue',
+      "FloatValue",
       [
         FloatValue,
         StringValue,
@@ -644,24 +648,24 @@ const MutationResolver = (
           (args.boundaries.length !== 2 ||
             args.boundaries[0] >= args.boundaries[1])
         ) {
-          reject('Boundaries should be a [min, max] array')
+          reject("Boundaries should be a [min, max] array")
           return false
         } else if (
           isNotNullNorUndefined(args.boundaries) &&
           isOutOfBoundaries(args.boundaries, args.value)
         ) {
-          reject('Value is out of boundaries')
+          reject("Value is out of boundaries")
           return false
         }
         return true
-      },
+      }
     ),
     CreateStringValue: CreateGenericValue(
       User,
       Device,
       Board,
       StringValue,
-      'StringValue',
+      "StringValue",
       [
         FloatValue,
         StringValue,
@@ -673,30 +677,30 @@ const MutationResolver = (
       pubsub,
       (args, reject) => {
         if (isNotNullNorUndefined(args.maxChars) && args.maxChars <= 0) {
-          reject('maxChars must be greater than 0')
+          reject("maxChars must be greater than 0")
           return false
         } else if (
           isNotNullNorUndefined(args.maxChars) &&
           args.value.length > args.maxChars
         ) {
-          reject('Value exceeds the maxChars')
+          reject("Value exceeds the maxChars")
           return false
         } else if (
           isNotNullNorUndefined(args.allowedValues) &&
           args.allowedValues.indexOf(args.value) === -1
         ) {
-          reject('Value is not among the allowedValues')
+          reject("Value is not among the allowedValues")
           return false
         }
         return true
-      },
+      }
     ),
     CreateBooleanValue: CreateGenericValue(
       User,
       Device,
       Board,
       BoolValue,
-      'BoolValue',
+      "BoolValue",
       [
         FloatValue,
         StringValue,
@@ -705,14 +709,14 @@ const MutationResolver = (
         PlotValue,
         StringPlotValue,
       ],
-      pubsub,
+      pubsub
     ),
     CreateMapValue: CreateGenericValue(
       User,
       Device,
       Board,
       MapValue,
-      'MapValue',
+      "MapValue",
       [
         FloatValue,
         StringValue,
@@ -721,14 +725,14 @@ const MutationResolver = (
         PlotValue,
         StringPlotValue,
       ],
-      pubsub,
+      pubsub
     ),
     CreatePlotValue: CreateGenericValue(
       User,
       Device,
       Board,
       PlotValue,
-      'PlotValue',
+      "PlotValue",
       [
         FloatValue,
         StringValue,
@@ -737,14 +741,14 @@ const MutationResolver = (
         PlotValue,
         StringPlotValue,
       ],
-      pubsub,
+      pubsub
     ),
     CreateStringPlotValue: CreateGenericValue(
       User,
       Device,
       Board,
       StringPlotValue,
-      'StringPlotValue',
+      "StringPlotValue",
       [
         FloatValue,
         StringValue,
@@ -753,11 +757,11 @@ const MutationResolver = (
         PlotValue,
         StringPlotValue,
       ],
-      pubsub,
+      pubsub
     ),
     CreatePlotNode(root, args, context) {
       return logErrorsPromise(
-        'CreatePlotNode mutation',
+        "CreatePlotNode mutation",
         139,
         authorized(
           args.plotId,
@@ -790,20 +794,20 @@ const MutationResolver = (
             }
 
             resolve(resolveObj)
-            pubsub.publish('plotNodeCreated', {
+            pubsub.publish("plotNodeCreated", {
               plotNodeCreated: resolveObj,
               userIds: await instanceToSharedIds(boardFound),
             })
 
             context.billingUpdater.update(MUTATION_COST)
           },
-          valueToParent(Board),
-        ),
+          valueToParent(Board)
+        )
       )
     },
     CreateStringPlotNode(root, args, context) {
       return logErrorsPromise(
-        'CreateStringPlotNode mutation',
+        "CreateStringPlotNode mutation",
         139,
         authorized(
           args.plotId,
@@ -836,35 +840,35 @@ const MutationResolver = (
             }
 
             resolve(resolveObj)
-            pubsub.publish('stringPlotNodeCreated', {
+            pubsub.publish("stringPlotNodeCreated", {
               stringPlotNodeCreated: resolveObj,
               userIds: await instanceToSharedIds(boardFound),
             })
             context.billingUpdater.update(MUTATION_COST)
           },
-          valueToParent(Board),
-        ),
+          valueToParent(Board)
+        )
       )
     },
     user(root, args, context) {
-      return logErrorsPromise('user mutation', 115, (resolve, reject) => {
-        if (args.fullName === null || args.fullName === '') {
-          reject('fullName cannot be null or empty')
+      return logErrorsPromise("user mutation", 115, (resolve, reject) => {
+        if (args.fullName === null || args.fullName === "") {
+          reject("fullName cannot be null or empty")
           return
         } else if (args.email === null) {
-          reject('Email cannot be set to null')
+          reject("Email cannot be set to null")
           return
         }
 
         const mutationFields = Object.keys(args)
         let permissionRequired
-        if (mutationFields.length === 1 && mutationFields[0] === 'usageCap') {
-          permissionRequired = ['TEMPORARY', 'PERMANENT', 'CHANGE_USAGE_CAP']
+        if (mutationFields.length === 1 && mutationFields[0] === "usageCap") {
+          permissionRequired = ["TEMPORARY", "PERMANENT", "CHANGE_USAGE_CAP"]
         } else if (
           mutationFields.length === 1 &&
-          mutationFields[0] === 'paymentPlan'
+          mutationFields[0] === "paymentPlan"
         ) {
-          permissionRequired = ['TEMPORARY', 'PERMANENT', 'SWITCH_TO_PAYING']
+          permissionRequired = ["TEMPORARY", "PERMANENT", "SWITCH_TO_PAYING"]
         }
 
         authenticated(
@@ -882,7 +886,7 @@ const MutationResolver = (
                   where: { email: args.email },
                 })
                 if (sameEmailUserFound) {
-                  reject('A user with this email already exists')
+                  reject("A user with this email already exists")
                   return
                 }
               }
@@ -894,7 +898,7 @@ const MutationResolver = (
                 const newUser = await userFound.update(updateObj)
                 resolve(newUser.dataValues)
 
-                pubsub.publish('userUpdated', {
+                pubsub.publish("userUpdated", {
                   userUpdated: newUser.dataValues,
                   userId: context.auth.userId,
                 })
@@ -909,8 +913,8 @@ const MutationResolver = (
                 }
               } catch (e) {
                 console.log(e)
-                if (e.errors[0].validatorKey === 'isEmail') {
-                  reject('Invalid email')
+                if (e.errors[0].validatorKey === "isEmail") {
+                  reject("Invalid email")
                 } else {
                   /* istanbul ignore next */
                   throw e
@@ -918,13 +922,13 @@ const MutationResolver = (
               }
             }
           },
-          permissionRequired,
+          permissionRequired
         )(resolve, reject)
       })
     },
     settings(root, args, context) {
       return logErrorsPromise(
-        'settings Mutation',
+        "settings Mutation",
         1834,
         authenticated(context, async (resolve, reject) => {
           const userFound = await User.find({
@@ -944,14 +948,14 @@ const MutationResolver = (
           } else {
             const updateQuery = {}
             const fields = [
-              'timeZone',
-              'language',
-              'lengthAndMass',
-              'temperature',
-              'dateFormat',
-              'timeFormat',
+              "timeZone",
+              "language",
+              "lengthAndMass",
+              "temperature",
+              "dateFormat",
+              "timeFormat",
             ]
-            fields.forEach((field) => {
+            fields.forEach(field => {
               if (isNotNullNorUndefined(args[field])) {
                 updateQuery[`settings_${field}`] = args[field]
               }
@@ -969,12 +973,12 @@ const MutationResolver = (
             })
             context.billingUpdater.update(MUTATION_COST)
           }
-        }),
+        })
       )
     },
     updatePaymentInfo(root, args, context) {
       return logErrorsPromise(
-        'updatePaymentInfo',
+        "updatePaymentInfo",
         500,
         authenticated(context, async (resolve, reject) => {
           const userFound = await User.find({
@@ -1003,12 +1007,12 @@ const MutationResolver = (
             resolve(true)
             context.billingUpdater.update(MUTATION_COST)
           }
-        }),
+        })
       )
     },
     board(root, args, context) {
       return logErrorsPromise(
-        'board mutation',
+        "board mutation",
         911,
         authorized(
           args.id,
@@ -1017,38 +1021,40 @@ const MutationResolver = (
           User,
           2,
           async (resolve, reject, boardFound, _, userFound) => {
-            if (args.customName === '' || args.customName === null) {
-              reject('customName cannot be null or an empty string')
+            if (args.customName === "" || args.customName === null) {
+              reject("customName cannot be null or an empty string")
               return
             } else if (
               userFound.quietMode &&
               isNotNullNorUndefined(args.quietMode)
             ) {
-              reject('Cannot change quietMode at board level when it is enabled at user level')
+              reject(
+                "Cannot change quietMode at board level when it is enabled at user level"
+              )
               return
             } else if (Object.keys(args).length === 1) {
-              reject('You cannot make a mutation with only the id field')
+              reject("You cannot make a mutation with only the id field")
               return
             }
 
             const newBoard = await boardFound.update(args)
 
             resolve(newBoard.dataValues)
-            pubsub.publish('boardUpdated', {
+            pubsub.publish("boardUpdated", {
               boardUpdated: newBoard.dataValues,
               userIds: await instanceToSharedIds(boardFound),
             })
 
             context.billingUpdater.update(MUTATION_COST)
           },
-          boardToParent,
-        ),
+          boardToParent
+        )
       )
     },
     device(root, args, context) {
       const authorizationNeeded = isNotNullNorUndefined(args.boardId) ? 4 : 2
       return logErrorsPromise(
-        'device mutation',
+        "device mutation",
         116,
         authorized(
           args.id,
@@ -1062,31 +1068,33 @@ const MutationResolver = (
               isNotNullNorUndefined(args.batteryStatus) &&
               isOutOfBoundaries([0, 100], args.batteryStatus)
             ) {
-              reject('batteryStatus is out of boundaries [0,100]')
+              reject("batteryStatus is out of boundaries [0,100]")
               return
             } else if (
               isNotNullNorUndefined(args.signalStatus) &&
               isOutOfBoundaries([0, 100], args.signalStatus)
             ) {
-              reject('signalStatus is out of boundaries [0,100]')
+              reject("signalStatus is out of boundaries [0,100]")
               return
-            } else if (args.customName === null || args.customName === '') {
-              reject('customName cannot be null or an empty string')
+            } else if (args.customName === null || args.customName === "") {
+              reject("customName cannot be null or an empty string")
               return
             } else if (args.quietMode === null) {
-              reject('quietMode cannot be null')
+              reject("quietMode cannot be null")
               return
             } else if (Object.keys(args).length === 1) {
-              reject('You cannot make a mutation with only the id field')
+              reject("You cannot make a mutation with only the id field")
               return
             } else if (args.boardId === null) {
-              reject('boardId cannot be set to null')
+              reject("boardId cannot be set to null")
               return
             } else if (
               (boardFound.quietMode || userFound.quietMode) &&
               isNotNullNorUndefined(args.quietMode)
             ) {
-              reject('Cannot change quietMode at device level when it is enabled at board or user level')
+              reject(
+                "Cannot change quietMode at device level when it is enabled at board or user level"
+              )
               return
             } else if (args.boardId) {
               // devices can be moved only to boards owned by the user
@@ -1103,11 +1111,12 @@ const MutationResolver = (
                   () => {
                     resolve(true)
                   },
-                  boardToParent,
-                )(() => {}, () => resolve(false)))
+                  boardToParent
+                )(() => {}, () => resolve(false))
+              )
 
               if (!isOwnerOfTargetBoard) {
-                reject('You can only move devices to boards you own')
+                reject("You can only move devices to boards you own")
                 return
               }
             }
@@ -1122,28 +1131,28 @@ const MutationResolver = (
                 {},
                 {
                   deviceId: deviceFound.id,
-                  content: 'My battery is running low',
+                  content: "My battery is running low",
                   date: new Date().toISOString(),
                 },
-                context,
+                context
               )
             }
 
             const newDevice = await deviceFound.update(args)
             resolve(newDevice.dataValues)
-            pubsub.publish('deviceUpdated', {
+            pubsub.publish("deviceUpdated", {
               deviceUpdated: newDevice.dataValues,
               userIds: await instanceToSharedIds(boardFound),
             })
             context.billingUpdater.update(MUTATION_COST)
           },
-          deviceToParent(Board),
-        ),
+          deviceToParent(Board)
+        )
       )
     },
     resetOnlineState(root, args, context) {
       return logErrorsPromise(
-        'resetOnlineState mutation',
+        "resetOnlineState mutation",
         4000,
         authorized(
           args.deviceId,
@@ -1156,19 +1165,19 @@ const MutationResolver = (
               online: null,
             })
             resolve(newDevice.dataValues)
-            pubsub.publish('deviceUpdated', {
+            pubsub.publish("deviceUpdated", {
               deviceUpdated: newDevice.dataValues,
               userIds: await instanceToSharedIds(boardFound),
             })
             context.billingUpdater.update(MUTATION_COST)
           },
-          deviceToParent(Board),
-        ),
+          deviceToParent(Board)
+        )
       )
     },
     floatValue: genericValueMutation(
       FloatValue,
-      'FloatValue',
+      "FloatValue",
       pubsub,
       User,
       Device,
@@ -1180,34 +1189,40 @@ const MutationResolver = (
           isNotNullNorUndefined(args.boundaries) &&
           args.boundaries.length !== 2
         ) {
-          reject('Boundaries should be an array containing min and max ([min, max])')
+          reject(
+            "Boundaries should be an array containing min and max ([min, max])"
+          )
           return false
         } else if (
           isNotNullNorUndefined(args.boundaries) &&
           args.boundaries[0] >= args.boundaries[1]
         ) {
-          reject('The min value should be less than the max value, boundaries should be an array [min, max]')
+          reject(
+            "The min value should be less than the max value, boundaries should be an array [min, max]"
+          )
         } else if (
           isNotNullNorUndefined(expectedNewValue.value) &&
           isNotNullNorUndefined(expectedNewValue.boundaries) &&
           isOutOfBoundaries(expectedNewValue.boundaries, expectedNewValue.value)
         ) {
-          reject('value is out of boundaries')
+          reject("value is out of boundaries")
           return false
         } else if (
           expectedNewValue.boundaries === null &&
-          (expectedNewValue.tileSize === 'WIDE' ||
-            expectedNewValue.tileSize === 'TALL')
+          (expectedNewValue.tileSize === "WIDE" ||
+            expectedNewValue.tileSize === "TALL")
         ) {
-          reject('FloatValue with no boundaries cannot have tileSize set to WIDE or TALL')
+          reject(
+            "FloatValue with no boundaries cannot have tileSize set to WIDE or TALL"
+          )
           return false
         }
         return true
-      },
+      }
     ),
     stringValue: genericValueMutation(
       StringValue,
-      'StringValue',
+      "StringValue",
       pubsub,
       User,
       Device,
@@ -1217,87 +1232,89 @@ const MutationResolver = (
         const expectedNewValue = { ...valueFound.dataValues, ...args }
 
         if (isNotNullNorUndefined(args.maxChars) && args.maxChars <= 0) {
-          reject('maxChars must be greater than 0')
+          reject("maxChars must be greater than 0")
           return false
         } else if (
           isNotNullNorUndefined(args.value) &&
           isNotNullNorUndefined(expectedNewValue.maxChars) &&
           args.value.length > expectedNewValue.maxChars
         ) {
-          reject('The value provided exceeds the maxChars')
+          reject("The value provided exceeds the maxChars")
           return false
         } else if (
           isNotNullNorUndefined(args.value) &&
           isNotNullNorUndefined(expectedNewValue.allowedValues) &&
           expectedNewValue.allowedValues.indexOf(args.value) === -1
         ) {
-          reject('The value is not among the allowedValues')
+          reject("The value is not among the allowedValues")
           return false
         } else if (
           !isNotNullNorUndefined(args.value) &&
           isNotNullNorUndefined(args.allowedValues) &&
           args.allowedValues.indexOf(valueFound.value) === -1
         ) {
-          reject('Current value is not among the allowedValues')
+          reject("Current value is not among the allowedValues")
           return false
         } else if (
           !isNotNullNorUndefined(args.value) &&
           isNotNullNorUndefined(args.maxChars) &&
           valueFound.value.length > args.maxChars
         ) {
-          reject('Current value exceeds maxChars')
+          reject("Current value exceeds maxChars")
           return false
         } else if (
           isNotNullNorUndefined(expectedNewValue.maxChars) &&
           isNotNullNorUndefined(expectedNewValue.allowedValues)
         ) {
-          reject('Cannot have maxChars and allowedValues set at the same time, use only one')
+          reject(
+            "Cannot have maxChars and allowedValues set at the same time, use only one"
+          )
           return false
         } else if (
           isNotNullNorUndefined(expectedNewValue.maxChars) &&
-          expectedNewValue.permission === 'READ_ONLY'
+          expectedNewValue.permission === "READ_ONLY"
         ) {
-          reject('Cannot set maxChars for a Read-Only value')
+          reject("Cannot set maxChars for a Read-Only value")
           return false
         }
         return true
-      },
+      }
     ),
     booleanValue: genericValueMutation(
       BoolValue,
-      'BooleanValue',
+      "BooleanValue",
       pubsub,
       User,
       Device,
-      Board,
+      Board
     ),
     mapValue: genericValueMutation(
       MapValue,
-      'MapValue',
+      "MapValue",
       pubsub,
       User,
       Device,
-      Board,
+      Board
     ),
     plotValue: genericValueMutation(
       PlotValue,
-      'PlotValue',
+      "PlotValue",
       pubsub,
       User,
       Device,
-      Board,
+      Board
     ),
     stringPlotValue: genericValueMutation(
       StringPlotValue,
-      'StringPlotValue',
+      "StringPlotValue",
       pubsub,
       User,
       Device,
-      Board,
+      Board
     ),
     plotNode(root, args, context) {
       return logErrorsPromise(
-        'CreatePlotNode mutation',
+        "CreatePlotNode mutation",
         139,
         inheritAuthorized(
           args.id,
@@ -1312,10 +1329,10 @@ const MutationResolver = (
             reject,
             plotNodeFound,
             plotValueFound,
-            [_, boardFound],
+            [_, boardFound]
           ) => {
             if (Object.keys(args).length === 1) {
-              reject('You cannot make a mutation with only the id field')
+              reject("You cannot make a mutation with only the id field")
               return
             }
 
@@ -1334,20 +1351,20 @@ const MutationResolver = (
               },
             }
             resolve(resolveObj)
-            pubsub.publish('plotNodeUpdated', {
+            pubsub.publish("plotNodeUpdated", {
               plotNodeUpdated: resolveObj,
               userIds: await instanceToSharedIds(boardFound),
             })
 
             context.billingUpdater.update(MUTATION_COST)
           },
-          valueToParent(Board),
-        ),
+          valueToParent(Board)
+        )
       )
     },
     stringPlotNode(root, args, context) {
       return logErrorsPromise(
-        'stringPlotNode mutation',
+        "stringPlotNode mutation",
         139,
         inheritAuthorized(
           args.id,
@@ -1362,10 +1379,10 @@ const MutationResolver = (
             reject,
             plotNodeFound,
             plotValueFound,
-            [_, boardFound],
+            [_, boardFound]
           ) => {
             if (Object.keys(args).length === 1) {
-              reject('You cannot make a mutation with only the id field')
+              reject("You cannot make a mutation with only the id field")
               return
             }
             const newNode = await plotNodeFound.update(args)
@@ -1383,20 +1400,20 @@ const MutationResolver = (
               },
             }
             resolve(resolveObj)
-            pubsub.publish('stringPlotNodeUpdated', {
+            pubsub.publish("stringPlotNodeUpdated", {
               stringPlotNodeUpdated: resolveObj,
               userIds: await instanceToSharedIds(boardFound),
             })
 
             context.billingUpdater.update(MUTATION_COST)
           },
-          valueToParent(Board),
-        ),
+          valueToParent(Board)
+        )
       )
     },
     CreateNotification(root, args, context) {
       return logErrorsPromise(
-        'create notification mutation',
+        "create notification mutation",
         122,
         authorized(
           args.deviceId,
@@ -1405,8 +1422,8 @@ const MutationResolver = (
           User,
           2,
           async (resolve, reject, deviceFound, [_, boardFound], userFound) => {
-            if (args.content === '' || args.content === null) {
-              reject('content cannot be null or an empty string')
+            if (args.content === "" || args.content === null) {
+              reject("content cannot be null or an empty string")
               return
             }
 
@@ -1454,19 +1471,19 @@ const MutationResolver = (
             resolve(resolveValue)
 
             const deviceSharedIds = await instanceToSharedIds(boardFound)
-            pubsub.publish('notificationCreated', {
+            pubsub.publish("notificationCreated", {
               notificationCreated: resolveValue,
               userIds: deviceSharedIds,
             })
 
             // the notificationsCount props are updated so send the device and board subscriptions
-            pubsub.publish('deviceUpdated', {
+            pubsub.publish("deviceUpdated", {
               deviceUpdated: {
                 id: deviceId,
               },
               userIds: deviceSharedIds,
             })
-            pubsub.publish('boardUpdated', {
+            pubsub.publish("boardUpdated", {
               boardUpdated: boardFound.dataValues,
               userIds: deviceSharedIds,
             })
@@ -1474,13 +1491,15 @@ const MutationResolver = (
             context.billingUpdater.update(MUTATION_COST)
 
             if (!userFound.quietMode) {
-              const notificationSubscriptions = await WebPushSubscription.findAll({
-                where: {
-                  userId: {
-                    [Op.in]: deviceSharedIds,
+              const notificationSubscriptions = await WebPushSubscription.findAll(
+                {
+                  where: {
+                    userId: {
+                      [Op.in]: deviceSharedIds,
+                    },
                   },
-                },
-              })
+                }
+              )
 
               notificationSubscriptions.map(notificationSubscription =>
                 webpush.sendNotification(
@@ -1496,12 +1515,13 @@ const MutationResolver = (
                     content,
                     date,
                     device: deviceFound,
-                  }),
-                ))
+                  })
+                )
+              )
             }
           },
-          deviceToParent(Board),
-        ),
+          deviceToParent(Board)
+        )
       )
     },
     async notification(root, args, context) {
@@ -1511,10 +1531,10 @@ const MutationResolver = (
 
       if (!notificationFound) {
         // FIXME: reject not defined
-        reject('The requested resource does not exist')
+        reject("The requested resource does not exist")
       } else {
         return logErrorsPromise(
-          'notification mutation',
+          "notification mutation",
           123,
           authorized(
             notificationFound.deviceId,
@@ -1523,11 +1543,11 @@ const MutationResolver = (
             User,
             2,
             async (resolve, reject, deviceFound, [_, boardFound]) => {
-              if (args.content === '' || args.content === null) {
-                reject('content cannot be null or an empty string')
+              if (args.content === "" || args.content === null) {
+                reject("content cannot be null or an empty string")
                 return
               } else if (Object.keys(args).length === 1) {
-                reject('You cannot make a mutation with only the id field')
+                reject("You cannot make a mutation with only the id field")
                 return
               }
               const updateQuery = args
@@ -1539,7 +1559,9 @@ const MutationResolver = (
                     ? [...notificationFound.visualized, context.auth.userId]
                     : notificationFound.visualized
               } else if (updateQuery.visualized === false) {
-                updateQuery.visualized = notificationFound.visualized.filter(id => id !== context.auth.userId)
+                updateQuery.visualized = notificationFound.visualized.filter(
+                  id => id !== context.auth.userId
+                )
               }
 
               const {
@@ -1563,15 +1585,15 @@ const MutationResolver = (
               resolve(resolveValue)
 
               const deviceSharedIds = await instanceToSharedIds(boardFound)
-              pubsub.publish('notificationUpdated', {
+              pubsub.publish("notificationUpdated", {
                 notificationUpdated: resolveValue,
                 userIds: deviceSharedIds,
               })
 
               context.billingUpdater.update(MUTATION_COST)
             },
-            deviceToParent(Board),
-          ),
+            deviceToParent(Board)
+          )
         )
       }
     },
@@ -1581,10 +1603,10 @@ const MutationResolver = (
       })
 
       if (!notificationFound) {
-        throw new Error('The requested resource does not exist')
+        throw new Error("The requested resource does not exist")
       } else {
         return logErrorsPromise(
-          'notification mutation',
+          "notification mutation",
           1001,
           authorized(
             notificationFound.deviceId,
@@ -1598,32 +1620,32 @@ const MutationResolver = (
               resolve(args.id)
 
               const deviceSharedIds = await instanceToSharedIds(boardFound)
-              pubsub.publish('notificationDeleted', {
+              pubsub.publish("notificationDeleted", {
                 notificationDeleted: args.id,
                 userIds: deviceSharedIds,
               })
 
               // the notificationsCount props are updated so send the device and board subscriptions
-              pubsub.publish('deviceUpdated', {
+              pubsub.publish("deviceUpdated", {
                 deviceUpdated: {
                   id: deviceFound.id,
                 },
                 userIds: deviceSharedIds,
               })
-              pubsub.publish('boardUpdated', {
+              pubsub.publish("boardUpdated", {
                 boardUpdated: boardFound.dataValues,
                 userIds: await instanceToSharedIds(boardFound),
               })
               context.billingUpdater.update(MUTATION_COST)
             },
-            deviceToParent(Board),
-          ),
+            deviceToParent(Board)
+          )
         )
       }
     },
     deleteValue: (root, args, context) =>
       logErrorsPromise(
-        'delete value',
+        "delete value",
         124,
         authorizedValue(
           args.id,
@@ -1644,7 +1666,7 @@ const MutationResolver = (
             // TODO: if value is plot remove nodes
             await valueFound.destroy()
 
-            pubsub.publish('valueDeleted', {
+            pubsub.publish("valueDeleted", {
               valueDeleted: args.id,
               userIds: authorizedUsersIds,
             })
@@ -1652,12 +1674,12 @@ const MutationResolver = (
             context.billingUpdater.update(MUTATION_COST)
           },
           Device,
-          Board,
-        ),
+          Board
+        )
       ),
     deleteDevice: (root, args, context) =>
       logErrorsPromise(
-        'delete device mutation',
+        "delete device mutation",
         126,
         authorized(
           args.id,
@@ -1676,21 +1698,23 @@ const MutationResolver = (
                 },
               })
 
-            await Promise.all([
-              FloatValue,
-              StringValue,
-              BoolValue,
-              MapValue,
-              PlotValue,
-              StringPlotValue,
-              PlotNode,
-              StringPlotNode,
-              Notification,
-            ].map(deleteChild))
+            await Promise.all(
+              [
+                FloatValue,
+                StringValue,
+                BoolValue,
+                MapValue,
+                PlotValue,
+                StringPlotValue,
+                PlotNode,
+                StringPlotNode,
+                Notification,
+              ].map(deleteChild)
+            )
 
             await deviceFound.destroy()
 
-            pubsub.publish('deviceDeleted', {
+            pubsub.publish("deviceDeleted", {
               deviceDeleted: args.id,
               userIds: authorizedUsersIds,
             })
@@ -1698,12 +1722,12 @@ const MutationResolver = (
             resolve(args.id)
             context.billingUpdater.update(MUTATION_COST)
           },
-          deviceToParent(Board),
-        ),
+          deviceToParent(Board)
+        )
       ),
     deleteBoard: (root, args, context) =>
       logErrorsPromise(
-        'delete board mutation',
+        "delete board mutation",
         913,
         authorized(
           args.id,
@@ -1718,7 +1742,7 @@ const MutationResolver = (
             })
 
             // TODO: send deleted notifications for children
-            const deleteDevicesPromises = devices.map(async (device) => {
+            const deleteDevicesPromises = devices.map(async device => {
               const deleteChild = Model =>
                 Model.destroy({
                   where: {
@@ -1726,16 +1750,18 @@ const MutationResolver = (
                   },
                 })
 
-              await Promise.all([
-                FloatValue,
-                StringValue,
-                BoolValue,
-                MapValue,
-                PlotValue,
-                StringPlotValue,
-                PlotNode,
-                Notification,
-              ].map(deleteChild))
+              await Promise.all(
+                [
+                  FloatValue,
+                  StringValue,
+                  BoolValue,
+                  MapValue,
+                  PlotValue,
+                  StringPlotValue,
+                  PlotNode,
+                  Notification,
+                ].map(deleteChild)
+              )
 
               await device.destroy()
             })
@@ -1743,7 +1769,7 @@ const MutationResolver = (
 
             await boardFound.destroy()
 
-            pubsub.publish('boardDeleted', {
+            pubsub.publish("boardDeleted", {
               boardDeleted: args.id,
               userIds: authorizedUsersIds,
             })
@@ -1751,12 +1777,12 @@ const MutationResolver = (
 
             context.billingUpdater.update(MUTATION_COST)
           },
-          boardToParent,
-        ),
+          boardToParent
+        )
       ),
     deletePlotNode(root, args, context) {
       return logErrorsPromise(
-        'deletePlotNode mutation',
+        "deletePlotNode mutation",
         139,
         inheritAuthorized(
           args.id,
@@ -1771,25 +1797,25 @@ const MutationResolver = (
             reject,
             plotNodeFound,
             plotValueFound,
-            [_, boardFound],
+            [_, boardFound]
           ) => {
             await plotNodeFound.destroy()
 
             resolve(args.id)
-            pubsub.publish('plotNodeDeleted', {
+            pubsub.publish("plotNodeDeleted", {
               plotNodeDeleted: args.id,
               userIds: await instanceToSharedIds(boardFound),
             })
 
             context.billingUpdater.update(MUTATION_COST)
           },
-          valueToParent(Board),
-        ),
+          valueToParent(Board)
+        )
       )
     },
     deleteStringPlotNode(root, args, context) {
       return logErrorsPromise(
-        'CreatePlotNode mutation',
+        "CreatePlotNode mutation",
         139,
         inheritAuthorized(
           args.id,
@@ -1804,25 +1830,25 @@ const MutationResolver = (
             reject,
             plotNodeFound,
             plotValueFound,
-            [_, boardFound],
+            [_, boardFound]
           ) => {
             await plotNodeFound.destroy()
 
             resolve(args.id)
-            pubsub.publish('plotNodeDeleted', {
+            pubsub.publish("plotNodeDeleted", {
               plotNodeDeleted: args.id,
               userIds: await instanceToSharedIds(boardFound),
             })
 
             context.billingUpdater.update(MUTATION_COST)
           },
-          valueToParent(Board),
-        ),
+          valueToParent(Board)
+        )
       )
     },
     deleteUser: (root, args, context) =>
       logErrorsPromise(
-        'delete device mutation',
+        "delete device mutation",
         126,
         authenticated(context, async (resolve, reject) => {
           const userFound = await User.find({
@@ -1830,53 +1856,32 @@ const MutationResolver = (
           })
 
           if (!userFound) {
-            reject('The requested resource does not exist')
+            reject("The requested resource does not exist")
           } else if (!bcrypt.compareSync(args.password, userFound.password)) {
-            reject('Wrong password')
+            reject("Wrong password")
           } else if (
             !userFound.twoFactorSecret ||
             check2FCode(args.twoFactorCode, userFound.twoFactorSecret)
           ) {
-            const deleteChild = idName => Model =>
-              Model.destroy({
-                where: {
-                  [idName]: context.auth.userId,
-                },
-              })
+            // after enabling cascade delete in postgres destroying the boards should be enough to clear the user
 
-            await Promise.all([PlotNode, StringPlotNode, Notification].map(deleteChild('userId')))
-            await Promise.all([
-              FloatValue,
-              StringValue,
-              BoolValue,
-              PlotValue,
-              StringPlotValue,
-              MapValue,
-            ].map(deleteChild('ownerId')))
-
-            await Device.destroy({
-              where: {
-                ownerId: context.auth.userId,
-              },
-            })
-
-            await Board.destroy({
-              where: {
-                ownerId: context.auth.userId,
-              },
-            })
+            // await Board.destroy({
+            //   where: {
+            //     ownerId: context.auth.userId,
+            //   },
+            // })
 
             await userFound.destroy()
 
-            pubsub.publish('userDeleted', {
+            pubsub.publish("userDeleted", {
               userDeleted: context.auth.userId,
               userId: context.auth.userId,
             })
             resolve(context.auth.userId)
           } else {
-            reject('Wrong two factor code')
+            reject("Wrong two factor code")
           }
-        }),
+        })
       ),
   }
 

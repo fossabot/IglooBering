@@ -7,8 +7,8 @@ import {
   notificationToParent,
   inheritAuthorized,
   boardToParent,
-} from './utilities'
-import bcrypt from 'bcryptjs'
+} from "./utilities"
+import bcrypt from "bcryptjs"
 
 const QUERY_COST = 1
 
@@ -25,18 +25,20 @@ const QueryResolver = ({
   Notification,
 }) => ({
   user(root, args, context) {
-    return new Promise(authenticated(
-      context,
-      (resolve) => {
-        resolve({ id: context.auth.userId })
-        context.billingUpdater.update(QUERY_COST)
-      },
-      ['TEMPORARY', 'PERMANENT', 'PASSWORD_RECOVERY'],
-    ))
+    return new Promise(
+      authenticated(
+        context,
+        resolve => {
+          resolve({ id: context.auth.userId })
+          context.billingUpdater.update(QUERY_COST)
+        },
+        ["TEMPORARY", "PERMANENT", "PASSWORD_RECOVERY"]
+      )
+    )
   },
   device(root, args, context) {
     return logErrorsPromise(
-      'device query',
+      "device query",
       105,
       authorized(
         args.id,
@@ -49,13 +51,13 @@ const QueryResolver = ({
 
           context.billingUpdater.update(QUERY_COST)
         },
-        deviceToParent(Board),
-      ),
+        deviceToParent(Board)
+      )
     )
   },
   board(root, args, context) {
     return logErrorsPromise(
-      'board query',
+      "board query",
       912,
       authorized(
         args.id,
@@ -67,13 +69,13 @@ const QueryResolver = ({
           resolve(boardFound.dataValues)
           context.billingUpdater.update(QUERY_COST)
         },
-        boardToParent,
-      ),
+        boardToParent
+      )
     )
   },
   value(root, args, context) {
     return logErrorsPromise(
-      'value query',
+      "value query",
       114,
       authenticated(context, async (resolve, reject) => {
         const userFound = await User.find({
@@ -91,17 +93,17 @@ const QueryResolver = ({
           Device,
           Board,
           { where: { id: args.id } },
-          userFound,
+          userFound
         ).catch(e => reject(e))
 
         resolve(valueFound)
         context.billingUpdater.update(QUERY_COST)
-      }),
+      })
     )
   },
   verifyPassword(root, args, context) {
     return logErrorsPromise(
-      'verifyPassword',
+      "verifyPassword",
       178,
       authenticated(context, async (resolve, reject) => {
         const userFound = await User.find({
@@ -117,12 +119,12 @@ const QueryResolver = ({
         } else {
           resolve(false)
         }
-      }),
+      })
     )
   },
   notification(root, args, context) {
     return logErrorsPromise(
-      'notificationQuery',
+      "notificationQuery",
       300,
       inheritAuthorized(
         args.id,
@@ -136,8 +138,8 @@ const QueryResolver = ({
           resolve(notificationFound)
           context.billingUpdater.update(QUERY_COST)
         },
-        deviceToParent(Board),
-      ),
+        deviceToParent(Board)
+      )
     )
   },
 })

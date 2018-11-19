@@ -3,24 +3,24 @@ import {
   logErrorsPromise,
   findAllValues,
   getAll,
-} from './utilities'
-import { Op } from 'sequelize'
+} from "./utilities"
+import { Op } from "sequelize"
 
 const QUERY_COST = 1
 
 const retrieveUserScalarProp = (User, prop, acceptedTokens) => (
   root,
   args,
-  context,
+  context
 ) =>
   logErrorsPromise(
-    'retrieveScalarProp',
+    "retrieveScalarProp",
     106,
     authenticated(
       context,
       async (resolve, reject) => {
         if (context.auth.userId !== root.id) {
-          reject('You are not allowed to access details about this user')
+          reject("You are not allowed to access details about this user")
         } else {
           const userFound = await User.find({ where: { id: root.id } })
           if (!userFound) {
@@ -30,8 +30,8 @@ const retrieveUserScalarProp = (User, prop, acceptedTokens) => (
           }
         }
       },
-      acceptedTokens,
-    ),
+      acceptedTokens
+    )
   )
 
 const scalarProps = (User, props) =>
@@ -43,10 +43,10 @@ const scalarProps = (User, props) =>
 const retrievePublicUserScalarProp = (User, prop, acceptedTokens) => (
   root,
   args,
-  context,
+  context
 ) =>
   logErrorsPromise(
-    'retrieveScalarProp',
+    "retrieveScalarProp",
     106,
     authenticated(
       context,
@@ -58,8 +58,8 @@ const retrievePublicUserScalarProp = (User, prop, acceptedTokens) => (
           resolve(userFound[prop])
         }
       },
-      acceptedTokens,
-    ),
+      acceptedTokens
+    )
   )
 
 const UserResolver = ({
@@ -76,50 +76,50 @@ const UserResolver = ({
   Notification,
 }) => ({
   ...scalarProps(User, [
-    'createdAt',
-    'updatedAt',
-    'quietMode',
-    'devMode',
-    'monthUsage',
-    'emailIsVerified',
+    "createdAt",
+    "updatedAt",
+    "quietMode",
+    "devMode",
+    "monthUsage",
+    "emailIsVerified",
   ]),
-  email: retrievePublicUserScalarProp(User, 'email', [
-    'TEMPORARY',
-    'PERMANENT',
-    'PASSWORD_RECOVERY',
+  email: retrievePublicUserScalarProp(User, "email", [
+    "TEMPORARY",
+    "PERMANENT",
+    "PASSWORD_RECOVERY",
   ]),
-  fullName: retrievePublicUserScalarProp(User, 'fullName', [
-    'TEMPORARY',
-    'PERMANENT',
-    'PASSWORD_RECOVERY',
+  fullName: retrievePublicUserScalarProp(User, "fullName", [
+    "TEMPORARY",
+    "PERMANENT",
+    "PASSWORD_RECOVERY",
   ]),
-  profileIcon: retrievePublicUserScalarProp(User, 'profileIcon', [
-    'TEMPORARY',
-    'PERMANENT',
-    'PASSWORD_RECOVERY',
+  profileIcon: retrievePublicUserScalarProp(User, "profileIcon", [
+    "TEMPORARY",
+    "PERMANENT",
+    "PASSWORD_RECOVERY",
   ]),
-  profileIconColor: retrievePublicUserScalarProp(User, 'profileIconColor', [
-    'TEMPORARY',
-    'PERMANENT',
-    'PASSWORD_RECOVERY',
+  profileIconColor: retrievePublicUserScalarProp(User, "profileIconColor", [
+    "TEMPORARY",
+    "PERMANENT",
+    "PASSWORD_RECOVERY",
   ]),
-  paymentPlan: retrieveUserScalarProp(User, 'paymentPlan', [
-    'TEMPORARY',
-    'PERMANENT',
-    'SWITCH_TO_PAYING',
+  paymentPlan: retrieveUserScalarProp(User, "paymentPlan", [
+    "TEMPORARY",
+    "PERMANENT",
+    "SWITCH_TO_PAYING",
   ]),
-  usageCap: retrieveUserScalarProp(User, 'usageCap', [
-    'TEMPORARY',
-    'PERMANENT',
-    'CHANGE_USAGE_CAP',
+  usageCap: retrieveUserScalarProp(User, "usageCap", [
+    "TEMPORARY",
+    "PERMANENT",
+    "CHANGE_USAGE_CAP",
   ]),
   settings(root, args, context) {
     return logErrorsPromise(
-      'User devices resolver',
+      "User devices resolver",
       107,
       authenticated(context, async (resolve, reject) => {
         if (context.auth.userId !== root.id) {
-          reject('You are not allowed to access details about this user')
+          reject("You are not allowed to access details about this user")
         } else {
           const userFound = await User.find({ where: { id: root.id } })
 
@@ -133,16 +133,16 @@ const UserResolver = ({
           })
           context.billingUpdater.update(QUERY_COST)
         }
-      }),
+      })
     )
   },
   devices(root, args, context) {
     return logErrorsPromise(
-      'User devices resolver',
+      "User devices resolver",
       107,
       authenticated(context, async (resolve, reject) => {
         if (context.auth.userId !== root.id) {
-          reject('You are not allowed to access details about this user')
+          reject("You are not allowed to access details about this user")
         } else {
           const devicesInheritedByBoards = await getAll(Board, User, root.id, [
             { model: Device },
@@ -150,22 +150,22 @@ const UserResolver = ({
 
           const devices = devicesInheritedByBoards.reduce(
             (acc, curr) => [...acc, ...curr.devices],
-            [],
+            []
           )
 
           resolve(devices)
           context.billingUpdater.update(QUERY_COST * devices.length)
         }
-      }),
+      })
     )
   },
   boardsCount(root, args, context) {
     return logErrorsPromise(
-      'User boards resolver',
+      "User boards resolver",
       904,
       authenticated(context, async (resolve, reject) => {
         if (context.auth.userId !== root.id) {
-          reject('You are not allowed to access details about this user')
+          reject("You are not allowed to access details about this user")
         } else {
           // TODO: use count query instead
           const boards = await getAll(Board, User, root.id)
@@ -173,32 +173,32 @@ const UserResolver = ({
           resolve(boards.length)
           context.billingUpdater.update(QUERY_COST)
         }
-      }),
+      })
     )
   },
   boards(root, args, context) {
     return logErrorsPromise(
-      'User boards resolver',
+      "User boards resolver",
       904,
       authenticated(context, async (resolve, reject) => {
         if (context.auth.userId !== root.id) {
-          reject('You are not allowed to access details about this user')
+          reject("You are not allowed to access details about this user")
         } else {
           const boards = await getAll(Board, User, root.id)
 
           resolve(boards)
           context.billingUpdater.update(QUERY_COST * boards.length)
         }
-      }),
+      })
     )
   },
   notificationsCount(root, args, context) {
     return logErrorsPromise(
-      'notificationsCount UserResolver',
+      "notificationsCount UserResolver",
       925,
       authenticated(context, async (resolve, reject) => {
         if (context.auth.userId !== root.id) {
-          reject('You are not allowed to access details about this user')
+          reject("You are not allowed to access details about this user")
         } else {
           const devicesInheritedByBoards = await getAll(Board, User, root.id, [
             { model: Device, include: [{ model: Notification }] },
@@ -210,29 +210,31 @@ const UserResolver = ({
               ...acc,
               ...board.devices.reduce(
                 (acc, device) => [...acc, ...device.notifications],
-                [],
+                []
               ),
             ],
-            [],
+            []
           )
 
           // count not visualized notifications
-          const totalCount = allNotifications.filter(notification =>
-            notification.visualized.indexOf(context.auth.userId) === -1).length
+          const totalCount = allNotifications.filter(
+            notification =>
+              notification.visualized.indexOf(context.auth.userId) === -1
+          ).length
 
           resolve(totalCount)
           context.billingUpdater.update(QUERY_COST)
         }
-      }),
+      })
     )
   },
   notifications(root, args, context) {
     return logErrorsPromise(
-      'User devices resolver',
+      "User devices resolver",
       119,
       authenticated(context, async (resolve, reject) => {
         if (context.auth.userId !== root.id) {
-          reject('You are not allowed to access details about this user')
+          reject("You are not allowed to access details about this user")
         } else {
           const devicesInheritedByBoards = await getAll(Board, User, root.id, [
             { model: Device, include: [{ model: Notification }] },
@@ -244,25 +246,25 @@ const UserResolver = ({
               ...acc,
               ...board.devices.reduce(
                 (acc, device) => [...acc, ...device.notifications],
-                [],
+                []
               ),
             ],
-            [],
+            []
           )
 
           resolve(allNotifications)
           context.billingUpdater.update(QUERY_COST * allNotifications.length)
         }
-      }),
+      })
     )
   },
   values(root, args, context) {
     return logErrorsPromise(
-      'User values resolver',
+      "User values resolver",
       108,
       authenticated(context, async (resolve, reject) => {
         if (context.auth.userId !== root.id) {
-          reject('You are not allowed to access details about this user')
+          reject("You are not allowed to access details about this user")
         } else {
           // TODO: tag the values with the right __resolveType
           const valueModels = [
@@ -293,25 +295,25 @@ const UserResolver = ({
                   ...device.stringPlotValues,
                   ...device.mapValues,
                 ],
-                [],
+                []
               ),
             ],
-            [],
+            []
           )
 
           resolve(flattenedAllValues)
           context.billingUpdater.update(QUERY_COST * flattenedAllValues.length)
         }
-      }),
+      })
     )
   },
   permanentTokens(root, args, context) {
     return logErrorsPromise(
-      'user permanentTokens',
+      "user permanentTokens",
       127,
       authenticated(context, async (resolve, reject) => {
         if (context.auth.userId !== root.id) {
-          reject('You are not allowed to access details about this user')
+          reject("You are not allowed to access details about this user")
         } else {
           const tokens = await PermanentToken.findAll({
             where: { userId: root.id },
@@ -320,7 +322,7 @@ const UserResolver = ({
           resolve(tokens)
           context.billingUpdater.update(QUERY_COST * tokens.length)
         }
-      }),
+      })
     )
   },
 })
