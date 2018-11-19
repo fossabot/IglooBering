@@ -80,7 +80,9 @@ const MutationResolver = (
         'AuthenticateUser',
         103,
         async (resolve, reject) => {
-          const userFound = await User.find({ where: { email: args.email } })
+          const userFound = await User.find({
+            where: { email: args.email },
+          })
           if (!userFound) {
             reject("User doesn't exist. Use `SignupUser` to create one")
           } else if (
@@ -140,7 +142,9 @@ const MutationResolver = (
         'SendPasswordRecoveryEmail',
         901,
         async (resolve, reject) => {
-          const userFound = await User.find({ where: { email: args.email } })
+          const userFound = await User.find({
+            where: { email: args.email },
+          })
           if (!userFound) {
             reject("User doesn't exist. Use `SignupUser` to create one")
           } else {
@@ -241,7 +245,9 @@ const MutationResolver = (
           return
         }
 
-        const userFound = await User.find({ where: { email: args.email } })
+        const userFound = await User.find({
+          where: { email: args.email },
+        })
         if (userFound) {
           reject('A user with this email already exists')
         } else {
@@ -405,7 +411,9 @@ const MutationResolver = (
           User,
           3,
           async (resolve, reject, found) => {
-            const userFound = await User.find({ where: { email: args.email } })
+            const userFound = await User.find({
+              where: { email: args.email },
+            })
 
             if (!userFound) {
               reject("This account doesn't exist, check the email passed")
@@ -447,7 +455,9 @@ const MutationResolver = (
           User,
           3,
           async (resolve, reject, found, [_, boardFound]) => {
-            const userFound = await User.find({ where: { email: args.email } })
+            const userFound = await User.find({
+              where: { email: args.email },
+            })
             // instanceToRole now accepts an instance not an array
             const role = await instanceToRole(boardFound, userFound)
 
@@ -1142,7 +1152,9 @@ const MutationResolver = (
           User,
           2,
           async (resolve, reject, deviceFound, [_, boardFound]) => {
-            const newDevice = await deviceFound.update({ online: null })
+            const newDevice = await deviceFound.update({
+              online: null,
+            })
             resolve(newDevice.dataValues)
             pubsub.publish('deviceUpdated', {
               deviceUpdated: newDevice.dataValues,
