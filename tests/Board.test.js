@@ -3,10 +3,7 @@ import MocksGenerator from './mockUtils'
 import { testScalarProp, unauthenticatedShouldFail } from './testUtils'
 
 const {
-  MockedBoard,
-  MockedUser,
-  mockBoardData,
-  mockUserData,
+  MockedBoard, MockedUser, mockBoardData, mockUserData,
 } = MocksGenerator()
 
 const BoardResolver = BoardResolverFactory({
@@ -15,11 +12,7 @@ const BoardResolver = BoardResolverFactory({
 })
 
 describe('Board', () => {
-  const testBoardScalarProp = testScalarProp(
-    BoardResolver,
-    { id: 'mockBoardId' },
-    mockBoardData[0],
-  )
+  const testBoardScalarProp = testScalarProp(BoardResolver, { id: 'mockBoardId' }, mockBoardData[0])
   const testUnauthenticated = unauthenticatedShouldFail(BoardResolver, {
     id: 'mockBoardId',
   })
@@ -38,37 +31,23 @@ describe('Board', () => {
       { auth: { userId: 'mockUserId', tokenType: 'TEMPORARY' } },
     )
 
-    const correctQuietMode =
-      mockBoardData[0].quietMode || mockUserData[0].quietMode
+    const correctQuietMode = mockBoardData[0].quietMode || mockUserData[0].quietMode
     expect(quietModeFound).toBe(correctQuietMode)
 
     done()
   })
 
-  test(
-    'fetch customName fails if unauthenticated',
-    testUnauthenticated('customName'),
-  )
-  test('fetch avatar fails if unauthenticated', testUnauthenticated('avatar'))
-  test('fetch index fails if unauthenticated', testUnauthenticated('index'))
-  test(
-    'fetch createdAt fails if unauthenticated',
-    testUnauthenticated('createdAt'),
-  )
-  test(
-    'fetch updatedAt fails if unauthenticated',
-    testUnauthenticated('updatedAt'),
-  )
-  test(
-    'fetch quietMode fails if unauthenticated',
-    testUnauthenticated('quietMode'),
-  )
-  test('fetch devices fails if unauthenticated', testUnauthenticated('devices'))
-  test('fetch owner fails if unauthenticated', testUnauthenticated('owner'))
-  test('fetch admins fails if unauthenticated', testUnauthenticated('admins'))
-  test('fetch editors fails if unauthenticated', testUnauthenticated('editors'))
-  test(
-    'fetch spectators fails if unauthenticated',
-    testUnauthenticated('spectators'),
-  )
+  test('customName fails if unauthenticated', testUnauthenticated('customName'))
+  test('avatar fails if unauthenticated', testUnauthenticated('avatar'))
+  test('index fails if unauthenticated', testUnauthenticated('index'))
+  test('createdAt fails if unauthenticated', testUnauthenticated('createdAt'))
+  test('updatedAt fails if unauthenticated', testUnauthenticated('updatedAt'))
+  test('quietMode fails if unauthenticated', testUnauthenticated('quietMode'))
+  test('devices fails if unauthenticated', testUnauthenticated('devices'))
+  test('owner fails if unauthenticated', testUnauthenticated('owner'))
+  test('admins fails if unauthenticated', testUnauthenticated('admins'))
+  test('editors fails if unauthenticated', testUnauthenticated('editors'))
+  test('spectators fails if unauthenticated', testUnauthenticated('spectators'))
+  test('notificationsCount fails if unauthenticated', testUnauthenticated('notificationsCount'))
+  test('myRole fails if unauthenticated', testUnauthenticated('myRole'))
 })

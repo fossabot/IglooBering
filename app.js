@@ -210,7 +210,8 @@ app.get('/file/:file', async (req, res) => {
     const objectOwner = await getObjectOwner(s3, getParams)
 
     if (objectOwner === req.user.userId) {
-      s3.getObject(getParams)
+      s3
+        .getObject(getParams)
         .createReadStream()
         .pipe(res)
     } else {
