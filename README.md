@@ -90,7 +90,7 @@ TBD
 We are open to any contribution, just send us a pull request. 
 
 ### Testing
-You can run the automated tests using the `test` script, be aware that the tests do load data on both the S3 bucket and the database and that the database is automatically cleaned before the tests, so you should run tests on a dedicated database (you should always run tests on a dedicated database, but in this case you *really* should).
+You can run the automated tests using the `test` script
 
 ```bash
 yarn test
