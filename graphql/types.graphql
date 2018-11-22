@@ -600,10 +600,10 @@ type Settings {
 }
 
 type User {
-  id: ID! @isUnique
+  id: ID!
   createdAt: DateTime!
   updatedAt: DateTime!
-  email: String! @isUnique
+  email: String!
   boardsCount: Int
   boards: [Board!]!
   devices: [Device!]!
@@ -657,7 +657,7 @@ type PermanentToken {
 }
 
 type Device {
-  id: ID! @isUnique
+  id: ID!
   index: Int!
   createdAt: DateTime!
   updatedAt: DateTime!
@@ -697,7 +697,7 @@ enum TileSize {
 }
 
 type Notification {
-  id: ID! @isUnique
+  id: ID!
   device: Device!
   board: Board!
   user: User!
@@ -707,7 +707,7 @@ type Notification {
 }
 
 type PlotNode {
-  id: ID! @isUnique
+  id: ID!
   device: Device!
   plot: PlotValue!
   user: User!
@@ -716,7 +716,7 @@ type PlotNode {
 }
 
 type StringPlotNode {
-  id: ID! @isUnique
+  id: ID!
   device: Device!
   plot: StringPlotValue!
   user: User!
@@ -725,7 +725,7 @@ type StringPlotNode {
 }
 
 type Map {
-  id: ID! @isUnique
+  id: ID!
   deviceValue: Value!
   zoom: Int!
   position: MapPosition!
@@ -733,20 +733,20 @@ type Map {
 }
 
 type MapPosition {
-  id: ID! @isUnique
+  id: ID!
   latitude: Float!
   longitude: Float!
   map: Map!
 }
 
 interface Value {
-  id: ID! @isUnique
+  id: ID!
   createdAt: DateTime!
   updatedAt: DateTime!
   device: Device!
   board: Board!
-  permission: ValuePermission! @defaultValue(value: READ_WRITE)
-  visibility: ValueVisibility! @defaultValue(value: VISIBLE)
+  permission: ValuePermission!
+  visibility: ValueVisibility!
   valueDetails: String
   tileSize: TileSize!
   customName: String
@@ -754,13 +754,13 @@ interface Value {
 }
 
 type FloatValue implements Value {
-  id: ID! @isUnique
+  id: ID!
   createdAt: DateTime!
   updatedAt: DateTime!
   device: Device!
   board: Board!
-  permission: ValuePermission! @defaultValue(value: READ_WRITE)
-  visibility: ValueVisibility! @defaultValue(value: NORMAL)
+  permission: ValuePermission!
+  visibility: ValueVisibility!
   valueDetails: String
   value: Float!
   # used when the end-user reads or modifies the value
@@ -773,13 +773,13 @@ type FloatValue implements Value {
 }
 
 type StringValue implements Value {
-  id: ID! @isUnique
+  id: ID!
   createdAt: DateTime!
   updatedAt: DateTime!
   device: Device!
   board: Board!
-  permission: ValuePermission! @defaultValue(value: READ_WRITE)
-  visibility: ValueVisibility! @defaultValue(value: NORMAL)
+  permission: ValuePermission!
+  visibility: ValueVisibility!
   valueDetails: String
   value: String!
   maxChars: Int
@@ -790,13 +790,13 @@ type StringValue implements Value {
 }
 
 type PlotValue implements Value {
-  id: ID! @isUnique
+  id: ID!
   createdAt: DateTime!
   updatedAt: DateTime!
   device: Device!
   board: Board!
-  permission: ValuePermission! @defaultValue(value: READ_WRITE)
-  visibility: ValueVisibility! @defaultValue(value: NORMAL)
+  permission: ValuePermission!
+  visibility: ValueVisibility!
   valueDetails: String
   value: [PlotNode!]!
   # used when the end-user reads or modifies the value
@@ -811,13 +811,13 @@ type PlotValue implements Value {
 }
 
 type StringPlotValue implements Value {
-  id: ID! @isUnique
+  id: ID!
   createdAt: DateTime!
   updatedAt: DateTime!
   device: Device!
   board: Board!
-  permission: ValuePermission! @defaultValue(value: READ_WRITE)
-  visibility: ValueVisibility! @defaultValue(value: NORMAL)
+  permission: ValuePermission!
+  visibility: ValueVisibility!
   valueDetails: String
   value: [StringPlotNode!]!
   tileSize: TileSize!
@@ -827,13 +827,13 @@ type StringPlotValue implements Value {
 }
 
 type BooleanValue implements Value {
-  id: ID! @isUnique
+  id: ID!
   createdAt: DateTime!
   updatedAt: DateTime!
   device: Device!
   board: Board!
-  permission: ValuePermission! @defaultValue(value: READ_WRITE)
-  visibility: ValueVisibility! @defaultValue(value: NORMAL)
+  permission: ValuePermission!
+  visibility: ValueVisibility!
   valueDetails: String
   value: Boolean!
   tileSize: TileSize!
@@ -842,13 +842,13 @@ type BooleanValue implements Value {
 }
 
 type MapValue implements Value {
-  id: ID! @isUnique
+  id: ID!
   createdAt: DateTime!
   updatedAt: DateTime!
   device: Device!
   board: Board!
-  permission: ValuePermission! @defaultValue(value: READ_WRITE)
-  visibility: ValueVisibility! @defaultValue(value: NORMAL)
+  permission: ValuePermission!
+  visibility: ValueVisibility!
   valueDetails: String
   value: String
   latitude: Float

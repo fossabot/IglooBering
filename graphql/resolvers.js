@@ -8,6 +8,7 @@ import SubscriptionsResolver from "./resolvers/subscriptions"
 import NotificationResolver from "./resolvers/Notification"
 import ValueResolver from "./resolvers/Value"
 import ValueResolvers from "./resolvers/Values"
+import DateTime from "./resolvers/DateTime"
 import SequelizeConnections from "../postgresql/databaseConnection"
 import { pubsub } from "../shared"
 
@@ -39,7 +40,7 @@ const {
 } = SequelizeConnections
 
 const resolvers = {
-  DateTime: GraphQLToolsTypes.Date({ name: "DateTime" }),
+  DateTime: DateTime({ name: "DateTime" }),
   Json: GraphQLToolsTypes.JSON({ name: "Json" }),
   User: UserResolver(SequelizeConnections),
   Board: BoardResolver(SequelizeConnections),
