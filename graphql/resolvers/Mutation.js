@@ -507,9 +507,9 @@ const MutationResolver = (
             index:
               args.index !== null && args.index !== undefined
                 ? args.index
-                : await Board.count({
+                : (await Board.max("index", {
                     where: { ownerId: context.auth.userId },
-                  }),
+                  })) + 1 || 0, // or 0 replaces NaN when there are no other devices
           })
 
           const userFound = await User.find({
@@ -594,9 +594,9 @@ const MutationResolver = (
             const index =
               args.index !== null && args.index !== undefined
                 ? args.index
-                : await Device.count({
+                : (await Device.max("index", {
                     where: { boardId },
-                  })
+                  })) + 1 || 0 // or 0 replaces NaN when there are no other devices
 
             const newDevice = await Device.create({
               ...args,

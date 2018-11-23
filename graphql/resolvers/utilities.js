@@ -165,12 +165,15 @@ const CreateGenericValue = (
         async function calculateIndex() {
           const valuesCountPromises = ValueModels.map(
             async model =>
-              await model.count({ where: { deviceId: args.deviceId } })
+              await model.max("index", { where: { deviceId: args.deviceId } })
           )
           const valuesCount = await Promise.all(valuesCountPromises)
 
-          const newIndex = valuesCount.reduce((a, b) => a + b)
-          return newIndex
+          const maxIndex = valuesCount.reduce(
+            (acc, curr) => Math.max(acc, !isNaN(curr) ? curr : 0),
+            0
+          )
+          return maxIndex + 1
         }
 
         const index =
@@ -181,7 +184,6 @@ const CreateGenericValue = (
         const newValue = await Model.create({
           ...args,
           tileSize: args.tileSize || "NORMAL",
-          ownerId: context.auth.userId,
           visibility: isNullOrUndefined(args.visibility)
             ? "VISIBLE"
             : args.visibility,
