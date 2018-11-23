@@ -130,7 +130,11 @@ const DeviceResolver = ({
         async (resolve, reject, deviceFound) => {
           const notifications = await deviceFound.getNotifications()
 
-          resolve(notifications)
+          // the database returns ISO-format dates, so sorting the strings without casting is fine
+          const compareDates = (a, b) =>
+            a.date > b.date ? -1 : a.date === b.date ? 0 : 1
+
+          resolve(notifications.sort(compareDates))
           context.billingUpdater.update(QUERY_COST * notifications.length)
         },
         deviceToParent(Board)

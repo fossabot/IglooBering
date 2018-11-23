@@ -252,7 +252,11 @@ const UserResolver = ({
             []
           )
 
-          resolve(allNotifications)
+          // the database returns ISO-format dates, so sorting the strings without casting is fine
+          const compareDates = (a, b) =>
+            a.date > b.date ? -1 : a.date === b.date ? 0 : 1
+
+          resolve(allNotifications.sort(compareDates))
           context.billingUpdater.update(QUERY_COST * allNotifications.length)
         }
       })
