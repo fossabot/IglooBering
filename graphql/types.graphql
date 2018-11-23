@@ -604,12 +604,12 @@ type User {
   createdAt: DateTime!
   updatedAt: DateTime!
   email: String!
-  boardsCount: Int
+  boardCount: Int
   boards: [Board!]!
   devices: [Device!]!
   values: [Value!]!
   notifications: [Notification!]!
-  notificationsCount: Int!
+  notificationCount: Int!
   permanentTokens: [PermanentToken!]!
   quietMode: Boolean
   devMode: Boolean
@@ -642,7 +642,7 @@ type Board {
   customName: String!
   avatar: BoardPicture!
   devices: [Device!]!
-  notificationsCount: Int!
+  notificationCount: Int!
   index: Int!
   quietMode: Boolean!
 }
@@ -669,7 +669,7 @@ type Device {
   board: Board!
   icon: String
   notifications: [Notification!]!
-  notificationsCount: Int!
+  notificationCount: Int!
   online: Boolean
   signalStatus: Float
   batteryStatus: Float

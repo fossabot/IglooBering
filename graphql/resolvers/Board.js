@@ -102,9 +102,9 @@ const BoardResolver = ({ User, Board, Device, Notification, joinTables }) => ({
       )
     )
   },
-  notificationsCount(root, args, context) {
+  notificationCount(root, args, context) {
     return logErrorsPromise(
-      "notificationsCount BoardResolver",
+      "notificationCount BoardResolver",
       915,
       authorized(
         root.id,
@@ -119,7 +119,7 @@ const BoardResolver = ({ User, Board, Device, Notification, joinTables }) => ({
             attributes: ["id"],
           })
 
-          const notificationsCountsPromises = devices.map(device =>
+          const notificationCountsPromises = devices.map(device =>
             Notification.count({
               where: {
                 deviceId: device.id,
@@ -130,10 +130,10 @@ const BoardResolver = ({ User, Board, Device, Notification, joinTables }) => ({
             })
           )
 
-          const notificationsCounts = await Promise.all(
-            notificationsCountsPromises
+          const notificationCounts = await Promise.all(
+            notificationCountsPromises
           )
-          const totalCount = notificationsCounts.reduce((a, b) => a + b, 0)
+          const totalCount = notificationCounts.reduce((a, b) => a + b, 0)
 
           resolve(totalCount)
           context.billingUpdater.update(QUERY_COST)

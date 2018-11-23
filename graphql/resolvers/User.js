@@ -159,7 +159,7 @@ const UserResolver = ({
       })
     )
   },
-  boardsCount(root, args, context) {
+  boardCount(root, args, context) {
     return logErrorsPromise(
       "User boards resolver",
       904,
@@ -192,9 +192,9 @@ const UserResolver = ({
       })
     )
   },
-  notificationsCount(root, args, context) {
+  notificationCount(root, args, context) {
     return logErrorsPromise(
-      "notificationsCount UserResolver",
+      "notificationCount UserResolver",
       925,
       authenticated(context, async (resolve, reject) => {
         if (context.auth.userId !== root.id) {

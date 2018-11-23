@@ -50,6 +50,6 @@ describe("Board", () => {
   test("admins fails if unauthenticated", testUnauthenticated("admins"));
   test("editors fails if unauthenticated", testUnauthenticated("editors"));
   test("spectators fails if unauthenticated", testUnauthenticated("spectators"));
-  test("notificationsCount fails if unauthenticated", testUnauthenticated("notificationsCount"));
+  test("notificationCount fails if unauthenticated", testUnauthenticated("notificationCount"));
   test("myRole fails if unauthenticated", testUnauthenticated("myRole"));
 });

@@ -137,9 +137,9 @@ const DeviceResolver = ({
       )
     )
   },
-  notificationsCount(root, args, context) {
+  notificationCount(root, args, context) {
     return logErrorsPromise(
-      "notificationsCount device resolver",
+      "notificationCount device resolver",
       916,
       authorized(
         root.id,

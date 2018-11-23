@@ -1476,7 +1476,7 @@ const MutationResolver = (
               userIds: deviceSharedIds,
             })
 
-            // the notificationsCount props are updated so send the device and board subscriptions
+            // the notificationCount props are updated so send the device and board subscriptions
             pubsub.publish("deviceUpdated", {
               deviceUpdated: {
                 id: deviceId,
@@ -1625,7 +1625,7 @@ const MutationResolver = (
                 userIds: deviceSharedIds,
               })
 
-              // the notificationsCount props are updated so send the device and board subscriptions
+              // the notificationCount props are updated so send the device and board subscriptions
               pubsub.publish("deviceUpdated", {
                 deviceUpdated: {
                   id: deviceFound.id,
