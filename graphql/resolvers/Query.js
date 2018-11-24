@@ -7,6 +7,7 @@ import {
   notificationToParent,
   inheritAuthorized,
   boardToParent,
+  valueToParent,
 } from "./utilities"
 import bcrypt from "bcryptjs"
 
@@ -23,6 +24,8 @@ const QueryResolver = ({
   StringPlotValue,
   MapValue,
   Notification,
+  PlotNode,
+  StringPlotNode,
 }) => ({
   user(root, args, context) {
     return new Promise(
@@ -139,6 +142,44 @@ const QueryResolver = ({
           context.billingUpdater.update(QUERY_COST)
         },
         deviceToParent(Board)
+      )
+    )
+  },
+  plotNode(root, args, context) {
+    return logErrorsPromise(
+      "plotNode query",
+      1390,
+      inheritAuthorized(
+        args.id,
+        PlotNode,
+        User,
+        plotNodeFound => plotNodeFound.plotId,
+        context,
+        PlotValue,
+        1,
+        async (resolve, reject, plotNodeFound) => {
+          resolve(plotNodeFound)
+        },
+        valueToParent(Board)
+      )
+    )
+  },
+  stringPlotNode(root, args, context) {
+    return logErrorsPromise(
+      "stringPlotNode query",
+      1390,
+      inheritAuthorized(
+        args.id,
+        StringPlotNode,
+        User,
+        plotNodeFound => plotNodeFound.plotId,
+        context,
+        StringPlotValue,
+        1,
+        async (resolve, reject, plotNodeFound) => {
+          resolve(plotNodeFound)
+        },
+        valueToParent(Board)
       )
     )
   },

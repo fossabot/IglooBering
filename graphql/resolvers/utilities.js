@@ -882,7 +882,7 @@ const inheritAuthorized = (
   })
 
   if (!entityFound) {
-    throw new Error("The requested resource does not exist")
+    reject("The requested resource does not exist")
   } else {
     return authorized(
       ownIstanceToParentId(entityFound),
