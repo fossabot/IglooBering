@@ -1312,6 +1312,51 @@ const MutationResolver = (
       Device,
       Board
     ),
+    incrementFloatValue: (root, args, context) =>
+      logErrorsPromise(
+        "incrementFloatValue mutation",
+        11117,
+        authorized(
+          args.id,
+          context,
+          FloatValue,
+          User,
+          2,
+          async (resolve, reject, valueFound, [_, boardFound]) => {
+            if (
+              isNotNullNorUndefined(valueFound.boundaries) &&
+              isOutOfBoundaries(
+                valueFound.boundaries,
+                valueFound.value + args.incrementBy
+              )
+            ) {
+              reject("new value is out of boundaries")
+              return
+            }
+
+            const newValue = await valueFound.update({
+              value: valueFound.value + args.incrementBy,
+            })
+            const resolveObj = {
+              ...newValue.dataValues,
+              owner: {
+                id: newValue.dataValues.userId,
+              },
+              device: {
+                id: newValue.dataValues.deviceId,
+              },
+            }
+            resolve(resolveObj)
+
+            pubsub.publish("valueUpdated", {
+              valueUpdated: { ...resolveObj, __resolveType: "FloatValue" },
+              userIds: await instanceToSharedIds(boardFound),
+            })
+            context.billingUpdater.update(MUTATION_COST)
+          },
+          valueToParent(Board)
+        )
+      ),
     plotNode(root, args, context) {
       return logErrorsPromise(
         "CreatePlotNode mutation",
