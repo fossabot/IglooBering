@@ -553,10 +553,14 @@ type Subscription {
   permanentTokenCreated: PermanentToken
   # subscribes to notification creations
   notificationCreated: Notification
-  # subscribes to board shares
-  boardShared: Board
-  # subscribes to board unshares
-  boardStoppedSharing: ID
+  # subscribes to board shares to you
+  boardSharedWithYou: Board
+  # subscribes to board unshares from you
+  boardStoppedSharingWithYou: ID
+  # subscribes to board shares to others
+  boardSharedWithOther: Board
+  # subscribes to board unshares from others
+  boardStoppedSharingWithOther: Board
   # subscribes to value updates
   userUpdated: User
   # subscribes to device updates

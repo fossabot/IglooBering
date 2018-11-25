@@ -412,7 +412,7 @@ const MutationResolver = (
           Board,
           User,
           3,
-          async (resolve, reject, found) => {
+          async (resolve, reject, boardFound) => {
             const userFound = await User.find({
               where: { email: args.email },
             })
@@ -424,22 +424,31 @@ const MutationResolver = (
             } else {
               // remove old role
               await Promise.all([
-                userFound[`remove${Board.Admins}`](found),
-                userFound[`remove${Board.Editors}`](found),
-                userFound[`remove${Board.Spectators}`](found),
+                userFound[`remove${Board.Admins}`](boardFound),
+                userFound[`remove${Board.Editors}`](boardFound),
+                userFound[`remove${Board.Spectators}`](boardFound),
               ])
 
               // add new role
               const parsedRole = `${args.role[0] +
                 args.role.slice(1).toLowerCase()}s`
-              await userFound[`add${Board[parsedRole]}`](found)
+              await userFound[`add${Board[parsedRole]}`](boardFound)
 
-              resolve(found)
+              resolve(boardFound)
               context.billingUpdater.update(MUTATION_COST)
 
-              pubsub.publish("boardShared", {
-                boardShared: found,
+              pubsub.publish("boardSharedWithYou", {
+                boardSharedWithYou: boardFound,
                 userId: userFound.id,
+              })
+
+              const usersWithAccessIds = (await instanceToSharedIds(
+                boardFound
+              )).filter(id => id !== userFound.id)
+
+              pubsub.publish("boardSharedWithOther", {
+                boardSharedWithOther: boardFound,
+                userIds: usersWithAccessIds,
               })
             }
           },
@@ -456,11 +465,10 @@ const MutationResolver = (
           Board,
           User,
           3,
-          async (resolve, reject, found, [_, boardFound]) => {
+          async (resolve, reject, boardFound) => {
             const userFound = await User.find({
               where: { email: args.email },
             })
-            // instanceToRole now accepts an instance not an array
             const role = await instanceToRole(boardFound, userFound)
 
             if (!userFound) {
@@ -472,17 +480,24 @@ const MutationResolver = (
             } else {
               // remove old role
               await Promise.all([
-                userFound[`remove${Board.Admins}`](found),
-                userFound[`remove${Board.Editors}`](found),
-                userFound[`remove${Board.Spectators}`](found),
+                userFound[`remove${Board.Admins}`](boardFound),
+                userFound[`remove${Board.Editors}`](boardFound),
+                userFound[`remove${Board.Spectators}`](boardFound),
               ])
 
-              resolve(found)
+              resolve(boardFound)
               context.billingUpdater.update(MUTATION_COST)
 
-              pubsub.publish("boardStoppedSharing", {
-                boardStoppedSharing: args[idField],
+              pubsub.publish("boardStoppedSharingWithYou", {
+                boardStoppedSharingWithYou: args.boardId,
                 userId: userFound.id,
+              })
+
+              const usersWithAccessIds = await instanceToSharedIds(boardFound)
+
+              pubsub.publish("boardStoppedSharingWithOther", {
+                boardStoppedSharingWithOther: boardFound,
+                userIds: usersWithAccessIds,
               })
             }
           },

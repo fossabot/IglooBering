@@ -9,9 +9,17 @@ import {
 } from "./utilities"
 
 const subscriptionResolver = (pubsub, { User, Device, Board }) => ({
-  boardShared: subscriptionFilterOnlyMine("boardShared", pubsub),
-  boardStoppedSharing: subscriptionFilterOnlyMine(
-    "boardStoppedSharing",
+  boardSharedWithYou: subscriptionFilterOnlyMine("boardSharedWithYou", pubsub),
+  boardStoppedSharingWithYou: subscriptionFilterOnlyMine(
+    "boardStoppedSharingWithYou",
+    pubsub
+  ),
+  boardSharedWithOther: subscriptionFilterOwnedOrShared(
+    "boardSharedWithOther",
+    pubsub
+  ),
+  boardStoppedSharingWithOther: subscriptionFilterOwnedOrShared(
+    "boardStoppedSharingWithOther",
     pubsub
   ),
   boardCreated: subscriptionFilterOnlyMine("boardCreated", pubsub),
