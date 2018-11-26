@@ -804,7 +804,7 @@ const authorizedValue = (
         throw new Error(NOT_EXIST)
       } else {
         const boardFound = await Board.find({
-          where: { id: deviceFound.boardId },
+          where: { id: resourceFound.boardId },
         })
 
         if (
@@ -836,7 +836,13 @@ const authorizedValue = (
       )
     })
 
-    return callbackFunc(resolve, reject, ...resourcesFound, userFound)
+    return callbackFunc(
+      resolve,
+      reject,
+      resourcesFound[0],
+      resourcesFound,
+      userFound
+    )
   })
 
 const instanceToRole = async (instance, userFound) => {
