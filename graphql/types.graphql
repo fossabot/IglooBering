@@ -68,11 +68,7 @@ enum TimeFormat {
 # All available mutations
 type Mutation {
   # Gets an authentication token
-  AuthenticateUser(
-    email: String!
-    password: String!
-    twoFactorCode: String # include only if 2-Factor Authentication is active
-  ): AuthenticateUserPayload
+  AuthenticateUser(email: String!, password: String!): AuthenticateUserPayload
 
   # Generates a permanent access token
   GeneratePermanentAccessToken(
@@ -506,7 +502,7 @@ type Mutation {
   # delete board
   deleteBoard(id: ID!): ID
   # delte user
-  deleteUser(password: String!, twoFactorCode: String): ID
+  deleteUser(password: String!): ID
   # delte plot node
   deletePlotNode(id: ID!): ID
   # delte string plot node
