@@ -122,8 +122,6 @@ type Mutation {
     deviceType: String
     # Custom name gave by the end-user to the device
     customName: String!
-    # device icon, shown in Igloo Aurora
-    icon: String
     # used to sort the devices in Igloo Aurora
     index: Int
     signalStatus: Float
@@ -327,8 +325,6 @@ type Mutation {
     deviceType: String
     # Custom name gave by the end-user to the device
     customName: String
-    # device icon, shown in Igloo Aurora
-    icon: String
     # used to sort the devices in Igloo Aurora
     index: Int
     signalStatus: Float
@@ -692,7 +688,6 @@ type Device {
   customName: String
   values: [Value!]!
   board: Board!
-  icon: String
   notifications: [Notification!]!
   notificationCount: Int!
   online: Boolean

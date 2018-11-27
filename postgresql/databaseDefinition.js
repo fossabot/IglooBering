@@ -145,9 +145,6 @@ const databaseDefinition = sequelize => {
     customName: {
       type: Sequelize.STRING,
     },
-    icon: {
-      type: Sequelize.STRING,
-    },
     index: {
       type: Sequelize.INTEGER,
     },
