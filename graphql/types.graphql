@@ -566,10 +566,6 @@ type Subscription {
   boardShareRevoked: ID
   # subscribes to board unshares from you
   boardStoppedSharingWithYou: ID
-  # subscribes to board shares to others
-  boardSharedWithOther: Board
-  # subscribes to board unshares from others
-  boardStoppedSharingWithOther: Board
   # subscribes to value updates
   userUpdated: User
   # subscribes to device updates

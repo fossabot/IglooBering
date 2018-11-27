@@ -522,8 +522,8 @@ const MutationResolver = (
               boardFound
             )).filter(id => id !== context.auth.userId)
 
-            pubsub.publish("boardSharedWithOther", {
-              boardSharedWithOther: boardFound,
+            pubsub.publish("boardUpdated", {
+              boardUpdated: boardFound,
               userIds: usersWithAccessIds,
             })
           }
@@ -606,8 +606,8 @@ const MutationResolver = (
 
               const usersWithAccessIds = await instanceToSharedIds(boardFound)
 
-              pubsub.publish("boardStoppedSharingWithOther", {
-                boardStoppedSharingWithOther: boardFound,
+              pubsub.publish("boardUpdated", {
+                boardUpdated: boardFound,
                 userIds: usersWithAccessIds,
               })
             }
