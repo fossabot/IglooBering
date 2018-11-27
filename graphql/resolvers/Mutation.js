@@ -25,6 +25,7 @@ import {
   instanceToRole,
   GenerateUserBillingBatcher,
   boardToParent,
+  sendBoardSharedEmail,
 } from "./utilities"
 import webpush from "web-push"
 import Stripe from "stripe"
@@ -66,6 +67,7 @@ const MutationResolver = (
     StringPlotValue,
     StringPlotNode,
     Notification,
+    PendingBoardShare,
   },
   WebPushSubscription,
   pubsub,
@@ -197,7 +199,6 @@ const MutationResolver = (
         })
       )
     },
-
     DeletePermanentAccesToken(root, args, context) {
       return logErrorsPromise(
         "DeletePermanentAccesToken",
@@ -221,8 +222,7 @@ const MutationResolver = (
           }
         })
       )
-    },
-    // checks if a user with that email already exists
+    }, // checks if a user with that email already exists
     // if not it creates one and returnes an access token
     SignupUser(root, args, context) {
       return logErrorsPromise("SignupUser", 102, async (resolve, reject) => {
@@ -247,9 +247,7 @@ const MutationResolver = (
           return
         }
 
-        const userFound = await User.find({
-          where: { email: args.email },
-        })
+        const userFound = await User.find({ where: { email: args.email } })
         if (userFound) {
           reject("A user with this email already exists")
         } else {
@@ -345,8 +343,7 @@ const MutationResolver = (
           }
         })
       )
-    },
-    // changes the password and returns an access token
+    }, // changes the password and returns an access token
     ChangePassword(root, args, context) {
       return logErrorsPromise(
         "ChangePassword",
@@ -412,48 +409,162 @@ const MutationResolver = (
           Board,
           User,
           3,
-          async (resolve, reject, boardFound) => {
-            const userFound = await User.find({
+          async (resolve, reject, boardFound, _, senderFound) => {
+            const receiverFound = await User.find({
               where: { email: args.email },
             })
 
-            if (!userFound) {
+            if (!receiverFound) {
               reject("This account doesn't exist, check the email passed")
-            } else if (userFound.id === context.auth.userId) {
+            } else if (receiverFound.id === context.auth.userId) {
               reject("You can't share a resource with yourself")
             } else {
-              // remove old role
-              await Promise.all([
-                userFound[`remove${Board.Admins}`](boardFound),
-                userFound[`remove${Board.Editors}`](boardFound),
-                userFound[`remove${Board.Spectators}`](boardFound),
-              ])
+              const role = await instanceToRole(boardFound, receiverFound)
+              if (role !== null) {
+                reject("The user already has a role on this board")
+                return
+              }
 
-              // add new role
-              const parsedRole = `${args.role[0] +
-                args.role.slice(1).toLowerCase()}s`
-              await userFound[`add${Board[parsedRole]}`](boardFound)
+              let newPendingShare
 
-              resolve(boardFound)
+              // if receiver has already a pending share of that board overwrite it
+              const otherPendingShare = await PendingBoardShare.find({
+                where: { receiverId: receiverFound.id, boardId: args.boardId },
+              })
+              if (otherPendingShare) {
+                newPendingShare = await otherPendingShare.update({
+                  role: args.role,
+                })
+              } else {
+                newPendingShare = await PendingBoardShare.create({
+                  senderId: senderFound.id,
+                  receiverId: receiverFound.id,
+                  boardId: boardFound.id,
+                  role: args.role,
+                })
+              }
+
+              resolve({
+                id: newPendingShare.id,
+                receiver: {
+                  id: newPendingShare.receiverId,
+                },
+                sender: {
+                  id: newPendingShare.senderId,
+                },
+                board: {
+                  id: newPendingShare.boardId,
+                },
+                role: newPendingShare.role,
+              })
               context.billingUpdater.update(MUTATION_COST)
 
               pubsub.publish("boardSharedWithYou", {
-                boardSharedWithYou: boardFound,
-                userId: userFound.id,
+                boardSharedWithYou: newPendingShare,
+                userId: receiverFound.id,
               })
+              sendBoardSharedEmail(
+                receiverFound.email,
+                senderFound.fullName,
+                boardFound.customName
+              )
 
               const usersWithAccessIds = (await instanceToSharedIds(
                 boardFound
-              )).filter(id => id !== userFound.id)
+              )).filter(id => id !== receiverFound.id)
 
-              pubsub.publish("boardSharedWithOther", {
-                boardSharedWithOther: boardFound,
+              pubsub.publish("boardUpdated", {
+                boardUpdated: boardFound,
                 userIds: usersWithAccessIds,
               })
             }
           },
           boardToParent
         )
+      ),
+    acceptPendingBoardShare: (root, args, context) =>
+      logErrorsPromise(
+        "acceptPendingBoardShare",
+        921,
+        authenticated(context, async (resolve, reject) => {
+          const pendingBoardFound = await PendingBoardShare.find({
+            where: { id: args.pendingBoardShareId },
+          })
+
+          if (!pendingBoardFound) {
+            reject("The requested resource does not exist")
+          } else if (context.auth.userId !== pendingBoardFound.receiverId) {
+            reject("You are not the receiver of this board share")
+          } else {
+            // add new role
+            const parsedRole = `${pendingBoardFound.role[0] +
+              pendingBoardFound.role.slice(1).toLowerCase()}s`
+            const boardFound = await Board.find({
+              where: { id: pendingBoardFound.boardId },
+            })
+            const userFound = await User.find({
+              where: { id: context.auth.userId },
+            })
+
+            await userFound[`add${Board[parsedRole]}`](boardFound)
+
+            resolve(boardFound.id)
+
+            await pendingBoardFound.destroy()
+            context.billingUpdater.update(MUTATION_COST)
+
+            pubsub.publish("boardShareAccepted", {
+              boardShareAccepted: boardFound.id,
+              userId: userFound.id,
+            })
+
+            const usersWithAccessIds = (await instanceToSharedIds(
+              boardFound
+            )).filter(id => id !== context.auth.userId)
+
+            pubsub.publish("boardSharedWithOther", {
+              boardSharedWithOther: boardFound,
+              userIds: usersWithAccessIds,
+            })
+          }
+        })
+      ),
+    revokePendingBoardShare: (root, args, context) =>
+      logErrorsPromise(
+        "genericShare",
+        921,
+        authenticated(context, async (resolve, reject) => {
+          const pendingBoardFound = await PendingBoardShare.find({
+            where: { id: args.pendingBoardShareId },
+          })
+
+          if (!pendingBoardFound) {
+            reject("The requested resource does not exist")
+          } else {
+            const boardFound = await Board.find({
+              where: { id: pendingBoardFound.boardId },
+            })
+            const userFound = await User.find({
+              where: { id: context.auth.userId },
+            })
+
+            if ((await instanceToRole(boardFound, userFound)) < 3) {
+              reject("You are not authorized to perform this operation")
+            } else {
+              const revokedId = pendingBoardFound.id
+              const receiverId = pendingBoardFound.receiverId
+              await pendingBoardFound.destroy()
+
+              resolve(revokedId)
+              const usersWithAccessIds = await instanceToSharedIds(boardFound)
+
+              pubsub.publish("boardShareRevoked", {
+                boardShareRevoked: revokedId,
+                userIds: [receiverId, ...usersWithAccessIds],
+              })
+            }
+          }
+        })
       ),
     stopSharingBoard: (root, args, context) =>
       logErrorsPromise(
@@ -797,15 +908,9 @@ const MutationResolver = (
 
             const resolveObj = {
               ...plotNode.dataValues,
-              user: {
-                id: plotNode.userId,
-              },
-              device: {
-                id: plotNode.deviceId,
-              },
-              plot: {
-                id: plotNode.plotId,
-              },
+              user: { id: plotNode.userId },
+              device: { id: plotNode.deviceId },
+              plot: { id: plotNode.plotId },
             }
 
             resolve(resolveObj)
@@ -843,15 +948,9 @@ const MutationResolver = (
 
             const resolveObj = {
               ...plotNode.dataValues,
-              user: {
-                id: plotNode.userId,
-              },
-              device: {
-                id: plotNode.deviceId,
-              },
-              plot: {
-                id: plotNode.plotId,
-              },
+              user: { id: plotNode.userId },
+              device: { id: plotNode.deviceId },
+              plot: { id: plotNode.plotId },
             }
 
             resolve(resolveObj)
@@ -1176,9 +1275,7 @@ const MutationResolver = (
           User,
           2,
           async (resolve, reject, deviceFound, [_, boardFound]) => {
-            const newDevice = await deviceFound.update({
-              online: null,
-            })
+            const newDevice = await deviceFound.update({ online: null })
             resolve(newDevice.dataValues)
             pubsub.publish("deviceUpdated", {
               deviceUpdated: newDevice.dataValues,
@@ -1354,12 +1451,8 @@ const MutationResolver = (
             })
             const resolveObj = {
               ...newValue.dataValues,
-              owner: {
-                id: newValue.dataValues.userId,
-              },
-              device: {
-                id: newValue.dataValues.deviceId,
-              },
+              owner: { id: newValue.dataValues.userId },
+              device: { id: newValue.dataValues.deviceId },
             }
             resolve(resolveObj)
 
@@ -1400,15 +1493,9 @@ const MutationResolver = (
 
             const resolveObj = {
               ...newNode.dataValues,
-              user: {
-                id: newNode.dataValues.userId,
-              },
-              device: {
-                id: newNode.dataValues.deviceId,
-              },
-              plot: {
-                id: newNode.dataValues.plotId,
-              },
+              user: { id: newNode.dataValues.userId },
+              device: { id: newNode.dataValues.deviceId },
+              plot: { id: newNode.dataValues.plotId },
             }
             resolve(resolveObj)
             pubsub.publish("plotNodeUpdated", {
@@ -1449,15 +1536,9 @@ const MutationResolver = (
 
             const resolveObj = {
               ...newNode.dataValues,
-              user: {
-                id: newNode.dataValues.userId,
-              },
-              device: {
-                id: newNode.dataValues.deviceId,
-              },
-              plot: {
-                id: newNode.dataValues.plotId,
-              },
+              user: { id: newNode.dataValues.userId },
+              device: { id: newNode.dataValues.deviceId },
+              plot: { id: newNode.dataValues.plotId },
             }
             resolve(resolveObj)
             pubsub.publish("stringPlotNodeUpdated", {
@@ -1517,15 +1598,9 @@ const MutationResolver = (
               visualized,
               content,
               date,
-              user: {
-                id: userId,
-              },
-              device: {
-                id: deviceId,
-              },
-              board: {
-                id: boardId,
-              },
+              user: { id: userId },
+              device: { id: deviceId },
+              board: { id: boardId },
             }
 
             resolve(resolveValue)

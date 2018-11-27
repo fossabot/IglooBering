@@ -4,7 +4,7 @@ import {
   findAllValues,
   getAll,
 } from "./utilities"
-import { Op } from "sequelize"
+import { Op } from "sequelize" //TODO: remove this?
 
 const QUERY_COST = 1
 
@@ -74,6 +74,7 @@ const UserResolver = ({
   StringPlotValue,
   MapValue,
   Notification,
+  PendingBoardShare,
 }) => ({
   ...scalarProps(User, [
     "createdAt",
@@ -155,6 +156,24 @@ const UserResolver = ({
 
           resolve(devices)
           context.billingUpdater.update(QUERY_COST * devices.length)
+        }
+      })
+    )
+  },
+  pendingBoardShares(root, args, context) {
+    return logErrorsPromise(
+      "User boards resolver",
+      904,
+      authenticated(context, async (resolve, reject) => {
+        if (context.auth.userId !== root.id) {
+          reject("You are not allowed to access details about this user")
+        } else {
+          const pendingBoardShares = await PendingBoardShare.findAll({
+            where: { receiverId: context.auth.userId },
+          })
+
+          resolve(pendingBoardShares)
+          context.billingUpdater.update(QUERY_COST * pendingBoardShares.length)
         }
       })
     )

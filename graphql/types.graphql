@@ -100,8 +100,13 @@ type Mutation {
 
   ResendVerificationEmail: Boolean
 
-  shareBoard(boardId: ID!, email: String!, role: Role!): Board
+  shareBoard(boardId: ID!, email: String!, role: Role!): PendingBoardShare
   stopSharingBoard(boardId: ID!, email: String!): Board
+
+  # returns the ID of the accepted board
+  acceptPendingBoardShare(pendingBoardShareId: ID!): ID
+  # returns the ID of the pending share that was revoked
+  revokePendingBoardShare(pendingBoardShareId: ID!): ID
 
   # Creates a Board
   CreateBoard(
@@ -554,7 +559,11 @@ type Subscription {
   # subscribes to notification creations
   notificationCreated: Notification
   # subscribes to board shares to you
-  boardSharedWithYou: Board
+  boardSharedWithYou: PendingBoardShare
+  # returns the id of the board accepted
+  boardShareAccepted: ID
+  # returns the id of the board share that was revoked
+  boardShareRevoked: ID
   # subscribes to board unshares from you
   boardStoppedSharingWithYou: ID
   # subscribes to board shares to others
@@ -615,6 +624,7 @@ type User {
   updatedAt: DateTime!
   email: String!
   boardCount: Int
+  pendingBoardShares: [PendingBoardShare!]!
   boards: [Board!]!
   devices: [Device!]!
   values: [Value!]!
@@ -649,12 +659,21 @@ type Board {
   admins: [User!]!
   editors: [User!]!
   spectators: [User!]!
+  pendingBoardShares: [PendingBoardShare!]!
   customName: String!
   avatar: BoardPicture!
   devices: [Device!]!
   notificationCount: Int!
   index: Int!
   quietMode: Boolean!
+}
+
+type PendingBoardShare {
+  id: ID!
+  sender: User!
+  receiver: User!
+  role: Role!
+  board: Board!
 }
 
 type PermanentToken {

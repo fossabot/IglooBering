@@ -4,6 +4,7 @@ const databaseDefinition = sequelize => {
   const ValuePermission = Sequelize.ENUM("READ_ONLY", "READ_WRITE")
   const ValueVisibility = Sequelize.ENUM("VISIBLE", "HIDDEN", "INVISIBLE")
   const TileSize = Sequelize.ENUM("NORMAL", "WIDE", "TALL", "LARGE")
+  const Role = Sequelize.ENUM("ADMIN", "EDITOR", "SPECTATOR")
   const PaymentPlan = Sequelize.ENUM("FREE", "PAYING")
   const selfId = {
     id: {
@@ -302,6 +303,16 @@ const databaseDefinition = sequelize => {
     },
   })
 
+  const PendingBoardShare = sequelize.define("pendingBoardShare", {
+    ...selfId,
+    ...otherId("senderId", User),
+    ...otherId("receiverId", User),
+    ...otherId("boardId", Board),
+    role: {
+      type: Role,
+    },
+  })
+
   Board.hasMany(Device)
   Device.belongsTo(Board)
 
@@ -395,6 +406,7 @@ const databaseDefinition = sequelize => {
     StringPlotNode,
     associations,
     joinTables,
+    PendingBoardShare,
   }
 }
 

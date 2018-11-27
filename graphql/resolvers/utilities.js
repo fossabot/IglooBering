@@ -672,6 +672,32 @@ const sendTokenCreatedEmail = email => {
     console.log
   )
 }
+const sendBoardSharedEmail = (email, userName, boardName) => {
+  // TODO: create a template for the email verification
+  ses.sendEmail(
+    {
+      Source: "'Igloo Cloud' <noreply@igloo.ooo>",
+      Destination: { ToAddresses: [email] },
+      Message: {
+        Body: {
+          Html: {
+            Charset: "UTF-8",
+            Data: `${userName} has shared the board ${boardName} with you. <a href="igloo.ooo">Check it out now</a>`,
+          },
+          Text: {
+            Charset: "UTF-8",
+            Data: `${userName} has shared the board ${boardName} with you. Check it out on igloo.ooo`,
+          },
+        },
+        Subject: {
+          Charset: "UTF-8",
+          Data: "A board was shared with you",
+        },
+      },
+    },
+    console.log
+  )
+}
 
 async function authorizationLevel(instance, userFound) {
   const isOwner = await userFound.hasOwnBoard(instance)
@@ -1068,6 +1094,7 @@ module.exports = {
   sendPasswordRecoveryEmail,
   sendPasswordUpdatedEmail,
   sendTokenCreatedEmail,
+  sendBoardSharedEmail,
   authorizationLevel,
   authorized,
   authorizedScalarPropsResolvers,

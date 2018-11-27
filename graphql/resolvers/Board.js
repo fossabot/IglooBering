@@ -4,6 +4,7 @@ import {
   authorized,
   instanceToRole,
   boardToParent,
+  authenticated,
 } from "./utilities"
 import { Op } from "sequelize"
 
@@ -33,13 +34,34 @@ const rolesResolver = (roleName, Board, User) => (root, args, context) =>
     )
   )
 
-const BoardResolver = ({ User, Board, Device, Notification, joinTables }) => ({
+const retrievePublicBoardScalarProp = (Board, prop) => (root, args, context) =>
+  logErrorsPromise(
+    "retrieveScalarProp",
+    106,
+    authenticated(context, async (resolve, reject) => {
+      const boardFound = await Board.find({ where: { id: root.id } })
+      if (!boardFound) {
+        reject("The requested resource does not exist")
+      } else {
+        resolve(boardFound[prop])
+      }
+    })
+  )
+const BoardResolver = ({
+  User,
+  Board,
+  Device,
+  Notification,
+  joinTables,
+  PendingBoardShare,
+}) => ({
   ...authorizedScalarPropsResolvers(
     Board,
     User,
-    ["customName", "avatar", "createdAt", "updatedAt", "index"],
+    ["avatar", "createdAt", "updatedAt", "index"],
     boardToParent
   ),
+  customName: retrievePublicBoardScalarProp(Board, "customName"),
   quietMode(root, args, context) {
     return logErrorsPromise(
       "quietMode BoardResolver",
@@ -97,6 +119,28 @@ const BoardResolver = ({ User, Board, Device, Notification, joinTables }) => ({
           resolve(devices)
 
           context.billingUpdater.update(QUERY_COST * devices.length)
+        },
+        boardToParent
+      )
+    )
+  },
+  pendingBoardShares(root, args, context) {
+    return logErrorsPromise(
+      "pendingBoardShares BoardResolver",
+      903,
+      authorized(
+        root.id,
+        context,
+        Board,
+        User,
+        3,
+        async (resolve, reject, boardFound) => {
+          const pendingBoardShares = await PendingBoardShare.findAll({
+            where: { boardId: root.id },
+          })
+
+          resolve(pendingBoardShares)
+          context.billingUpdater.update(QUERY_COST * pendingBoardShares.length)
         },
         boardToParent
       )
