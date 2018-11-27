@@ -25,6 +25,34 @@ module.exports = () => {
     }
   ];
 
+  const mockDeviceData = [
+    {
+      id: "mockDeviceId",
+      boardId: "mockBoardId",
+      deviceType: "mockDeviceType",
+      customName: "mockCustomName",
+      index: 0,
+      online: null,
+      batteryStatus: 30,
+      batteryCharging: true,
+      signalStatus: null,
+      firmware: null,
+      quietMode: false
+    }
+  ];
+
+  const mockNotificationData = [
+    {
+      id: "mockNotificationId",
+      userId: "mockUserId",
+      deviceId: "mockDeviceId",
+      boardId: "mockBoardId",
+      content: "mockContent",
+      date: "2018-11-27T22:09:44.183Z",
+      visualized: []
+    }
+  ];
+
   const queryAndItemMatch = whereQuery => item => {
     let isMatching = true;
     for (const key in whereQuery) {
@@ -82,6 +110,10 @@ module.exports = () => {
     MockedBoard: MockedModel(mockBoardData),
     mockBoardData,
     MockedUser: MockedModel(mockUserData),
-    mockUserData
+    mockUserData,
+    MockedDevice: MockedModel(mockDeviceData),
+    mockDeviceData,
+    MockedNotification: MockedModel(mockNotificationData),
+    mockNotificationData
   };
 };

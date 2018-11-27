@@ -1,6 +1,6 @@
 import BoardResolverFactory from "../graphql/resolvers/Board";
 import MocksGenerator from "./mockUtils";
-import { testScalarProp, unauthenticatedShouldFail } from "./testUtils";
+import { testScalarProp, unauthenticatedShouldFail, wrongIdShouldFail } from "./testUtils";
 
 const { MockedBoard, MockedUser, mockBoardData, mockUserData } = MocksGenerator();
 
@@ -18,6 +18,11 @@ describe("Board", () => {
   const testUnauthenticated = unauthenticatedShouldFail(BoardResolver, {
     id: "mockBoardId"
   });
+  const testWrongId = wrongIdShouldFail(
+    BoardResolver,
+    { id: "wrongBoardId" },
+    { auth: { userId: "mockUserId", tokenType: "TEMPORARY" } }
+  );
 
   // not using a for loop because this syntax integrates better with the IDE
   test("customName is resolved correctly", testBoardScalarProp("customName"));
@@ -52,4 +57,20 @@ describe("Board", () => {
   test("spectators fails if unauthenticated", testUnauthenticated("spectators"));
   test("notificationCount fails if unauthenticated", testUnauthenticated("notificationCount"));
   test("myRole fails if unauthenticated", testUnauthenticated("myRole"));
+  test("pendingBoardShares fails if unauthenticated", testUnauthenticated("pendingBoardShares"));
+
+  test("customName fails if unauthenticated", testWrongId("customName"));
+  test("avatar fails if unauthenticated", testWrongId("avatar"));
+  test("index fails if unauthenticated", testWrongId("index"));
+  test("createdAt fails if unauthenticated", testWrongId("createdAt"));
+  test("updatedAt fails if unauthenticated", testWrongId("updatedAt"));
+  test("quietMode fails if unauthenticated", testWrongId("quietMode"));
+  test("devices fails if unauthenticated", testWrongId("devices"));
+  test("owner fails if unauthenticated", testWrongId("owner"));
+  test("admins fails if unauthenticated", testWrongId("admins"));
+  test("editors fails if unauthenticated", testWrongId("editors"));
+  test("spectators fails if unauthenticated", testWrongId("spectators"));
+  test("notificationCount fails if unauthenticated", testWrongId("notificationCount"));
+  test("myRole fails if unauthenticated", testWrongId("myRole"));
+  test("pendingBoardShares fails if unauthenticated", testWrongId("pendingBoardShares"));
 });

@@ -1,6 +1,6 @@
-const testScalarProp = (Resolver, query, mockData) => prop => async () => {
+const testScalarProp = (Resolver, root, mockData) => prop => async () => {
   const propFound = await Resolver[prop](
-    query,
+    root,
     {},
     { auth: { userId: "mockUserId", tokenType: "TEMPORARY" } }
   );
@@ -8,13 +8,20 @@ const testScalarProp = (Resolver, query, mockData) => prop => async () => {
   expect(propFound).toBe(mockData[prop]);
 };
 
-const unauthenticatedShouldFail = (Resolver, query) => prop => async () => {
-  const promise = Resolver[prop](query, {}, {});
+const unauthenticatedShouldFail = (Resolver, root) => prop => async () => {
+  const promise = Resolver[prop](root, {}, {});
 
   await expect(promise).rejects.toMatch("You are not authenticated");
 };
 
+const wrongIdShouldFail = (Resolver, root, context) => prop => async () => {
+  const promise = Resolver[prop](root, {}, context);
+
+  await expect(promise).rejects.toMatch("The requested resource does not exist");
+};
+
 module.exports = {
   testScalarProp,
-  unauthenticatedShouldFail
+  unauthenticatedShouldFail,
+  wrongIdShouldFail
 };
