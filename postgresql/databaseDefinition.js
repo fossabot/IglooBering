@@ -41,7 +41,7 @@ const databaseDefinition = sequelize => {
     twoFactorSecret: {
       type: Sequelize.STRING,
     },
-    quietMode: {
+    muted: {
       type: Sequelize.BOOLEAN,
     },
     devMode: {
@@ -103,7 +103,7 @@ const databaseDefinition = sequelize => {
     index: {
       type: Sequelize.INTEGER,
     },
-    quietMode: {
+    muted: {
       type: Sequelize.BOOLEAN,
     },
   })
@@ -163,7 +163,7 @@ const databaseDefinition = sequelize => {
     firmware: {
       type: Sequelize.STRING,
     },
-    quietMode: {
+    muted: {
       type: Sequelize.BOOLEAN,
     },
   })

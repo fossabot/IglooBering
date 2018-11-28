@@ -109,7 +109,7 @@ type Mutation {
     customName: String!
     avatar: BoardPicture
     index: Int
-    quietMode: Boolean
+    muted: Boolean
   ): Board
 
   # Creates a new Device
@@ -125,7 +125,7 @@ type Mutation {
     batteryCharging: Boolean
     boardId: ID
     firmware: String
-    quietMode: Boolean
+    muted: Boolean
   ): Device
 
   # Creates a new notification
@@ -284,7 +284,7 @@ type Mutation {
   user(
     email: String
     # If active push notifications aren't sent
-    quietMode: Boolean
+    muted: Boolean
     devMode: Boolean
     usageCap: Int
     paymentPlan: PaymentPlan
@@ -310,7 +310,7 @@ type Mutation {
     customName: String
     avatar: BoardPicture
     index: Int
-    quietMode: Boolean
+    muted: Boolean
   ): Board
 
   # changes device's data
@@ -328,7 +328,7 @@ type Mutation {
     batteryCharging: Boolean
     boardId: ID
     firmware: String
-    quietMode: Boolean
+    muted: Boolean
   ): Device
 
   resetOnlineState(deviceId: ID!): Device
@@ -619,7 +619,7 @@ type User {
   notifications: [Notification!]!
   notificationCount: Int!
   permanentTokens: [PermanentToken!]!
-  quietMode: Boolean
+  muted: Boolean
   devMode: Boolean
   monthUsage: Int
   paymentPlan: PaymentPlan
@@ -653,7 +653,7 @@ type Board {
   devices: [Device!]!
   notificationCount: Int!
   index: Int!
-  quietMode: Boolean!
+  muted: Boolean!
 }
 
 type PendingBoardShare {
@@ -691,7 +691,7 @@ type Device {
   batteryStatus: Float
   batteryCharging: Boolean
   firmware: String
-  quietMode: Boolean!
+  muted: Boolean!
 }
 
 enum ValuePermission {

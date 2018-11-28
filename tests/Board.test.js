@@ -31,15 +31,15 @@ describe("Board", () => {
   test("createdAt is resolved correctly", testBoardScalarProp("createdAt"));
   test("updatedAt is resolved correctly", testBoardScalarProp("updatedAt"));
 
-  test("quietMode is resolved correctly", async done => {
-    const quietModeFound = await BoardResolver.quietMode(
+  test("muted is resolved correctly", async done => {
+    const mutedFound = await BoardResolver.muted(
       { id: "mockBoardId" },
       {},
       { auth: { userId: "mockUserId", tokenType: "TEMPORARY" } }
     );
 
-    const correctQuietMode = mockBoardData[0].quietMode || mockUserData[0].quietMode;
-    expect(quietModeFound).toBe(correctQuietMode);
+    const correctQuietMode = mockBoardData[0].muted || mockUserData[0].muted;
+    expect(mutedFound).toBe(correctQuietMode);
 
     done();
   });
@@ -49,7 +49,7 @@ describe("Board", () => {
   test("index fails if unauthenticated", testUnauthenticated("index"));
   test("createdAt fails if unauthenticated", testUnauthenticated("createdAt"));
   test("updatedAt fails if unauthenticated", testUnauthenticated("updatedAt"));
-  test("quietMode fails if unauthenticated", testUnauthenticated("quietMode"));
+  test("muted fails if unauthenticated", testUnauthenticated("muted"));
   test("devices fails if unauthenticated", testUnauthenticated("devices"));
   test("owner fails if unauthenticated", testUnauthenticated("owner"));
   test("admins fails if unauthenticated", testUnauthenticated("admins"));
@@ -64,7 +64,7 @@ describe("Board", () => {
   test("index fails if unauthenticated", testWrongId("index"));
   test("createdAt fails if unauthenticated", testWrongId("createdAt"));
   test("updatedAt fails if unauthenticated", testWrongId("updatedAt"));
-  test("quietMode fails if unauthenticated", testWrongId("quietMode"));
+  test("muted fails if unauthenticated", testWrongId("muted"));
   test("devices fails if unauthenticated", testWrongId("devices"));
   test("owner fails if unauthenticated", testWrongId("owner"));
   test("admins fails if unauthenticated", testWrongId("admins"));

@@ -79,7 +79,7 @@ const UserResolver = ({
   ...scalarProps(User, [
     "createdAt",
     "updatedAt",
-    "quietMode",
+    "muted",
     "devMode",
     "monthUsage",
     "emailIsVerified",

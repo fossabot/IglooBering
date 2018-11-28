@@ -72,7 +72,7 @@ const DeviceResolver = ({
       )
     )
   },
-  quietMode(root, args, context) {
+  muted(root, args, context) {
     return logErrorsPromise(
       "Device board resolver",
       903,
@@ -85,9 +85,7 @@ const DeviceResolver = ({
         async (resolve, reject, deviceFound, [_, boardFound], userFound) => {
           // the Board resolver will take care of loading the other props,
           // it only needs to know the board id
-          resolve(
-            deviceFound.quietMode || boardFound.quietMode || userFound.quietMode
-          )
+          resolve(deviceFound.muted || boardFound.muted || userFound.muted)
 
           context.billingUpdater.update(QUERY_COST)
         },

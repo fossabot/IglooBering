@@ -62,9 +62,9 @@ const BoardResolver = ({
     boardToParent
   ),
   customName: retrievePublicBoardScalarProp(Board, "customName"),
-  quietMode(root, args, context) {
+  muted(root, args, context) {
     return logErrorsPromise(
-      "quietMode BoardResolver",
+      "muted BoardResolver",
       902,
       authorized(
         root.id,
@@ -73,7 +73,7 @@ const BoardResolver = ({
         User,
         1,
         async (resolve, reject, boardFound, _, userFound) => {
-          resolve(boardFound.quietMode || userFound.quietMode)
+          resolve(boardFound.muted || userFound.muted)
         },
         boardToParent
       )

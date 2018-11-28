@@ -256,7 +256,7 @@ const MutationResolver = (
             const newUser = await User.create({
               email: args.email,
               password: encryptedPass,
-              quietMode: false,
+              muted: false,
               devMode: false,
               monthUsage: 0,
               paymentPlan: "FREE",
@@ -274,7 +274,7 @@ const MutationResolver = (
             const newBoard = await Board.create({
               customName: "Home",
               avatar: randomBoardAvatar(),
-              quietMode: false,
+              muted: false,
               index: 0,
             })
 
@@ -628,8 +628,8 @@ const MutationResolver = (
           const newBoard = await Board.create({
             ...args,
             avatar: args.avatar || randomBoardAvatar(),
-            // if quietMode are not passed then set them to false
-            quietMode: !!args.quietMode,
+            // if muted is not passed then set it to false
+            muted: !!args.muted,
             index:
               args.index !== null && args.index !== undefined
                 ? args.index
@@ -712,8 +712,8 @@ const MutationResolver = (
             } else if (args.customName === "") {
               reject("Custom name cannot be an empty string")
               return
-            } else if (args.quietMode === null) {
-              reject("quietMode cannot be null")
+            } else if (args.muted === null) {
+              reject("muted cannot be null")
               return
             }
 
@@ -726,7 +726,7 @@ const MutationResolver = (
 
             const newDevice = await Device.create({
               ...args,
-              quietMode: !!args.quietMode,
+              muted: !!args.muted,
               boardId,
               index,
             })
@@ -1138,12 +1138,9 @@ const MutationResolver = (
             if (args.customName === "" || args.customName === null) {
               reject("customName cannot be null or an empty string")
               return
-            } else if (
-              userFound.quietMode &&
-              isNotNullNorUndefined(args.quietMode)
-            ) {
+            } else if (userFound.muted && isNotNullNorUndefined(args.muted)) {
               reject(
-                "Cannot change quietMode at board level when it is enabled at user level"
+                "Cannot change muted at board level when it is enabled at user level"
               )
               return
             } else if (Object.keys(args).length === 1) {
@@ -1193,8 +1190,8 @@ const MutationResolver = (
             } else if (args.customName === null || args.customName === "") {
               reject("customName cannot be null or an empty string")
               return
-            } else if (args.quietMode === null) {
-              reject("quietMode cannot be null")
+            } else if (args.muted === null) {
+              reject("muted cannot be null")
               return
             } else if (Object.keys(args).length === 1) {
               reject("You cannot make a mutation with only the id field")
@@ -1203,11 +1200,11 @@ const MutationResolver = (
               reject("boardId cannot be set to null")
               return
             } else if (
-              (boardFound.quietMode || userFound.quietMode) &&
-              isNotNullNorUndefined(args.quietMode)
+              (boardFound.muted || userFound.muted) &&
+              isNotNullNorUndefined(args.muted)
             ) {
               reject(
-                "Cannot change quietMode at device level when it is enabled at board or user level"
+                "Cannot change muted at device level when it is enabled at board or user level"
               )
               return
             } else if (args.boardId) {
@@ -1625,7 +1622,7 @@ const MutationResolver = (
 
             context.billingUpdater.update(MUTATION_COST)
 
-            if (!userFound.quietMode) {
+            if (!userFound.muted) {
               const notificationSubscriptions = await WebPushSubscription.findAll(
                 {
                   where: {

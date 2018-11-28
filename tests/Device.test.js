@@ -43,16 +43,16 @@ describe("Device", () => {
   test("signalStatus is resolved correctly", testDeviceScalarProp("signalStatus"));
   test("firmware is resolved correctly", testDeviceScalarProp("firmware"));
 
-  test("quietMode is resolved correctly", async done => {
-    const quietModeFound = await DeviceResolver.quietMode(
+  test("muted is resolved correctly", async done => {
+    const mutedFound = await DeviceResolver.muted(
       { id: "mockDeviceId" },
       {},
       { auth: { userId: "mockUserId", tokenType: "TEMPORARY" } }
     );
 
     const correctQuietMode =
-      mockDeviceData[0].quietMode || mockBoardData[0].quietMode || mockUserData[0].quietMode;
-    expect(quietModeFound).toBe(correctQuietMode);
+      mockDeviceData[0].muted || mockBoardData[0].muted || mockUserData[0].muted;
+    expect(mutedFound).toBe(correctQuietMode);
 
     done();
   });
@@ -62,7 +62,7 @@ describe("Device", () => {
   test("index fails if unauthenticated", testUnauthenticated("index"));
   test("createdAt fails if unauthenticated", testUnauthenticated("createdAt"));
   test("updatedAt fails if unauthenticated", testUnauthenticated("updatedAt"));
-  test("quietMode fails if unauthenticated", testUnauthenticated("quietMode"));
+  test("muted fails if unauthenticated", testUnauthenticated("muted"));
   test("batteryStatus fails if unauthenticated", testUnauthenticated("batteryStatus"));
   test("batteryCharging fails if unauthenticated", testUnauthenticated("batteryCharging"));
   test("signalStatus fails if unauthenticated", testUnauthenticated("signalStatus"));
@@ -77,7 +77,7 @@ describe("Device", () => {
   test("index fails if unauthenticated", testWrongId("index"));
   test("createdAt fails if unauthenticated", testWrongId("createdAt"));
   test("updatedAt fails if unauthenticated", testWrongId("updatedAt"));
-  test("quietMode fails if unauthenticated", testWrongId("quietMode"));
+  test("muted fails if unauthenticated", testWrongId("muted"));
   test("batteryStatus fails if unauthenticated", testWrongId("batteryStatus"));
   test("batteryCharging fails if unauthenticated", testWrongId("batteryCharging"));
   test("signalStatus fails if unauthenticated", testWrongId("signalStatus"));

@@ -6,7 +6,7 @@ module.exports = () => {
       customName: "fake customName",
       avatar: "fake avatar",
       index: 0,
-      quietMode: false,
+      muted: false,
       createdAt: "2018-11-19T17:42:05.045Z",
       updateAt: "2018-11-19T17:42:05.045Z"
     }
@@ -15,7 +15,7 @@ module.exports = () => {
   const mockUserData = [
     {
       id: "mockUserId",
-      quietMode: false,
+      muted: false,
       createdAt: "2018-11-19T17:42:05.045Z",
       updateAt: "2018-11-19T17:42:05.045Z",
       hasOwnBoard: () => true,
@@ -37,7 +37,7 @@ module.exports = () => {
       batteryCharging: true,
       signalStatus: null,
       firmware: null,
-      quietMode: false
+      muted: false
     }
   ];
 
