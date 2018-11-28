@@ -18,10 +18,40 @@ module.exports = () => {
       muted: false,
       createdAt: "2018-11-19T17:42:05.045Z",
       updateAt: "2018-11-19T17:42:05.045Z",
-      hasOwnBoard: () => true,
-      hasAdminBoard: () => true,
-      hasEditorBoard: () => true,
-      hasSpectatorBoard: () => true
+      hasOwnBoard: ({ id }) => ["mockBoardId"].includes(id),
+      hasAdminBoard: () => false,
+      hasEditorBoard: () => false,
+      hasSpectatorBoard: () => false
+    },
+    {
+      id: "mockUserId2",
+      muted: false,
+      createdAt: "2018-11-19T17:42:05.045Z",
+      updateAt: "2018-11-19T17:42:05.045Z",
+      hasOwnBoard: () => false,
+      hasAdminBoard: () => false,
+      hasEditorBoard: () => false,
+      hasSpectatorBoard: () => false
+    },
+    {
+      id: "mockUserId3",
+      muted: false,
+      createdAt: "2018-11-19T17:42:05.045Z",
+      updateAt: "2018-11-19T17:42:05.045Z",
+      hasOwnBoard: () => false,
+      hasAdminBoard: ({ id }) => ["mockBoardId"].includes(id),
+      hasEditorBoard: () => false,
+      hasSpectatorBoard: () => false
+    },
+    {
+      id: "mockUserId4",
+      muted: false,
+      createdAt: "2018-11-19T17:42:05.045Z",
+      updateAt: "2018-11-19T17:42:05.045Z",
+      hasOwnBoard: () => false,
+      hasAdminBoard: () => false,
+      hasEditorBoard: () => false,
+      hasSpectatorBoard: () => false
     }
   ];
 
@@ -50,6 +80,16 @@ module.exports = () => {
       content: "mockContent",
       date: "2018-11-27T22:09:44.183Z",
       visualized: []
+    }
+  ];
+
+  const mockPendingBoardShareData = [
+    {
+      id: "mockPendingBoardShareId",
+      senderId: "mockUserId",
+      receiverId: "mockUserId2",
+      boardId: "mockBoardId",
+      role: "ADMIN"
     }
   ];
 
@@ -114,6 +154,8 @@ module.exports = () => {
     MockedDevice: MockedModel(mockDeviceData),
     mockDeviceData,
     MockedNotification: MockedModel(mockNotificationData),
-    mockNotificationData
+    mockNotificationData,
+    MockedPendingBoardShare: MockedModel(mockPendingBoardShareData),
+    mockPendingBoardShareData
   };
 };

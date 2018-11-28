@@ -14,6 +14,12 @@ const unauthenticatedShouldFail = (Resolver, root) => prop => async () => {
   await expect(promise).rejects.toMatch("You are not authenticated");
 };
 
+const notAuthorizedShouldFail = (Resolver, root, context) => prop => async () => {
+  const promise = Resolver[prop](root, {}, context);
+
+  await expect(promise).rejects.toMatch("You are not allowed");
+};
+
 const wrongIdShouldFail = (Resolver, root, context) => prop => async () => {
   const promise = Resolver[prop](root, {}, context);
 
@@ -23,5 +29,6 @@ const wrongIdShouldFail = (Resolver, root, context) => prop => async () => {
 module.exports = {
   testScalarProp,
   unauthenticatedShouldFail,
-  wrongIdShouldFail
+  wrongIdShouldFail,
+  notAuthorizedShouldFail
 };

@@ -1,6 +1,11 @@
 import BoardResolverFactory from "../graphql/resolvers/Board";
 import MocksGenerator from "./mockUtils";
-import { testScalarProp, unauthenticatedShouldFail, wrongIdShouldFail } from "./testUtils";
+import {
+  testScalarProp,
+  unauthenticatedShouldFail,
+  wrongIdShouldFail,
+  notAuthorizedShouldFail
+} from "./testUtils";
 
 const { MockedBoard, MockedUser, mockBoardData, mockUserData } = MocksGenerator();
 
@@ -18,18 +23,22 @@ describe("Board", () => {
   const testUnauthenticated = unauthenticatedShouldFail(BoardResolver, {
     id: "mockBoardId"
   });
+  const testNotAuthorized = notAuthorizedShouldFail(
+    BoardResolver,
+    { id: "mockBoardId" },
+    { auth: { userId: "mockUserId4", tokenType: "TEMPORARY" } }
+  );
   const testWrongId = wrongIdShouldFail(
     BoardResolver,
     { id: "wrongBoardId" },
     { auth: { userId: "mockUserId", tokenType: "TEMPORARY" } }
   );
 
-  // not using a for loop because this syntax integrates better with the IDE
-  test("customName is resolved correctly", testBoardScalarProp("customName"));
-  test("avatar is resolved correctly", testBoardScalarProp("avatar"));
-  test("index is resolved correctly", testBoardScalarProp("index"));
-  test("createdAt is resolved correctly", testBoardScalarProp("createdAt"));
-  test("updatedAt is resolved correctly", testBoardScalarProp("updatedAt"));
+  let scalarProps = ["customName", "avatar", "index", "createdAt", "updatedAt"];
+
+  for (let prop of scalarProps) {
+    test(`${prop} is resolved correctly`, testBoardScalarProp(prop));
+  }
 
   test("muted is resolved correctly", async done => {
     const mutedFound = await BoardResolver.muted(
@@ -44,33 +53,30 @@ describe("Board", () => {
     done();
   });
 
-  test("customName fails if unauthenticated", testUnauthenticated("customName"));
-  test("avatar fails if unauthenticated", testUnauthenticated("avatar"));
-  test("index fails if unauthenticated", testUnauthenticated("index"));
-  test("createdAt fails if unauthenticated", testUnauthenticated("createdAt"));
-  test("updatedAt fails if unauthenticated", testUnauthenticated("updatedAt"));
-  test("muted fails if unauthenticated", testUnauthenticated("muted"));
-  test("devices fails if unauthenticated", testUnauthenticated("devices"));
-  test("owner fails if unauthenticated", testUnauthenticated("owner"));
-  test("admins fails if unauthenticated", testUnauthenticated("admins"));
-  test("editors fails if unauthenticated", testUnauthenticated("editors"));
-  test("spectators fails if unauthenticated", testUnauthenticated("spectators"));
-  test("notificationCount fails if unauthenticated", testUnauthenticated("notificationCount"));
-  test("myRole fails if unauthenticated", testUnauthenticated("myRole"));
-  test("pendingBoardShares fails if unauthenticated", testUnauthenticated("pendingBoardShares"));
+  let authorizedProps = [
+    "avatar",
+    "index",
+    "createdAt",
+    "updatedAt",
+    "muted",
+    "devices",
+    "owner",
+    "admins",
+    "editors",
+    "spectators",
+    "notificationCount",
+    "myRole",
+    "pendingBoardShares"
+  ];
 
-  test("customName fails if unauthenticated", testWrongId("customName"));
-  test("avatar fails if unauthenticated", testWrongId("avatar"));
-  test("index fails if unauthenticated", testWrongId("index"));
-  test("createdAt fails if unauthenticated", testWrongId("createdAt"));
-  test("updatedAt fails if unauthenticated", testWrongId("updatedAt"));
-  test("muted fails if unauthenticated", testWrongId("muted"));
-  test("devices fails if unauthenticated", testWrongId("devices"));
-  test("owner fails if unauthenticated", testWrongId("owner"));
-  test("admins fails if unauthenticated", testWrongId("admins"));
-  test("editors fails if unauthenticated", testWrongId("editors"));
-  test("spectators fails if unauthenticated", testWrongId("spectators"));
-  test("notificationCount fails if unauthenticated", testWrongId("notificationCount"));
-  test("myRole fails if unauthenticated", testWrongId("myRole"));
-  test("pendingBoardShares fails if unauthenticated", testWrongId("pendingBoardShares"));
+  for (let prop of authorizedProps) {
+    test(`${prop} fails if not authorized`, testNotAuthorized(prop));
+  }
+
+  let allProps = [...authorizedProps, "customName"];
+
+  for (let prop of allProps) {
+    test(`${prop} fails if unauthenticated`, testUnauthenticated(prop));
+    test(`${prop} fails if id is wrong`, testWrongId(prop));
+  }
 });
