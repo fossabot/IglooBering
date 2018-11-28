@@ -612,13 +612,16 @@ type User {
   createdAt: DateTime!
   updatedAt: DateTime!
   email: String!
-  boardCount: Int
   pendingBoardShares: [PendingBoardShare!]!
+  boardCount: Int
   boards: [Board!]!
+  deviceCount: Int
   devices: [Device!]!
+  valueCount: Int
   values: [Value!]!
   notifications: [Notification!]!
   notificationCount: Int!
+  permanentTokenCount: Int
   permanentTokens: [PermanentToken!]!
   muted: Boolean
   devMode: Boolean
@@ -651,6 +654,7 @@ type Board {
   pendingBoardShares: [PendingBoardShare!]!
   customName: String!
   avatar: BoardPicture!
+  deviceCount: Int
   devices: [Device!]!
   notificationCount: Int!
   index: Int!

@@ -124,6 +124,25 @@ const BoardResolver = ({
       )
     )
   },
+  deviceCount(root, args, context) {
+    return logErrorsPromise(
+      "devices BoardResolver",
+      903,
+      authorized(
+        root.id,
+        context,
+        Board,
+        User,
+        1,
+        async (resolve, reject, boardFound) => {
+          const devices = await Device.count({ where: { boardId: root.id } })
+
+          resolve(devices)
+        },
+        boardToParent
+      )
+    )
+  },
   pendingBoardShares(root, args, context) {
     return logErrorsPromise(
       "pendingBoardShares BoardResolver",

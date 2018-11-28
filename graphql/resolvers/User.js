@@ -160,6 +160,29 @@ const UserResolver = ({
       })
     )
   },
+  deviceCount(root, args, context) {
+    return logErrorsPromise(
+      "User devices resolver",
+      107,
+      authenticated(context, async (resolve, reject) => {
+        if (context.auth.userId !== root.id) {
+          reject("You are not allowed to access details about this user")
+        } else {
+          //TODO: use a count instead
+          const devicesInheritedByBoards = await getAll(Board, User, root.id, [
+            { model: Device },
+          ])
+
+          const devices = devicesInheritedByBoards.reduce(
+            (acc, curr) => [...acc, ...curr.devices],
+            []
+          )
+
+          resolve(devices.length)
+        }
+      })
+    )
+  },
   pendingBoardShares(root, args, context) {
     return logErrorsPromise(
       "User boards resolver",
@@ -190,7 +213,6 @@ const UserResolver = ({
           const boards = await getAll(Board, User, root.id)
 
           resolve(boards.length)
-          context.billingUpdater.update(QUERY_COST)
         }
       })
     )
@@ -242,7 +264,6 @@ const UserResolver = ({
           ).length
 
           resolve(totalCount)
-          context.billingUpdater.update(QUERY_COST)
         }
       })
     )
@@ -330,6 +351,54 @@ const UserResolver = ({
       })
     )
   },
+  valueCount(root, args, context) {
+    return logErrorsPromise(
+      "User values resolver",
+      108,
+      authenticated(context, async (resolve, reject) => {
+        if (context.auth.userId !== root.id) {
+          reject("You are not allowed to access details about this user")
+        } else {
+          // TODO: use a count instead
+          const valueModels = [
+            FloatValue,
+            StringValue,
+            BoolValue,
+            PlotValue,
+            StringPlotValue,
+            MapValue,
+          ]
+
+          const valuesInheritedFromBoards = await getAll(Board, User, root.id, [
+            {
+              model: Device,
+              include: valueModels.map(Model => ({ model: Model })),
+            },
+          ])
+          const flattenedAllValues = valuesInheritedFromBoards.reduce(
+            (acc, curr) => [
+              ...acc,
+              ...curr.devices.reduce(
+                (acc, device) => [
+                  ...acc,
+                  ...device.floatValues,
+                  ...device.stringValues,
+                  ...device.boolValues,
+                  ...device.plotValues,
+                  ...device.stringPlotValues,
+                  ...device.mapValues,
+                ],
+                []
+              ),
+            ],
+            []
+          )
+
+          resolve(flattenedAllValues.length)
+        }
+      })
+    )
+  },
   permanentTokens(root, args, context) {
     return logErrorsPromise(
       "user permanentTokens",
@@ -344,6 +413,23 @@ const UserResolver = ({
 
           resolve(tokens)
           context.billingUpdater.update(QUERY_COST * tokens.length)
+        }
+      })
+    )
+  },
+  permanentTokenCount(root, args, context) {
+    return logErrorsPromise(
+      "user permanentTokens",
+      127,
+      authenticated(context, async (resolve, reject) => {
+        if (context.auth.userId !== root.id) {
+          reject("You are not allowed to access details about this user")
+        } else {
+          const tokens = await PermanentToken.count({
+            where: { userId: root.id },
+          })
+
+          resolve(tokens)
         }
       })
     )
