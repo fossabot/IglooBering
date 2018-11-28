@@ -566,6 +566,45 @@ const MutationResolver = (
           }
         })
       ),
+    leaveBoard(root, args, context) {
+      return logErrorsPromise(
+        "leaveBoard mutation",
+        111111,
+        authorized(
+          args.boardId,
+          context,
+          Board,
+          User,
+          1,
+          async (resolve, reject, boardFound, _, userFound) => {
+            if ((await instanceToRole(boardFound, userFound)) === "OWNER") {
+              reject("You cannot leave a board that you own")
+              return
+            }
+
+            await Promise.all([
+              userFound[`remove${Board.Admins}`](boardFound),
+              userFound[`remove${Board.Editors}`](boardFound),
+              userFound[`remove${Board.Spectators}`](boardFound),
+            ])
+            resolve(boardFound.id)
+
+            pubsub.publish("boardStoppedSharingWithYou", {
+              boardUpdated: boardFound.id,
+              userId: userFound.id,
+            })
+
+            pubsub.publish("boardUpdated", {
+              boardUpdated: boardFound,
+              userIds: await instanceToSharedIds(boardFound),
+            })
+
+            context.billingUpdater.update(MUTATION_COST)
+          },
+          boardToParent
+        )
+      )
+    },
     stopSharingBoard: (root, args, context) =>
       logErrorsPromise(
         "genericShare",
@@ -580,16 +619,24 @@ const MutationResolver = (
             const userFound = await User.find({
               where: { email: args.email },
             })
+            if (!userFound) {
+              reject("This user doesn't exist, check that the email is correct")
+              return
+            }
+
             const role = await instanceToRole(boardFound, userFound)
 
             if (!userFound) {
               reject("This account doesn't exist, check the email passed")
             } else if (!role) {
               reject("This resource isn't shared with that user")
+            } else if (userFound.id === context.auth.userId) {
+              reject(
+                "You cannot stopSharing the board with youself, use the `leaveBoard` mutation instead"
+              )
             } else if (role === "OWNER") {
               reject("You cannot stop sharing a resource with its owner")
             } else {
-              // remove old role
               await Promise.all([
                 userFound[`remove${Board.Admins}`](boardFound),
                 userFound[`remove${Board.Editors}`](boardFound),
