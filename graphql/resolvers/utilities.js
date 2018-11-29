@@ -64,7 +64,7 @@ const authenticated = (
     : (resolve, reject) => {
         if (!context.auth) {
           reject(
-            "You are not authenticated. Use `AuthenticateUser` to obtain an authentication token"
+            "You are not authenticated. Use `authenticateUser` to obtain an authentication token"
           )
         } else if (context.auth.tokenType === "SWITCH_TO_PAYING") {
           reject("You exceeded the free usage quota")
@@ -1061,7 +1061,7 @@ const updateUserBilling = (User, auth) => async bill => {
 
   // TODO: handle this failure gracefully
   if (!userFound) {
-    throw new Error("User doesn't exist. Use `SignupUser` to create one")
+    throw new Error("User doesn't exist. Use `` to create one")
   } else {
     const newUser = await userFound.increment("monthUsage", { by: bill })
     return newUser.monthUsage

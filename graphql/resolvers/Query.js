@@ -114,7 +114,7 @@ const QueryResolver = ({
         })
 
         if (!userFound) {
-          reject("User doesn't exist. Use `SignupUser` to create one")
+          reject("User doesn't exist. Use `` to create one")
         } else if (
           bcrypt.compareSync(args.password, userFound.dataValues.password)
         ) {

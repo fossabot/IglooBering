@@ -77,16 +77,16 @@ const MutationResolver = (
     // checks if the user exists, if so
     // compares the given password with the hash
     // and returns an access token
-    AuthenticateUser(root, args, context) {
+    authenticateUser(root, args, context) {
       return logErrorsPromise(
-        "AuthenticateUser",
+        "authenticateUser",
         103,
         async (resolve, reject) => {
           const userFound = await User.find({
             where: { email: args.email },
           })
           if (!userFound) {
-            reject("User doesn't exist. Use `SignupUser` to create one")
+            reject("User doesn't exist. Use `` to create one")
           } else if (
             !bcrypt.compareSync(args.password, userFound.dataValues.password)
           ) {
@@ -139,16 +139,16 @@ const MutationResolver = (
         }
       )
     },
-    SendPasswordRecoveryEmail(root, args, context) {
+    sendPasswordRecoveryEmail(root, args, context) {
       return logErrorsPromise(
-        "SendPasswordRecoveryEmail",
+        "sendPasswordRecoveryEmail",
         901,
         async (resolve, reject) => {
           const userFound = await User.find({
             where: { email: args.email },
           })
           if (!userFound) {
-            reject("User doesn't exist. Use `SignupUser` to create one")
+            reject("User doesn't exist. Use `` to create one")
           } else {
             sendPasswordRecoveryEmail(userFound.email, userFound.id)
 
@@ -157,9 +157,9 @@ const MutationResolver = (
         }
       )
     },
-    GeneratePermanentAccessToken(root, args, context) {
+    generatePermanentAccessToken(root, args, context) {
       return logErrorsPromise(
-        "GeneratePermanentAccessToken",
+        "generatePermanentAccessToken",
         125,
         authenticated(context, async (resolve, reject) => {
           if (args.customName === "") {
@@ -199,9 +199,9 @@ const MutationResolver = (
         })
       )
     },
-    DeletePermanentAccesToken(root, args, context) {
+    deletePermanentAccesToken(root, args, context) {
       return logErrorsPromise(
-        "DeletePermanentAccesToken",
+        "deletePermanentAccesToken",
         126,
         authenticated(context, async (resolve, reject) => {
           const databaseToken = await PermanentToken.find({
@@ -224,8 +224,8 @@ const MutationResolver = (
       )
     }, // checks if a user with that email already exists
     // if not it creates one and returnes an access token
-    SignupUser(root, args, context) {
-      return logErrorsPromise("SignupUser", 102, async (resolve, reject) => {
+    signupUser(root, args, context) {
+      return logErrorsPromise("signupUser", 102, async (resolve, reject) => {
         // check password strength
         const zxcvbnDictionary = [
           args.email,
@@ -247,7 +247,9 @@ const MutationResolver = (
           return
         }
 
-        const userFound = await User.find({ where: { email: args.email } })
+        const userFound = await User.find({
+          where: { email: args.email },
+        })
         if (userFound) {
           reject("A user with this email already exists")
         } else {
@@ -314,6 +316,7 @@ const MutationResolver = (
         }
       })
     },
+    /* 
     UpgradeTo2FactorAuthentication(root, args, context) {
       return logErrorsPromise(
         "UpgradeTo2FactorAuthentication",
@@ -322,9 +325,9 @@ const MutationResolver = (
           const userFound = await User.find({
             where: { id: context.auth.userId },
           })
-          /* istanbul ignore if - should ever happen */
+          // istanbul ignore if - should ever happen 
           if (!userFound) {
-            reject("User doesn't exist. Use `SignupUser` to create one")
+            reject("User doesn't exist. Use `` to create one")
           } else if (!userFound.twoFactorSecret) {
             const { secret, qrCode } = create2FSecret(userFound.email)
             await userFound.update({ twoFactorSecret: secret })
@@ -343,10 +346,11 @@ const MutationResolver = (
           }
         })
       )
-    }, // changes the password and returns an access token
-    ChangePassword(root, args, context) {
+  }, */
+    // changes the password and returns an access token
+    changePassword(root, args, context) {
       return logErrorsPromise(
-        "ChangePassword",
+        "changePassword",
         101,
         authenticated(
           context,
@@ -355,7 +359,7 @@ const MutationResolver = (
               where: { id: context.auth.userId },
             })
             if (!userFound) {
-              reject("User doesn't exist. Use `SignupUser` to create one")
+              reject("User doesn't exist. Use `` to create one")
             } else {
               const encryptedPass = bcrypt.hashSync(
                 args.newPassword,
@@ -380,16 +384,16 @@ const MutationResolver = (
         )
       )
     },
-    ResendVerificationEmail(root, args, context) {
+    resendVerificationEmail(root, args, context) {
       return logErrorsPromise(
-        "ResendVerificationEmail",
+        "resendVerificationEmail",
         900,
         authenticated(context, async (resolve, reject) => {
           const userFound = await User.find({
             where: { id: context.auth.userId },
           })
           if (!userFound) {
-            reject("User doesn't exist. Use `SignupUser` to create one")
+            reject("User doesn't exist. Use `` to create one")
           } else if (userFound.emailIsVerified) {
             reject("This user has already verified their email")
           } else {
@@ -662,9 +666,9 @@ const MutationResolver = (
           boardToParent
         )
       ),
-    CreateBoard(root, args, context) {
+    createBoard(root, args, context) {
       return logErrorsPromise(
-        "CreateBoard",
+        "createBoard",
         910,
         authenticated(context, async (resolve, reject) => {
           if (args.customName === "" || args.customName === null) {
@@ -708,8 +712,8 @@ const MutationResolver = (
         })
       )
     },
-    CreateDevice(root, args, context) {
-      return logErrorsPromise("CreateDevice", 104, async (resolve, reject) => {
+    createDevice(root, args, context) {
+      return logErrorsPromise("createDevice", 104, async (resolve, reject) => {
         let boardId
 
         // if boardId is not specified and there is only one board choose that board
@@ -800,7 +804,7 @@ const MutationResolver = (
         )(resolve, reject)
       })
     },
-    CreateFloatValue: CreateGenericValue(
+    createFloatValue: CreateGenericValue(
       User,
       Device,
       Board,
@@ -833,7 +837,7 @@ const MutationResolver = (
         return true
       }
     ),
-    CreateStringValue: CreateGenericValue(
+    createStringValue: CreateGenericValue(
       User,
       Device,
       Board,
@@ -853,6 +857,12 @@ const MutationResolver = (
           reject("maxChars must be greater than 0")
           return false
         } else if (
+          isNotNullNorUndefined(args.allowedValues) &&
+          args.allowedValues.length < 2
+        ) {
+          reject("allowedValues must contain at least 2 options")
+          return false
+        } else if (
           isNotNullNorUndefined(args.maxChars) &&
           args.value.length > args.maxChars
         ) {
@@ -868,7 +878,7 @@ const MutationResolver = (
         return true
       }
     ),
-    CreateBooleanValue: CreateGenericValue(
+    createBooleanValue: CreateGenericValue(
       User,
       Device,
       Board,
@@ -884,7 +894,7 @@ const MutationResolver = (
       ],
       pubsub
     ),
-    CreateMapValue: CreateGenericValue(
+    createMapValue: CreateGenericValue(
       User,
       Device,
       Board,
@@ -900,7 +910,7 @@ const MutationResolver = (
       ],
       pubsub
     ),
-    CreatePlotValue: CreateGenericValue(
+    createPlotValue: CreateGenericValue(
       User,
       Device,
       Board,
@@ -916,7 +926,7 @@ const MutationResolver = (
       ],
       pubsub
     ),
-    CreateStringPlotValue: CreateGenericValue(
+    createStringPlotValue: CreateGenericValue(
       User,
       Device,
       Board,
@@ -932,9 +942,9 @@ const MutationResolver = (
       ],
       pubsub
     ),
-    CreatePlotNode(root, args, context) {
+    createPlotNode(root, args, context) {
       return logErrorsPromise(
-        "CreatePlotNode mutation",
+        "createPlotNode mutation",
         139,
         authorized(
           args.plotId,
@@ -972,9 +982,9 @@ const MutationResolver = (
         )
       )
     },
-    CreateStringPlotNode(root, args, context) {
+    createStringPlotNode(root, args, context) {
       return logErrorsPromise(
-        "CreateStringPlotNode mutation",
+        "createStringPlotNode mutation",
         139,
         authorized(
           args.plotId,
@@ -1040,7 +1050,7 @@ const MutationResolver = (
             })
 
             if (!userFound) {
-              reject("User doesn't exist. Use `SignupUser` to create one")
+              reject("User doesn't exist. Use `` to create one")
             } else {
               if (args.email) {
                 const sameEmailUserFound = await User.find({
@@ -1096,7 +1106,7 @@ const MutationResolver = (
             where: { id: context.auth.userId },
           })
           if (!userFound) {
-            reject("User doesn't exist. Use `SignupUser` to create one")
+            reject("User doesn't exist. Use `` to create one")
           } else if (
             args.timeZone === null ||
             args.language === null ||
@@ -1146,7 +1156,7 @@ const MutationResolver = (
             where: { id: context.auth.userId },
           })
           if (!userFound) {
-            reject("User doesn't exist. Use `SignupUser` to create one")
+            reject("User doesn't exist. Use `` to create one")
           } else if (userFound.stripeCustomerId) {
             // replaces customer payment method
             await stripe.customers.createSource(userFound.stripeCustomerId, {
@@ -1285,7 +1295,7 @@ const MutationResolver = (
               args.batteryStatus !== null &&
               args.batteryStatus < 10
             ) {
-              resolvers.CreateNotification(
+              resolvers.createNotification(
                 {},
                 {
                   deviceId: deviceFound.id,
@@ -1405,6 +1415,12 @@ const MutationResolver = (
           reject("The value is not among the allowedValues")
           return false
         } else if (
+          isNotNullNorUndefined(args.allowedValues) &&
+          args.allowedValues.length < 2
+        ) {
+          reject("allowedValues must contain at least 2 options")
+          return false
+        } else if (
           !isNotNullNorUndefined(args.value) &&
           isNotNullNorUndefined(args.allowedValues) &&
           args.allowedValues.indexOf(valueFound.value) === -1
@@ -1511,7 +1527,7 @@ const MutationResolver = (
       ),
     plotNode(root, args, context) {
       return logErrorsPromise(
-        "CreatePlotNode mutation",
+        "createPlotNode mutation",
         139,
         inheritAuthorized(
           args.id,
@@ -1596,7 +1612,7 @@ const MutationResolver = (
         )
       )
     },
-    CreateNotification(root, args, context) {
+    createNotification(root, args, context) {
       return logErrorsPromise(
         "create notification mutation",
         122,
@@ -1994,7 +2010,7 @@ const MutationResolver = (
     },
     deleteStringPlotNode(root, args, context) {
       return logErrorsPromise(
-        "CreatePlotNode mutation",
+        "createPlotNode mutation",
         139,
         inheritAuthorized(
           args.id,

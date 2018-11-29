@@ -24,7 +24,7 @@ const retrieveUserScalarProp = (User, prop, acceptedTokens) => (
         } else {
           const userFound = await User.find({ where: { id: root.id } })
           if (!userFound) {
-            reject("User doesn't exist. Use `SignupUser` to create one")
+            reject("User doesn't exist. Use `` to create one")
           } else {
             resolve(userFound[prop])
           }
@@ -53,7 +53,7 @@ const retrievePublicUserScalarProp = (User, prop, acceptedTokens) => (
       async (resolve, reject) => {
         const userFound = await User.find({ where: { id: root.id } })
         if (!userFound) {
-          reject("User doesn't exist. Use `SignupUser` to create one")
+          reject("User doesn't exist. Use `` to create one")
         } else {
           resolve(userFound[prop])
         }
