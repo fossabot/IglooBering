@@ -222,8 +222,7 @@ const MutationResolver = (
           }
         })
       )
-    }, // checks if a user with that email already exists
-    // if not it creates one and returnes an access token
+    }, // if not it creates one and returnes an access token // checks if a user with that email already exists
     signupUser(root, args, context) {
       return logErrorsPromise("signupUser", 102, async (resolve, reject) => {
         // check password strength
@@ -247,9 +246,7 @@ const MutationResolver = (
           return
         }
 
-        const userFound = await User.find({
-          where: { email: args.email },
-        })
+        const userFound = await User.find({ where: { email: args.email } })
         if (userFound) {
           reject("A user with this email already exists")
         } else {
@@ -315,8 +312,7 @@ const MutationResolver = (
           }
         }
       })
-    },
-    /* 
+    } /* 
     UpgradeTo2FactorAuthentication(root, args, context) {
       return logErrorsPromise(
         "UpgradeTo2FactorAuthentication",
@@ -346,7 +342,7 @@ const MutationResolver = (
           }
         })
       )
-  }, */
+  }, */,
     // changes the password and returns an access token
     changePassword(root, args, context) {
       return logErrorsPromise(
@@ -433,7 +429,10 @@ const MutationResolver = (
 
               // if receiver has already a pending share of that board overwrite it
               const otherPendingShare = await PendingBoardShare.find({
-                where: { receiverId: receiverFound.id, boardId: args.boardId },
+                where: {
+                  receiverId: receiverFound.id,
+                  boardId: args.boardId,
+                },
               })
               if (otherPendingShare) {
                 newPendingShare = await otherPendingShare.update({
@@ -525,6 +524,45 @@ const MutationResolver = (
             const usersWithAccessIds = (await instanceToSharedIds(
               boardFound
             )).filter(id => id !== context.auth.userId)
+
+            pubsub.publish("boardUpdated", {
+              boardUpdated: boardFound,
+              userIds: usersWithAccessIds,
+            })
+          }
+        })
+      ),
+    declinePendingBoardShare: (root, args, context) =>
+      logErrorsPromise(
+        "declinePendingBoardShare",
+        921,
+        authenticated(context, async (resolve, reject) => {
+          const pendingBoardFound = await PendingBoardShare.find({
+            where: { id: args.pendingBoardShareId },
+          })
+
+          if (!pendingBoardFound) {
+            reject("The requested resource does not exist")
+          } else if (context.auth.userId !== pendingBoardFound.receiverId) {
+            reject("You are not the receiver of this board share")
+          } else {
+            const pendingBoardFoundId = pendingBoardFound.id
+            const boardFound = await Board.find({
+              where: { id: pendingBoardFound.boardId },
+            })
+
+            await pendingBoardFound.destroy()
+
+            resolve(pendingBoardFoundId)
+
+            context.billingUpdater.update(MUTATION_COST)
+
+            pubsub.publish("boardShareDeclined", {
+              boardShareDeclined: pendingBoardFoundId,
+              userId: context.auth.userId,
+            })
+
+            const usersWithAccessIds = await instanceToSharedIds(boardFound)
 
             pubsub.publish("boardUpdated", {
               boardUpdated: boardFound,

@@ -101,6 +101,8 @@ type Mutation {
 
   # returns the ID of the accepted board
   acceptPendingBoardShare(pendingBoardShareId: ID!): ID
+  # returns the ID of the accepted board
+  declinePendingBoardShare(pendingBoardShareId: ID!): ID
   # returns the ID of the pending share that was revoked
   revokePendingBoardShare(pendingBoardShareId: ID!): ID
   leaveBoard(boardId: ID!): ID
@@ -555,6 +557,8 @@ type Subscription {
   boardSharedWithYou: PendingBoardShare
   # returns the id of the board accepted
   boardShareAccepted: ID
+  # returns the id of the board declined
+  boardShareDeclined: ID
   # returns the id of the board share that was revoked
   boardShareRevoked: ID
   # subscribes to board unshares from you or you leave a board
