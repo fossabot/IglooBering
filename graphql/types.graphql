@@ -126,7 +126,7 @@ type Mutation {
     signalStatus: Float
     batteryStatus: Float
     batteryCharging: Boolean
-    boardId: ID
+    boardId: ID!
     firmware: String
     muted: Boolean
   ): Device

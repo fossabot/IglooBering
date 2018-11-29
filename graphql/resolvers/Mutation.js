@@ -752,34 +752,8 @@ const MutationResolver = (
     },
     createDevice(root, args, context) {
       return logErrorsPromise("createDevice", 104, async (resolve, reject) => {
-        let boardId
-
-        // if boardId is not specified and there is only one board choose that board
-        if (args.boardId) {
-          boardId = args.boardId
-        } else {
-          const userFound = await User.find({
-            where: { id: context.auth.userId },
-          })
-
-          // TODO: is it possible to just use a count or at least fetch only the ids?
-          const boards = await userFound.getOwnBoards()
-
-          if (boards.length === 1) {
-            boardId = boards[0].id
-          } else if (board.length === 0) {
-            reject("To create a device you need to have at least 1 board")
-            return
-          } else {
-            reject(
-              "You need to specify the boardId when the user has more than one board"
-            )
-            return
-          }
-        }
-
         return authorized(
-          boardId,
+          args.boardId,
           context,
           Board,
           User,
@@ -810,13 +784,13 @@ const MutationResolver = (
               args.index !== null && args.index !== undefined
                 ? args.index
                 : (await Device.max("index", {
-                    where: { boardId },
+                    where: { boardId: args.boardId },
                   })) + 1 || 0 // or 0 replaces NaN when there are no other devices
 
             const newDevice = await Device.create({
               ...args,
               muted: !!args.muted,
-              boardId,
+              boardId: args.boardId,
               index,
             })
 
