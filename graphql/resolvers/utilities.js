@@ -160,6 +160,9 @@ const CreateGenericValue = (
         if (args.customName === "") {
           reject("customName cannot be an empty string")
           return
+        } else if (args.valueDetails === "") {
+          reject("valueDetails cannot be an empty string, pass null instead")
+          return
         }
 
         async function calculateIndex() {
@@ -264,6 +267,9 @@ const genericValueMutation = (
           return
         } else if (Object.keys(args).length === 1) {
           reject("You cannot make a mutation with only the id field")
+          return
+        } else if (args.valueDetails === "") {
+          reject("valueDetails cannot be an empty string, pass null instead")
           return
         }
 
