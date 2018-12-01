@@ -12,8 +12,6 @@ enum BoardPicture {
 
 # Payload returned after signing up
 type SignupUserPayload {
-  # user id
-  id: ID!
   # token used to authenticate, pass it as a bearer in the authentication header
   token: String!
   user: User!
@@ -21,8 +19,6 @@ type SignupUserPayload {
 
 # Payload returned when authenticating
 type AuthenticateUserPayload {
-  # user id
-  id: ID!
   # token used to authenticate, pass it as a bearer in the authentication header
   token: String!
   user: User!
@@ -65,10 +61,19 @@ enum TimeFormat {
   H12
 }
 
+enum TokenType {
+  DELETE_USER
+  CHANGE_EMAIL
+  GENERATE_PERMANENT_TOKEN
+}
+
 # All available mutations
 type Mutation {
   # Gets an authentication token
   authenticateUser(email: String!, password: String!): AuthenticateUserPayload
+
+  # creates a token to perform special operations
+  createToken(password: String!, tokenType: TokenType!): String
 
   # Generates a permanent access token
   generatePermanentAccessToken(
@@ -287,8 +292,6 @@ type Mutation {
 
   # Change user's data
   user(
-    email: String
-    # If active push notifications aren't sent
     muted: Boolean
     devMode: Boolean
     usageCap: Int
@@ -297,6 +300,7 @@ type Mutation {
     profileIcon: String
     profileIconColor: String
   ): User
+  changeEmail(email: String!): Boolean
 
   settings(
     timeZone: String
@@ -507,7 +511,7 @@ type Mutation {
   # delete board
   deleteBoard(id: ID!): ID
   # delte user
-  deleteUser(password: String!): ID
+  deleteUser: ID
   # delte plot node
   deletePlotNode(id: ID!): ID
   # delte string plot node

@@ -4,7 +4,6 @@ import {
   findAllValues,
   getAll,
 } from "./utilities"
-import { Op } from "sequelize" //TODO: remove this?
 
 const QUERY_COST = 1
 

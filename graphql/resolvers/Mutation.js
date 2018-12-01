@@ -30,6 +30,8 @@ import {
 } from "./utilities"
 import webpush from "web-push"
 import Stripe from "stripe"
+import moment from "moment"
+import jwt from "jwt-simple"
 import { Op } from "sequelize"
 import zxcvbn from "zxcvbn"
 
@@ -105,7 +107,6 @@ const MutationResolver = (
             )
 
             resolve({
-              id: userFound.dataValues.id,
               token: generateAuthenticationToken(
                 userFound.dataValues.id,
                 JWT_SECRET
@@ -127,7 +128,6 @@ const MutationResolver = (
             )
 
             resolve({
-              id: userFound.dataValues.id,
               token: generateAuthenticationToken(
                 userFound.dataValues.id,
                 JWT_SECRET
@@ -138,6 +138,37 @@ const MutationResolver = (
             reject("Wrong or missing 2-Factor Authentication Code")
           }
         }
+      )
+    },
+    createToken(root, args, context) {
+      return logErrorsPromise(
+        "createToken",
+        125,
+        authenticated(context, async (resolve, reject) => {
+          const userFound = await User.find({
+            where: { id: context.auth.userId },
+          })
+          if (
+            !bcrypt.compareSync(args.password, userFound.dataValues.password)
+          ) {
+            reject("Wrong password")
+          } else {
+            resolve(
+              jwt.encode(
+                {
+                  userId: context.auth.userId,
+                  tokenType: args.tokenType,
+                  exp: moment()
+                    .utc()
+                    .add({ minutes: 15 })
+                    .unix(),
+                },
+                JWT_SECRET,
+                "HS512"
+              )
+            )
+          }
+        })
       )
     },
     sendPasswordRecoveryEmail(root, args, context) {
@@ -162,42 +193,47 @@ const MutationResolver = (
       return logErrorsPromise(
         "generatePermanentAccessToken",
         125,
-        authenticated(context, async (resolve, reject) => {
-          if (args.customName === "") {
-            reject("Empty name is not allowed")
-          } else {
-            const databaseToken = await PermanentToken.create({
-              customName: args.customName,
-              userId: context.auth.userId,
-            })
+        authenticated(
+          context,
+          async (resolve, reject) => {
+            console.log("test")
+            if (args.customName === "") {
+              reject("Empty name is not allowed")
+            } else {
+              const databaseToken = await PermanentToken.create({
+                customName: args.customName,
+                userId: context.auth.userId,
+              })
 
-            resolve({
-              id: databaseToken.id,
-              token: generatePermanentAuthenticationToken(
-                context.auth.userId,
-                databaseToken.id,
-                "DEVICE",
-                JWT_SECRET
-              ),
-            })
+              resolve({
+                id: databaseToken.id,
+                token: generatePermanentAuthenticationToken(
+                  context.auth.userId,
+                  databaseToken.id,
+                  "DEVICE",
+                  JWT_SECRET
+                ),
+              })
 
-            const resolveObj = {
-              id: databaseToken.id,
-              customName: databaseToken.customName,
-              user: { id: context.auth.userId },
+              const resolveObj = {
+                id: databaseToken.id,
+                customName: databaseToken.customName,
+                user: { id: context.auth.userId },
+              }
+              pubsub.publish("permanentTokenCreated", {
+                permanentTokenCreated: resolveObj,
+                userId: context.auth.userId,
+              })
+
+              const userFound = await User.find({
+                where: { id: context.auth.userId },
+              })
+
+              sendTokenCreatedEmail(userFound.email)
             }
-            pubsub.publish("permanentTokenCreated", {
-              permanentTokenCreated: resolveObj,
-              userId: context.auth.userId,
-            })
-
-            const userFound = await User.find({
-              where: { id: context.auth.userId },
-            })
-
-            sendTokenCreatedEmail(userFound.email)
-          }
-        })
+          },
+          ["GENERATE_PERMANENT_TOKEN"]
+        )
       )
     },
     deletePermanentAccesToken(root, args, context) {
@@ -293,7 +329,6 @@ const MutationResolver = (
             )
 
             resolve({
-              id: newUser.dataValues.id,
               token: generateAuthenticationToken(
                 newUser.dataValues.id,
                 JWT_SECRET
@@ -1073,9 +1108,6 @@ const MutationResolver = (
         if (args.name === null || args.name === "") {
           reject("name cannot be null or empty")
           return
-        } else if (args.email === null) {
-          reject("Email cannot be set to null")
-          return
         }
 
         const mutationFields = Object.keys(args)
@@ -1099,50 +1131,71 @@ const MutationResolver = (
             if (!userFound) {
               reject("User doesn't exist. Use `` to create one")
             } else {
-              if (args.email) {
-                const sameEmailUserFound = await User.find({
-                  where: { email: args.email },
-                })
-                if (sameEmailUserFound) {
-                  reject("A user with this email already exists")
-                  return
-                }
-              }
+              const newUser = await userFound.update(args)
+              resolve(newUser.dataValues)
 
-              try {
-                const updateObj = args.email
-                  ? { ...args, emailIsVerified: false }
-                  : args
-                const newUser = await userFound.update(updateObj)
-                resolve(newUser.dataValues)
+              pubsub.publish("userUpdated", {
+                userUpdated: newUser.dataValues,
+                userId: context.auth.userId,
+              })
 
-                pubsub.publish("userUpdated", {
-                  userUpdated: newUser.dataValues,
-                  userId: context.auth.userId,
-                })
-
-                if (args.email) {
-                  sendVerificationEmail(args.email, newUser.id)
-                }
-
-                // if the token used for the mutation is not a usageCap update or paymentPlan update bill it
-                if (permissionRequired === undefined) {
-                  context.billingUpdater.update(MUTATION_COST)
-                }
-              } catch (e) {
-                console.log(e)
-                if (e.errors[0].validatorKey === "isEmail") {
-                  reject("Invalid email")
-                } else {
-                  /* istanbul ignore next */
-                  throw e
-                }
+              // if the token used for the mutation is not a usageCap update or paymentPlan update bill it
+              if (permissionRequired === undefined) {
+                context.billingUpdater.update(MUTATION_COST)
               }
             }
           },
           permissionRequired
         )(resolve, reject)
       })
+    },
+    changeEmail(root, args, context) {
+      return logErrorsPromise(
+        "changeEmail",
+        125,
+        authenticated(
+          context,
+          async (resolve, reject) => {
+            const userFound = await User.find({
+              where: { id: context.auth.userId },
+            })
+
+            const sameEmailUserFound = await User.find({
+              where: { email: args.email },
+            })
+            if (sameEmailUserFound) {
+              reject("A user with this email already exists")
+              return
+            }
+
+            try {
+              const newUser = await userFound.update({
+                email: args.email,
+                emailIsVerified: false,
+              })
+              resolve(true)
+
+              pubsub.publish("userUpdated", {
+                userUpdated: newUser.dataValues,
+                userId: context.auth.userId,
+              })
+
+              sendVerificationEmail(args.email, newUser.id)
+
+              context.billingUpdater.update(MUTATION_COST)
+            } catch (e) {
+              console.log(e)
+              if (e.errors[0].validatorKey === "isEmail") {
+                reject("Invalid email")
+              } else {
+                /* istanbul ignore next */
+                throw e
+              }
+            }
+          },
+          ["CHANGE_EMAIL"]
+        )
+      )
     },
     settings(root, args, context) {
       return logErrorsPromise(
@@ -2092,19 +2145,12 @@ const MutationResolver = (
       logErrorsPromise(
         "delete device mutation",
         126,
-        authenticated(context, async (resolve, reject) => {
-          const userFound = await User.find({
-            where: { id: context.auth.userId },
-          })
-
-          if (!userFound) {
-            reject("The requested resource does not exist")
-          } else if (!bcrypt.compareSync(args.password, userFound.password)) {
-            reject("Wrong password")
-          } else if (
-            !userFound.twoFactorSecret ||
-            check2FCode(args.twoFactorCode, userFound.twoFactorSecret)
-          ) {
+        authenticated(
+          context,
+          async (resolve, reject) => {
+            const userFound = await User.find({
+              where: { id: context.auth.userId },
+            })
             // after enabling cascade delete in postgres destroying the boards should be enough to clear the user
 
             // await Board.destroy({
@@ -2120,10 +2166,9 @@ const MutationResolver = (
               userId: context.auth.userId,
             })
             resolve(context.auth.userId)
-          } else {
-            reject("Wrong two factor code")
-          }
-        })
+          },
+          ["DELETE_USER"]
+        )
       ),
   }
 
