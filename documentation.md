@@ -11,7 +11,7 @@ mutation {
   signupUser(
     email: "showcase@igloo.io"
     password: "showcase"
-    fullName: "Showcase"
+    name: "Showcase"
   ) {
     id
     token

@@ -59,7 +59,7 @@ const databaseDefinition = sequelize => {
     usageCap: {
       type: Sequelize.INTEGER,
     },
-    fullName: {
+    name: {
       type: Sequelize.STRING,
     },
     profileIcon: {

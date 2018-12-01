@@ -5,6 +5,7 @@ import {
   instanceToRole,
   boardToParent,
   authenticated,
+  authorizationLevel,
 } from "./utilities"
 import { Op } from "sequelize"
 
@@ -152,8 +153,29 @@ const BoardResolver = ({
         context,
         Board,
         User,
-        3,
+        1,
         async (resolve, reject, boardFound) => {
+          const userFound = await User.find({
+            where: { id: context.auth.userId },
+          })
+
+          /*
+            users without admin authorization don't have access to pendingBoardShares,
+            instead of throwing error we return null to allow queries like
+            {
+              user{
+                  boards{
+                    pendingBoardShares{ id }
+                  }
+              }
+            }
+            also for users that don't have admin access to all of their boards
+          */
+          if ((await authorizationLevel(boardFound, userFound)) < 3) {
+            resolve(null)
+            return
+          }
+
           const pendingBoardShares = await PendingBoardShare.findAll({
             where: { boardId: root.id },
           })

@@ -82,7 +82,7 @@ type Mutation {
   signupUser(
     email: String!
     password: String!
-    fullName: String!
+    name: String!
   ): SignupUserPayload
 
   # Sends an email with a llink to change the password
@@ -97,14 +97,16 @@ type Mutation {
   resendVerificationEmail: Boolean
 
   shareBoard(boardId: ID!, email: String!, role: Role!): PendingBoardShare
-  stopSharingBoard(boardId: ID!, email: String!): Board
+  pendingBoardShare(id: ID!, role: Role!): PendingBoardShare
+  # returns the ID of the pending share that was revoked
+  revokePendingBoardShare(pendingBoardShareId: ID!): ID
 
   # returns the ID of the accepted board
   acceptPendingBoardShare(pendingBoardShareId: ID!): ID
   # returns the ID of the accepted board
   declinePendingBoardShare(pendingBoardShareId: ID!): ID
-  # returns the ID of the pending share that was revoked
-  revokePendingBoardShare(pendingBoardShareId: ID!): ID
+
+  stopSharingBoard(boardId: ID!, email: String!): Board
   leaveBoard(boardId: ID!): ID
 
   # Creates a Board
@@ -291,7 +293,7 @@ type Mutation {
     devMode: Boolean
     usageCap: Int
     paymentPlan: PaymentPlan
-    fullName: String
+    name: String
     profileIcon: String
     profileIconColor: String
   ): User
@@ -616,23 +618,24 @@ type User {
   createdAt: DateTime!
   updatedAt: DateTime!
   email: String!
+  pendingBoardShareCount: Int!
   pendingBoardShares: [PendingBoardShare!]!
-  boardCount: Int
+  boardCount: Int!
   boards: [Board!]!
   deviceCount: Int
   devices: [Device!]!
-  valueCount: Int
+  valueCount: Int!
   values: [Value!]!
   notifications: [Notification!]!
   notificationCount: Int!
-  permanentTokenCount: Int
+  permanentTokenCount: Int!
   permanentTokens: [PermanentToken!]!
   muted: Boolean
   devMode: Boolean
   monthUsage: Int
   paymentPlan: PaymentPlan
   usageCap: Int
-  fullName: String
+  name: String
   profileIcon: String
   profileIconColor: String
   emailIsVerified: Boolean
@@ -655,7 +658,8 @@ type Board {
   admins: [User!]!
   editors: [User!]!
   spectators: [User!]!
-  pendingBoardShares: [PendingBoardShare!]!
+  # returns null only if you don't have admin rights
+  pendingBoardShares: [PendingBoardShare!]
   customName: String!
   avatar: BoardPicture!
   deviceCount: Int

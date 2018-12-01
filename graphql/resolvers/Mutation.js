@@ -23,6 +23,7 @@ import {
   randomBoardAvatar,
   randomUserIconColor,
   instanceToRole,
+  authorizationLevel,
   GenerateUserBillingBatcher,
   boardToParent,
   sendBoardSharedEmail,
@@ -86,7 +87,7 @@ const MutationResolver = (
             where: { email: args.email },
           })
           if (!userFound) {
-            reject("User doesn't exist. Use `` to create one")
+            reject("User doesn't exist. Use `signupUser` to create one")
           } else if (
             !bcrypt.compareSync(args.password, userFound.dataValues.password)
           ) {
@@ -229,7 +230,7 @@ const MutationResolver = (
         const zxcvbnDictionary = [
           args.email,
           args.email.split("@")[0],
-          args.fullName,
+          args.name,
           "igloo",
           "igloo aurora",
           "aurora",
@@ -241,8 +242,8 @@ const MutationResolver = (
           return
         }
 
-        if (!args.fullName) {
-          reject("fullName required")
+        if (!args.name) {
+          reject("name required")
           return
         }
 
@@ -260,7 +261,7 @@ const MutationResolver = (
               monthUsage: 0,
               paymentPlan: "FREE",
               emailIsVerified: false,
-              fullName: args.fullName,
+              name: args.name,
               profileIconColor: randomUserIconColor(),
               settings_language: "en-GB",
               settings_timeZone: "+00:00_Greenwich", // TODO: Daylight Saving Time
@@ -425,8 +426,6 @@ const MutationResolver = (
                 return
               }
 
-              let newPendingShare
-
               // if receiver has already a pending share of that board overwrite it
               const otherPendingShare = await PendingBoardShare.find({
                 where: {
@@ -435,17 +434,16 @@ const MutationResolver = (
                 },
               })
               if (otherPendingShare) {
-                newPendingShare = await otherPendingShare.update({
-                  role: args.role,
-                })
-              } else {
-                newPendingShare = await PendingBoardShare.create({
-                  senderId: senderFound.id,
-                  receiverId: receiverFound.id,
-                  boardId: boardFound.id,
-                  role: args.role,
-                })
+                reject(`There is already a boardShare pending`)
+                return
               }
+
+              let newPendingShare = await PendingBoardShare.create({
+                senderId: senderFound.id,
+                receiverId: receiverFound.id,
+                boardId: boardFound.id,
+                role: args.role,
+              })
 
               resolve({
                 id: newPendingShare.id,
@@ -468,7 +466,7 @@ const MutationResolver = (
               })
               sendBoardSharedEmail(
                 receiverFound.email,
-                senderFound.fullName,
+                senderFound.name,
                 boardFound.customName
               )
 
@@ -481,6 +479,43 @@ const MutationResolver = (
                 userIds: usersWithAccessIds,
               })
             }
+          },
+          boardToParent
+        )
+      ),
+    pendingBoardShare: (root, args, context) =>
+      logErrorsPromise(
+        "genericShare",
+        921,
+        inheritAuthorized(
+          args.id,
+          PendingBoardShare,
+          User,
+          pendingBoardShare => pendingBoardShare.boardId,
+          context,
+          Board,
+          3,
+          async (resolve, reject, pendingBoardShareFound, boardFound) => {
+            const newPendingBoardShare = await pendingBoardShareFound.update(
+              args
+            )
+
+            resolve(newPendingBoardShare)
+            context.billingUpdater.update(MUTATION_COST)
+
+            pubsub.publish("boardSharedWithYou", {
+              boardSharedWithYou: newPendingBoardShare,
+              userId: newPendingBoardShare.receiverId,
+            })
+
+            const usersWithAccessIds = (await instanceToSharedIds(
+              boardFound
+            )).filter(id => id !== newPendingBoardShare.receiverId)
+
+            pubsub.publish("boardUpdated", {
+              boardUpdated: boardFound,
+              userIds: usersWithAccessIds,
+            })
           },
           boardToParent
         )
@@ -590,7 +625,7 @@ const MutationResolver = (
               where: { id: context.auth.userId },
             })
 
-            if ((await instanceToRole(boardFound, userFound)) < 3) {
+            if ((await authorizationLevel(boardFound, userFound)) < 3) {
               reject("You are not authorized to perform this operation")
             } else {
               const revokedId = pendingBoardFound.id
@@ -1035,8 +1070,8 @@ const MutationResolver = (
     },
     user(root, args, context) {
       return logErrorsPromise("user mutation", 115, (resolve, reject) => {
-        if (args.fullName === null || args.fullName === "") {
-          reject("fullName cannot be null or empty")
+        if (args.name === null || args.name === "") {
+          reject("name cannot be null or empty")
           return
         } else if (args.email === null) {
           reject("Email cannot be set to null")

@@ -89,7 +89,7 @@ const UserResolver = ({
     "PERMANENT",
     "PASSWORD_RECOVERY",
   ]),
-  fullName: retrievePublicUserScalarProp(User, "fullName", [
+  name: retrievePublicUserScalarProp(User, "name", [
     "TEMPORARY",
     "PERMANENT",
     "PASSWORD_RECOVERY",
@@ -197,6 +197,23 @@ const UserResolver = ({
 
           resolve(pendingBoardShares)
           context.billingUpdater.update(QUERY_COST * pendingBoardShares.length)
+        }
+      })
+    )
+  },
+  pendingBoardShareCount(root, args, context) {
+    return logErrorsPromise(
+      "User boards resolver",
+      904,
+      authenticated(context, async (resolve, reject) => {
+        if (context.auth.userId !== root.id) {
+          reject("You are not allowed to access details about this user")
+        } else {
+          const pendingBoardShareCount = await PendingBoardShare.count({
+            where: { receiverId: context.auth.userId },
+          })
+
+          resolve(pendingBoardShareCount)
         }
       })
     )
