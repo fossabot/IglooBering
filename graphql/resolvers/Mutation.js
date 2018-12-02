@@ -71,6 +71,7 @@ const MutationResolver = (
     StringPlotNode,
     Notification,
     PendingBoardShare,
+    PendingOwnerChange,
   },
   WebPushSubscription,
   pubsub,
@@ -461,7 +462,7 @@ const MutationResolver = (
                 return
               }
 
-              // if receiver has already a pending share of that board overwrite it
+              // if receiver has already a pending share throw error
               const otherPendingShare = await PendingBoardShare.find({
                 where: {
                   receiverId: receiverFound.id,
@@ -677,6 +678,79 @@ const MutationResolver = (
             }
           }
         })
+      ),
+    changeOwner: (root, args, context) =>
+      logErrorsPromise(
+        "changeOwner",
+        921,
+        authorized(
+          args.boardId,
+          context,
+          Board,
+          User,
+          4,
+          async (resolve, reject, boardFound, _, formerOwnerFound) => {
+            const newOwnerFound = await User.find({
+              where: { email: args.email },
+            })
+
+            if (!newOwnerFound) {
+              reject("This account doesn't exist, check the email passed")
+            } else if (newOwnerFound.id === context.auth.userId) {
+              reject("You already are the owner of this board")
+            } else {
+              // if the board already has a pending owner change remove it
+              const otherOwnerChange = await PendingOwnerChange.find({
+                where: {
+                  boardId: args.boardId,
+                },
+              })
+              if (otherOwnerChange) {
+                await otherOwnerChange.destroy()
+              }
+
+              let newOwnerChange = await PendingOwnerChange.create({
+                formerOwnerId: formerOwnerFound.id,
+                newOwnerId: newOwnerFound.id,
+                boardId: boardFound.id,
+              })
+
+              resolve({
+                id: newOwnerChange.id,
+                formerOwner: {
+                  id: newOwnerChange.formerOwnerId,
+                },
+                newOwner: {
+                  id: newOwnerChange.newOwnerId,
+                },
+                board: {
+                  id: newOwnerChange.boardId,
+                },
+              })
+              context.billingUpdater.update(MUTATION_COST)
+
+              pubsub.publish("ownerChangeBegan", {
+                ownerChangeBegan: newOwnerChange,
+                userId: newOwnerFound.id,
+              })
+              sendBoardSharedEmail(
+                newOwnerFound.email,
+                formerOwnerFound.name,
+                boardFound.customName
+              )
+
+              const usersWithAccessIds = (await instanceToSharedIds(
+                boardFound
+              )).filter(id => id !== newOwnerFound.id)
+
+              pubsub.publish("boardUpdated", {
+                boardUpdated: boardFound,
+                userIds: usersWithAccessIds,
+              })
+            }
+          },
+          boardToParent
+        )
       ),
     leaveBoard(root, args, context) {
       return logErrorsPromise(

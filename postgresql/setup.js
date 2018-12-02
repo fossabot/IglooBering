@@ -35,6 +35,7 @@ const {
   WebPushSubscription,
   associations,
   PendingBoardShare,
+  PendingOwnerChange,
 } = require("./databaseDefinition")(sequelize)
 
 const setup = async () => {
@@ -54,6 +55,7 @@ const setup = async () => {
     await PermanentToken.sync({ force: true })
     await WebPushSubscription.sync({ force: true })
     await PendingBoardShare.sync({ force: true })
+    await PendingOwnerChange.sync({ force: true })
     for (let i = 0; i < associations.length; i++) {
       await associations[i].sync({ force: true })
     }

@@ -114,6 +114,17 @@ type Mutation {
   stopSharingBoard(boardId: ID!, email: String!): Board
   leaveBoard(boardId: ID!): ID
 
+  changeOwner(boardId: ID!, email: String!): PendingOwnerChange
+  # returns the ID of the pending share that was revoked
+  revokePendingOwnerChange(pendingOwnerChangeId: ID!): ID
+
+  # returns the ID of the accepted board
+  acceptPendingOwnerChange(pendingOwnerChangeId: ID!): ID
+  # returns the ID of the accepted board
+  declinePendingOwnerChange(pendingOwnerChangeId: ID!): ID
+
+  changeRole(boardId: ID!, email: String!, newRole: Role!): Board
+
   # Creates a Board
   createBoard(
     customName: String!
@@ -567,6 +578,14 @@ type Subscription {
   boardShareDeclined: ID
   # returns the id of the board share that was revoked
   boardShareRevoked: ID
+  # subscribes to owner change to you
+  ownerChangeBegan: PendingOwnerChange
+  # returns the id of the board accepted
+  ownerChangeAccepted: ID
+  # returns the id of the board declined
+  ownerChangeDeclined: ID
+  # returns the id of the owner change that was revoked
+  ownerChangeRevoked: ID
   # subscribes to board unshares from you or you leave a board
   boardStoppedSharingWithYou: ID
   # subscribes to value updates
@@ -624,6 +643,8 @@ type User {
   email: String!
   pendingBoardShareCount: Int!
   pendingBoardShares: [PendingBoardShare!]!
+  pendingOwnerChangeCount: Int!
+  pendingOwnerChanges: [PendingOwnerChange!]!
   boardCount: Int!
   boards: [Board!]!
   deviceCount: Int
@@ -664,6 +685,8 @@ type Board {
   spectators: [User!]!
   # returns null only if you don't have admin rights
   pendingBoardShares: [PendingBoardShare!]
+  pendingOwnerChangeCount: Int!
+  pendingOwnerChanges: [PendingOwnerChange!]!
   customName: String!
   avatar: BoardPicture!
   deviceCount: Int
@@ -678,6 +701,13 @@ type PendingBoardShare {
   sender: User!
   receiver: User!
   role: Role!
+  board: Board!
+}
+
+type PendingOwnerChange {
+  id: ID!
+  formerOwner: User!
+  newOwner: User!
   board: Board!
 }
 

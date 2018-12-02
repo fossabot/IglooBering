@@ -55,6 +55,7 @@ const BoardResolver = ({
   Notification,
   joinTables,
   PendingBoardShare,
+  PendingOwnerChange,
 }) => ({
   ...authorizedScalarPropsResolvers(
     Board,
@@ -182,6 +183,49 @@ const BoardResolver = ({
 
           resolve(pendingBoardShares)
           context.billingUpdater.update(QUERY_COST * pendingBoardShares.length)
+        },
+        boardToParent
+      )
+    )
+  },
+  pendingOwnerChanges(root, args, context) {
+    return logErrorsPromise(
+      "pendingOwnerChange BoardResolver",
+      903,
+      authorized(
+        root.id,
+        context,
+        Board,
+        User,
+        1,
+        async (resolve, reject, boardFound) => {
+          const userFound = await User.find({
+            where: { id: context.auth.userId },
+          })
+
+          /*
+            users without admin authorization don't have access to pendingOwnerShare,
+            instead of throwing error we return null to allow queries like
+            {
+              user{
+                  boards{
+                    pendingBoardShares{ id }
+                  }
+              }
+            }
+            also for users that don't have admin access to all of their boards
+          */
+          if ((await authorizationLevel(boardFound, userFound)) < 3) {
+            resolve(null)
+            return
+          }
+
+          const pendingOwnerChanges = await PendingOwnerChange.findAll({
+            where: { boardId: root.id },
+          })
+
+          resolve(pendingOwnerChanges)
+          context.billingUpdater.update(QUERY_COST * pendingOwnerChanges.length)
         },
         boardToParent
       )

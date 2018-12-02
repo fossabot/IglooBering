@@ -74,6 +74,7 @@ const UserResolver = ({
   MapValue,
   Notification,
   PendingBoardShare,
+  PendingOwnerChange,
 }) => ({
   ...scalarProps(User, [
     "createdAt",
@@ -213,6 +214,41 @@ const UserResolver = ({
           })
 
           resolve(pendingBoardShareCount)
+        }
+      })
+    )
+  },
+  pendingOwnerChanges(root, args, context) {
+    return logErrorsPromise(
+      "User pendingOwnerChanges resolver",
+      904,
+      authenticated(context, async (resolve, reject) => {
+        if (context.auth.userId !== root.id) {
+          reject("You are not allowed to access details about this user")
+        } else {
+          const pendingOwnerChanges = await PendingOwnerChange.findAll({
+            where: { newOwnerId: context.auth.userId },
+          })
+
+          resolve(pendingOwnerChanges)
+          context.billingUpdater.update(QUERY_COST * pendingOwnerChanges.length)
+        }
+      })
+    )
+  },
+  pendingOwnerChangeCount(root, args, context) {
+    return logErrorsPromise(
+      "User pendingOwnerChangeCount resolver",
+      904,
+      authenticated(context, async (resolve, reject) => {
+        if (context.auth.userId !== root.id) {
+          reject("You are not allowed to access details about this user")
+        } else {
+          const pendingOwnerChanges = await PendingOwnerChange.count({
+            where: { newOwnerId: context.auth.userId },
+          })
+
+          resolve(pendingOwnerChanges)
         }
       })
     )
