@@ -673,7 +673,11 @@ const MutationResolver = (
 
               pubsub.publish("boardShareRevoked", {
                 boardShareRevoked: revokedId,
-                userIds: [receiverId, ...usersWithAccessIds],
+                userId: receiverId,
+              })
+              pubsub.publish("boardUpdated", {
+                boardUpdated: boardFound,
+                userIds: usersWithAccessIds,
               })
             }
           }
@@ -751,6 +755,139 @@ const MutationResolver = (
           },
           boardToParent
         )
+      ),
+    revokePendingOwnerChange: (root, args, context) =>
+      logErrorsPromise(
+        "revokePendingOwnerChange",
+        921,
+        inheritAuthorized(
+          args.pendingOwnerChangeId,
+          PendingOwnerChange,
+          User,
+          pendingBoardShare => pendingBoardShare.boardId,
+          context,
+          Board,
+          3,
+          async (resolve, reject, pendingOwnerChangeFound, boardFound) => {
+            const targetUserId = pendingOwnerChangeFound.newOwnerId
+            await pendingOwnerChangeFound.destroy()
+
+            resolve(args.pendingOwnerChangeId)
+            context.billingUpdater.update(MUTATION_COST)
+
+            pubsub.publish("ownerChangeRevoked", {
+              ownerChangeRevoked: args.pendingOwnerChangeId,
+              userId: targetUserId,
+            })
+
+            const usersWithAccessIds = (await instanceToSharedIds(
+              boardFound
+            )).filter(id => id !== targetUserId)
+
+            pubsub.publish("boardUpdated", {
+              boardUpdated: boardFound,
+              userIds: usersWithAccessIds,
+            })
+          },
+          boardToParent
+        )
+      ),
+    acceptPendingOwnerChange: (root, args, context) =>
+      logErrorsPromise(
+        "acceptPendingOwnerChange",
+        921,
+        authenticated(context, async (resolve, reject) => {
+          const pendingOwnerChangeFound = await PendingOwnerChange.find({
+            where: { id: args.pendingOwnerChangeId },
+          })
+
+          if (!pendingOwnerChangeFound) {
+            reject("The requested resource does not exist")
+          } else if (
+            context.auth.userId !== pendingOwnerChangeFound.newOwnerId
+          ) {
+            reject("You are not the receiver of this owner change")
+          } else {
+            const boardFound = await Board.find({
+              where: { id: pendingOwnerChangeFound.boardId },
+            })
+            const userFound = await User.find({
+              where: { id: pendingOwnerChangeFound.newOwnerId },
+            })
+
+            // remove old roles
+            await Promise.all([
+              userFound[`remove${Board.Admins}`](boardFound),
+              userFound[`remove${Board.Editors}`](boardFound),
+              userFound[`remove${Board.Spectators}`](boardFound),
+            ])
+
+            await boardFound.setOwner(userFound)
+            await userFound.addOwnBoard(boardFound)
+
+            const oldOwnerFound = await User.find({
+              where: { id: pendingOwnerChangeFound.formerOwnerId },
+            })
+            await oldOwnerFound.removeOwnBoard(boardFound)
+            await oldOwnerFound[`add${Board.Admins}`](boardFound)
+
+            resolve(boardFound.id)
+
+            await pendingOwnerChangeFound.destroy()
+            context.billingUpdater.update(MUTATION_COST)
+
+            pubsub.publish("boardShareAccepted", {
+              boardShareAccepted: boardFound.id,
+              userId: userFound.id,
+            })
+
+            const usersWithAccessIds = (await instanceToSharedIds(
+              boardFound
+            )).filter(id => id !== context.auth.userId)
+
+            pubsub.publish("boardUpdated", {
+              boardUpdated: boardFound,
+              userIds: usersWithAccessIds,
+            })
+          }
+        })
+      ),
+    declinePendingOwnerChange: (root, args, context) =>
+      logErrorsPromise(
+        "declinePendingOwnerChange",
+        921,
+        authenticated(context, async (resolve, reject) => {
+          const pendingOwnerChangeFound = await PendingOwnerChange.find({
+            where: { id: args.pendingOwnerChangeId },
+          })
+
+          if (!pendingOwnerChangeFound) {
+            reject("The requested resource does not exist")
+          } else if (
+            context.auth.userId !== pendingOwnerChangeFound.newOwnerId
+          ) {
+            reject("You are not the receiver of this owner change")
+          } else {
+            const targetUserId = pendingOwnerChangeFound.newOwnerId
+            await pendingOwnerChangeFound.destroy()
+
+            resolve(args.pendingOwnerChangeId)
+            context.billingUpdater.update(MUTATION_COST)
+
+            pubsub.publish("ownerChangeDeclined", {
+              ownerChangeRevoked: args.pendingOwnerChangeId,
+              userId: targetUserId,
+            })
+
+            // sending boardUpdated subscription also to the target user
+            // for ease of handling on the client side
+            const usersWithAccessIds = await instanceToSharedIds(boardFound)
+            pubsub.publish("boardUpdated", {
+              boardUpdated: boardFound,
+              userIds: usersWithAccessIds,
+            })
+          }
+        })
       ),
     leaveBoard(root, args, context) {
       return logErrorsPromise(

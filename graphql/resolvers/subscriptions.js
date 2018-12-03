@@ -19,6 +19,16 @@ const subscriptionResolver = (pubsub, { User, Device, Board }) => ({
     "boardShareRevoked",
     pubsub
   ),
+  ownerChangeBegan: subscriptionFilterOnlyMine("ownerChangeBegan", pubsub),
+  ownerChangeAccepted: subscriptionFilterOnlyMine(
+    "ownerChangeAccepted",
+    pubsub
+  ),
+  ownerChangeDeclined: subscriptionFilterOnlyMine(
+    "ownerChangeDeclined",
+    pubsub
+  ),
+  ownerChangeRevoked: subscriptionFilterOnlyMine("ownerChangeRevoked", pubsub),
   boardCreated: subscriptionFilterOnlyMine("boardCreated", pubsub),
   deviceCreated: subscriptionFilterOwnedOrShared("deviceCreated", pubsub),
   valueCreated: subscriptionFilterOwnedOrShared("valueCreated", pubsub),
