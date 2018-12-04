@@ -889,6 +889,61 @@ const MutationResolver = (
           }
         })
       ),
+    changeRole(root, args, context) {
+      return logErrorsPromise(
+        "changeRole mutation",
+        223423,
+        authorized(
+          args.boardId,
+          context,
+          Board,
+          User,
+          3,
+          async (resolve, reject, boardFound, _, userFound) => {
+            const targetUserFound = await User.find({
+              where: { email: args.email },
+            })
+            const currentRole = await instanceToRole(
+              boardFound,
+              targetUserFound
+            )
+
+            if (!targetUserFound) {
+              reject("This account doesn't exist, check the email passed")
+            } else if (currentRole === "OWNER") {
+              reject("You cannot change the role of the owner")
+            } else if (!currentRole) {
+              reject(
+                "This user doesn't have a role on this board you should use the `shareBoard` mutation"
+              )
+            } else {
+              // remove old role
+              await Promise.all([
+                targetUserFound[`remove${Board.Admins}`](boardFound),
+                targetUserFound[`remove${Board.Editors}`](boardFound),
+                targetUserFound[`remove${Board.Spectators}`](boardFound),
+              ])
+
+              // add new role
+              const parsedRole = `${args.newRole[0] +
+                args.newRole.slice(1).toLowerCase()}s`
+
+              await targetUserFound[`add${Board[parsedRole]}`](boardFound)
+
+              resolve(boardFound)
+
+              pubsub.publish("boardUpdated", {
+                boardUpdated: boardFound,
+                userIds: await instanceToSharedIds(boardFound),
+              })
+
+              context.billingUpdater.update(MUTATION_COST)
+            }
+          },
+          boardToParent
+        )
+      )
+    },
     leaveBoard(root, args, context) {
       return logErrorsPromise(
         "leaveBoard mutation",
