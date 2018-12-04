@@ -3,6 +3,7 @@ import UserResolver from "./resolvers/User"
 import BoardResolver from "./resolvers/Board"
 import MutationResolver from "./resolvers/Mutation"
 import PendingBoardShareResolver from "./resolvers/PendingBoardShare"
+import PendingOwnerChangeResolver from "./resolvers/PendingOwnerChange"
 import QueryResolver from "./resolvers/Query"
 import DeviceResolver from "./resolvers/Device"
 import SubscriptionsResolver from "./resolvers/subscriptions"
@@ -45,6 +46,7 @@ const resolvers = {
   Json: GraphQLToolsTypes.JSON({ name: "Json" }),
   User: UserResolver(SequelizeConnections),
   PendingBoardShare: PendingBoardShareResolver(SequelizeConnections),
+  PendingOwnerChange: PendingOwnerChangeResolver(SequelizeConnections),
   Board: BoardResolver(SequelizeConnections),
   Device: DeviceResolver(SequelizeConnections),
   Mutation: MutationResolver(

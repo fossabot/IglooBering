@@ -310,6 +310,13 @@ const databaseDefinition = sequelize => {
     },
   })
 
+  const PendingOwnerChange = sequelize.define("pendingOwnerChange", {
+    ...selfId,
+    ...otherId("formerOwnerId", User),
+    ...otherId("newOwnerId", User),
+    ...otherId("boardId", Board),
+  })
+
   Board.hasMany(Device)
   Device.belongsTo(Board)
 
@@ -404,6 +411,7 @@ const databaseDefinition = sequelize => {
     associations,
     joinTables,
     PendingBoardShare,
+    PendingOwnerChange,
   }
 }
 

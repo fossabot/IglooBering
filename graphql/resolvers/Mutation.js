@@ -71,6 +71,7 @@ const MutationResolver = (
     StringPlotNode,
     Notification,
     PendingBoardShare,
+    PendingOwnerChange,
   },
   WebPushSubscription,
   pubsub,
@@ -461,7 +462,7 @@ const MutationResolver = (
                 return
               }
 
-              // if receiver has already a pending share of that board overwrite it
+              // if receiver has already a pending share throw error
               const otherPendingShare = await PendingBoardShare.find({
                 where: {
                   receiverId: receiverFound.id,
@@ -672,12 +673,277 @@ const MutationResolver = (
 
               pubsub.publish("boardShareRevoked", {
                 boardShareRevoked: revokedId,
-                userIds: [receiverId, ...usersWithAccessIds],
+                userId: receiverId,
+              })
+              pubsub.publish("boardUpdated", {
+                boardUpdated: boardFound,
+                userIds: usersWithAccessIds,
               })
             }
           }
         })
       ),
+    changeOwner: (root, args, context) =>
+      logErrorsPromise(
+        "changeOwner",
+        921,
+        authorized(
+          args.boardId,
+          context,
+          Board,
+          User,
+          4,
+          async (resolve, reject, boardFound, _, formerOwnerFound) => {
+            const newOwnerFound = await User.find({
+              where: { email: args.email },
+            })
+
+            if (!newOwnerFound) {
+              reject("This account doesn't exist, check the email passed")
+            } else if (newOwnerFound.id === context.auth.userId) {
+              reject("You already are the owner of this board")
+            } else {
+              // if the board already has a pending owner change remove it
+              const otherOwnerChange = await PendingOwnerChange.find({
+                where: {
+                  boardId: args.boardId,
+                },
+              })
+              if (otherOwnerChange) {
+                await otherOwnerChange.destroy()
+              }
+
+              let newOwnerChange = await PendingOwnerChange.create({
+                formerOwnerId: formerOwnerFound.id,
+                newOwnerId: newOwnerFound.id,
+                boardId: boardFound.id,
+              })
+
+              resolve({
+                id: newOwnerChange.id,
+                formerOwner: {
+                  id: newOwnerChange.formerOwnerId,
+                },
+                newOwner: {
+                  id: newOwnerChange.newOwnerId,
+                },
+                board: {
+                  id: newOwnerChange.boardId,
+                },
+              })
+              context.billingUpdater.update(MUTATION_COST)
+
+              pubsub.publish("ownerChangeBegan", {
+                ownerChangeBegan: newOwnerChange,
+                userId: newOwnerFound.id,
+              })
+              sendBoardSharedEmail(
+                newOwnerFound.email,
+                formerOwnerFound.name,
+                boardFound.customName
+              )
+
+              const usersWithAccessIds = (await instanceToSharedIds(
+                boardFound
+              )).filter(id => id !== newOwnerFound.id)
+
+              pubsub.publish("boardUpdated", {
+                boardUpdated: boardFound,
+                userIds: usersWithAccessIds,
+              })
+            }
+          },
+          boardToParent
+        )
+      ),
+    revokePendingOwnerChange: (root, args, context) =>
+      logErrorsPromise(
+        "revokePendingOwnerChange",
+        921,
+        inheritAuthorized(
+          args.pendingOwnerChangeId,
+          PendingOwnerChange,
+          User,
+          pendingBoardShare => pendingBoardShare.boardId,
+          context,
+          Board,
+          3,
+          async (resolve, reject, pendingOwnerChangeFound, boardFound) => {
+            const targetUserId = pendingOwnerChangeFound.newOwnerId
+            await pendingOwnerChangeFound.destroy()
+
+            resolve(args.pendingOwnerChangeId)
+            context.billingUpdater.update(MUTATION_COST)
+
+            pubsub.publish("ownerChangeRevoked", {
+              ownerChangeRevoked: args.pendingOwnerChangeId,
+              userId: targetUserId,
+            })
+
+            const usersWithAccessIds = (await instanceToSharedIds(
+              boardFound
+            )).filter(id => id !== targetUserId)
+
+            pubsub.publish("boardUpdated", {
+              boardUpdated: boardFound,
+              userIds: usersWithAccessIds,
+            })
+          },
+          boardToParent
+        )
+      ),
+    acceptPendingOwnerChange: (root, args, context) =>
+      logErrorsPromise(
+        "acceptPendingOwnerChange",
+        921,
+        authenticated(context, async (resolve, reject) => {
+          const pendingOwnerChangeFound = await PendingOwnerChange.find({
+            where: { id: args.pendingOwnerChangeId },
+          })
+
+          if (!pendingOwnerChangeFound) {
+            reject("The requested resource does not exist")
+          } else if (
+            context.auth.userId !== pendingOwnerChangeFound.newOwnerId
+          ) {
+            reject("You are not the receiver of this owner change")
+          } else {
+            const boardFound = await Board.find({
+              where: { id: pendingOwnerChangeFound.boardId },
+            })
+            const userFound = await User.find({
+              where: { id: pendingOwnerChangeFound.newOwnerId },
+            })
+
+            // remove old roles
+            await Promise.all([
+              userFound[`remove${Board.Admins}`](boardFound),
+              userFound[`remove${Board.Editors}`](boardFound),
+              userFound[`remove${Board.Spectators}`](boardFound),
+            ])
+
+            await boardFound.setOwner(userFound)
+            await userFound.addOwnBoard(boardFound)
+
+            const oldOwnerFound = await User.find({
+              where: { id: pendingOwnerChangeFound.formerOwnerId },
+            })
+            await oldOwnerFound.removeOwnBoard(boardFound)
+            await oldOwnerFound[`add${Board.Admins}`](boardFound)
+
+            resolve(boardFound.id)
+
+            await pendingOwnerChangeFound.destroy()
+            context.billingUpdater.update(MUTATION_COST)
+
+            pubsub.publish("boardShareAccepted", {
+              boardShareAccepted: boardFound.id,
+              userId: userFound.id,
+            })
+
+            const usersWithAccessIds = (await instanceToSharedIds(
+              boardFound
+            )).filter(id => id !== context.auth.userId)
+
+            pubsub.publish("boardUpdated", {
+              boardUpdated: boardFound,
+              userIds: usersWithAccessIds,
+            })
+          }
+        })
+      ),
+    declinePendingOwnerChange: (root, args, context) =>
+      logErrorsPromise(
+        "declinePendingOwnerChange",
+        921,
+        authenticated(context, async (resolve, reject) => {
+          const pendingOwnerChangeFound = await PendingOwnerChange.find({
+            where: { id: args.pendingOwnerChangeId },
+          })
+
+          if (!pendingOwnerChangeFound) {
+            reject("The requested resource does not exist")
+          } else if (
+            context.auth.userId !== pendingOwnerChangeFound.newOwnerId
+          ) {
+            reject("You are not the receiver of this owner change")
+          } else {
+            const targetUserId = pendingOwnerChangeFound.newOwnerId
+            await pendingOwnerChangeFound.destroy()
+
+            resolve(args.pendingOwnerChangeId)
+            context.billingUpdater.update(MUTATION_COST)
+
+            pubsub.publish("ownerChangeDeclined", {
+              ownerChangeRevoked: args.pendingOwnerChangeId,
+              userId: targetUserId,
+            })
+
+            // sending boardUpdated subscription also to the target user
+            // for ease of handling on the client side
+            const usersWithAccessIds = await instanceToSharedIds(boardFound)
+            pubsub.publish("boardUpdated", {
+              boardUpdated: boardFound,
+              userIds: usersWithAccessIds,
+            })
+          }
+        })
+      ),
+    changeRole(root, args, context) {
+      return logErrorsPromise(
+        "changeRole mutation",
+        223423,
+        authorized(
+          args.boardId,
+          context,
+          Board,
+          User,
+          3,
+          async (resolve, reject, boardFound, _, userFound) => {
+            const targetUserFound = await User.find({
+              where: { email: args.email },
+            })
+            const currentRole = await instanceToRole(
+              boardFound,
+              targetUserFound
+            )
+
+            if (!targetUserFound) {
+              reject("This account doesn't exist, check the email passed")
+            } else if (currentRole === "OWNER") {
+              reject("You cannot change the role of the owner")
+            } else if (!currentRole) {
+              reject(
+                "This user doesn't have a role on this board you should use the `shareBoard` mutation"
+              )
+            } else {
+              // remove old role
+              await Promise.all([
+                targetUserFound[`remove${Board.Admins}`](boardFound),
+                targetUserFound[`remove${Board.Editors}`](boardFound),
+                targetUserFound[`remove${Board.Spectators}`](boardFound),
+              ])
+
+              // add new role
+              const parsedRole = `${args.newRole[0] +
+                args.newRole.slice(1).toLowerCase()}s`
+
+              await targetUserFound[`add${Board[parsedRole]}`](boardFound)
+
+              resolve(boardFound)
+
+              pubsub.publish("boardUpdated", {
+                boardUpdated: boardFound,
+                userIds: await instanceToSharedIds(boardFound),
+              })
+
+              context.billingUpdater.update(MUTATION_COST)
+            }
+          },
+          boardToParent
+        )
+      )
+    },
     leaveBoard(root, args, context) {
       return logErrorsPromise(
         "leaveBoard mutation",
