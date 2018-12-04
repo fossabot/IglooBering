@@ -70,13 +70,13 @@ enum TokenType {
 # All available mutations
 type Mutation {
   # Gets an authentication token
-  authenticateUser(email: String!, password: String!): AuthenticateUserPayload
+  logIn(email: String!, password: String!): AuthenticateUserPayload
 
   # creates a token to perform special operations
   createToken(password: String!, tokenType: TokenType!): String
 
   # Generates a permanent access token
-  generatePermanentAccessToken(
+  createPermanentAccessToken(
     customName: String! # name of the token
   ): AuthenticateUserPayload
 
@@ -84,11 +84,7 @@ type Mutation {
   deletePermanentAccesToken(id: ID!): ID
 
   # Creates a new account
-  signupUser(
-    email: String!
-    password: String!
-    name: String!
-  ): SignupUserPayload
+  signUp(email: String!, password: String!, name: String!): SignupUserPayload
 
   # Sends an email with a llink to change the password
   sendPasswordRecoveryEmail(email: String!): Boolean
@@ -684,8 +680,12 @@ type Board {
   editors: [User!]!
   spectators: [User!]!
   # returns null only if you don't have admin rights
+  pendingBoardShareCount: Int
+  # returns null only if you don't have admin rights
   pendingBoardShares: [PendingBoardShare!]
-  pendingOwnerChangeCount: Int!
+  # returns null only if you don't have admin rights
+  pendingOwnerChangeCount: Int
+  # returns null only if you don't have admin rights
   pendingOwnerChanges: [PendingOwnerChange!]!
   customName: String!
   avatar: BoardPicture!

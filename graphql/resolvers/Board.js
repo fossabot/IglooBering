@@ -188,6 +188,48 @@ const BoardResolver = ({
       )
     )
   },
+  pendingBoardShareCount(root, args, context) {
+    return logErrorsPromise(
+      "pendingBoardShareCount BoardResolver",
+      903,
+      authorized(
+        root.id,
+        context,
+        Board,
+        User,
+        1,
+        async (resolve, reject, boardFound) => {
+          const userFound = await User.find({
+            where: { id: context.auth.userId },
+          })
+
+          /*
+            users without admin authorization don't have access to pendingBoardShares,
+            instead of throwing error we return null to allow queries like
+            {
+              user{
+                  boards{
+                    pendingBoardShares{ id }
+                  }
+              }
+            }
+            also for users that don't have admin access to all of their boards
+          */
+          if ((await authorizationLevel(boardFound, userFound)) < 3) {
+            resolve(null)
+            return
+          }
+
+          const pendingBoardShareCount = await PendingBoardShare.count({
+            where: { boardId: root.id },
+          })
+
+          resolve(pendingBoardShareCount)
+        },
+        boardToParent
+      )
+    )
+  },
   pendingOwnerChanges(root, args, context) {
     return logErrorsPromise(
       "pendingOwnerChange BoardResolver",
@@ -226,6 +268,48 @@ const BoardResolver = ({
 
           resolve(pendingOwnerChanges)
           context.billingUpdater.update(QUERY_COST * pendingOwnerChanges.length)
+        },
+        boardToParent
+      )
+    )
+  },
+  pendingOwnerChangeCount(root, args, context) {
+    return logErrorsPromise(
+      "pendingOwnerChange BoardResolver",
+      903,
+      authorized(
+        root.id,
+        context,
+        Board,
+        User,
+        1,
+        async (resolve, reject, boardFound) => {
+          const userFound = await User.find({
+            where: { id: context.auth.userId },
+          })
+
+          /*
+            users without admin authorization don't have access to pendingOwnerShare,
+            instead of throwing error we return null to allow queries like
+            {
+              user{
+                  boards{
+                    pendingBoardShares{ id }
+                  }
+              }
+            }
+            also for users that don't have admin access to all of their boards
+          */
+          if ((await authorizationLevel(boardFound, userFound)) < 3) {
+            resolve(null)
+            return
+          }
+
+          const pendingOwnerChangeCount = await PendingOwnerChange.count({
+            where: { boardId: root.id },
+          })
+
+          resolve(pendingOwnerChangeCount)
         },
         boardToParent
       )

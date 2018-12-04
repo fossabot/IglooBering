@@ -64,7 +64,7 @@ const authenticated = (
     : (resolve, reject) => {
         if (!context.auth) {
           reject(
-            "You are not authenticated. Use `authenticateUser` to obtain an authentication token"
+            "You are not authenticated. Use `logIn` to obtain an authentication token"
           )
         } else if (context.auth.tokenType === "SWITCH_TO_PAYING") {
           reject("You exceeded the free usage quota")

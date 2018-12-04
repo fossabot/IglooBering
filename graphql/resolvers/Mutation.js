@@ -81,65 +81,59 @@ const MutationResolver = (
     // checks if the user exists, if so
     // compares the given password with the hash
     // and returns an access token
-    authenticateUser(root, args, context) {
-      return logErrorsPromise(
-        "authenticateUser",
-        103,
-        async (resolve, reject) => {
-          const userFound = await User.find({
-            where: { email: args.email },
-          })
-          if (!userFound) {
-            reject("User doesn't exist. Use `signupUser` to create one")
-          } else if (
-            !bcrypt.compareSync(args.password, userFound.dataValues.password)
-          ) {
-            reject("Wrong password")
-          } else if (!userFound.twoFactorSecret) {
-            // setting context so that the resolvers for user know that the user is authenticated
-            context.auth = {
-              userId: userFound.id,
-              accessLevel: "OWNER",
-              tokenType: "TEMPORARY",
-            }
-            context.billingUpdater = GenerateUserBillingBatcher(
-              User,
-              context.auth
-            )
-
-            resolve({
-              token: generateAuthenticationToken(
-                userFound.dataValues.id,
-                JWT_SECRET
-              ),
-              user: userFound,
-            })
-          } else if (
-            check2FCode(args.twoFactorCode, userFound.twoFactorSecret)
-          ) {
-            // setting context so that the resolvers for user know that the user is authenticated
-            context.auth = {
-              userId: userFound.id,
-              accessLevel: "OWNER",
-              tokenType: "TEMPORARY",
-            }
-            context.billingUpdater = GenerateUserBillingBatcher(
-              User,
-              context.auth
-            )
-
-            resolve({
-              token: generateAuthenticationToken(
-                userFound.dataValues.id,
-                JWT_SECRET
-              ),
-              user: userFound,
-            })
-          } else {
-            reject("Wrong or missing 2-Factor Authentication Code")
+    logIn(root, args, context) {
+      return logErrorsPromise("logIn", 103, async (resolve, reject) => {
+        const userFound = await User.find({
+          where: { email: args.email },
+        })
+        if (!userFound) {
+          reject("User doesn't exist. Use `signUp` to create one")
+        } else if (
+          !bcrypt.compareSync(args.password, userFound.dataValues.password)
+        ) {
+          reject("Wrong password")
+        } else if (!userFound.twoFactorSecret) {
+          // setting context so that the resolvers for user know that the user is authenticated
+          context.auth = {
+            userId: userFound.id,
+            accessLevel: "OWNER",
+            tokenType: "TEMPORARY",
           }
+          context.billingUpdater = GenerateUserBillingBatcher(
+            User,
+            context.auth
+          )
+
+          resolve({
+            token: generateAuthenticationToken(
+              userFound.dataValues.id,
+              JWT_SECRET
+            ),
+            user: userFound,
+          })
+        } else if (check2FCode(args.twoFactorCode, userFound.twoFactorSecret)) {
+          // setting context so that the resolvers for user know that the user is authenticated
+          context.auth = {
+            userId: userFound.id,
+            accessLevel: "OWNER",
+            tokenType: "TEMPORARY",
+          }
+          context.billingUpdater = GenerateUserBillingBatcher(
+            User,
+            context.auth
+          )
+
+          resolve({
+            token: generateAuthenticationToken(
+              userFound.dataValues.id,
+              JWT_SECRET
+            ),
+            user: userFound,
+          })
+        } else {
+          reject("Wrong or missing 2-Factor Authentication Code")
         }
-      )
+      })
     },
     createToken(root, args, context) {
       return logErrorsPromise(
@@ -190,9 +184,9 @@ const MutationResolver = (
         }
       )
     },
-    generatePermanentAccessToken(root, args, context) {
+    createPermanentAccessToken(root, args, context) {
       return logErrorsPromise(
-        "generatePermanentAccessToken",
+        "createPermanentAccessToken",
         125,
         authenticated(
           context,
@@ -261,8 +255,8 @@ const MutationResolver = (
         })
       )
     }, // if not it creates one and returnes an access token // checks if a user with that email already exists
-    signupUser(root, args, context) {
-      return logErrorsPromise("signupUser", 102, async (resolve, reject) => {
+    signUp(root, args, context) {
+      return logErrorsPromise("signUp", 102, async (resolve, reject) => {
         // check password strength
         const zxcvbnDictionary = [
           args.email,

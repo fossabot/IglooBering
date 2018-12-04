@@ -8,11 +8,7 @@ The GraphQL endpoint is `https://iglooql.herokuapp.com/graphql`, to send a reque
 
 ```graphql
 mutation {
-  signupUser(
-    email: "showcase@igloo.io"
-    password: "showcase"
-    name: "Showcase"
-  ) {
+  signUp(email: "showcase@igloo.io", password: "showcase", name: "Showcase") {
     id
     token
   }
@@ -21,10 +17,10 @@ mutation {
 
 To authenticate users we use JWT tokens, using tokens we can allow access to the account without needing to store the password, furthermore the token remains valid if the password changes.
 
-You can obtain a temporary one using the `signupUser` or the `authenticateUser` mutation, if you need a permanent access token you can use the `generatePermanentAccessToken` mutation.
+You can obtain a temporary one using the `signUp` or the `logIn` mutation, if you need a permanent access token you can use the `createPermanentAccessToken` mutation.
 
 Every authenticated requests should have an `Authorization` header containing the token in the format `Bearer token` (for example `Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJleHAiOjE1Mjc2ODkzNDQsInVzZXJJZCI6IjdhYjJmMjc4LTNkYWItNDA3Ni05ZDVmLWFlYzc1ZGM4ZDA5NiIsImFjY2Vzc0xldmVsIjoiT1dORVIiLCJ0b2tlblR5cGUiOiJURU1QT1JBUlkifQ.5RaYhrVRnTgByhQMoFvARRQWZWoy3nXWiuTnuu0klsYWJEOV36wVv_4X4bZI9biDhn-gzaCPmscIbSmMdYV_XQ`).
-The only unauthenticated methods are `signupUser` and `authenticateUser`
+The only unauthenticated methods are `signUp` and `logIn`
 
 ## GraphQL API
 
