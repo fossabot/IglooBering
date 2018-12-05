@@ -1580,7 +1580,6 @@ const MutationResolver = (
       )
     },
     device(root, args, context) {
-      const authorizationNeeded = isNotNullNorUndefined(args.boardId) ? 4 : 2
       return logErrorsPromise(
         "device mutation",
         116,
@@ -1589,7 +1588,7 @@ const MutationResolver = (
           context,
           Device,
           User,
-          authorizationNeeded,
+          2,
           async (resolve, reject, deviceFound, [_, boardFound], userFound) => {
             // runs sanity checks on the args
             if (
@@ -1613,9 +1612,6 @@ const MutationResolver = (
             } else if (Object.keys(args).length === 1) {
               reject("You cannot make a mutation with only the id field")
               return
-            } else if (args.boardId === null) {
-              reject("boardId cannot be set to null")
-              return
             } else if (
               (boardFound.muted || userFound.muted) &&
               isNotNullNorUndefined(args.muted)
@@ -1624,29 +1620,6 @@ const MutationResolver = (
                 "Cannot change muted at device level when it is enabled at board or user level"
               )
               return
-            } else if (args.boardId) {
-              // devices can be moved only to boards owned by the user
-
-              // uses authorized passing mock reject and resolve, so that if the authorization
-              // throws error the resolve value of the promise is false and true otherwise
-              const isOwnerOfTargetBoard = await new Promise(resolve =>
-                authorized(
-                  args.boardId,
-                  context,
-                  Board,
-                  User,
-                  4,
-                  () => {
-                    resolve(true)
-                  },
-                  boardToParent
-                )(() => {}, () => resolve(false))
-              )
-
-              if (!isOwnerOfTargetBoard) {
-                reject("You can only move devices to boards you own")
-                return
-              }
             }
 
             if (
@@ -1671,6 +1644,73 @@ const MutationResolver = (
             pubsub.publish("deviceUpdated", {
               deviceUpdated: newDevice.dataValues,
               userIds: await instanceToSharedIds(boardFound),
+            })
+            context.billingUpdater.update(MUTATION_COST)
+          },
+          deviceToParent(Board)
+        )
+      )
+    },
+    moveDevice(root, args, context) {
+      return logErrorsPromise(
+        "moveDevice mutation",
+        47892578923,
+        authorized(
+          args.deviceId,
+          context,
+          Device,
+          User,
+          4,
+          async (resolve, reject, deviceFound, [_, boardFound], userFound) => {
+            if (args.newBoardId === deviceFound.boardId) {
+              reject("The device already belongs to this board")
+              return
+            }
+
+            const targetBoard = await Board.find({
+              where: { id: args.newBoardId },
+            })
+
+            const isOwnerOfTargetBoard =
+              (await instanceToRole(targetBoard, userFound)) === "OWNER"
+
+            if (!isOwnerOfTargetBoard) {
+              reject("You can only move devices to boards you own")
+              return
+            }
+
+            const newDevice = await deviceFound.update({
+              boardId: args.newBoardId,
+            })
+
+            const modelsToUpdate = [
+              BoolValue,
+              FloatValue,
+              StringValue,
+              MapValue,
+              PlotValue,
+              StringPlotValue,
+              Notification,
+            ]
+
+            const updatePromises = modelsToUpdate.map(
+              async Model =>
+                await Model.update(
+                  { boardId: newDevice.boardId },
+                  { where: { deviceId: newDevice.id } }
+                )
+            )
+
+            await Promise.all(updatePromises)
+
+            resolve(newDevice.dataValues)
+
+            pubsub.publish("deviceMoved", {
+              deviceMoved: newDevice.dataValues,
+              userIds: [
+                ...(await instanceToSharedIds(boardFound)),
+                ...(await instanceToSharedIds(targetBoard)),
+              ],
             })
             context.billingUpdater.update(MUTATION_COST)
           },

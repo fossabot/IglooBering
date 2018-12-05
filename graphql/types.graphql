@@ -342,10 +342,11 @@ type Mutation {
     signalStatus: Float
     batteryStatus: Float
     batteryCharging: Boolean
-    boardId: ID
     firmware: String
     muted: Boolean
   ): Device
+
+  moveDevice(deviceId: ID!, newBoardId: ID!): Device
 
   resetOnlineState(deviceId: ID!): Device
 
@@ -566,6 +567,8 @@ type Subscription {
   permanentTokenCreated: PermanentToken
   # subscribes to notification creations
   notificationCreated: Notification
+  # subscribes to device creations
+  deviceMoved: Device
   # subscribes to board shares to you
   boardSharedWithYou: PendingBoardShare
   # returns the id of the board accepted

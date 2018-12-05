@@ -31,6 +31,7 @@ const subscriptionResolver = (pubsub, { User, Device, Board }) => ({
   ownerChangeRevoked: subscriptionFilterOnlyMine("ownerChangeRevoked", pubsub),
   boardCreated: subscriptionFilterOnlyMine("boardCreated", pubsub),
   deviceCreated: subscriptionFilterOwnedOrShared("deviceCreated", pubsub),
+  deviceMoved: subscriptionFilterOwnedOrShared("deviceMoved", pubsub),
   valueCreated: subscriptionFilterOwnedOrShared("valueCreated", pubsub),
   permanentTokenCreated: subscriptionFilterOnlyMine(
     "permanentTokenCreated",
