@@ -207,6 +207,15 @@ const CreateGenericValue = (
 
         resolve(resolveObj)
 
+        Board.update(
+          { updatedAt: newValue.createdAt },
+          { where: { id: boardFound.id } }
+        )
+        Device.update(
+          { updatedAt: newValue.createdAt },
+          { where: { id: args.deviceId } }
+        )
+
         pubsub.publish("valueCreated", {
           valueCreated: resolveObj,
           userIds: await instanceToSharedIds(boardFound),
@@ -284,6 +293,15 @@ const genericValueMutation = (
           },
         }
         resolve(resolveObj)
+
+        Board.update(
+          { updatedAt: newValue.updatedAt },
+          { where: { id: boardFound.id } }
+        )
+        Device.update(
+          { updatedAt: newValue.updatedAt },
+          { where: { id: valueFound.deviceId } }
+        )
 
         pubsub.publish("valueUpdated", {
           valueUpdated: { ...resolveObj, __resolveType },
