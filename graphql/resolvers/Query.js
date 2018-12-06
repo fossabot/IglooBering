@@ -104,27 +104,6 @@ const QueryResolver = ({
       })
     )
   },
-  verifyPassword(root, args, context) {
-    return logErrorsPromise(
-      "verifyPassword",
-      178,
-      authenticated(context, async (resolve, reject) => {
-        const userFound = await User.find({
-          where: { id: context.auth.userId },
-        })
-
-        if (!userFound) {
-          reject("User doesn't exist. Use `` to create one")
-        } else if (
-          bcrypt.compareSync(args.password, userFound.dataValues.password)
-        ) {
-          resolve(true)
-        } else {
-          resolve(false)
-        }
-      })
-    )
-  },
   notification(root, args, context) {
     return logErrorsPromise(
       "notificationQuery",

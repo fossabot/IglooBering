@@ -548,8 +548,6 @@ type Query {
   plotNode(id: ID!): PlotNode
   # get stringPlotNode's data
   stringPlotNode(id: ID!): StringPlotNode
-
-  verifyPassword(password: String!): Boolean
 }
 
 type Subscription {
