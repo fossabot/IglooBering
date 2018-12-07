@@ -63,7 +63,7 @@ const BoardResolver = ({
     ["avatar", "createdAt", "updatedAt", "index"],
     boardToParent
   ),
-  customName: retrievePublicBoardScalarProp(Board, "customName"),
+  name: retrievePublicBoardScalarProp(Board, "name"),
   muted(root, args, context) {
     return logErrorsPromise(
       "muted BoardResolver",

@@ -195,11 +195,11 @@ const MutationResolver = (
           context,
           async (resolve, reject) => {
             console.log("test")
-            if (args.customName === "") {
+            if (args.name === "") {
               reject("Empty name is not allowed")
             } else {
               const databaseToken = await PermanentToken.create({
-                customName: args.customName,
+                name: args.name,
                 userId: context.auth.userId,
               })
 
@@ -215,7 +215,7 @@ const MutationResolver = (
 
               const resolveObj = {
                 id: databaseToken.id,
-                customName: databaseToken.customName,
+                name: databaseToken.name,
                 user: { id: context.auth.userId },
               }
               pubsub.publish("permanentTokenCreated", {
@@ -306,7 +306,7 @@ const MutationResolver = (
             })
 
             const newBoard = await Board.create({
-              customName: "Home",
+              name: "Home",
               avatar: randomBoardAvatar(),
               muted: false,
               index: 0,
@@ -502,7 +502,7 @@ const MutationResolver = (
               sendBoardSharedEmail(
                 receiverFound.email,
                 senderFound.name,
-                boardFound.customName
+                boardFound.name
               )
 
               const usersWithAccessIds = (await instanceToSharedIds(
@@ -750,7 +750,7 @@ const MutationResolver = (
               sendBoardSharedEmail(
                 newOwnerFound.email,
                 formerOwnerFound.name,
-                boardFound.customName
+                boardFound.name
               )
 
               const usersWithAccessIds = (await instanceToSharedIds(
@@ -1072,8 +1072,8 @@ const MutationResolver = (
         "createBoard",
         910,
         authenticated(context, async (resolve, reject) => {
-          if (args.customName === "" || args.customName === null) {
-            reject("customName cannot be null or an empty string")
+          if (args.name === "" || args.name === null) {
+            reject("name cannot be null or an empty string")
             return
           }
 
@@ -1135,7 +1135,7 @@ const MutationResolver = (
             ) {
               reject("signalStatus is out of boundaries [0,100]")
               return
-            } else if (args.customName === "") {
+            } else if (args.name === "") {
               reject("Custom name cannot be an empty string")
               return
             } else if (args.muted === null) {
@@ -1596,8 +1596,8 @@ const MutationResolver = (
           User,
           2,
           async (resolve, reject, boardFound, _, userFound) => {
-            if (args.customName === "" || args.customName === null) {
-              reject("customName cannot be null or an empty string")
+            if (args.name === "" || args.name === null) {
+              reject("name cannot be null or an empty string")
               return
             } else if (userFound.muted && isNotNullNorUndefined(args.muted)) {
               reject(
@@ -1647,8 +1647,8 @@ const MutationResolver = (
             ) {
               reject("signalStatus is out of boundaries [0,100]")
               return
-            } else if (args.customName === null || args.customName === "") {
-              reject("customName cannot be null or an empty string")
+            } else if (args.name === null || args.name === "") {
+              reject("name cannot be null or an empty string")
               return
             } else if (args.muted === null) {
               reject("muted cannot be null")

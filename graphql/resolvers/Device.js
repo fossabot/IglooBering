@@ -29,7 +29,7 @@ const DeviceResolver = ({
       "createdAt",
       "updatedAt",
       "deviceType",
-      "customName",
+      "name",
       "index",
       "online",
       "signalStatus",

@@ -157,8 +157,8 @@ const CreateGenericValue = (
           return
         }
 
-        if (args.customName === "") {
-          reject("customName cannot be an empty string")
+        if (args.name === "") {
+          reject("name cannot be an empty string")
           return
         } else if (args.valueDetails === "") {
           reject("valueDetails cannot be an empty string, pass null instead")
@@ -271,8 +271,8 @@ const genericValueMutation = (
         if (args.value === null) {
           reject("value cannot be null")
           return
-        } else if (args.customName === null || args.customName === "") {
-          reject("customName cannot be null or an empty string")
+        } else if (args.name === null || args.name === "") {
+          reject("name cannot be null or an empty string")
           return
         } else if (Object.keys(args).length === 1) {
           reject("You cannot make a mutation with only the id field")

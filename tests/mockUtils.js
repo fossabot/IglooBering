@@ -3,7 +3,7 @@ module.exports = () => {
     {
       id: "mockBoardId",
       userId: "mockUserId",
-      customName: "fake customName",
+      name: "fake name",
       avatar: "fake avatar",
       index: 0,
       muted: false,
@@ -60,7 +60,7 @@ module.exports = () => {
       id: "mockDeviceId",
       boardId: "mockBoardId",
       deviceType: "mockDeviceType",
-      customName: "mockCustomName",
+      name: "mockName",
       index: 0,
       online: null,
       batteryStatus: 30,

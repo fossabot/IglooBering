@@ -77,7 +77,7 @@ type Mutation {
 
   # Generates a permanent access token
   createPermanentAccessToken(
-    customName: String! # name of the token
+    name: String! # name of the token
   ): AuthenticateUserPayload
 
   # removes a permanent access token
@@ -123,7 +123,7 @@ type Mutation {
 
   # Creates a Board
   createBoard(
-    customName: String!
+    name: String!
     avatar: BoardPicture
     index: Int
     muted: Boolean
@@ -134,7 +134,7 @@ type Mutation {
     # Product name, for example Igloo Thermostat
     deviceType: String
     # Custom name gave by the end-user to the device
-    customName: String!
+    name: String!
     # used to sort the devices in Igloo Aurora
     index: Int
     signalStatus: Float
@@ -169,7 +169,7 @@ type Mutation {
     # [min, max]
     boundaries: [Float!]
     # name of the value, displayed in Igloo Aurora
-    customName: String!
+    name: String!
     # tile size in Igloo Aurora
     tileSize: TileSize
     index: Int
@@ -189,7 +189,7 @@ type Mutation {
     # max length of the string
     maxChars: Int
     # name of the value, displayed in Igloo Aurora
-    customName: String!
+    name: String!
     # tile size in Igloo Aurora
     tileSize: TileSize
     # allowed values for the string
@@ -209,7 +209,7 @@ type Mutation {
     valueDetails: String
     value: Boolean!
     # name of the value, displayed in Igloo Aurora
-    customName: String!
+    name: String!
     # tile size in Igloo Aurora
     tileSize: TileSize
     index: Int
@@ -226,7 +226,7 @@ type Mutation {
     # additional details about the value
     valueDetails: String
     # name of the value, displayed in Igloo Aurora
-    customName: String!
+    name: String!
     # tile size in Igloo Aurora
     tileSize: TileSize
     # GEOJson string
@@ -252,7 +252,7 @@ type Mutation {
     # [min, max]
     boundaries: [Float!]
     # name of the value, displayed in Igloo Aurora
-    customName: String!
+    name: String!
     # tile size in Igloo Aurora
     tileSize: TileSize
     # alert threshold, values above the threshold will be displayed in red in Igloo Aurora
@@ -280,7 +280,7 @@ type Mutation {
     # additional details about the value
     valueDetails: String
     # name of the value, displayed in Igloo Aurora
-    customName: String!
+    name: String!
     # tile size in Igloo Aurora
     tileSize: TileSize
     # allowed labels
@@ -323,7 +323,7 @@ type Mutation {
   # changes board's data
   board(
     id: ID!
-    customName: String
+    name: String
     avatar: BoardPicture
     index: Int
     muted: Boolean
@@ -336,7 +336,7 @@ type Mutation {
     # Product name, for example Igloo Thermostat
     deviceType: String
     # Custom name gave by the end-user to the device
-    customName: String
+    name: String
     # used to sort the devices in Igloo Aurora
     index: Int
     signalStatus: Float
@@ -366,7 +366,7 @@ type Mutation {
     # [min, max]
     boundaries: [Float!]
     # name of the value, displayed in Igloo Aurora
-    customName: String
+    name: String
     # tile size in Igloo Aurora
     tileSize: TileSize
     index: Int
@@ -388,7 +388,7 @@ type Mutation {
     # max length of the string
     maxChars: Int
     # name of the value, displayed in Igloo Aurora
-    customName: String
+    name: String
     # tile size in Igloo Aurora
     tileSize: TileSize
     # allowed values for the string
@@ -408,7 +408,7 @@ type Mutation {
     valueDetails: String
     value: Boolean
     # name of the value, displayed in Igloo Aurora
-    customName: String
+    name: String
     # tile size in Igloo Aurora
     tileSize: TileSize
     index: Int
@@ -425,7 +425,7 @@ type Mutation {
     # additional details about the value
     valueDetails: String
     # name of the value, displayed in Igloo Aurora
-    customName: String
+    name: String
     # tile size in Igloo Aurora
     tileSize: TileSize
     # GEOJson string
@@ -451,7 +451,7 @@ type Mutation {
     # [min, max]
     boundaries: [Float!]
     # name of the value, displayed in Igloo Aurora
-    customName: String
+    name: String
     # tile size in Igloo Aurora
     tileSize: TileSize
     # alert threshold, values above the threshold will be displayed in red in Igloo Aurora
@@ -480,7 +480,7 @@ type Mutation {
     # additional details about the value
     valueDetails: String
     # name of the value, displayed in Igloo Aurora
-    customName: String
+    name: String
     # tile size in Igloo Aurora
     tileSize: TileSize
     # allowed labels
@@ -529,7 +529,7 @@ type Mutation {
 input DeviceFilter {
   OR: [DeviceFilter!]
   AND: [DeviceFilter!]
-  customName: String
+  name: String
   deviceType: String
 }
 
@@ -686,7 +686,7 @@ type Board {
   pendingOwnerChangeCount: Int
   # returns null only if you don't have admin rights
   pendingOwnerChanges: [PendingOwnerChange!]!
-  customName: String!
+  name: String!
   avatar: BoardPicture!
   deviceCount: Int
   devices: [Device!]!
@@ -713,7 +713,7 @@ type PendingOwnerChange {
 type PermanentToken {
   id: ID!
   user: User!
-  customName: String!
+  name: String!
 
   # lastUsed=null if never used
   lastUsed: DateTime
@@ -727,7 +727,7 @@ type Device {
   # Product name, for example Igloo Thermostat
   deviceType: String
   # Custom name gave by the end-user to the device
-  customName: String
+  name: String
   values: [Value!]!
   board: Board!
   notifications: [Notification!]!
@@ -811,7 +811,7 @@ interface Value {
   visibility: ValueVisibility!
   valueDetails: String
   tileSize: TileSize!
-  customName: String
+  name: String
   index: Int
 }
 
@@ -831,7 +831,7 @@ type FloatValue implements Value {
   boundaries: [Float!]
   tileSize: TileSize!
   index: Int
-  customName: String
+  name: String
 }
 
 type StringValue implements Value {
@@ -847,7 +847,7 @@ type StringValue implements Value {
   maxChars: Int
   tileSize: TileSize!
   index: Int
-  customName: String
+  name: String
   allowedValues: [String!]
 }
 
@@ -866,7 +866,7 @@ type PlotValue implements Value {
   # [min, max]
   boundaries: [Float!]
   tileSize: TileSize!
-  customName: String
+  name: String
   index: Int
 
   threshold: Float
@@ -883,7 +883,7 @@ type StringPlotValue implements Value {
   valueDetails: String
   value: [StringPlotNode!]!
   tileSize: TileSize!
-  customName: String
+  name: String
   index: Int
   allowedValues: [String!]
 }
@@ -899,7 +899,7 @@ type BooleanValue implements Value {
   valueDetails: String
   value: Boolean!
   tileSize: TileSize!
-  customName: String
+  name: String
   index: Int
 }
 
@@ -917,6 +917,6 @@ type MapValue implements Value {
   longitude: Float
   height: Float
   tileSize: TileSize!
-  customName: String
+  name: String
   index: Int
 }

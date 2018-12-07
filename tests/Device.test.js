@@ -44,7 +44,7 @@ describe("Device", () => {
 
   // not using a for loop because this syntax integrates better with the IDE
   const scalarProps = [
-    "customName",
+    "name",
     "deviceType",
     "index",
     "online",
@@ -73,7 +73,7 @@ describe("Device", () => {
   });
 
   const allProps = [
-    "customName",
+    "name",
     "deviceType",
     "index",
     "online",

@@ -34,7 +34,7 @@ describe("Board", () => {
     { auth: { userId: "mockUserId", tokenType: "TEMPORARY" } }
   );
 
-  let scalarProps = ["customName", "avatar", "index", "createdAt", "updatedAt"];
+  let scalarProps = ["name", "avatar", "index", "createdAt", "updatedAt"];
 
   for (let prop of scalarProps) {
     test(`${prop} is resolved correctly`, testBoardScalarProp(prop));
@@ -73,7 +73,7 @@ describe("Board", () => {
     test(`${prop} fails if not authorized`, testNotAuthorized(prop));
   }
 
-  let allProps = [...authorizedProps, "customName"];
+  let allProps = [...authorizedProps, "name"];
 
   for (let prop of allProps) {
     test(`${prop} fails if unauthenticated`, testUnauthenticated(prop));

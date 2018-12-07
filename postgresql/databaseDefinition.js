@@ -93,7 +93,7 @@ const databaseDefinition = sequelize => {
 
   const Board = sequelize.define("board", {
     ...selfId,
-    customName: {
+    name: {
       type: Sequelize.STRING,
       allowNull: false,
     },
@@ -111,7 +111,7 @@ const databaseDefinition = sequelize => {
   const PermanentToken = sequelize.define("permanentToken", {
     ...selfId,
     ...otherId("userId", User),
-    customName: {
+    name: {
       type: Sequelize.STRING,
       allowNull: false,
     },
@@ -142,7 +142,7 @@ const databaseDefinition = sequelize => {
     deviceType: {
       type: Sequelize.STRING,
     },
-    customName: {
+    name: {
       type: Sequelize.STRING,
     },
     index: {
@@ -197,7 +197,7 @@ const databaseDefinition = sequelize => {
     tileSize: {
       type: TileSize,
     },
-    customName: {
+    name: {
       type: Sequelize.STRING,
     },
     index: {

@@ -21,7 +21,7 @@ const GenericResolver = (Model, User, Device, Board) => ({
       "visibility",
       "valueDetails",
       "tileSize",
-      "customName",
+      "name",
       "value",
       "index",
     ],
