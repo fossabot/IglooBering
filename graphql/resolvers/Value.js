@@ -13,8 +13,7 @@ const ValueResolver = (Values, User, Device, Board) => ({
       "value resolve type",
       131,
       authenticated(context, async (resolve, reject) => {
-        const NOT_ALLOWED =
-          "You are not allowed to access details about this resource"
+        const NOT_ALLOWED = "You are not allowed to perform this operation"
         const NOT_EXIST = "The requested resource does not exist"
         const models = Object.values(Values)
 

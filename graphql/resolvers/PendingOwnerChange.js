@@ -30,7 +30,7 @@ const PendingOwnerChangeResolver = ({ User, Board, PendingOwnerChange }) => ({
             await findUser()
           )) < 3
         ) {
-          reject("You are not allowed to access details about this user")
+          reject("You are not allowed to perform this operation")
         } else {
           resolve(pendingOwnerChange.id)
         }
@@ -61,7 +61,7 @@ const PendingOwnerChangeResolver = ({ User, Board, PendingOwnerChange }) => ({
             await findUser()
           )) < 3
         ) {
-          reject("You are not allowed to access details about this user")
+          reject("You are not allowed to perform this operation")
         } else {
           resolve({ id: pendingOwnerChange.newOwnerId })
         }
@@ -92,7 +92,7 @@ const PendingOwnerChangeResolver = ({ User, Board, PendingOwnerChange }) => ({
             await findUser()
           )) < 3
         ) {
-          reject("You are not allowed to access details about this user")
+          reject("You are not allowed to perform this operation")
         } else {
           resolve({ id: pendingOwnerChange.formerOwnerId })
         }
@@ -123,7 +123,7 @@ const PendingOwnerChangeResolver = ({ User, Board, PendingOwnerChange }) => ({
             await findUser()
           )) < 3
         ) {
-          reject("You are not allowed to access details about this user")
+          reject("You are not allowed to perform this operation")
         } else {
           resolve({ id: pendingOwnerChange.boardId })
         }

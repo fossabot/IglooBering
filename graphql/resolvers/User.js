@@ -19,7 +19,7 @@ const retrieveUserScalarProp = (User, prop, acceptedTokens) => (
       context,
       async (resolve, reject) => {
         if (context.auth.userId !== root.id) {
-          reject("You are not allowed to access details about this user")
+          reject("You are not allowed to perform this operation")
         } else {
           const userFound = await User.find({ where: { id: root.id } })
           if (!userFound) {
@@ -113,7 +113,7 @@ const UserResolver = ({
       107,
       authenticated(context, async (resolve, reject) => {
         if (context.auth.userId !== root.id) {
-          reject("You are not allowed to access details about this user")
+          reject("You are not allowed to perform this operation")
         } else {
           const userFound = await User.find({ where: { id: root.id } })
 
@@ -136,7 +136,7 @@ const UserResolver = ({
       107,
       authenticated(context, async (resolve, reject) => {
         if (context.auth.userId !== root.id) {
-          reject("You are not allowed to access details about this user")
+          reject("You are not allowed to perform this operation")
         } else {
           const devicesInheritedByBoards = await getAll(Board, User, root.id, [
             { model: Device },
@@ -159,7 +159,7 @@ const UserResolver = ({
       107,
       authenticated(context, async (resolve, reject) => {
         if (context.auth.userId !== root.id) {
-          reject("You are not allowed to access details about this user")
+          reject("You are not allowed to perform this operation")
         } else {
           //TODO: use a count instead
           const devicesInheritedByBoards = await getAll(Board, User, root.id, [
@@ -182,7 +182,7 @@ const UserResolver = ({
       904,
       authenticated(context, async (resolve, reject) => {
         if (context.auth.userId !== root.id) {
-          reject("You are not allowed to access details about this user")
+          reject("You are not allowed to perform this operation")
         } else {
           const pendingBoardShares = await PendingBoardShare.findAll({
             where: { receiverId: context.auth.userId },
@@ -200,7 +200,7 @@ const UserResolver = ({
       904,
       authenticated(context, async (resolve, reject) => {
         if (context.auth.userId !== root.id) {
-          reject("You are not allowed to access details about this user")
+          reject("You are not allowed to perform this operation")
         } else {
           const pendingBoardShareCount = await PendingBoardShare.count({
             where: { receiverId: context.auth.userId },
@@ -217,7 +217,7 @@ const UserResolver = ({
       904,
       authenticated(context, async (resolve, reject) => {
         if (context.auth.userId !== root.id) {
-          reject("You are not allowed to access details about this user")
+          reject("You are not allowed to perform this operation")
         } else {
           const pendingOwnerChanges = await PendingOwnerChange.findAll({
             where: { newOwnerId: context.auth.userId },
@@ -235,7 +235,7 @@ const UserResolver = ({
       904,
       authenticated(context, async (resolve, reject) => {
         if (context.auth.userId !== root.id) {
-          reject("You are not allowed to access details about this user")
+          reject("You are not allowed to perform this operation")
         } else {
           const pendingOwnerChanges = await PendingOwnerChange.count({
             where: { newOwnerId: context.auth.userId },
@@ -252,7 +252,7 @@ const UserResolver = ({
       904,
       authenticated(context, async (resolve, reject) => {
         if (context.auth.userId !== root.id) {
-          reject("You are not allowed to access details about this user")
+          reject("You are not allowed to perform this operation")
         } else {
           // TODO: use count query instead
           const boards = await getAll(Board, User, root.id)
@@ -268,7 +268,7 @@ const UserResolver = ({
       904,
       authenticated(context, async (resolve, reject) => {
         if (context.auth.userId !== root.id) {
-          reject("You are not allowed to access details about this user")
+          reject("You are not allowed to perform this operation")
         } else {
           const boards = await getAll(Board, User, root.id)
 
@@ -284,7 +284,7 @@ const UserResolver = ({
       925,
       authenticated(context, async (resolve, reject) => {
         if (context.auth.userId !== root.id) {
-          reject("You are not allowed to access details about this user")
+          reject("You are not allowed to perform this operation")
         } else {
           const devicesInheritedByBoards = await getAll(Board, User, root.id, [
             { model: Device, include: [{ model: Notification }] },
@@ -319,7 +319,7 @@ const UserResolver = ({
       119,
       authenticated(context, async (resolve, reject) => {
         if (context.auth.userId !== root.id) {
-          reject("You are not allowed to access details about this user")
+          reject("You are not allowed to perform this operation")
         } else {
           const devicesInheritedByBoards = await getAll(Board, User, root.id, [
             { model: Device, include: [{ model: Notification }] },
@@ -353,7 +353,7 @@ const UserResolver = ({
       108,
       authenticated(context, async (resolve, reject) => {
         if (context.auth.userId !== root.id) {
-          reject("You are not allowed to access details about this user")
+          reject("You are not allowed to perform this operation")
         } else {
           // TODO: tag the values with the right __resolveType
           const valueModels = [
@@ -402,7 +402,7 @@ const UserResolver = ({
       108,
       authenticated(context, async (resolve, reject) => {
         if (context.auth.userId !== root.id) {
-          reject("You are not allowed to access details about this user")
+          reject("You are not allowed to perform this operation")
         } else {
           // TODO: use a count instead
           const valueModels = [
@@ -450,7 +450,7 @@ const UserResolver = ({
       127,
       authenticated(context, async (resolve, reject) => {
         if (context.auth.userId !== root.id) {
-          reject("You are not allowed to access details about this user")
+          reject("You are not allowed to perform this operation")
         } else {
           const tokens = await PermanentToken.findAll({
             where: { userId: root.id },
@@ -468,7 +468,7 @@ const UserResolver = ({
       127,
       authenticated(context, async (resolve, reject) => {
         if (context.auth.userId !== root.id) {
-          reject("You are not allowed to access details about this user")
+          reject("You are not allowed to perform this operation")
         } else {
           const tokens = await PermanentToken.count({
             where: { userId: root.id },

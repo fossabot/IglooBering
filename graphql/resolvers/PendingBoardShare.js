@@ -24,7 +24,7 @@ const PendingBoardShareResolver = ({ User, Board, PendingBoardShare }) => ({
           (await instanceToRole(await findSharedBoard(), await findUser())) ===
             null
         ) {
-          reject("You are not allowed to access details about this user")
+          reject("You are not allowed to perform this operation")
         } else {
           resolve(pendingBoardFound.id)
         }
@@ -54,7 +54,7 @@ const PendingBoardShareResolver = ({ User, Board, PendingBoardShare }) => ({
           (await instanceToRole(await findSharedBoard(), await findUser())) ===
             null
         ) {
-          reject("You are not allowed to access details about this user")
+          reject("You are not allowed to perform this operation")
         } else {
           resolve({ id: pendingBoardFound.senderId })
         }
@@ -84,7 +84,7 @@ const PendingBoardShareResolver = ({ User, Board, PendingBoardShare }) => ({
           (await instanceToRole(await findSharedBoard(), await findUser())) ===
             null
         ) {
-          reject("You are not allowed to access details about this user")
+          reject("You are not allowed to perform this operation")
         } else {
           resolve({ id: pendingBoardFound.receiverId })
         }
@@ -114,7 +114,7 @@ const PendingBoardShareResolver = ({ User, Board, PendingBoardShare }) => ({
           (await instanceToRole(await findSharedBoard(), await findUser())) ===
             null
         ) {
-          reject("You are not allowed to access details about this user")
+          reject("You are not allowed to perform this operation")
         } else {
           resolve(pendingBoardFound.role)
         }
@@ -144,7 +144,7 @@ const PendingBoardShareResolver = ({ User, Board, PendingBoardShare }) => ({
           (await instanceToRole(await findSharedBoard(), await findUser())) ===
             null
         ) {
-          reject("You are not allowed to access details about this user")
+          reject("You are not allowed to perform this operation")
         } else {
           resolve({ id: pendingBoardFound.boardId })
         }

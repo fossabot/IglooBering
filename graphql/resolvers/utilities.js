@@ -548,9 +548,7 @@ const findValue = (
         })
 
         if ((await authorizationLevel(boardFound, userFound)) < 1) {
-          throw new Error(
-            "You are not allowed to access details about this resource"
-          )
+          throw new Error("You are not allowed to perform this operation")
         } else return value
       }
     })
@@ -763,7 +761,7 @@ function authorized(
           (await authorizationLevel(parent, userFound)) < authorizationRequired
         ) {
           /* istanbul ignore next */
-          reject("You are not allowed to access details about this resource")
+          reject("You are not allowed to perform this operation")
         } else {
           return callback(resolve, reject, found, [found, parent], userFound)
         }
@@ -838,8 +836,7 @@ const authorizedValue = (
   Board
 ) =>
   authenticated(context, async (resolve, reject) => {
-    const NOT_ALLOWED =
-      "You are not allowed to access details about this resource"
+    const NOT_ALLOWED = "You are not allowed to perform this operation"
     const NOT_EXIST = "The requested resource does not exist"
     const models = Object.values(Values)
 

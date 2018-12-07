@@ -17,7 +17,7 @@ const unauthenticatedShouldFail = (Resolver, root) => prop => async () => {
 const notAuthorizedShouldFail = (Resolver, root, context) => prop => async () => {
   const promise = Resolver[prop](root, {}, context);
 
-  await expect(promise).rejects.toMatch("You are not allowed");
+  await expect(promise).rejects.toMatch("You are not allowed to perform this operation");
 };
 
 const wrongIdShouldFail = (Resolver, root, context) => prop => async () => {
