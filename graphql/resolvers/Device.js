@@ -1,12 +1,10 @@
 import {
   authorized,
-  logErrorsPromise,
   findAllValues,
   authorizedScalarPropsResolvers,
-  rolesResolver,
-  deviceToParents,
-  instanceToRole,
-} from './utilities'
+  deviceToParent,
+} from "./utilities"
+import { Op } from "sequelize"
 
 const QUERY_COST = 1
 
@@ -14,13 +12,12 @@ const DeviceResolver = ({
   Device,
   User,
   Board,
-  BoolValue,
+  BooleanValue,
   FloatValue,
   StringValue,
   PlotValue,
   StringPlotValue,
   MapValue,
-  ColourValue,
   Notification,
   joinTables,
 }) => ({
@@ -28,184 +25,122 @@ const DeviceResolver = ({
     Device,
     User,
     [
-      'createdAt',
-      'updatedAt',
-      'deviceType',
-      'customName',
-      'icon',
-      'index',
-      'online',
-      'signalStatus',
-      'batteryStatus',
-      'batteryCharging',
-      'firmware',
+      "createdAt",
+      "updatedAt",
+      "deviceType",
+      "name",
+      "index",
+      "online",
+      "signalStatus",
+      "batteryStatus",
+      "batteryCharging",
+      "firmware",
     ],
-    deviceToParents(Board),
+    deviceToParent(Board)
   ),
   values(root, args, context) {
-    return logErrorsPromise(
-      'Device values resolver',
-      110,
-      authorized(
-        root.id,
-        context,
-        Device,
-        User,
-        1,
-        async (resolve, reject, deviceFound) => {
-          const valuesFound = await findAllValues(
-            {
-              BoolValue,
-              FloatValue,
-              StringValue,
-              ColourValue,
-              PlotValue,
-              StringPlotValue,
-              MapValue,
-            },
-            {
-              where: { deviceId: deviceFound.id },
-            },
-          )
+    return authorized(
+      root.id,
+      context,
+      Device,
+      User,
+      1,
+      async (resolve, reject, deviceFound) => {
+        const valuesFound = await findAllValues(
+          {
+            BooleanValue,
+            FloatValue,
+            StringValue,
+            PlotValue,
+            StringPlotValue,
+            MapValue,
+          },
+          {
+            where: { deviceId: deviceFound.id },
+          }
+        )
 
-          resolve(valuesFound)
+        resolve(valuesFound)
 
-          context.billingUpdater.update(QUERY_COST * valuesFound.length)
-        },
-        deviceToParents(Board),
-      ),
+        context.billingUpdater.update(QUERY_COST * valuesFound.length)
+      },
+      deviceToParent(Board)
     )
   },
-  myRole(root, args, context) {
-    return logErrorsPromise(
-      'myRole BoardResolver',
-      902,
-      authorized(
-        root.id,
-        context,
-        Device,
-        User,
-        1,
-        async (
-          resolve,
-          reject,
-          deviceFound,
-          deviceAndParentFound,
-          userFound,
-        ) => {
-          const myRole = instanceToRole(deviceAndParentFound, userFound)
+  muted(root, args, context) {
+    return authorized(
+      root.id,
+      context,
+      Device,
+      User,
+      1,
+      async (resolve, reject, deviceFound, [_, boardFound], userFound) => {
+        // the Board resolver will take care of loading the other props,
+        // it only needs to know the board id
+        resolve(deviceFound.muted || boardFound.muted || userFound.quietMode)
 
-          resolve(myRole)
-        },
-        deviceToParents(Board),
-      ),
+        context.billingUpdater.update(QUERY_COST)
+      },
+      deviceToParent(Board)
     )
   },
-  owner(root, args, context) {
-    return logErrorsPromise(
-      'user BoardResolver',
-      902,
-      authorized(
-        root.id,
-        context,
-        Device,
-        User,
-        1,
-        async (resolve, reject, deviceFound) => {
-          resolve({
-            id: deviceFound.ownerId,
-          })
-
-          context.billingUpdater.update(QUERY_COST)
-        },
-        deviceToParents(Board),
-      ),
-    )
-  },
-  admins: rolesResolver(
-    'Admin',
-    'deviceId',
-    'Device',
-    User,
-    joinTables,
-    deviceToParents(Board),
-  ),
-  editors: rolesResolver(
-    'Editor',
-    'deviceId',
-    'Device',
-    User,
-    joinTables,
-    deviceToParents(Board),
-  ),
-  spectators: rolesResolver(
-    'Spectator',
-    'deviceId',
-    'Device',
-    User,
-    joinTables,
-    deviceToParents(Board),
-  ),
   board(root, args, context) {
-    return logErrorsPromise(
-      'Device board resolver',
-      903,
-      authorized(
-        root.id,
-        context,
-        Device,
-        User,
-        1,
-        async (resolve, reject, deviceFound) => {
-          // the Board resolver will take care of loading the other props,
-          // it only needs to know the board id
-          resolve(deviceFound.boardId ? { id: deviceFound.boardId } : null)
+    return authorized(
+      root.id,
+      context,
+      Device,
+      User,
+      1,
+      async (resolve, reject, deviceFound) => {
+        // the Board resolver will take care of loading the other props,
+        // it only needs to know the board id
+        resolve({ id: deviceFound.boardId })
 
-          if (deviceFound.boardId) context.billingUpdater.update(QUERY_COST)
-        },
-        deviceToParents(Board),
-      ),
+        context.billingUpdater.update(QUERY_COST)
+      },
+      deviceToParent(Board)
     )
   },
   notifications(root, args, context) {
-    return logErrorsPromise(
-      'User devices resolver',
-      119,
-      authorized(
-        root.id,
-        context,
-        Device,
-        User,
-        1,
-        async (resolve, reject, deviceFound) => {
-          const notifications = await deviceFound.getNotifications()
+    return authorized(
+      root.id,
+      context,
+      Device,
+      User,
+      1,
+      async (resolve, reject, deviceFound) => {
+        const notifications = await deviceFound.getNotifications()
 
-          resolve(notifications)
-          context.billingUpdater.update(QUERY_COST * notifications.length)
-        },
-        deviceToParents(Board),
-      ),
+        // the database returns ISO-format dates, so sorting the strings without casting is fine
+        const compareDates = (a, b) =>
+          a.date > b.date ? -1 : a.date === b.date ? 0 : 1
+
+        resolve(notifications.sort(compareDates))
+        context.billingUpdater.update(QUERY_COST * notifications.length)
+      },
+      deviceToParent(Board)
     )
   },
-  notificationsCount(root, args, context) {
-    return logErrorsPromise(
-      'notificationsCount device resolver',
-      916,
-      authorized(
-        root.id,
-        context,
-        Device,
-        User,
-        1,
-        async (resolve, reject, deviceFound) => {
-          const count = await Notification.count({
-            where: { deviceId: root.id },
-          })
+  notificationCount(root, args, context) {
+    return authorized(
+      root.id,
+      context,
+      Device,
+      User,
+      1,
+      async (resolve, reject, deviceFound) => {
+        const count = await Notification.count({
+          where: {
+            deviceId: root.id,
+            [Op.not]: {
+              visualized: { [Op.contains]: [context.auth.userId] },
+            },
+          },
+        })
 
-          resolve(count)
-        },
-        deviceToParents(Board),
-      ),
+        resolve(count)
+      },
+      deviceToParent(Board)
     )
   },
 })

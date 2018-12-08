@@ -1,6 +1,6 @@
 ![Igloo Houston](https://github.com/hellowitlab/iglooHouston/blob/master/iglooHouston.png?raw=true "Igloo Houston")
 # Igloo Houston
-Igloo Houston is the back-end service of Igloo Cloud Framework.
+Houston is the back-end service of Igloo.
 
 This service is still in development, some features may be missing. If your Igloo-based project needs a missing feature in order to work, please open an issue or help us by contributing.
 
@@ -90,7 +90,7 @@ TBD
 We are open to any contribution, just send us a pull request. 
 
 ### Testing
-You can run the automated tests using the `test` script, be aware that the tests do load data on both the S3 bucket and the database and that the database is automatically cleaned before the tests, so you should run tests on a dedicated database (you should always run tests on a dedicated database, but in this case you *really* should).
+You can run the automated tests using the `test` script
 
 ```bash
 yarn test

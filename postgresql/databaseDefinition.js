@@ -1,10 +1,11 @@
-const Sequelize = require('sequelize')
+const Sequelize = require("sequelize")
 
-const databaseDefinition = (sequelize) => {
-  const ValuePermission = Sequelize.ENUM('READ_ONLY', 'READ_WRITE')
-  const ValueRelevance = Sequelize.ENUM('VISIBLE', 'HIDDEN', 'INVISIBLE')
-  const TileSize = Sequelize.ENUM('NORMAL', 'WIDE', 'TALL', 'LARGE')
-  const PaymentPlan = Sequelize.ENUM('FREE', 'PAYING')
+const databaseDefinition = sequelize => {
+  const ValuePermission = Sequelize.ENUM("READ_ONLY", "READ_WRITE")
+  const ValueVisibility = Sequelize.ENUM("VISIBLE", "HIDDEN", "INVISIBLE")
+  const TileSize = Sequelize.ENUM("NORMAL", "WIDE", "TALL", "LARGE")
+  const Role = Sequelize.ENUM("ADMIN", "EDITOR", "SPECTATOR")
+  const PaymentPlan = Sequelize.ENUM("FREE", "PAYING")
   const selfId = {
     id: {
       type: Sequelize.UUID,
@@ -18,13 +19,13 @@ const databaseDefinition = (sequelize) => {
       allowNull,
       references: {
         model,
-        key: 'id',
+        key: "id",
         deferrable: Sequelize.Deferrable.INITIALLY_IMMEDIATE,
       },
     },
   })
 
-  const User = sequelize.define('user', {
+  const User = sequelize.define("user", {
     ...selfId,
     email: {
       type: Sequelize.STRING,
@@ -40,19 +41,10 @@ const databaseDefinition = (sequelize) => {
     twoFactorSecret: {
       type: Sequelize.STRING,
     },
-    language: {
-      type: Sequelize.STRING,
-    },
-    timezone: {
-      type: Sequelize.STRING,
-    },
     quietMode: {
       type: Sequelize.BOOLEAN,
     },
     devMode: {
-      type: Sequelize.BOOLEAN,
-    },
-    nightMode: {
       type: Sequelize.BOOLEAN,
     },
     stripeCustomerId: {
@@ -67,7 +59,7 @@ const databaseDefinition = (sequelize) => {
     usageCap: {
       type: Sequelize.INTEGER,
     },
-    displayName: {
+    name: {
       type: Sequelize.STRING,
     },
     profileIcon: {
@@ -79,32 +71,47 @@ const databaseDefinition = (sequelize) => {
     emailIsVerified: {
       type: Sequelize.BOOLEAN,
     },
+    settings_language: {
+      type: Sequelize.STRING,
+    },
+    settings_timeZone: {
+      type: Sequelize.STRING,
+    },
+    settings_lengthAndMass: {
+      type: Sequelize.STRING,
+    },
+    settings_temperature: {
+      type: Sequelize.STRING,
+    },
+    settings_dateFormat: {
+      type: Sequelize.STRING,
+    },
+    settings_timeFormat: {
+      type: Sequelize.STRING,
+    },
   })
 
-  const Board = sequelize.define('board', {
+  const Board = sequelize.define("board", {
     ...selfId,
-    customName: {
+    name: {
       type: Sequelize.STRING,
       allowNull: false,
     },
     avatar: {
       type: Sequelize.STRING,
     },
-    favorite: {
-      type: Sequelize.BOOLEAN,
-    },
     index: {
       type: Sequelize.INTEGER,
     },
-    quietMode: {
+    muted: {
       type: Sequelize.BOOLEAN,
     },
   })
 
-  const PermanentToken = sequelize.define('permanentToken', {
+  const PermanentToken = sequelize.define("permanentToken", {
     ...selfId,
-    ...otherId('userId', User),
-    customName: {
+    ...otherId("userId", User),
+    name: {
       type: Sequelize.STRING,
       allowNull: false,
     },
@@ -113,9 +120,9 @@ const databaseDefinition = (sequelize) => {
     },
   })
 
-  const WebPushSubscription = sequelize.define('webPushNotification', {
+  const WebPushSubscription = sequelize.define("webPushNotification", {
     ...selfId,
-    ...otherId('userId', User),
+    ...otherId("userId", User),
     endpoint: {
       type: Sequelize.STRING(2000),
     },
@@ -130,15 +137,12 @@ const databaseDefinition = (sequelize) => {
     },
   })
 
-  const Device = sequelize.define('device', {
+  const Device = sequelize.define("device", {
     ...selfId,
     deviceType: {
       type: Sequelize.STRING,
     },
-    customName: {
-      type: Sequelize.STRING,
-    },
-    icon: {
+    name: {
       type: Sequelize.STRING,
     },
     index: {
@@ -159,11 +163,14 @@ const databaseDefinition = (sequelize) => {
     firmware: {
       type: Sequelize.STRING,
     },
+    muted: {
+      type: Sequelize.BOOLEAN,
+    },
   })
 
-  const Notification = sequelize.define('notification', {
+  const Notification = sequelize.define("notification", {
     ...selfId,
-    ...otherId('userId', User),
+    ...otherId("userId", User),
     content: {
       type: Sequelize.STRING,
     },
@@ -172,10 +179,7 @@ const databaseDefinition = (sequelize) => {
       defaultValue: Sequelize.NOW,
     },
     visualized: {
-      type: Sequelize.BOOLEAN,
-    },
-    snackbarVisualized: {
-      type: Sequelize.BOOLEAN,
+      type: Sequelize.ARRAY(Sequelize.UUID),
     },
   })
 
@@ -187,13 +191,13 @@ const databaseDefinition = (sequelize) => {
     permission: {
       type: ValuePermission,
     },
-    relevance: {
-      type: ValueRelevance,
+    visibility: {
+      type: ValueVisibility,
     },
     tileSize: {
       type: TileSize,
     },
-    customName: {
+    name: {
       type: Sequelize.STRING,
     },
     index: {
@@ -201,14 +205,14 @@ const databaseDefinition = (sequelize) => {
     },
   }
 
-  const BoolValue = sequelize.define('boolValue', {
+  const BooleanValue = sequelize.define("booleanValue", {
     ...Value,
     value: {
       type: Sequelize.BOOLEAN,
       allowNull: false,
     },
   })
-  const FloatValue = sequelize.define('floatValue', {
+  const FloatValue = sequelize.define("floatValue", {
     ...Value,
     value: {
       type: Sequelize.FLOAT,
@@ -221,7 +225,7 @@ const databaseDefinition = (sequelize) => {
       type: Sequelize.ARRAY(Sequelize.FLOAT),
     },
   })
-  const StringValue = sequelize.define('stringValue', {
+  const StringValue = sequelize.define("stringValue", {
     ...Value,
     value: {
       type: Sequelize.TEXT,
@@ -234,7 +238,7 @@ const databaseDefinition = (sequelize) => {
       type: Sequelize.ARRAY(Sequelize.STRING),
     },
   })
-  const PlotValue = sequelize.define('plotValue', {
+  const PlotValue = sequelize.define("plotValue", {
     ...Value,
     precision: {
       type: Sequelize.FLOAT,
@@ -246,11 +250,11 @@ const databaseDefinition = (sequelize) => {
       type: Sequelize.ARRAY(Sequelize.FLOAT),
     },
   })
-  const PlotNode = sequelize.define('plotNode', {
+  const PlotNode = sequelize.define("plotNode", {
     ...selfId,
-    ...otherId('userId', User),
-    ...otherId('deviceId', Device),
-    ...otherId('plotId', PlotValue),
+    ...otherId("userId", User),
+    ...otherId("deviceId", Device),
+    ...otherId("plotId", PlotValue),
     value: {
       type: Sequelize.FLOAT,
       allowNull: false,
@@ -260,17 +264,17 @@ const databaseDefinition = (sequelize) => {
       allowNull: false,
     },
   })
-  const StringPlotValue = sequelize.define('stringPlotValue', {
+  const StringPlotValue = sequelize.define("stringPlotValue", {
     ...Value,
     allowedValues: {
       type: Sequelize.ARRAY(Sequelize.STRING),
     },
   })
-  const StringPlotNode = sequelize.define('stringPlotNode', {
+  const StringPlotNode = sequelize.define("stringPlotNode", {
     ...selfId,
-    ...otherId('userId', User),
-    ...otherId('deviceId', Device),
-    ...otherId('plotId', StringPlotValue),
+    ...otherId("userId", User),
+    ...otherId("deviceId", Device),
+    ...otherId("plotId", StringPlotValue),
     value: {
       type: Sequelize.STRING,
       allowNull: false,
@@ -280,7 +284,7 @@ const databaseDefinition = (sequelize) => {
       allowNull: false,
     },
   })
-  const MapValue = sequelize.define('mapValue', {
+  const MapValue = sequelize.define("mapValue", {
     ...Value,
     latitude: {
       type: Sequelize.FLOAT,
@@ -295,14 +299,22 @@ const databaseDefinition = (sequelize) => {
       type: Sequelize.TEXT,
     },
   })
-  const ColourValue = sequelize.define('colourValue', {
-    ...Value,
-    value: {
-      type: Sequelize.STRING,
+
+  const PendingBoardShare = sequelize.define("pendingBoardShare", {
+    ...selfId,
+    ...otherId("senderId", User),
+    ...otherId("receiverId", User),
+    ...otherId("boardId", Board),
+    role: {
+      type: Role,
     },
-    allowedValues: {
-      type: Sequelize.ARRAY(Sequelize.STRING),
-    },
+  })
+
+  const PendingOwnerChange = sequelize.define("pendingOwnerChange", {
+    ...selfId,
+    ...otherId("formerOwnerId", User),
+    ...otherId("newOwnerId", User),
+    ...otherId("boardId", Board),
   })
 
   Board.hasMany(Device)
@@ -311,111 +323,95 @@ const databaseDefinition = (sequelize) => {
   Device.hasMany(Notification)
   Notification.belongsTo(Device)
 
+  Board.hasMany(Notification)
+  Notification.belongsTo(Board)
+
   PlotValue.hasMany(PlotNode)
-  PlotNode.belongsTo(PlotValue, { as: 'plot' })
+  PlotNode.belongsTo(PlotValue, { as: "plot" })
 
   StringPlotValue.hasMany(StringPlotNode)
-  StringPlotNode.belongsTo(StringPlotValue, { as: 'plot' })
+  StringPlotNode.belongsTo(StringPlotValue, { as: "plot" })
 
   const values = [
-    BoolValue,
+    BooleanValue,
     FloatValue,
     StringValue,
-    ColourValue,
     MapValue,
     PlotValue,
     StringPlotValue,
   ]
-  values.forEach((Value) => {
+  values.forEach(Value => {
     Device.hasMany(Value)
     Board.hasMany(Value)
   })
 
-  // sets up all the OWNER, ADMIN, EDITOR, SPECTATOR relationships using a join table for the last 3
-  const models = {
-    Board,
-    Device,
-    BoolValue,
-    FloatValue,
-    StringValue,
-    PlotValue,
-    StringPlotValue,
-    MapValue,
-    ColourValue,
-  }
-  const modelNames = Object.keys(models)
-  const modelObjects = Object.values(models)
+  Board.Owner = "OwnBoards"
+  Board.belongsTo(User, { as: "owner" })
+  User.OwnBoards = User.hasMany(Board, {
+    as: "OwnBoards",
+  })
 
   const associations = []
   const joinTables = {}
-  for (let i = 0; i < modelNames.length; i++) {
-    modelObjects[i].Owner = `Own${modelNames[i]}s`
-    modelObjects[i].belongsTo(User, { as: 'owner' })
-    User[`Own${modelNames[i]}s`] = User.hasMany(modelObjects[i], {
-      as: `Own${modelNames[i]}s`,
-    })
 
-    const adminAssociation = sequelize.define(`${modelNames[i]}Admins`, {})
-    associations.push(adminAssociation)
-    joinTables[`${modelNames[i]}Admins`] = adminAssociation
-    modelObjects[i].Admins = `Admin${modelNames[i]}s`
-    modelObjects[i].belongsToMany(User, {
-      as: 'admin',
-      through: `${modelNames[i]}Admins`,
-    })
-    User[`Admin${modelNames[i]}s`] = User.belongsToMany(modelObjects[i], {
-      through: `${modelNames[i]}Admins`,
-      as: `Admin${modelNames[i]}s`,
-    })
+  const adminAssociation = sequelize.define("BoardAdmins", {})
+  associations.push(adminAssociation)
+  joinTables.BoardAdmins = adminAssociation
+  Board.Admins = "AdminBoards"
+  Board.belongsToMany(User, {
+    as: "admin",
+    through: "BoardAdmins",
+  })
+  User.AdminBoards = User.belongsToMany(Board, {
+    through: "BoardAdmins",
+    as: "AdminBoards",
+  })
 
-    const editorAssociation = sequelize.define(`${modelNames[i]}Editors`, {})
-    joinTables[`${modelNames[i]}Editors`] = editorAssociation
-    associations.push(editorAssociation)
-    modelObjects[i].Editors = `Editor${modelNames[i]}s`
-    modelObjects[i].belongsToMany(User, {
-      as: 'editor',
-      through: `${modelNames[i]}Editors`,
-    })
-    User[`Editor${modelNames[i]}s`] = User.belongsToMany(modelObjects[i], {
-      as: `Editor${modelNames[i]}s`,
-      through: `${modelNames[i]}Editors`,
-    })
+  const editorAssociation = sequelize.define("BoardEditors", {})
+  joinTables.BoardEditors = editorAssociation
+  associations.push(editorAssociation)
+  Board.Editors = "EditorBoards"
+  Board.belongsToMany(User, {
+    as: "editor",
+    through: "BoardEditors",
+  })
+  User.EditorBoards = User.belongsToMany(Board, {
+    as: "EditorBoards",
+    through: "BoardEditors",
+  })
 
-    const spectatorAssociation = sequelize.define(
-      `${modelNames[i]}Spectators`,
-      {},
-    )
-    joinTables[`${modelNames[i]}Spectators`] = spectatorAssociation
-    associations.push(spectatorAssociation)
-    modelObjects[i].Spectators = `Spectator${modelNames[i]}s`
-    modelObjects[i].belongsToMany(User, {
-      as: 'spectator',
-      through: `${modelNames[i]}Spectators`,
-    })
-    User[`Spectator${modelNames[i]}s`] = User.belongsToMany(modelObjects[i], {
-      as: `Spectator${modelNames[i]}s`,
-      through: `${modelNames[i]}Spectators`,
-    })
-  }
+  const spectatorAssociation = sequelize.define("BoardSpectators", {})
+  joinTables.BoardSpectators = spectatorAssociation
+  associations.push(spectatorAssociation)
+  Board.Spectators = "SpectatorBoards"
+  Board.belongsToMany(User, {
+    as: "spectator",
+    through: "BoardSpectators",
+  })
+  User.SpectatorBoards = User.belongsToMany(Board, {
+    as: "SpectatorBoards",
+    through: "BoardSpectators",
+  })
 
   return {
     User,
     Board,
     PermanentToken,
     Device,
-    BoolValue,
+    BooleanValue,
     FloatValue,
     StringValue,
     PlotValue,
     PlotNode,
     MapValue,
-    ColourValue,
     Notification,
     WebPushSubscription,
     StringPlotValue,
     StringPlotNode,
     associations,
     joinTables,
+    PendingBoardShare,
+    PendingOwnerChange,
   }
 }
 

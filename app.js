@@ -1,107 +1,101 @@
-require('dotenv').config()
+require("dotenv").config()
 /* istanbul ignore if */
 if (!process.env.JWT_SECRET) {
-  throw new Error('Could not load .env')
+  throw new Error("Could not load .env")
 }
-import express from 'express'
-import { graphqlExpress, graphiqlExpress } from 'apollo-server-express'
-import bodyParser from 'body-parser'
-import schema from './graphql/schema'
-import expressJwt from 'express-jwt'
-import cors from 'cors'
-import webpush from 'web-push'
-import { pipeStreamToS3, getObjectOwner } from './s3helpers'
-import Busboy from 'connect-busboy'
-import AWS from 'aws-sdk'
-import path from 'path'
-import UpdateBatcher from 'update-batcher'
+import express from "express"
+import { graphqlExpress, graphiqlExpress } from "apollo-server-express"
+import bodyParser from "body-parser"
+import schema from "./graphql/schema"
+import expressJwt from "express-jwt"
+import cors from "cors"
+import webpush from "web-push"
+import { pipeStreamToS3, getObjectOwner } from "./s3helpers"
+import Busboy from "connect-busboy"
+import AWS from "aws-sdk"
+import path from "path"
 import {
   PermanentToken,
   WebPushSubscription,
   User,
-} from './postgresql/databaseConnection'
-import jwt from 'jwt-simple'
+} from "./postgresql/databaseConnection"
+import jwt from "jwt-simple"
+import { GenerateUserBillingBatcher } from "./graphql/resolvers/utilities"
 
 webpush.setVapidDetails(
-  'http://igloo.witlab.io/',
+  "http://igloo.witlab.io/",
   process.env.PUBLIC_VAPID_KEY,
-  process.env.PRIVATE_VAPID_KEY,
+  process.env.PRIVATE_VAPID_KEY
 )
 
 const GRAPHQL_PORT = process.env.PORT || 3000
 /* istanbul ignore next */
 const WEBSOCKET_URL =
-  process.env.NODE_ENV === 'production'
-    ? 'wss://iglooql.herokuapp.com/subscriptions'
+  process.env.NODE_ENV === "production"
+    ? "wss://iglooql.herokuapp.com/subscriptions"
     : `ws://localhost:${GRAPHQL_PORT}/subscriptions`
 const app = express()
 
 app.use(cors())
 app.use(bodyParser.json())
-app.use(expressJwt({
-  secret: process.env.JWT_SECRET,
-  credentialsRequired: false,
-  isRevoked: async (req, payload, done) => {
-    switch (payload.tokenType) {
-      case 'PERMANENT':
-        try {
-          const DatabaseToken = await PermanentToken.find({
-            where: { id: payload.tokenId },
-          })
+app.use(
+  expressJwt({
+    secret: process.env.JWT_SECRET,
+    credentialsRequired: false,
+    isRevoked: async (req, payload, done) => {
+      switch (payload.tokenType) {
+        case "PERMANENT":
+          try {
+            const DatabaseToken = await PermanentToken.find({
+              where: { id: payload.tokenId },
+            })
 
-          if (DatabaseToken && DatabaseToken.userId === payload.userId) {
-            done(null, false)
+            if (DatabaseToken && DatabaseToken.userId === payload.userId) {
+              done(null, false)
 
-            // TODO: handle eventual error
-            DatabaseToken.update({ lastUsed: new Date() })
-          } else {
-            done(null, true)
+              // TODO: handle eventual error
+              DatabaseToken.update({ lastUsed: new Date() })
+            } else {
+              done(null, true)
+            }
+          } catch (e) {
+            done("Internal error")
+            console.log(e)
           }
-        } catch (e) {
-          done('Internal error')
-          console.log(e)
-        }
-        break
+          break
 
-      case 'TEMPORARY':
-      case 'PASSWORD_RECOVERY':
-        done(null, false)
-        break
+        case "TEMPORARY":
+        case "PASSWORD_RECOVERY":
+        case "GENERATE_PERMANENT_TOKEN":
+        case "DELETE_USER":
+        case "CHANGE_PASSWORD":
+        case "CHANGE_EMAIL":
+          done(null, false)
+          break
 
-      default:
-        done(null, true)
-        break
-    }
-  },
-}))
+        default:
+          done(null, true)
+          break
+      }
+    },
+  })
+)
 
 // handle the errors thrown by expressJwt
 app.use((err, req, res, next) => {
-  if (err.code === 'invalid_token') {
+  if (err.code === "invalid_token") {
     res.status(401).send({
       data: null,
-      errors: [{ message: 'The token is invalid, expired or malformed' }],
+      errors: [{ message: "The token is invalid, expired or malformed" }],
     })
   }
 })
-
-const updateUserBilling = auth => async (bill) => {
-  const userFound = await User.find({ where: { id: auth.userId } })
-
-  // TODO: handle this failure gracefully
-  if (!userFound) {
-    throw new Error("User doesn't exist. Use `SignupUser` to create one")
-  } else {
-    const newUser = await userFound.increment('monthUsage', { by: bill })
-    return newUser.monthUsage
-  }
-}
 
 // TODO: replace with real free usage quota
 const FREE_USAGE_QUOTA = 100 * 1000
 
 // Check if usage threshold was exceeded
-app.use('/graphql', async (req, res, next) => {
+app.use("/graphql", async (req, res, next) => {
   // TODO: implement anti-DDOS here
   if (!req.user) next()
   else {
@@ -111,16 +105,16 @@ app.use('/graphql', async (req, res, next) => {
       res.send("This user doesn't exist anymore")
       return
     } else if (
-      userFound.paymentPlan === 'FREE' &&
+      userFound.paymentPlan === "FREE" &&
       userFound.monthUsage > FREE_USAGE_QUOTA
     ) {
-      req.user.tokenType = 'SWITCH_TO_PAYING'
+      req.user.tokenType = "SWITCH_TO_PAYING"
     } else if (
-      userFound.paymentPlan === 'PAYING' &&
+      userFound.paymentPlan === "PAYING" &&
       userFound.usageCap &&
       userFound.monthUsage > userFound.usageCap
     ) {
-      req.user.tokenType = 'CHANGE_USAGE_CAP'
+      req.user.tokenType = "CHANGE_USAGE_CAP"
     }
 
     next()
@@ -128,22 +122,22 @@ app.use('/graphql', async (req, res, next) => {
 })
 
 app.use(
-  '/graphql',
+  "/graphql",
   graphqlExpress(req => ({
     schema,
     context: {
       auth: req.user,
       billingUpdater: req.user
-        ? new UpdateBatcher(updateUserBilling(req.user))
+        ? GenerateUserBillingBatcher(User, req.user)
         : undefined,
     },
-  })),
+  }))
 )
 /* istanbul ignore next */
-app.get('/graphiql', (req, res, next) => {
+app.get("/graphiql", (req, res, next) => {
   if (req.query.bearer) {
     return graphiqlExpress({
-      endpointURL: '/graphql',
+      endpointURL: "/graphql",
       subscriptionsEndpoint: WEBSOCKET_URL,
       passHeader: `'Authorization': 'Bearer ${req.query.bearer}'`,
       websocketConnectionParams: {
@@ -152,12 +146,12 @@ app.get('/graphiql', (req, res, next) => {
     })(req, res, next)
   }
   return graphiqlExpress({
-    endpointURL: '/graphql',
+    endpointURL: "/graphql",
     subscriptionsEndpoint: WEBSOCKET_URL,
   })(req, res, next)
 })
 
-app.post('/webPushSubscribe', async (req, res) => {
+app.post("/webPushSubscribe", async (req, res) => {
   if (req.user) {
     const notificationSubscription = req.body
 
@@ -179,40 +173,40 @@ app.post('/webPushSubscribe', async (req, res) => {
       oldSubscription.update(newSubscription)
     }
 
-    res.send('ok')
+    res.send("ok")
   } else {
-    res.status(401).send('Missing valid authentication token')
+    res.status(401).send("Missing valid authentication token")
   }
 })
 
-AWS.config.update({ region: 'eu-west-1' })
+AWS.config.update({ region: "eu-west-1" })
 const s3 = new AWS.S3()
 
-app.post('/fileupload', Busboy(), async (req, res) => {
+app.post("/fileupload", Busboy(), async (req, res) => {
   if (req.user) {
     req.pipe(req.busboy)
 
-    req.busboy.on('error', (err) => {
+    req.busboy.on("error", err => {
       console.log(err)
     })
 
-    req.busboy.on('file', async (fieldname, file, filename) => {
+    req.busboy.on("file", async (fieldname, file, filename) => {
       const extension = path.extname(filename)
       const newObject = await pipeStreamToS3(
         s3,
         process.env.BUCKET_NAME,
         file,
         extension,
-        req.user.userId,
+        req.user.userId
       )
       res.send(newObject.key)
     })
   } else {
-    res.status(401).send('Missing valid authentication token')
+    res.status(401).send("Missing valid authentication token")
   }
 })
 
-app.get('/file/:file', async (req, res) => {
+app.get("/file/:file", async (req, res) => {
   if (req.user) {
     const getParams = {
       Bucket: process.env.BUCKET_NAME,
@@ -227,14 +221,14 @@ app.get('/file/:file', async (req, res) => {
         .createReadStream()
         .pipe(res)
     } else {
-      res.status(401).send('You are not authorized to read this file')
+      res.status(401).send("You are not authorized to read this file")
     }
   } else {
-    res.status(401).send('Missing valid authentication token')
+    res.status(401).send("Missing valid authentication token")
   }
 })
 
-app.get('/fileuploadtest', (req, res) => {
+app.get("/fileuploadtest", (req, res) => {
   res.send(`<html><head></head><body>
   <script>
    function send(){
@@ -261,18 +255,18 @@ app.get('/fileuploadtest', (req, res) => {
  </body></html>`)
 })
 
-app.get('/verifyEmail/:verificationToken', async (req, res) => {
+app.get("/verifyEmail/:verificationToken", async (req, res) => {
   const { verificationToken } = req.params
   try {
     const decodedToken = jwt.decode(
       verificationToken,
       process.env.JWT_SECRET,
       false,
-      'HS512',
+      "HS512"
     )
 
-    if (decodedToken.tokenType !== 'EMAIL_VERIFICATION') {
-      res.send('Malformed token')
+    if (decodedToken.tokenType !== "EMAIL_VERIFICATION") {
+      res.send("Malformed token")
     } else {
       const foundUser = await User.find({ where: { id: decodedToken.userId } })
 
@@ -283,11 +277,11 @@ app.get('/verifyEmail/:verificationToken', async (req, res) => {
       } else {
         foundUser.update({ emailIsVerified: true })
 
-        res.redirect('https://igloocloud.github.io/IglooAurora')
+        res.redirect("http://igloo.ooo")
       }
     }
   } catch (e) {
-    res.send('Failed verification')
+    res.send("Failed verification")
   }
 })
 

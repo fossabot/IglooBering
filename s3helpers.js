@@ -1,17 +1,17 @@
-const uuidv1 = require('uuid/v1')
+const uuidv1 = require("uuid/v1")
 
 async function createS3UUID(s3, bucketname, extension) {
-  let uuid = ''
+  let uuid = ""
 
-  while (uuid === '') {
+  while (uuid === "") {
     uuid = uuidv1() + extension
     await new Promise((resolve, reject) => {
       s3.headObject({ Bucket: bucketname, Key: uuid }, (err, data) => {
         if (!err) {
           // the object already exist, try again
-          uuid = ''
+          uuid = ""
           resolve()
-        } else if (err.code === 'NotFound') {
+        } else if (err.code === "NotFound") {
           // the object doesn't already exist
           resolve()
         } else {
@@ -42,13 +42,13 @@ async function pipeStreamToS3(s3, bucketName, stream, extension, userId) {
   // call S3 to retrieve upload file to specified bucket
   const uploadParams = {
     Bucket: bucketName,
-    Key: '',
-    Body: '',
+    Key: "",
+    Body: "",
     Metadata: { userId },
   }
 
-  stream.on('error', (err) => {
-    console.log('stream Error', err)
+  stream.on("error", err => {
+    console.log("stream Error", err)
   })
   uploadParams.Body = stream
 

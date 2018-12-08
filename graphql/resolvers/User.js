@@ -1,38 +1,27 @@
-import {
-  authenticated,
-  logErrorsPromise,
-  findAllValues,
-  getAll,
-  mergeIgnoringDuplicates,
-} from './utilities'
-import { Op } from 'sequelize'
+import { authenticated, findAllValues, getAll } from "./utilities"
 
 const QUERY_COST = 1
 
 const retrieveUserScalarProp = (User, prop, acceptedTokens) => (
   root,
   args,
-  context,
+  context
 ) =>
-  logErrorsPromise(
-    'retrieveScalarProp',
-    106,
-    authenticated(
-      context,
-      async (resolve, reject) => {
-        if (context.auth.userId !== root.id) {
-          reject('You are not allowed to access details about this user')
+  authenticated(
+    context,
+    async (resolve, reject) => {
+      if (context.auth.userId !== root.id) {
+        reject("You are not allowed to perform this operation")
+      } else {
+        const userFound = await User.find({ where: { id: root.id } })
+        if (!userFound) {
+          reject("User doesn't exist. Use `` to create one")
         } else {
-          const userFound = await User.find({ where: { id: root.id } })
-          if (!userFound) {
-            reject("User doesn't exist. Use `SignupUser` to create one")
-          } else {
-            resolve(userFound[prop])
-          }
+          resolve(userFound[prop])
         }
-      },
-      acceptedTokens,
-    ),
+      }
+    },
+    acceptedTokens
   )
 
 const scalarProps = (User, props) =>
@@ -44,23 +33,19 @@ const scalarProps = (User, props) =>
 const retrievePublicUserScalarProp = (User, prop, acceptedTokens) => (
   root,
   args,
-  context,
+  context
 ) =>
-  logErrorsPromise(
-    'retrieveScalarProp',
-    106,
-    authenticated(
-      context,
-      async (resolve, reject) => {
-        const userFound = await User.find({ where: { id: root.id } })
-        if (!userFound) {
-          reject("User doesn't exist. Use `SignupUser` to create one")
-        } else {
-          resolve(userFound[prop])
-        }
-      },
-      acceptedTokens,
-    ),
+  authenticated(
+    context,
+    async (resolve, reject) => {
+      const userFound = await User.find({ where: { id: root.id } })
+      if (!userFound) {
+        reject("User doesn't exist. Use `` to create one")
+      } else {
+        resolve(userFound[prop])
+      }
+    },
+    acceptedTokens
   )
 
 const UserResolver = ({
@@ -70,231 +55,361 @@ const UserResolver = ({
   Board,
   FloatValue,
   StringValue,
-  BoolValue,
-  ColourValue,
+  BooleanValue,
   PlotValue,
   StringPlotValue,
   MapValue,
   Notification,
+  PendingBoardShare,
+  PendingOwnerChange,
 }) => ({
   ...scalarProps(User, [
-    'createdAt',
-    'updatedAt',
-    'quietMode',
-    'language',
-    'timezone',
-    'devMode',
-    'nightMode',
-    'monthUsage',
-    'emailIsVerified',
+    "quietMode",
+    "devMode",
+    "monthUsage",
+    "emailIsVerified",
   ]),
-  email: retrievePublicUserScalarProp(User, 'email', [
-    'TEMPORARY',
-    'PERMANENT',
-    'PASSWORD_RECOVERY',
+  email: retrievePublicUserScalarProp(User, "email", [
+    "TEMPORARY",
+    "PERMANENT",
+    "PASSWORD_RECOVERY",
   ]),
-  displayName: retrievePublicUserScalarProp(User, 'displayName', [
-    'TEMPORARY',
-    'PERMANENT',
-    'PASSWORD_RECOVERY',
+  name: retrievePublicUserScalarProp(User, "name", [
+    "TEMPORARY",
+    "PERMANENT",
+    "PASSWORD_RECOVERY",
   ]),
-  profileIcon: retrievePublicUserScalarProp(User, 'profileIcon', [
-    'TEMPORARY',
-    'PERMANENT',
-    'PASSWORD_RECOVERY',
+  profileIcon: retrievePublicUserScalarProp(User, "profileIcon", [
+    "TEMPORARY",
+    "PERMANENT",
+    "PASSWORD_RECOVERY",
   ]),
-  profileIconColor: retrievePublicUserScalarProp(User, 'profileIconColor', [
-    'TEMPORARY',
-    'PERMANENT',
-    'PASSWORD_RECOVERY',
+  profileIconColor: retrievePublicUserScalarProp(User, "profileIconColor", [
+    "TEMPORARY",
+    "PERMANENT",
+    "PASSWORD_RECOVERY",
   ]),
-  paymentPlan: retrieveUserScalarProp(User, 'paymentPlan', [
-    'TEMPORARY',
-    'PERMANENT',
-    'SWITCH_TO_PAYING',
+  paymentPlan: retrieveUserScalarProp(User, "paymentPlan", [
+    "TEMPORARY",
+    "PERMANENT",
+    "SWITCH_TO_PAYING",
   ]),
-  usageCap: retrieveUserScalarProp(User, 'usageCap', [
-    'TEMPORARY',
-    'PERMANENT',
-    'CHANGE_USAGE_CAP',
+  usageCap: retrieveUserScalarProp(User, "usageCap", [
+    "TEMPORARY",
+    "PERMANENT",
+    "CHANGE_USAGE_CAP",
   ]),
-  devices(root, args, context) {
-    return logErrorsPromise(
-      'User devices resolver',
-      107,
-      authenticated(context, async (resolve, reject) => {
-        /* istanbul ignore if - this should never be the case, so the error is not reproducible */
-        if (context.auth.userId !== root.id) {
-          reject('You are not allowed to access details about this user')
-        } else {
-          const devices = await getAll(Device, User, root.id)
-          const devicesInheritedByBoards = await getAll(Board, User, root.id, [
-            { model: Device },
-          ])
+  settings(root, args, context) {
+    return authenticated(context, async (resolve, reject) => {
+      if (context.auth.userId !== root.id) {
+        reject("You are not allowed to perform this operation")
+      } else {
+        const userFound = await User.find({ where: { id: root.id } })
 
-          resolve([...devices, ...devicesInheritedByBoards])
-          context.billingUpdater.update(QUERY_COST * devices.length)
-        }
-      }),
-    )
+        resolve({
+          timeZone: userFound.settings_timeZone,
+          language: userFound.settings_language,
+          lengthAndMass: userFound.settings_lengthAndMass,
+          temperature: userFound.settings_temperature,
+          dateFormat: userFound.settings_dateFormat,
+          timeFormat: userFound.settings_timeFormat,
+        })
+        context.billingUpdater.update(QUERY_COST)
+      }
+    })
+  },
+  devices(root, args, context) {
+    return authenticated(context, async (resolve, reject) => {
+      if (context.auth.userId !== root.id) {
+        reject("You are not allowed to perform this operation")
+      } else {
+        const devicesInheritedByBoards = await getAll(Board, User, root.id, [
+          { model: Device },
+        ])
+
+        const devices = devicesInheritedByBoards.reduce(
+          (acc, curr) => [...acc, ...curr.devices],
+          []
+        )
+
+        resolve(devices)
+        context.billingUpdater.update(QUERY_COST * devices.length)
+      }
+    })
+  },
+  deviceCount(root, args, context) {
+    return authenticated(context, async (resolve, reject) => {
+      if (context.auth.userId !== root.id) {
+        reject("You are not allowed to perform this operation")
+      } else {
+        //TODO: use a count instead
+        const devicesInheritedByBoards = await getAll(Board, User, root.id, [
+          { model: Device },
+        ])
+
+        const devices = devicesInheritedByBoards.reduce(
+          (acc, curr) => [...acc, ...curr.devices],
+          []
+        )
+
+        resolve(devices.length)
+      }
+    })
+  },
+  pendingBoardShares(root, args, context) {
+    return authenticated(context, async (resolve, reject) => {
+      if (context.auth.userId !== root.id) {
+        reject("You are not allowed to perform this operation")
+      } else {
+        const pendingBoardShares = await PendingBoardShare.findAll({
+          where: { receiverId: context.auth.userId },
+        })
+
+        resolve(pendingBoardShares)
+        context.billingUpdater.update(QUERY_COST * pendingBoardShares.length)
+      }
+    })
+  },
+  pendingBoardShareCount(root, args, context) {
+    return authenticated(context, async (resolve, reject) => {
+      if (context.auth.userId !== root.id) {
+        reject("You are not allowed to perform this operation")
+      } else {
+        const pendingBoardShareCount = await PendingBoardShare.count({
+          where: { receiverId: context.auth.userId },
+        })
+
+        resolve(pendingBoardShareCount)
+      }
+    })
+  },
+  pendingOwnerChanges(root, args, context) {
+    return authenticated(context, async (resolve, reject) => {
+      if (context.auth.userId !== root.id) {
+        reject("You are not allowed to perform this operation")
+      } else {
+        const pendingOwnerChanges = await PendingOwnerChange.findAll({
+          where: { newOwnerId: context.auth.userId },
+        })
+
+        resolve(pendingOwnerChanges)
+        context.billingUpdater.update(QUERY_COST * pendingOwnerChanges.length)
+      }
+    })
+  },
+  pendingOwnerChangeCount(root, args, context) {
+    return authenticated(context, async (resolve, reject) => {
+      if (context.auth.userId !== root.id) {
+        reject("You are not allowed to perform this operation")
+      } else {
+        const pendingOwnerChanges = await PendingOwnerChange.count({
+          where: { newOwnerId: context.auth.userId },
+        })
+
+        resolve(pendingOwnerChanges)
+      }
+    })
+  },
+  boardCount(root, args, context) {
+    return authenticated(context, async (resolve, reject) => {
+      if (context.auth.userId !== root.id) {
+        reject("You are not allowed to perform this operation")
+      } else {
+        // TODO: use count query instead
+        const boards = await getAll(Board, User, root.id)
+
+        resolve(boards.length)
+      }
+    })
   },
   boards(root, args, context) {
-    return logErrorsPromise(
-      'User boards resolver',
-      904,
-      authenticated(context, async (resolve, reject) => {
-        /* istanbul ignore if - this should never be the case, so the error is not reproducible */
-        if (context.auth.userId !== root.id) {
-          reject('You are not allowed to access details about this user')
-        } else {
-          const boards = await getAll(Board, User, root.id)
+    return authenticated(context, async (resolve, reject) => {
+      if (context.auth.userId !== root.id) {
+        reject("You are not allowed to perform this operation")
+      } else {
+        const boards = await getAll(Board, User, root.id)
 
-          resolve(boards)
-          context.billingUpdater.update(QUERY_COST * boards.length)
-        }
-      }),
-    )
+        resolve(boards)
+        context.billingUpdater.update(QUERY_COST * boards.length)
+      }
+    })
+  },
+  notificationCount(root, args, context) {
+    return authenticated(context, async (resolve, reject) => {
+      if (context.auth.userId !== root.id) {
+        reject("You are not allowed to perform this operation")
+      } else {
+        const devicesInheritedByBoards = await getAll(Board, User, root.id, [
+          { model: Device, include: [{ model: Notification }] },
+        ])
+
+        // flattens the notifications
+        const allNotifications = devicesInheritedByBoards.reduce(
+          (acc, board) => [
+            ...acc,
+            ...board.devices.reduce(
+              (acc, device) => [...acc, ...device.notifications],
+              []
+            ),
+          ],
+          []
+        )
+
+        // count not visualized notifications
+        const totalCount = allNotifications.filter(
+          notification =>
+            notification.visualized.indexOf(context.auth.userId) === -1
+        ).length
+
+        resolve(totalCount)
+      }
+    })
   },
   notifications(root, args, context) {
-    return logErrorsPromise(
-      'User devices resolver',
-      119,
-      authenticated(context, async (resolve, reject) => {
-        if (context.auth.userId !== root.id) {
-          reject('You are not allowed to access details about this user')
-        } else {
-          const directlyOwnedDevices = await getAll(Device, User, root.id, [
-            { model: Notification },
-          ])
-          const devicesInheritedByBoards = await getAll(Board, User, root.id, [
-            { model: Device, include: [{ model: Notification }] },
-          ])
+    return authenticated(context, async (resolve, reject) => {
+      if (context.auth.userId !== root.id) {
+        reject("You are not allowed to perform this operation")
+      } else {
+        const devicesInheritedByBoards = await getAll(Board, User, root.id, [
+          { model: Device, include: [{ model: Notification }] },
+        ])
 
-          const directlyOwnedNotifications = directlyOwnedDevices.reduce(
-            (acc, device) => [...acc, ...device.notifications],
-            [],
-          )
-          const notificationsInheritedByBoards = devicesInheritedByBoards.reduce(
-            (acc, board) => [
-              ...acc,
-              ...board.devices.reduce(
-                (acc, device) => [...acc, ...device.notifications],
-                [],
-              ),
-            ],
-            [],
-          )
+        // flattens the notifications
+        const allNotifications = devicesInheritedByBoards.reduce(
+          (acc, board) => [
+            ...acc,
+            ...board.devices.reduce(
+              (acc, device) => [...acc, ...device.notifications],
+              []
+            ),
+          ],
+          []
+        )
 
-          const allNotifications = mergeIgnoringDuplicates(
-            directlyOwnedNotifications,
-            notificationsInheritedByBoards,
-          )
-          resolve(allNotifications)
-          context.billingUpdater.update(QUERY_COST * allNotifications.length)
-        }
-      }),
-    )
+        // the database returns ISO-format dates, so sorting the strings without casting is fine
+        const compareDates = (a, b) =>
+          a.date > b.date ? -1 : a.date === b.date ? 0 : 1
+
+        resolve(allNotifications.sort(compareDates))
+        context.billingUpdater.update(QUERY_COST * allNotifications.length)
+      }
+    })
   },
   values(root, args, context) {
-    return logErrorsPromise(
-      'User values resolver',
-      108,
-      authenticated(context, async (resolve, reject) => {
-        /* istanbul ignore if - this should never be the case, so the error is not reproducible */
-        if (context.auth.userId !== root.id) {
-          reject('You are not allowed to access details about this user')
-        } else {
-          // TODO: fetch all the values (also inherited ones) and tag them with the right __resolveType
-          const valueModels = [
-            FloatValue,
-            StringValue,
-            BoolValue,
-            ColourValue,
-            PlotValue,
-            StringPlotValue,
-            MapValue,
-          ]
-          const directlySharedValues = await Promise.all(valueModels.map(Model => getAll(Model, User, root.id)))
-          const flattenedDirectlySharedValues = directlySharedValues.reduce(
-            (acc, curr) => [...acc, ...curr],
-            [],
-          )
-          const valuesInheritedFromDevices = await getAll(
-            Device,
-            User,
-            root.id,
-            valueModels.map(Model => ({ model: Model })),
-          )
-          const flattenedValuesInheritedFromDevices = valuesInheritedFromDevices.reduce(
-            (acc, device) => [
-              ...acc,
-              ...device.floatValues,
-              ...device.stringValues,
-              ...device.boolValues,
-              ...device.colourValues,
-              ...device.plotValues,
-              ...device.stringPlotValues,
-              ...device.mapValues,
-            ],
-            [],
-          )
+    return authenticated(context, async (resolve, reject) => {
+      if (context.auth.userId !== root.id) {
+        reject("You are not allowed to perform this operation")
+      } else {
+        // TODO: tag the values with the right __resolveType
+        const valueModels = [
+          FloatValue,
+          StringValue,
+          BooleanValue,
+          PlotValue,
+          StringPlotValue,
+          MapValue,
+        ]
 
-          const valuesInheritedFromBoards = await getAll(Board, User, root.id, [
-            {
-              model: Device,
-              include: valueModels.map(Model => ({ model: Model })),
-            },
-          ])
-          const flattenedValuesInheritedFromBoards = valuesInheritedFromBoards.reduce(
-            (acc, curr) => [
-              ...acc,
-              ...curr.devices.reduce(
-                (acc, device) => [
-                  ...acc,
-                  ...device.floatValues,
-                  ...device.stringValues,
-                  ...device.boolValues,
-                  ...device.colourValues,
-                  ...device.plotValues,
-                  ...device.stringPlotValues,
-                  ...device.mapValues,
-                ],
-                [],
-              ),
-            ],
-            [],
-          )
+        const valuesInheritedFromBoards = await getAll(Board, User, root.id, [
+          {
+            model: Device,
+            include: valueModels.map(Model => ({ model: Model })),
+          },
+        ])
+        const flattenedAllValues = valuesInheritedFromBoards.reduce(
+          (acc, curr) => [
+            ...acc,
+            ...curr.devices.reduce(
+              (acc, device) => [
+                ...acc,
+                ...device.floatValues,
+                ...device.stringValues,
+                ...device.booleanValues,
+                ...device.plotValues,
+                ...device.stringPlotValues,
+                ...device.mapValues,
+              ],
+              []
+            ),
+          ],
+          []
+        )
 
-          const flattenedAllValues = mergeIgnoringDuplicates(
-            flattenedDirectlySharedValues,
-            flattenedValuesInheritedFromDevices,
-            flattenedValuesInheritedFromBoards,
-          )
+        resolve(flattenedAllValues)
+        context.billingUpdater.update(QUERY_COST * flattenedAllValues.length)
+      }
+    })
+  },
+  valueCount(root, args, context) {
+    return authenticated(context, async (resolve, reject) => {
+      if (context.auth.userId !== root.id) {
+        reject("You are not allowed to perform this operation")
+      } else {
+        // TODO: use a count instead
+        const valueModels = [
+          FloatValue,
+          StringValue,
+          BooleanValue,
+          PlotValue,
+          StringPlotValue,
+          MapValue,
+        ]
 
-          resolve(flattenedAllValues)
-          context.billingUpdater.update(QUERY_COST * flattenedAllValues.length)
-        }
-      }),
-    )
+        const valuesInheritedFromBoards = await getAll(Board, User, root.id, [
+          {
+            model: Device,
+            include: valueModels.map(Model => ({ model: Model })),
+          },
+        ])
+        const flattenedAllValues = valuesInheritedFromBoards.reduce(
+          (acc, curr) => [
+            ...acc,
+            ...curr.devices.reduce(
+              (acc, device) => [
+                ...acc,
+                ...device.floatValues,
+                ...device.stringValues,
+                ...device.booleanValues,
+                ...device.plotValues,
+                ...device.stringPlotValues,
+                ...device.mapValues,
+              ],
+              []
+            ),
+          ],
+          []
+        )
+
+        resolve(flattenedAllValues.length)
+      }
+    })
   },
   permanentTokens(root, args, context) {
-    return logErrorsPromise(
-      'user permanentTokens',
-      127,
-      authenticated(context, async (resolve, reject) => {
-        /* istanbul ignore if - this should never be the case, so the error is not reproducible */
-        if (context.auth.userId !== root.id) {
-          reject('You are not allowed to access details about this user')
-        } else {
-          const tokens = await PermanentToken.findAll({
-            where: { userId: root.id },
-          })
+    return authenticated(context, async (resolve, reject) => {
+      if (context.auth.userId !== root.id) {
+        reject("You are not allowed to perform this operation")
+      } else {
+        const tokens = await PermanentToken.findAll({
+          where: { userId: root.id },
+        })
 
-          resolve(tokens)
-          context.billingUpdater.update(QUERY_COST * tokens.length)
-        }
-      }),
-    )
+        resolve(tokens)
+        context.billingUpdater.update(QUERY_COST * tokens.length)
+      }
+    })
+  },
+  permanentTokenCount(root, args, context) {
+    return authenticated(context, async (resolve, reject) => {
+      if (context.auth.userId !== root.id) {
+        reject("You are not allowed to perform this operation")
+      } else {
+        const tokens = await PermanentToken.count({
+          where: { userId: root.id },
+        })
+
+        resolve(tokens)
+      }
+    })
   },
 })
 

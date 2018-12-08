@@ -1,12 +1,14 @@
 import {
   authenticated,
-  logErrorsPromise,
   findValue,
   authorized,
-  deviceToParents,
+  deviceToParent,
   notificationToParent,
-} from './utilities'
-import bcrypt from 'bcryptjs'
+  inheritAuthorized,
+  boardToParent,
+  valueToParent,
+} from "./utilities"
+import bcrypt from "bcryptjs"
 
 const QUERY_COST = 1
 
@@ -16,127 +18,121 @@ const QueryResolver = ({
   Board,
   FloatValue,
   StringValue,
-  BoolValue,
-  ColourValue,
+  BooleanValue,
   PlotValue,
   StringPlotValue,
   MapValue,
   Notification,
+  PlotNode,
+  StringPlotNode,
 }) => ({
   user(root, args, context) {
-    return new Promise(authenticated(
+    return authenticated(
       context,
-      (resolve) => {
+      resolve => {
         resolve({ id: context.auth.userId })
         context.billingUpdater.update(QUERY_COST)
       },
-      ['TEMPORARY', 'PERMANENT', 'PASSWORD_RECOVERY'],
-    ))
+      ["TEMPORARY", "PERMANENT", "PASSWORD_RECOVERY"]
+    )
   },
   device(root, args, context) {
-    return logErrorsPromise(
-      'device query',
-      105,
-      authorized(
-        args.id,
-        context,
-        Device,
-        User,
-        1,
-        async (resolve, reject, deviceFound) => {
-          resolve(deviceFound.dataValues)
+    return authorized(
+      args.id,
+      context,
+      Device,
+      User,
+      1,
+      async (resolve, reject, deviceFound) => {
+        resolve(deviceFound.dataValues)
 
-          context.billingUpdater.update(QUERY_COST)
-        },
-        deviceToParents(Board),
-      ),
+        context.billingUpdater.update(QUERY_COST)
+      },
+      deviceToParent(Board)
     )
   },
   board(root, args, context) {
-    return logErrorsPromise(
-      'board query',
-      912,
-      authorized(
-        args.id,
-        context,
-        Board,
-        User,
-        1,
-        async (resolve, reject, boardFound) => {
-          resolve(boardFound.dataValues)
-          context.billingUpdater.update(QUERY_COST)
-        },
-      ),
+    return authorized(
+      args.id,
+      context,
+      Board,
+      User,
+      1,
+      async (resolve, reject, boardFound) => {
+        resolve(boardFound.dataValues)
+        context.billingUpdater.update(QUERY_COST)
+      },
+      boardToParent
     )
   },
   value(root, args, context) {
-    return logErrorsPromise(
-      'value query',
-      114,
-      authenticated(context, async (resolve, reject) => {
-        const userFound = await User.find({
-          where: { id: context.auth.userId },
-        })
-        const valueFound = await findValue(
-          {
-            BoolValue,
-            FloatValue,
-            StringValue,
-            ColourValue,
-            PlotValue,
-            StringPlotValue,
-            MapValue,
-          },
-          Device,
-          Board,
-          { where: { id: args.id } },
-          userFound,
-        ).catch(e => reject(e))
+    return authenticated(context, async (resolve, reject) => {
+      const userFound = await User.find({
+        where: { id: context.auth.userId },
+      })
+      const valueFound = await findValue(
+        {
+          BooleanValue,
+          FloatValue,
+          StringValue,
+          PlotValue,
+          StringPlotValue,
+          MapValue,
+        },
+        Device,
+        Board,
+        { where: { id: args.id } },
+        userFound
+      ).catch(e => reject(e))
 
-        resolve(valueFound)
-        context.billingUpdater.update(QUERY_COST)
-      }),
-    )
-  },
-  verifyPassword(root, args, context) {
-    return logErrorsPromise(
-      'verifyPassword',
-      178,
-      authenticated(context, async (resolve, reject) => {
-        const userFound = await User.find({
-          where: { id: context.auth.userId },
-        })
-
-        if (!userFound) {
-          reject("User doesn't exist. Use `SignupUser` to create one")
-        } else if (
-          bcrypt.compareSync(args.password, userFound.dataValues.password)
-        ) {
-          resolve(true)
-        } else {
-          resolve(false)
-        }
-      }),
-    )
+      resolve(valueFound)
+      context.billingUpdater.update(QUERY_COST)
+    })
   },
   notification(root, args, context) {
-    return logErrorsPromise(
-      'notificationQuery',
-      300,
-      inheritAuthorized(
-        args.id,
-        Notification,
-        User,
-        notificationFound => notificationFound.deviceId,
-        context,
-        Device,
-        1,
-        async (resolve, reject, notificationFound) => {
-          resolve(notificationFound)
-          context.billingUpdater.update(QUERY_COST)
-        },
-        deviceToParents(Board),
-      ),
+    return inheritAuthorized(
+      args.id,
+      Notification,
+      User,
+      notificationFound => notificationFound.deviceId,
+      context,
+      Device,
+      1,
+      async (resolve, reject, notificationFound) => {
+        resolve(notificationFound)
+        context.billingUpdater.update(QUERY_COST)
+      },
+      deviceToParent(Board)
+    )
+  },
+  plotNode(root, args, context) {
+    return inheritAuthorized(
+      args.id,
+      PlotNode,
+      User,
+      plotNodeFound => plotNodeFound.plotId,
+      context,
+      PlotValue,
+      1,
+      async (resolve, reject, plotNodeFound) => {
+        resolve(plotNodeFound)
+      },
+      valueToParent(Board)
+    )
+  },
+  stringPlotNode(root, args, context) {
+    return inheritAuthorized(
+      args.id,
+      StringPlotNode,
+      User,
+      plotNodeFound => plotNodeFound.plotId,
+      context,
+      StringPlotValue,
+      1,
+      async (resolve, reject, plotNodeFound) => {
+        resolve(plotNodeFound)
+      },
+      valueToParent(Board)
     )
   },
 })

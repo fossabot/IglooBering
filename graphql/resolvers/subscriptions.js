@@ -3,55 +3,83 @@ import {
   subscriptionFilterOwnedOrShared,
   socketToDeviceMap,
   authorized,
-  deviceToParents,
+  deviceToParent,
   logErrorsPromise,
-  instancesToSharedIds,
-} from './utilities'
+  instanceToSharedIds,
+} from "./utilities"
 
 const subscriptionResolver = (pubsub, { User, Device, Board }) => ({
-  boardCreated: subscriptionFilterOnlyMine('boardCreated', pubsub),
-  deviceCreated: subscriptionFilterOwnedOrShared('deviceCreated', pubsub),
-  valueCreated: subscriptionFilterOwnedOrShared('valueCreated', pubsub),
-  tokenCreated: subscriptionFilterOnlyMine('tokenCreated', pubsub),
-  plotNodeCreated: subscriptionFilterOwnedOrShared('plotNodeCreated', pubsub),
+  boardSharedWithYou: subscriptionFilterOnlyMine("boardSharedWithYou", pubsub),
+  boardStoppedSharingWithYou: subscriptionFilterOnlyMine(
+    "boardStoppedSharingWithYou",
+    pubsub
+  ),
+  boardShareDeclined: subscriptionFilterOnlyMine("boardShareDeclined", pubsub),
+  boardShareRevoked: subscriptionFilterOwnedOrShared(
+    "boardShareRevoked",
+    pubsub
+  ),
+  ownerChangeBegan: subscriptionFilterOnlyMine("ownerChangeBegan", pubsub),
+  ownerChangeAccepted: subscriptionFilterOnlyMine(
+    "ownerChangeAccepted",
+    pubsub
+  ),
+  ownerChangeDeclined: subscriptionFilterOnlyMine(
+    "ownerChangeDeclined",
+    pubsub
+  ),
+  ownerChangeRevoked: subscriptionFilterOnlyMine("ownerChangeRevoked", pubsub),
+  boardCreated: subscriptionFilterOnlyMine("boardCreated", pubsub),
+  deviceCreated: subscriptionFilterOwnedOrShared("deviceCreated", pubsub),
+  deviceMoved: subscriptionFilterOwnedOrShared("deviceMoved", pubsub),
+  valueCreated: subscriptionFilterOwnedOrShared("valueCreated", pubsub),
+  permanentTokenCreated: subscriptionFilterOnlyMine(
+    "permanentTokenCreated",
+    pubsub
+  ),
+  plotNodeCreated: subscriptionFilterOwnedOrShared("plotNodeCreated", pubsub),
   stringPlotNodeCreated: subscriptionFilterOwnedOrShared(
-    'stringPlotNodeCreated',
-    pubsub,
+    "stringPlotNodeCreated",
+    pubsub
   ),
   notificationCreated: subscriptionFilterOwnedOrShared(
-    'notificationCreated',
-    pubsub,
+    "notificationCreated",
+    pubsub
   ),
-  userUpdated: subscriptionFilterOnlyMine('userUpdated', pubsub),
-  deviceUpdated: subscriptionFilterOwnedOrShared('deviceUpdated', pubsub),
-  boardUpdated: subscriptionFilterOwnedOrShared('boardUpdated', pubsub),
-  valueUpdated: subscriptionFilterOwnedOrShared('valueUpdated', pubsub),
-  plotNodeUpdated: subscriptionFilterOwnedOrShared('plotNodeUpdated', pubsub),
+  userUpdated: subscriptionFilterOnlyMine("userUpdated", pubsub),
+  deviceUpdated: subscriptionFilterOwnedOrShared("deviceUpdated", pubsub),
+  boardUpdated: subscriptionFilterOwnedOrShared("boardUpdated", pubsub),
+  valueUpdated: subscriptionFilterOwnedOrShared("valueUpdated", pubsub),
+  plotNodeUpdated: subscriptionFilterOwnedOrShared("plotNodeUpdated", pubsub),
   stringPlotNodeUpdated: subscriptionFilterOwnedOrShared(
-    'stringPlotNodeUpdated',
-    pubsub,
+    "stringPlotNodeUpdated",
+    pubsub
   ),
   notificationUpdated: subscriptionFilterOwnedOrShared(
-    'notificationUpdated',
-    pubsub,
+    "notificationUpdated",
+    pubsub
   ),
   notificationDeleted: subscriptionFilterOwnedOrShared(
-    'notificationDeleted',
-    pubsub,
+    "notificationDeleted",
+    pubsub
   ),
-  valueDeleted: subscriptionFilterOwnedOrShared('valueDeleted', pubsub),
-  deviceDeleted: subscriptionFilterOwnedOrShared('deviceDeleted', pubsub),
-  boardDeleted: subscriptionFilterOwnedOrShared('boardDeleted', pubsub),
-  plotNodeDeleted: subscriptionFilterOwnedOrShared('plotNodeDeleted', pubsub),
+  valueDeleted: subscriptionFilterOwnedOrShared("valueDeleted", pubsub),
+  deviceDeleted: subscriptionFilterOwnedOrShared("deviceDeleted", pubsub),
+  boardDeleted: subscriptionFilterOwnedOrShared("boardDeleted", pubsub),
+  userDeleted: subscriptionFilterOnlyMine("userDeleted", pubsub),
+  plotNodeDeleted: subscriptionFilterOwnedOrShared("plotNodeDeleted", pubsub),
   stringPlotNodeDeleted: subscriptionFilterOwnedOrShared(
-    'stringPlotNodeDeleted',
-    pubsub,
+    "stringPlotNodeDeleted",
+    pubsub
   ),
-  tokenDeleted: subscriptionFilterOnlyMine('tokenDeleted', pubsub),
+  permanentTokenDeleted: subscriptionFilterOnlyMine(
+    "permanentTokenDeleted",
+    pubsub
+  ),
   keepOnline: {
     subscribe: (root, args, context) =>
       logErrorsPromise(
-        'keepOnlineSubscription',
+        "keepOnlineSubscription",
         1000,
         authorized(
           args.deviceId,
@@ -59,11 +87,11 @@ const subscriptionResolver = (pubsub, { User, Device, Board }) => ({
           Device,
           User,
           2,
-          async (resolve, reject, deviceFound, deviceAndBoard) => {
+          async (resolve, reject, deviceFound, [_, boardFound]) => {
             const newDevice = await deviceFound.update({ online: true })
-            const userIds = await instancesToSharedIds(deviceAndBoard)
+            const userIds = await instanceToSharedIds(boardFound)
 
-            pubsub.publish('deviceUpdated', {
+            pubsub.publish("deviceUpdated", {
               deviceUpdated: newDevice.dataValues,
               userIds,
             })
@@ -73,10 +101,10 @@ const subscriptionResolver = (pubsub, { User, Device, Board }) => ({
               userIds,
             }
 
-            resolve(pubsub.asyncIterator('bogusIterator')) // this iterator will never send any data
+            resolve(pubsub.asyncIterator("bogusIterator")) // this iterator will never send any data
           },
-          deviceToParents(Board),
-        ),
+          deviceToParent(Board)
+        )
       ),
   },
 })

@@ -2,29 +2,35 @@ scalar DateTime
 
 scalar Json
 
+enum BoardPicture {
+  NORTHERN_LIGHTS
+  DENALI
+  FOX
+  PUFFIN
+  TREETOPS
+}
+
 # Payload returned after signing up
-type SignupUserPayload {
-  # user id
-  id: ID!
+type signUpPayload {
   # token used to authenticate, pass it as a bearer in the authentication header
   token: String!
+  user: User!
 }
 
 # Payload returned when authenticating
-type AuthenticateUserPayload {
-  # user id
-  id: ID!
+type logInPayload {
   # token used to authenticate, pass it as a bearer in the authentication header
   token: String!
+  user: User!
 }
 
 # Data needed to display the QR code when upgrading to 2-Factor Authentication
-type UpgradeTo2FactorPayload {
-  # totp secret
-  secret: String
-  # svg for the qr code
-  qrCode: String
-}
+# type UpgradeTo2FactorPayload {
+#   # totp secret
+#   secret: String
+#   # svg for the qr code
+#   qrCode: String
+# }
 
 enum Role {
   ADMIN
@@ -32,72 +38,116 @@ enum Role {
   SPECTATOR
 }
 
+enum LengthAndMass {
+  SI
+  IMPERIAL
+}
+
+enum Temperature {
+  CELSIUS
+  FARENHEIT
+  KELVIN
+}
+
+enum DateFormat {
+  DMY
+  MDY
+  YMD
+  YDM
+}
+
+enum TimeFormat {
+  H24
+  H12
+}
+
+enum TokenType {
+  DELETE_USER
+  CHANGE_EMAIL
+  GENERATE_PERMANENT_TOKEN
+  CHANGE_PASSWORD
+}
+
 # All available mutations
 type Mutation {
   # Gets an authentication token
-  AuthenticateUser(
-    email: String!
-    password: String!
-    twoFactorCode: String # include only if 2-Factor Authentication is active
-  ): AuthenticateUserPayload
+  logIn(email: String!, password: String!): logInPayload
+
+  # creates a token to perform special operations
+  createToken(password: String!, tokenType: TokenType!): String
 
   # Generates a permanent access token
-  GeneratePermanentAccessToken(
-    customName: String! # name of the token
-  ): AuthenticateUserPayload
+  createPermanentAccessToken(
+    name: String! # name of the token
+  ): logInPayload
 
   # removes a permanent access token
-  DeletePermanentAccesToken(id: ID!): ID
+  deletePermanentAccesToken(id: ID!): ID
 
   # Creates a new account
-  SignupUser(
-    email: String!
-    password: String!
-    displayName: String
-  ): SignupUserPayload
+  signUp(email: String!, password: String!, name: String!): signUpPayload
 
   # Sends an email with a llink to change the password
-  SendPasswordRecoveryEmail(email: String!): Boolean
+  sendPasswordRecoveryEmail(email: String!): Boolean
 
   # Upgrades a user to 2 factor authentication
-  UpgradeTo2FactorAuthentication: UpgradeTo2FactorPayload
+  # UpgradeTo2FactorAuthentication: UpgradeTo2FactorPayload
 
   # Changes the password of the authenticated user
-  ChangePassword(newPassword: String!): AuthenticateUserPayload
+  changePassword(newPassword: String!): logInPayload
 
-  ResendVerificationEmail: Boolean
+  resendVerificationEmail: Boolean
 
-  shareBoard(boardId: ID!, email: String!, role: Role!): Board
-  shareDevice(deviceId: ID!, email: String!, role: Role!): Device
-  shareValue(valueId: ID!, email: String!, role: Role!): Value
+  shareBoard(boardId: ID!, email: String!, role: Role!): PendingBoardShare
+  pendingBoardShare(id: ID!, role: Role!): PendingBoardShare
+  # returns the ID of the pending share that was revoked
+  revokePendingBoardShare(pendingBoardShareId: ID!): ID
+
+  # returns the ID of the accepted board
+  acceptPendingBoardShare(pendingBoardShareId: ID!): ID
+  # returns the ID of the accepted board
+  declinePendingBoardShare(pendingBoardShareId: ID!): ID
+
+  stopSharingBoard(boardId: ID!, email: String!): Board
+  leaveBoard(boardId: ID!): ID
+
+  changeOwner(boardId: ID!, email: String!): PendingOwnerChange
+  # returns the ID of the pending share that was revoked
+  revokePendingOwnerChange(pendingOwnerChangeId: ID!): ID
+
+  # returns the ID of the accepted board
+  acceptPendingOwnerChange(pendingOwnerChangeId: ID!): ID
+  # returns the ID of the accepted board
+  declinePendingOwnerChange(pendingOwnerChangeId: ID!): ID
+
+  changeRole(boardId: ID!, email: String!, newRole: Role!): Board
+
   # Creates a Board
-  CreateBoard(
-    customName: String!
-    avatar: String
-    favorite: Boolean
+  createBoard(
+    name: String!
+    avatar: BoardPicture
     index: Int
-    quietMode: Boolean
+    muted: Boolean
   ): Board
 
   # Creates a new Device
-  CreateDevice(
+  createDevice(
     # Product name, for example Igloo Thermostat
     deviceType: String
     # Custom name gave by the end-user to the device
-    customName: String!
-    # device icon, shown in Igloo Aurora
-    icon: String
+    name: String!
     # used to sort the devices in Igloo Aurora
     index: Int
     signalStatus: Float
     batteryStatus: Float
     batteryCharging: Boolean
-    boardId: ID
+    boardId: ID!
     firmware: String
+    muted: Boolean
   ): Device
 
   # Creates a new notification
-  CreateNotification(
+  createNotification(
     # device associated with the notification
     deviceId: ID!
     content: String! # optional if you want to change the date # date: DateTime
@@ -105,13 +155,13 @@ type Mutation {
   ): Notification
 
   # Creates a new FloatValue
-  CreateFloatValue(
+  createFloatValue(
     # device owning the value
     deviceId: ID!
     # whether the value should be READ_ONLY or READ_WRITE in Igloo Aurora
     permission: ValuePermission!
     # whether the value should be VISIBLE, HIDDEN or INVISIBLE in Igloo Aurora
-    relevance: ValueRelevance!
+    visibility: ValueVisibility
     # additional details about the value
     valueDetails: String
     value: Float!
@@ -120,27 +170,27 @@ type Mutation {
     # [min, max]
     boundaries: [Float!]
     # name of the value, displayed in Igloo Aurora
-    customName: String!
+    name: String!
     # tile size in Igloo Aurora
     tileSize: TileSize
     index: Int
   ): FloatValue
 
   # Creates a StringValue
-  CreateStringValue(
+  createStringValue(
     # device owning the value
     deviceId: ID!
     # whether the value should be READ_ONLY or READ_WRITE in Igloo Aurora
     permission: ValuePermission!
     # whether the value should be VISIBLE, HIDDEN or INVISIBLE in Igloo Aurora
-    relevance: ValueRelevance!
+    visibility: ValueVisibility
     # additional details about the value
     valueDetails: String
     value: String!
     # max length of the string
     maxChars: Int
     # name of the value, displayed in Igloo Aurora
-    customName: String!
+    name: String!
     # tile size in Igloo Aurora
     tileSize: TileSize
     # allowed values for the string
@@ -149,56 +199,35 @@ type Mutation {
   ): StringValue
 
   # Creates a BooleanValue
-  CreateBooleanValue(
+  createBooleanValue(
     # device owning the value
     deviceId: ID!
     # whether the value should be READ_ONLY or READ_WRITE in Igloo Aurora
     permission: ValuePermission!
     # whether the value should be VISIBLE, HIDDEN or INVISIBLE in Igloo Aurora
-    relevance: ValueRelevance!
+    visibility: ValueVisibility
     # additional details about the value
     valueDetails: String
     value: Boolean!
     # name of the value, displayed in Igloo Aurora
-    customName: String!
+    name: String!
     # tile size in Igloo Aurora
     tileSize: TileSize
     index: Int
   ): BooleanValue
 
-  # Creates a ColourValue
-  CreateColourValue(
-    # device owning the value
-    deviceId: ID!
-    # whether the value should be READ_ONLY or READ_WRITE in Igloo Aurora
-    permission: ValuePermission!
-    # whether the value should be VISIBLE, HIDDEN or INVISIBLE in Igloo Aurora
-    relevance: ValueRelevance!
-    # additional details about the value
-    valueDetails: String
-    # hex code
-    value: String!
-    # name of the value, displayed in Igloo Aurora
-    customName: String!
-    # tile size in Igloo Aurora
-    tileSize: TileSize
-    # allowed colours
-    allowedValues: [String!]
-    index: Int
-  ): ColourValue
-
   # Creates a MapValue
-  CreateMapValue(
+  createMapValue(
     # device owning the value
     deviceId: ID!
     # whether the value should be READ_ONLY or READ_WRITE in Igloo Aurora
     permission: ValuePermission!
     # whether the value should be VISIBLE, HIDDEN or INVISIBLE in Igloo Aurora
-    relevance: ValueRelevance!
+    visibility: ValueVisibility
     # additional details about the value
     valueDetails: String
     # name of the value, displayed in Igloo Aurora
-    customName: String!
+    name: String!
     # tile size in Igloo Aurora
     tileSize: TileSize
     # GEOJson string
@@ -210,13 +239,13 @@ type Mutation {
   ): MapValue
 
   # Creates a new PlotValue
-  CreatePlotValue(
+  createPlotValue(
     # device owning the value
     deviceId: ID!
     # whether the value should be READ_ONLY or READ_WRITE in Igloo Aurora
     permission: ValuePermission!
     # whether the value should be VISIBLE, HIDDEN or INVISIBLE in Igloo Aurora
-    relevance: ValueRelevance!
+    visibility: ValueVisibility
     # additional details about the value
     valueDetails: String
     # used when the end-user reads or modifies the value
@@ -224,7 +253,7 @@ type Mutation {
     # [min, max]
     boundaries: [Float!]
     # name of the value, displayed in Igloo Aurora
-    customName: String!
+    name: String!
     # tile size in Igloo Aurora
     tileSize: TileSize
     # alert threshold, values above the threshold will be displayed in red in Igloo Aurora
@@ -233,7 +262,7 @@ type Mutation {
   ): PlotValue
 
   # Creates a new node in a plot
-  CreatePlotNode(
+  createPlotNode(
     # id of the parent plot
     plotId: ID!
     # default is now
@@ -242,17 +271,17 @@ type Mutation {
   ): PlotNode
 
   # Creates a new PlotValue
-  CreateStringPlotValue(
+  createStringPlotValue(
     # device owning the value
     deviceId: ID!
     # whether the value should be READ_ONLY or READ_WRITE in Igloo Aurora
     permission: ValuePermission!
     # whether the value should be VISIBLE, HIDDEN or INVISIBLE in Igloo Aurora
-    relevance: ValueRelevance!
+    visibility: ValueVisibility
     # additional details about the value
     valueDetails: String
     # name of the value, displayed in Igloo Aurora
-    customName: String!
+    name: String!
     # tile size in Igloo Aurora
     tileSize: TileSize
     # allowed labels
@@ -261,7 +290,7 @@ type Mutation {
   ): StringPlotValue
 
   # Creates a new node in a plot
-  CreateStringPlotNode(
+  createStringPlotNode(
     # id of the parent plot
     plotId: ID!
     # default is now
@@ -271,30 +300,34 @@ type Mutation {
 
   # Change user's data
   user(
-    email: String
-    timezone: String
-    language: String
-    # If active push notifications aren't sent
     quietMode: Boolean
     devMode: Boolean
-    nightMode: Boolean
     usageCap: Int
     paymentPlan: PaymentPlan
-    displayName: String
+    name: String
     profileIcon: String
     profileIconColor: String
   ): User
+  changeEmail(newEmail: String!): Boolean
+
+  settings(
+    timeZone: String
+    language: String
+    lengthAndMass: LengthAndMass
+    temperature: Temperature
+    dateFormat: DateFormat
+    timeFormat: TimeFormat
+  ): Settings
 
   updatePaymentInfo(stripeToken: String!): Boolean
 
   # changes board's data
   board(
     id: ID!
-    customName: String
-    avatar: String
-    favorite: Boolean
+    name: String
+    avatar: BoardPicture
     index: Int
-    quietMode: Boolean
+    muted: Boolean
   ): Board
 
   # changes device's data
@@ -304,17 +337,17 @@ type Mutation {
     # Product name, for example Igloo Thermostat
     deviceType: String
     # Custom name gave by the end-user to the device
-    customName: String
-    # device icon, shown in Igloo Aurora
-    icon: String
+    name: String
     # used to sort the devices in Igloo Aurora
     index: Int
     signalStatus: Float
     batteryStatus: Float
     batteryCharging: Boolean
-    boardId: ID
     firmware: String
+    muted: Boolean
   ): Device
+
+  moveDevice(deviceId: ID!, newBoardId: ID!): Device
 
   resetOnlineState(deviceId: ID!): Device
 
@@ -325,7 +358,7 @@ type Mutation {
     # whether the value should be READ_ONLY or READ_WRITE in Igloo Aurora
     permission: ValuePermission
     # whether the value should be VISIBLE, HIDDEN or INVISIBLE in Igloo Aurora
-    relevance: ValueRelevance
+    visibility: ValueVisibility
     # additional details about the value
     valueDetails: String
     value: Float
@@ -334,11 +367,13 @@ type Mutation {
     # [min, max]
     boundaries: [Float!]
     # name of the value, displayed in Igloo Aurora
-    customName: String
+    name: String
     # tile size in Igloo Aurora
     tileSize: TileSize
     index: Int
   ): FloatValue
+
+  incrementFloatValue(id: ID!, incrementBy: Float!): FloatValue
 
   # changes stringValue's data
   stringValue(
@@ -347,14 +382,14 @@ type Mutation {
     # whether the value should be READ_ONLY or READ_WRITE in Igloo Aurora
     permission: ValuePermission
     # whether the value should be VISIBLE, HIDDEN or INVISIBLE in Igloo Aurora
-    relevance: ValueRelevance
+    visibility: ValueVisibility
     # additional details about the value
     valueDetails: String
     value: String
     # max length of the string
     maxChars: Int
     # name of the value, displayed in Igloo Aurora
-    customName: String
+    name: String
     # tile size in Igloo Aurora
     tileSize: TileSize
     # allowed values for the string
@@ -369,37 +404,16 @@ type Mutation {
     # whether the value should be READ_ONLY or READ_WRITE in Igloo Aurora
     permission: ValuePermission
     # whether the value should be VISIBLE, HIDDEN or INVISIBLE in Igloo Aurora
-    relevance: ValueRelevance
+    visibility: ValueVisibility
     # additional details about the value
     valueDetails: String
     value: Boolean
     # name of the value, displayed in Igloo Aurora
-    customName: String
+    name: String
     # tile size in Igloo Aurora
     tileSize: TileSize
     index: Int
   ): BooleanValue
-
-  # changes colourValue's data
-  colourValue(
-    # value id
-    id: ID!
-    # whether the value should be READ_ONLY or READ_WRITE in Igloo Aurora
-    permission: ValuePermission
-    # whether the value should be VISIBLE, HIDDEN or INVISIBLE in Igloo Aurora
-    relevance: ValueRelevance
-    # additional details about the value
-    valueDetails: String
-    # hex code
-    value: String
-    # name of the value, displayed in Igloo Aurora
-    customName: String
-    # tile size in Igloo Aurora
-    tileSize: TileSize
-    # allowed colours
-    allowedValues: [String!]
-    index: Int
-  ): ColourValue
 
   # changes mapValue's data
   mapValue(
@@ -408,11 +422,11 @@ type Mutation {
     # whether the value should be READ_ONLY or READ_WRITE in Igloo Aurora
     permission: ValuePermission
     # whether the value should be VISIBLE, HIDDEN or INVISIBLE in Igloo Aurora
-    relevance: ValueRelevance
+    visibility: ValueVisibility
     # additional details about the value
     valueDetails: String
     # name of the value, displayed in Igloo Aurora
-    customName: String
+    name: String
     # tile size in Igloo Aurora
     tileSize: TileSize
     # GEOJson string
@@ -430,7 +444,7 @@ type Mutation {
     # whether the value should be READ_ONLY or READ_WRITE in Igloo Aurora
     permission: ValuePermission
     # whether the value should be VISIBLE, HIDDEN or INVISIBLE in Igloo Aurora
-    relevance: ValueRelevance
+    visibility: ValueVisibility
     # additional details about the value
     valueDetails: String
     # used when the end-user reads or modifies the value
@@ -438,7 +452,7 @@ type Mutation {
     # [min, max]
     boundaries: [Float!]
     # name of the value, displayed in Igloo Aurora
-    customName: String
+    name: String
     # tile size in Igloo Aurora
     tileSize: TileSize
     # alert threshold, values above the threshold will be displayed in red in Igloo Aurora
@@ -463,11 +477,11 @@ type Mutation {
     # whether the value should be READ_ONLY or READ_WRITE in Igloo Aurora
     permission: ValuePermission
     # whether the value should be VISIBLE, HIDDEN or INVISIBLE in Igloo Aurora
-    relevance: ValueRelevance
+    visibility: ValueVisibility
     # additional details about the value
     valueDetails: String
     # name of the value, displayed in Igloo Aurora
-    customName: String
+    name: String
     # tile size in Igloo Aurora
     tileSize: TileSize
     # allowed labels
@@ -495,7 +509,6 @@ type Mutation {
     date: DateTime
     # whether the notification has already been visualized
     visualized: Boolean
-    snackbarVisualized: Boolean
   ): Notification
 
   # delete notification
@@ -507,7 +520,7 @@ type Mutation {
   # delete board
   deleteBoard(id: ID!): ID
   # delte user
-  deleteUser(password: String!, twoFactorCode: String): ID
+  deleteUser: ID
   # delte plot node
   deletePlotNode(id: ID!): ID
   # delte string plot node
@@ -517,7 +530,7 @@ type Mutation {
 input DeviceFilter {
   OR: [DeviceFilter!]
   AND: [DeviceFilter!]
-  customName: String
+  name: String
   deviceType: String
 }
 
@@ -532,22 +545,10 @@ type Query {
   value(id: ID!): Value
   # get notification's data
   notification(id: ID!): Notification
-
-  verifyPassword(password: String!): Boolean
-
-  allDevices: [Device]
-  allBoard: [Board]
-  allValues: [Value]
-  allNotifications: [Notification]
-  allPlotNodes: [PlotNode]
-  allMaps: [Map]
-  allMapPositions: [MapPosition]
-  allFloatValues: [FloatValue]
-  allStringValues: [StringValue]
-  allPlotValues: [PlotValue]
-  allBooleanValues: [BooleanValue]
-  allColourValues: [ColourValue]
-  allMapValues: [MapValue]
+  # get plotNode's data
+  plotNode(id: ID!): PlotNode
+  # get stringPlotNode's data
+  stringPlotNode(id: ID!): StringPlotNode
 }
 
 type Subscription {
@@ -562,9 +563,29 @@ type Subscription {
   # subscribes to string plot node creations
   stringPlotNodeCreated: StringPlotNode
   #subscribes to token creations
-  tokenCreated: PermanentToken
+  permanentTokenCreated: PermanentToken
   # subscribes to notification creations
   notificationCreated: Notification
+  # subscribes to device creations
+  deviceMoved: Device
+  # subscribes to board shares to you
+  boardSharedWithYou: PendingBoardShare
+  # returns the id of the board accepted
+  boardShareAccepted: ID
+  # returns the id of the board declined
+  boardShareDeclined: ID
+  # returns the id of the board share that was revoked
+  boardShareRevoked: ID
+  # subscribes to owner change to you
+  ownerChangeBegan: PendingOwnerChange
+  # returns the id of the board accepted
+  ownerChangeAccepted: ID
+  # returns the id of the board declined
+  ownerChangeDeclined: ID
+  # returns the id of the owner change that was revoked
+  ownerChangeRevoked: ID
+  # subscribes to board unshares from you or you leave a board
+  boardStoppedSharingWithYou: ID
   # subscribes to value updates
   userUpdated: User
   # subscribes to device updates
@@ -585,12 +606,14 @@ type Subscription {
   plotNodeDeleted: ID
   # subscribes to plot node deletes
   stringPlotNodeDeleted: ID
-  # subscribes to device deleted
+  # subscribes to device deletes
   deviceDeleted: ID
-  # subscribes to board deleted
+  # subscribes to board deletes
   boardDeleted: ID
+  # subscribes to user deletes
+  userDeleted: ID
   # subscribes to token deletes
-  tokenDeleted: ID
+  permanentTokenDeleted: ID
   # subscribes to notification deletes
   notificationDeleted: ID
   # keeps the device's status set as online
@@ -602,28 +625,42 @@ enum PaymentPlan {
   PAYING
 }
 
+type Settings {
+  lengthAndMass: LengthAndMass!
+  temperature: Temperature!
+  timeFormat: TimeFormat!
+  dateFormat: DateFormat!
+  language: String!
+  timeZone: String!
+}
+
 type User {
-  id: ID! @isUnique
-  createdAt: DateTime!
-  updatedAt: DateTime!
-  email: String! @isUnique
+  id: ID!
+  email: String!
+  pendingBoardShareCount: Int!
+  pendingBoardShares: [PendingBoardShare!]!
+  pendingOwnerChangeCount: Int!
+  pendingOwnerChanges: [PendingOwnerChange!]!
+  boardCount: Int!
   boards: [Board!]!
+  deviceCount: Int
   devices: [Device!]!
+  valueCount: Int!
   values: [Value!]!
   notifications: [Notification!]!
+  notificationCount: Int!
+  permanentTokenCount: Int!
   permanentTokens: [PermanentToken!]!
   quietMode: Boolean
   devMode: Boolean
-  nightMode: Boolean
-  language: String
-  timezone: String
   monthUsage: Int
   paymentPlan: PaymentPlan
   usageCap: Int
-  displayName: String
+  name: String
   profileIcon: String
   profileIconColor: String
   emailIsVerified: Boolean
+  settings: Settings!
 }
 
 enum RoleExtended {
@@ -642,48 +679,66 @@ type Board {
   admins: [User!]!
   editors: [User!]!
   spectators: [User!]!
-  customName: String!
-  avatar: String
+  # returns null only if you don't have admin rights
+  pendingBoardShareCount: Int
+  # returns null only if you don't have admin rights
+  pendingBoardShares: [PendingBoardShare!]
+  # returns null only if you don't have admin rights
+  pendingOwnerChangeCount: Int
+  # returns null only if you don't have admin rights
+  pendingOwnerChanges: [PendingOwnerChange!]!
+  name: String!
+  avatar: BoardPicture!
+  deviceCount: Int
   devices: [Device!]!
-  favorite: Boolean!
-  notificationsCount: Int!
+  notificationCount: Int!
   index: Int!
-  quietMode: Boolean!
+  muted: Boolean!
+}
+
+type PendingBoardShare {
+  id: ID!
+  sender: User!
+  receiver: User!
+  role: Role!
+  board: Board!
+}
+
+type PendingOwnerChange {
+  id: ID!
+  formerOwner: User!
+  newOwner: User!
+  board: Board!
 }
 
 type PermanentToken {
   id: ID!
   user: User!
-  customName: String!
+  name: String!
 
   # lastUsed=null if never used
   lastUsed: DateTime
 }
 
 type Device {
-  id: ID! @isUnique
+  id: ID!
   index: Int!
   createdAt: DateTime!
   updatedAt: DateTime!
   # Product name, for example Igloo Thermostat
   deviceType: String
   # Custom name gave by the end-user to the device
-  customName: String
+  name: String
   values: [Value!]!
-  myRole: RoleExtended!
-  owner: User!
-  admins: [User!]!
-  editors: [User!]!
-  spectators: [User!]!
-  board: Board
-  icon: String
+  board: Board!
   notifications: [Notification!]!
-  notificationsCount: Int!
+  notificationCount: Int!
   online: Boolean
   signalStatus: Float
   batteryStatus: Float
   batteryCharging: Boolean
   firmware: String
+  muted: Boolean!
 }
 
 enum ValuePermission {
@@ -691,7 +746,7 @@ enum ValuePermission {
   READ_WRITE
 }
 
-enum ValueRelevance {
+enum ValueVisibility {
   VISIBLE
   HIDDEN
   INVISIBLE
@@ -705,17 +760,17 @@ enum TileSize {
 }
 
 type Notification {
-  id: ID! @isUnique
+  id: ID!
   device: Device!
+  board: Board!
   user: User!
   content: String!
   date: DateTime!
   visualized: Boolean!
-  snackbarVisualized: Boolean!
 }
 
 type PlotNode {
-  id: ID! @isUnique
+  id: ID!
   device: Device!
   plot: PlotValue!
   user: User!
@@ -724,7 +779,7 @@ type PlotNode {
 }
 
 type StringPlotNode {
-  id: ID! @isUnique
+  id: ID!
   device: Device!
   plot: StringPlotValue!
   user: User!
@@ -733,7 +788,7 @@ type StringPlotNode {
 }
 
 type Map {
-  id: ID! @isUnique
+  id: ID!
   deviceValue: Value!
   zoom: Int!
   position: MapPosition!
@@ -741,42 +796,34 @@ type Map {
 }
 
 type MapPosition {
-  id: ID! @isUnique
+  id: ID!
   latitude: Float!
   longitude: Float!
   map: Map!
 }
 
 interface Value {
-  id: ID! @isUnique
+  id: ID!
   createdAt: DateTime!
   updatedAt: DateTime!
   device: Device!
-  myRole: RoleExtended!
-  owner: User!
-  admins: [User!]!
-  editors: [User!]!
-  spectators: [User!]!
-  permission: ValuePermission! @defaultValue(value: READ_WRITE)
-  relevance: ValueRelevance! @defaultValue(value: NORMAL)
+  board: Board!
+  permission: ValuePermission!
+  visibility: ValueVisibility!
   valueDetails: String
   tileSize: TileSize!
-  customName: String
+  name: String
   index: Int
 }
 
 type FloatValue implements Value {
-  id: ID! @isUnique
+  id: ID!
   createdAt: DateTime!
   updatedAt: DateTime!
   device: Device!
-  myRole: RoleExtended!
-  owner: User!
-  admins: [User!]!
-  editors: [User!]!
-  spectators: [User!]!
-  permission: ValuePermission! @defaultValue(value: READ_WRITE)
-  relevance: ValueRelevance! @defaultValue(value: NORMAL)
+  board: Board!
+  permission: ValuePermission!
+  visibility: ValueVisibility!
   valueDetails: String
   value: Float!
   # used when the end-user reads or modifies the value
@@ -785,42 +832,34 @@ type FloatValue implements Value {
   boundaries: [Float!]
   tileSize: TileSize!
   index: Int
-  customName: String
+  name: String
 }
 
 type StringValue implements Value {
-  id: ID! @isUnique
+  id: ID!
   createdAt: DateTime!
   updatedAt: DateTime!
   device: Device!
-  myRole: RoleExtended!
-  owner: User!
-  admins: [User!]!
-  editors: [User!]!
-  spectators: [User!]!
-  permission: ValuePermission! @defaultValue(value: READ_WRITE)
-  relevance: ValueRelevance! @defaultValue(value: NORMAL)
+  board: Board!
+  permission: ValuePermission!
+  visibility: ValueVisibility!
   valueDetails: String
   value: String!
   maxChars: Int
   tileSize: TileSize!
   index: Int
-  customName: String
+  name: String
   allowedValues: [String!]
 }
 
 type PlotValue implements Value {
-  id: ID! @isUnique
+  id: ID!
   createdAt: DateTime!
   updatedAt: DateTime!
   device: Device!
-  myRole: RoleExtended!
-  owner: User!
-  admins: [User!]!
-  editors: [User!]!
-  spectators: [User!]!
-  permission: ValuePermission! @defaultValue(value: READ_WRITE)
-  relevance: ValueRelevance! @defaultValue(value: NORMAL)
+  board: Board!
+  permission: ValuePermission!
+  visibility: ValueVisibility!
   valueDetails: String
   value: [PlotNode!]!
   # used when the end-user reads or modifies the value
@@ -828,90 +867,57 @@ type PlotValue implements Value {
   # [min, max]
   boundaries: [Float!]
   tileSize: TileSize!
-  customName: String
+  name: String
   index: Int
 
   threshold: Float
 }
 
 type StringPlotValue implements Value {
-  id: ID! @isUnique
+  id: ID!
   createdAt: DateTime!
   updatedAt: DateTime!
   device: Device!
-  myRole: RoleExtended!
-  owner: User!
-  admins: [User!]!
-  editors: [User!]!
-  spectators: [User!]!
-  permission: ValuePermission! @defaultValue(value: READ_WRITE)
-  relevance: ValueRelevance! @defaultValue(value: NORMAL)
+  board: Board!
+  permission: ValuePermission!
+  visibility: ValueVisibility!
   valueDetails: String
   value: [StringPlotNode!]!
   tileSize: TileSize!
-  customName: String
+  name: String
   index: Int
   allowedValues: [String!]
 }
 
 type BooleanValue implements Value {
-  id: ID! @isUnique
+  id: ID!
   createdAt: DateTime!
   updatedAt: DateTime!
   device: Device!
-  myRole: RoleExtended!
-  owner: User!
-  admins: [User!]!
-  editors: [User!]!
-  spectators: [User!]!
-  permission: ValuePermission! @defaultValue(value: READ_WRITE)
-  relevance: ValueRelevance! @defaultValue(value: NORMAL)
+  board: Board!
+  permission: ValuePermission!
+  visibility: ValueVisibility!
   valueDetails: String
   value: Boolean!
   tileSize: TileSize!
-  customName: String
+  name: String
   index: Int
-}
-
-type ColourValue implements Value {
-  id: ID! @isUnique
-  createdAt: DateTime!
-  updatedAt: DateTime!
-  device: Device!
-  myRole: RoleExtended!
-  owner: User!
-  admins: [User!]!
-  editors: [User!]!
-  spectators: [User!]!
-  permission: ValuePermission! @defaultValue(value: READ_WRITE)
-  relevance: ValueRelevance! @defaultValue(value: NORMAL)
-  valueDetails: String
-  # hex value prefixed with #
-  value: String!
-  tileSize: TileSize!
-  customName: String
-  index: Int
-  allowedValues: [String!]
 }
 
 type MapValue implements Value {
-  id: ID! @isUnique
+  id: ID!
   createdAt: DateTime!
   updatedAt: DateTime!
   device: Device!
-  myRole: RoleExtended!
-  owner: User!
-  admins: [User!]!
-  editors: [User!]!
-  spectators: [User!]!
-  permission: ValuePermission! @defaultValue(value: READ_WRITE)
-  relevance: ValueRelevance! @defaultValue(value: NORMAL)
+  board: Board!
+  permission: ValuePermission!
+  visibility: ValueVisibility!
   valueDetails: String
   value: String
   latitude: Float
   longitude: Float
   height: Float
   tileSize: TileSize!
-  customName: String
+  name: String
   index: Int
 }

@@ -1,109 +1,327 @@
 import {
-  logErrorsPromise,
   authorizedScalarPropsResolvers,
   authorized,
-  rolesResolver,
   instanceToRole,
-} from './utilities'
+  boardToParent,
+  authenticated,
+  authorizationLevel,
+} from "./utilities"
+import { Op } from "sequelize"
 
 const QUERY_COST = 1
 
+const rolesResolver = (roleName, Board, User) => (root, args, context) =>
+  authorized(
+    root.id,
+    context,
+    Board,
+    User,
+    1,
+    async (resolve, reject, found) => {
+      const boardFound = await Board.find({
+        where: { id: root.id },
+        include: [{ model: User, as: roleName }],
+      })
+
+      resolve(boardFound[roleName])
+
+      context.billingUpdater.update(QUERY_COST * boardFound[roleName].length)
+    },
+    boardToParent
+  )
+
+const retrievePublicBoardScalarProp = (Board, prop) => (root, args, context) =>
+  authenticated(context, async (resolve, reject) => {
+    const boardFound = await Board.find({ where: { id: root.id } })
+    if (!boardFound) {
+      reject("The requested resource does not exist")
+    } else {
+      resolve(boardFound[prop])
+    }
+  })
+
 const BoardResolver = ({
-  User, Board, Device, Notification, joinTables,
+  User,
+  Board,
+  Device,
+  Notification,
+  joinTables,
+  PendingBoardShare,
+  PendingOwnerChange,
 }) => ({
-  ...authorizedScalarPropsResolvers(Board, User, [
-    'customName',
-    'avatar',
-    'createdAt',
-    'updatedAt',
-    'index',
-    'favorite',
-    'quietMode',
-  ]),
+  ...authorizedScalarPropsResolvers(
+    Board,
+    User,
+    ["avatar", "createdAt", "updatedAt", "index"],
+    boardToParent
+  ),
+  name: retrievePublicBoardScalarProp(Board, "name"),
+  muted(root, args, context) {
+    return authorized(
+      root.id,
+      context,
+      Board,
+      User,
+      1,
+      async (resolve, reject, boardFound, _, userFound) => {
+        resolve(boardFound.muted || userFound.quietMode)
+      },
+      boardToParent
+    )
+  },
   owner(root, args, context) {
-    return logErrorsPromise(
-      'user BoardResolver',
-      902,
-      authorized(
-        root.id,
-        context,
-        Board,
-        User,
-        1,
-        async (resolve, reject, boardFound) => {
-          resolve({
-            id: boardFound.ownerId,
-          })
+    return authorized(
+      root.id,
+      context,
+      Board,
+      User,
+      1,
+      async (resolve, reject, boardFound) => {
+        resolve({
+          id: boardFound.ownerId,
+        })
 
-          context.billingUpdater.update(QUERY_COST)
-        },
-      ),
+        context.billingUpdater.update(QUERY_COST)
+      },
+      boardToParent
     )
   },
-  admins: rolesResolver('Admin', 'boardId', 'Board', User, joinTables),
-  editors: rolesResolver('Editor', 'boardId', 'Board', User, joinTables),
-  spectators: rolesResolver('Spectator', 'boardId', 'Board', User, joinTables),
+  admins: rolesResolver("admin", Board, User),
+  editors: rolesResolver("editor", Board, User),
+  spectators: rolesResolver("spectator", Board, User),
   devices(root, args, context) {
-    return logErrorsPromise(
-      'devices BoardResolver',
-      903,
-      authorized(
-        root.id,
-        context,
-        Board,
-        User,
-        1,
-        async (resolve, reject, boardFound) => {
-          const devices = await Device.findAll({ where: { boardId: root.id } })
+    return authorized(
+      root.id,
+      context,
+      Board,
+      User,
+      1,
+      async (resolve, reject, boardFound) => {
+        const devices = await Device.findAll({ where: { boardId: root.id } })
 
-          resolve(devices)
+        resolve(devices)
 
-          context.billingUpdater.update(QUERY_COST * devices.length)
-        },
-      ),
+        context.billingUpdater.update(QUERY_COST * devices.length)
+      },
+      boardToParent
     )
   },
-  notificationsCount(root, args, context) {
-    return logErrorsPromise(
-      'notificationsCount BoardResolver',
-      915,
-      authorized(
-        root.id,
-        context,
-        Board,
-        User,
-        1,
-        async (resolve, reject, boardFound) => {
-          const devices = await Device.findAll({ where: { boardId: root.id } })
+  deviceCount(root, args, context) {
+    return authorized(
+      root.id,
+      context,
+      Board,
+      User,
+      1,
+      async (resolve, reject, boardFound) => {
+        const devices = await Device.count({ where: { boardId: root.id } })
 
-          const notificationsCountsPromises = devices.map(device =>
-            Notification.count({ where: { deviceId: device.id } }))
+        resolve(devices)
+      },
+      boardToParent
+    )
+  },
+  pendingBoardShares(root, args, context) {
+    return authorized(
+      root.id,
+      context,
+      Board,
+      User,
+      1,
+      async (resolve, reject, boardFound) => {
+        const userFound = await User.find({
+          where: { id: context.auth.userId },
+        })
 
-          const notificationsCounts = await Promise.all(notificationsCountsPromises)
-          const totalCount = notificationsCounts.reduce((a, b) => a + b, 0)
+        /*
+            users without admin authorization don't have access to pendingBoardShares,
+            instead of throwing error we return null to allow queries like
+            {
+              user{
+                  boards{
+                    pendingBoardShares{ id }
+                  }
+              }
+            }
+            also for users that don't have admin access to all of their boards
+          */
+        if ((await authorizationLevel(boardFound, userFound)) < 3) {
+          resolve(null)
+          return
+        }
 
-          resolve(totalCount)
-          context.billingUpdater.update(QUERY_COST)
-        },
-      ),
+        const pendingBoardShares = await PendingBoardShare.findAll({
+          where: { boardId: root.id },
+        })
+
+        resolve(pendingBoardShares)
+        context.billingUpdater.update(QUERY_COST * pendingBoardShares.length)
+      },
+      boardToParent
+    )
+  },
+  pendingBoardShareCount(root, args, context) {
+    return authorized(
+      root.id,
+      context,
+      Board,
+      User,
+      1,
+      async (resolve, reject, boardFound) => {
+        const userFound = await User.find({
+          where: { id: context.auth.userId },
+        })
+
+        /*
+            users without admin authorization don't have access to pendingBoardShares,
+            instead of throwing error we return null to allow queries like
+            {
+              user{
+                  boards{
+                    pendingBoardShares{ id }
+                  }
+              }
+            }
+            also for users that don't have admin access to all of their boards
+          */
+        if ((await authorizationLevel(boardFound, userFound)) < 3) {
+          resolve(null)
+          return
+        }
+
+        const pendingBoardShareCount = await PendingBoardShare.count({
+          where: { boardId: root.id },
+        })
+
+        resolve(pendingBoardShareCount)
+      },
+      boardToParent
+    )
+  },
+  pendingOwnerChanges(root, args, context) {
+    return authorized(
+      root.id,
+      context,
+      Board,
+      User,
+      1,
+      async (resolve, reject, boardFound) => {
+        const userFound = await User.find({
+          where: { id: context.auth.userId },
+        })
+
+        /*
+            users without admin authorization don't have access to pendingOwnerShare,
+            instead of throwing error we return null to allow queries like
+            {
+              user{
+                  boards{
+                    pendingBoardShares{ id }
+                  }
+              }
+            }
+            also for users that don't have admin access to all of their boards
+          */
+        if ((await authorizationLevel(boardFound, userFound)) < 3) {
+          resolve(null)
+          return
+        }
+
+        const pendingOwnerChanges = await PendingOwnerChange.findAll({
+          where: { boardId: root.id },
+        })
+
+        resolve(pendingOwnerChanges)
+        context.billingUpdater.update(QUERY_COST * pendingOwnerChanges.length)
+      },
+      boardToParent
+    )
+  },
+  pendingOwnerChangeCount(root, args, context) {
+    return authorized(
+      root.id,
+      context,
+      Board,
+      User,
+      1,
+      async (resolve, reject, boardFound) => {
+        const userFound = await User.find({
+          where: { id: context.auth.userId },
+        })
+
+        /*
+            users without admin authorization don't have access to pendingOwnerShare,
+            instead of throwing error we return null to allow queries like
+            {
+              user{
+                  boards{
+                    pendingBoardShares{ id }
+                  }
+              }
+            }
+            also for users that don't have admin access to all of their boards
+          */
+        if ((await authorizationLevel(boardFound, userFound)) < 3) {
+          resolve(null)
+          return
+        }
+
+        const pendingOwnerChangeCount = await PendingOwnerChange.count({
+          where: { boardId: root.id },
+        })
+
+        resolve(pendingOwnerChangeCount)
+      },
+      boardToParent
+    )
+  },
+  notificationCount(root, args, context) {
+    return authorized(
+      root.id,
+      context,
+      Board,
+      User,
+      1,
+      async (resolve, reject, boardFound) => {
+        // TODO: consider changing implementation to that of user.notifications
+        const devices = await Device.findAll({
+          where: { boardId: root.id },
+          attributes: ["id"],
+        })
+
+        const notificationCountsPromises = devices.map(device =>
+          Notification.count({
+            where: {
+              deviceId: device.id,
+              [Op.not]: {
+                visualized: { [Op.contains]: [context.auth.userId] },
+              },
+            },
+          })
+        )
+
+        const notificationCounts = await Promise.all(notificationCountsPromises)
+        const totalCount = notificationCounts.reduce((a, b) => a + b, 0)
+
+        resolve(totalCount)
+        context.billingUpdater.update(QUERY_COST)
+      },
+      boardToParent
     )
   },
   myRole(root, args, context) {
-    return logErrorsPromise(
-      'myRole BoardResolver',
-      931,
-      authorized(
-        root.id,
-        context,
-        Board,
-        User,
-        1,
-        async (resolve, reject, boardFound, boardAndParents, userFound) => {
-          const myRole = instanceToRole([boardFound], userFound)
+    return authorized(
+      root.id,
+      context,
+      Board,
+      User,
+      1,
+      async (resolve, reject, boardFound, boardAndParents, userFound) => {
+        const myRole = await instanceToRole(boardFound, userFound)
 
-          resolve(myRole)
-        },
-      ),
+        resolve(myRole)
+      },
+      boardToParent
     )
   },
 })
