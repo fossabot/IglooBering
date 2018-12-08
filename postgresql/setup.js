@@ -22,7 +22,7 @@ const {
   User,
   Board,
   Device,
-  BoolValue,
+  BooleanValue,
   FloatValue,
   StringValue,
   PlotValue,
@@ -43,7 +43,7 @@ const setup = async () => {
     await User.sync({ force: true })
     await Board.sync({ force: true })
     await Device.sync({ force: true })
-    await BoolValue.sync({ force: true })
+    await BooleanValue.sync({ force: true })
     await FloatValue.sync({ force: true })
     await StringValue.sync({ force: true })
     await PlotValue.sync({ force: true })

@@ -237,7 +237,7 @@ const PlotNodeResolver = (PlotNode, PlotValue, User, Device, Board) => ({
 
 export default (
   {
-    BoolValue,
+    BooleanValue,
     FloatValue,
     StringValue,
     PlotValue,
@@ -249,7 +249,7 @@ export default (
   Device,
   Board
 ) => ({
-  BooleanValue: BooleanValueResolver(BoolValue, User, Device, Board),
+  BooleanValue: BooleanValueResolver(BooleanValue, User, Device, Board),
   FloatValue: FloatValueResolver(FloatValue, User, Device, Board),
   StringValue: StringValueResolver(StringValue, User, Device, Board),
   PlotValue: PlotValueResolver(PlotValue, PlotNode, User, Device, Board),

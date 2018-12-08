@@ -21,7 +21,7 @@ const ValueResolver = (Values, User, Device, Board) => ({
         function indexToType(idx) {
           const modelName = Object.keys(Values)[idx]
 
-          return modelName === "BoolValue" ? "BooleanValue" : modelName
+          return modelName
         }
 
         // race all the models to find the looked for id, if a value is found

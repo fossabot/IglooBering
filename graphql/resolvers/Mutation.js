@@ -66,7 +66,7 @@ const MutationResolver = (
     Board,
     FloatValue,
     StringValue,
-    BoolValue,
+    BooleanValue,
     MapValue,
     PlotValue,
     PlotNode,
@@ -1189,7 +1189,7 @@ const MutationResolver = (
       [
         FloatValue,
         StringValue,
-        BoolValue,
+        BooleanValue,
         MapValue,
         PlotValue,
         StringPlotValue,
@@ -1222,7 +1222,7 @@ const MutationResolver = (
       [
         FloatValue,
         StringValue,
-        BoolValue,
+        BooleanValue,
         MapValue,
         PlotValue,
         StringPlotValue,
@@ -1258,12 +1258,12 @@ const MutationResolver = (
       User,
       Device,
       Board,
-      BoolValue,
-      "BoolValue",
+      BooleanValue,
+      "BooleanValue",
       [
         FloatValue,
         StringValue,
-        BoolValue,
+        BooleanValue,
         MapValue,
         PlotValue,
         StringPlotValue,
@@ -1279,7 +1279,7 @@ const MutationResolver = (
       [
         FloatValue,
         StringValue,
-        BoolValue,
+        BooleanValue,
         MapValue,
         PlotValue,
         StringPlotValue,
@@ -1295,7 +1295,7 @@ const MutationResolver = (
       [
         FloatValue,
         StringValue,
-        BoolValue,
+        BooleanValue,
         MapValue,
         PlotValue,
         StringPlotValue,
@@ -1311,7 +1311,7 @@ const MutationResolver = (
       [
         FloatValue,
         StringValue,
-        BoolValue,
+        BooleanValue,
         MapValue,
         PlotValue,
         StringPlotValue,
@@ -1731,7 +1731,7 @@ const MutationResolver = (
             })
 
             const modelsToUpdate = [
-              BoolValue,
+              BooleanValue,
               FloatValue,
               StringValue,
               MapValue,
@@ -1905,7 +1905,7 @@ const MutationResolver = (
       }
     ),
     booleanValue: genericValueMutation(
-      BoolValue,
+      BooleanValue,
       "BooleanValue",
       pubsub,
       User,
@@ -2328,7 +2328,7 @@ const MutationResolver = (
           {
             FloatValue,
             StringValue,
-            BoolValue,
+            BooleanValue,
             MapValue,
             PlotValue,
             StringPlotValue,
@@ -2378,7 +2378,7 @@ const MutationResolver = (
               [
                 FloatValue,
                 StringValue,
-                BoolValue,
+                BooleanValue,
                 MapValue,
                 PlotValue,
                 StringPlotValue,
@@ -2431,7 +2431,7 @@ const MutationResolver = (
                 [
                   FloatValue,
                   StringValue,
-                  BoolValue,
+                  BooleanValue,
                   MapValue,
                   PlotValue,
                   StringPlotValue,

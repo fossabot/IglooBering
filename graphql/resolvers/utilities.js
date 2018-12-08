@@ -387,10 +387,17 @@ const firstResolve = promises =>
 
 // !! doesn't check if the user has the authorizations needed
 const findAllValues = (
-  { BoolValue, FloatValue, StringValue, PlotValue, StringPlotValue, MapValue },
+  {
+    BooleanValue,
+    FloatValue,
+    StringValue,
+    PlotValue,
+    StringPlotValue,
+    MapValue,
+  },
   query
 ) => {
-  const booleanValues = BoolValue.findAll(query)
+  const booleanValues = BooleanValue.findAll(query)
   const floatValues = FloatValue.findAll(query)
   const stringValues = StringValue.findAll(query)
   const plotValues = PlotValue.findAll(query)
@@ -455,13 +462,20 @@ const findAllValues = (
 
 // try refactoring this with firstResolve
 const findValue = (
-  { BoolValue, FloatValue, StringValue, PlotValue, StringPlotValue, MapValue },
+  {
+    BooleanValue,
+    FloatValue,
+    StringValue,
+    PlotValue,
+    StringPlotValue,
+    MapValue,
+  },
   Device,
   Board,
   query,
   userFound
 ) => {
-  const booleanValue = BoolValue.find(query).then(
+  const booleanValue = BooleanValue.find(query).then(
     value =>
       value
         ? {

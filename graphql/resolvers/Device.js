@@ -13,7 +13,7 @@ const DeviceResolver = ({
   Device,
   User,
   Board,
-  BoolValue,
+  BooleanValue,
   FloatValue,
   StringValue,
   PlotValue,
@@ -52,7 +52,7 @@ const DeviceResolver = ({
         async (resolve, reject, deviceFound) => {
           const valuesFound = await findAllValues(
             {
-              BoolValue,
+              BooleanValue,
               FloatValue,
               StringValue,
               PlotValue,

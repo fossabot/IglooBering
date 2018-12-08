@@ -11,14 +11,14 @@ enum BoardPicture {
 }
 
 # Payload returned after signing up
-type SignupUserPayload {
+type signUpPayload {
   # token used to authenticate, pass it as a bearer in the authentication header
   token: String!
   user: User!
 }
 
 # Payload returned when authenticating
-type AuthenticateUserPayload {
+type logInPayload {
   # token used to authenticate, pass it as a bearer in the authentication header
   token: String!
   user: User!
@@ -70,7 +70,7 @@ enum TokenType {
 # All available mutations
 type Mutation {
   # Gets an authentication token
-  logIn(email: String!, password: String!): AuthenticateUserPayload
+  logIn(email: String!, password: String!): logInPayload
 
   # creates a token to perform special operations
   createToken(password: String!, tokenType: TokenType!): String
@@ -78,13 +78,13 @@ type Mutation {
   # Generates a permanent access token
   createPermanentAccessToken(
     name: String! # name of the token
-  ): AuthenticateUserPayload
+  ): logInPayload
 
   # removes a permanent access token
   deletePermanentAccesToken(id: ID!): ID
 
   # Creates a new account
-  signUp(email: String!, password: String!, name: String!): SignupUserPayload
+  signUp(email: String!, password: String!, name: String!): signUpPayload
 
   # Sends an email with a llink to change the password
   sendPasswordRecoveryEmail(email: String!): Boolean
@@ -93,7 +93,7 @@ type Mutation {
   # UpgradeTo2FactorAuthentication: UpgradeTo2FactorPayload
 
   # Changes the password of the authenticated user
-  changePassword(newPassword: String!): AuthenticateUserPayload
+  changePassword(newPassword: String!): logInPayload
 
   resendVerificationEmail: Boolean
 

@@ -29,7 +29,7 @@ const {
   PermanentToken,
   Device,
   Value,
-  BoolValue,
+  BooleanValue,
   FloatValue,
   StringValue,
   PlotValue,
@@ -59,7 +59,7 @@ const resolvers = {
   Subscription: SubscriptionsResolver(pubsub, SequelizeConnections),
   Value: ValueResolver(
     {
-      BoolValue,
+      BooleanValue,
       FloatValue,
       StringValue,
       PlotValue,
@@ -72,7 +72,7 @@ const resolvers = {
   ),
   ...ValueResolvers(
     {
-      BoolValue,
+      BooleanValue,
       FloatValue,
       StringValue,
       PlotValue,

@@ -19,7 +19,7 @@ const QueryResolver = ({
   Board,
   FloatValue,
   StringValue,
-  BoolValue,
+  BooleanValue,
   PlotValue,
   StringPlotValue,
   MapValue,
@@ -86,7 +86,7 @@ const QueryResolver = ({
         })
         const valueFound = await findValue(
           {
-            BoolValue,
+            BooleanValue,
             FloatValue,
             StringValue,
             PlotValue,

@@ -205,7 +205,7 @@ const databaseDefinition = sequelize => {
     },
   }
 
-  const BoolValue = sequelize.define("boolValue", {
+  const BooleanValue = sequelize.define("booleanValue", {
     ...Value,
     value: {
       type: Sequelize.BOOLEAN,
@@ -333,7 +333,7 @@ const databaseDefinition = sequelize => {
   StringPlotNode.belongsTo(StringPlotValue, { as: "plot" })
 
   const values = [
-    BoolValue,
+    BooleanValue,
     FloatValue,
     StringValue,
     MapValue,
@@ -398,7 +398,7 @@ const databaseDefinition = sequelize => {
     Board,
     PermanentToken,
     Device,
-    BoolValue,
+    BooleanValue,
     FloatValue,
     StringValue,
     PlotValue,
