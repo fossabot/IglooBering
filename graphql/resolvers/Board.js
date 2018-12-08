@@ -64,7 +64,7 @@ const BoardResolver = ({
       User,
       1,
       async (resolve, reject, boardFound, _, userFound) => {
-        resolve(boardFound.muted || userFound.muted)
+        resolve(boardFound.muted || userFound.quietMode)
       },
       boardToParent
     )

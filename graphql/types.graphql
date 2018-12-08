@@ -299,7 +299,7 @@ type Mutation {
 
   # Change user's data
   user(
-    muted: Boolean
+    quietMode: Boolean
     devMode: Boolean
     usageCap: Int
     paymentPlan: PaymentPlan
@@ -650,7 +650,7 @@ type User {
   notificationCount: Int!
   permanentTokenCount: Int!
   permanentTokens: [PermanentToken!]!
-  muted: Boolean
+  quietMode: Boolean
   devMode: Boolean
   monthUsage: Int
   paymentPlan: PaymentPlan

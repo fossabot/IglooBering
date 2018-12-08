@@ -68,7 +68,7 @@ describe("Device", () => {
     });
 
     const correctQuietMode =
-      mockDeviceData[0].muted || mockBoardData[0].muted || mockUserData[0].muted;
+      mockDeviceData[0].muted || mockBoardData[0].muted || mockUserData[0].quietMode;
     expect(mutedFound).toBe(correctQuietMode);
 
     done();

@@ -271,7 +271,7 @@ const MutationResolver = (
             const newUser = await User.create({
               email: args.email,
               password: encryptedPass,
-              muted: false,
+              quietMode: false,
               devMode: false,
               monthUsage: 0,
               paymentPlan: "FREE",
@@ -1482,9 +1482,9 @@ const MutationResolver = (
           if (args.name === "" || args.name === null) {
             reject("name cannot be null or an empty string")
             return
-          } else if (userFound.muted && isNotNullNorUndefined(args.muted)) {
+          } else if (userFound.quietMode && isNotNullNorUndefined(args.muted)) {
             reject(
-              "Cannot change muted at board level when it is enabled at user level"
+              "Cannot change muted at board level when quietMode is enabled at user level"
             )
             return
           } else if (Object.keys(args).length === 1) {
@@ -1536,11 +1536,11 @@ const MutationResolver = (
             reject("You cannot make a mutation with only the id field")
             return
           } else if (
-            (boardFound.muted || userFound.muted) &&
+            (boardFound.muted || userFound.quietMode) &&
             isNotNullNorUndefined(args.muted)
           ) {
             reject(
-              "Cannot change muted at device level when it is enabled at board or user level"
+              "Cannot change muted at device level when it is enabled at board level or quietMode is enabled at user level"
             )
             return
           }
@@ -2014,7 +2014,7 @@ const MutationResolver = (
 
           context.billingUpdater.update(MUTATION_COST)
 
-          if (!userFound.muted) {
+          if (!userFound.quietMode && !boardFound.muted && !deviceFound.muted) {
             const notificationSubscriptions = await WebPushSubscription.findAll(
               {
                 where: {

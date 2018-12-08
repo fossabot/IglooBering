@@ -77,7 +77,7 @@ const DeviceResolver = ({
       async (resolve, reject, deviceFound, [_, boardFound], userFound) => {
         // the Board resolver will take care of loading the other props,
         // it only needs to know the board id
-        resolve(deviceFound.muted || boardFound.muted || userFound.muted)
+        resolve(deviceFound.muted || boardFound.muted || userFound.quietMode)
 
         context.billingUpdater.update(QUERY_COST)
       },

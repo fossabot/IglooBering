@@ -15,7 +15,7 @@ module.exports = () => {
   const mockUserData = [
     {
       id: "mockUserId",
-      muted: false,
+      quietMode: false,
       createdAt: "2018-11-19T17:42:05.045Z",
       updateAt: "2018-11-19T17:42:05.045Z",
       hasOwnBoard: ({ id }) => ["mockBoardId"].includes(id),
@@ -25,7 +25,7 @@ module.exports = () => {
     },
     {
       id: "mockUserId2",
-      muted: false,
+      quietMode: false,
       createdAt: "2018-11-19T17:42:05.045Z",
       updateAt: "2018-11-19T17:42:05.045Z",
       hasOwnBoard: () => false,
@@ -35,7 +35,7 @@ module.exports = () => {
     },
     {
       id: "mockUserId3",
-      muted: false,
+      quietMode: false,
       createdAt: "2018-11-19T17:42:05.045Z",
       updateAt: "2018-11-19T17:42:05.045Z",
       hasOwnBoard: () => false,
@@ -45,7 +45,7 @@ module.exports = () => {
     },
     {
       id: "mockUserId4",
-      muted: false,
+      quietMode: false,
       createdAt: "2018-11-19T17:42:05.045Z",
       updateAt: "2018-11-19T17:42:05.045Z",
       hasOwnBoard: () => false,

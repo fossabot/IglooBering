@@ -49,7 +49,7 @@ describe("Board", () => {
       )(resolve, reject);
     });
 
-    const correctQuietMode = mockBoardData[0].muted || mockUserData[0].muted;
+    const correctQuietMode = mockBoardData[0].muted || mockUserData[0].quietMode;
     expect(mutedFound).toBe(correctQuietMode);
 
     done();

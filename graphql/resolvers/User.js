@@ -63,7 +63,12 @@ const UserResolver = ({
   PendingBoardShare,
   PendingOwnerChange,
 }) => ({
-  ...scalarProps(User, ["muted", "devMode", "monthUsage", "emailIsVerified"]),
+  ...scalarProps(User, [
+    "quietMode",
+    "devMode",
+    "monthUsage",
+    "emailIsVerified",
+  ]),
   email: retrievePublicUserScalarProp(User, "email", [
     "TEMPORARY",
     "PERMANENT",
