@@ -65,6 +65,7 @@ enum TokenType {
   DELETE_USER
   CHANGE_EMAIL
   GENERATE_PERMANENT_TOKEN
+  CHANGE_PASSWORD
 }
 
 # All available mutations

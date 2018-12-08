@@ -398,7 +398,7 @@ const MutationResolver = (
             sendPasswordUpdatedEmail(userFound.email)
           }
         },
-        ["TEMPORARY", "PERMANENT", "PASSWORD_RECOVERY"]
+        ["CHANGE_PASSWORD", "PASSWORD_RECOVERY"]
       )
     },
     resendVerificationEmail(root, args, context) {
