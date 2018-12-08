@@ -1,28 +1,25 @@
 module.exports = (queryInterface, Sequelize) => {
-  const Board = queryInterface.define('board', {
+  const Board = queryInterface.define("board", {
     id: {
       type: Sequelize.UUID,
       defaultValue: Sequelize.UUIDV4,
       primaryKey: true,
     },
-    customName: {
+    name: {
       type: Sequelize.STRING,
       allowNull: false,
     },
     avatar: {
       type: Sequelize.STRING,
     },
-    favorite: {
-      type: Sequelize.BOOLEAN,
-    },
     index: {
       type: Sequelize.INTEGER,
     },
-    quietMode: {
+    muted: {
       type: Sequelize.BOOLEAN,
     },
   })
-  Board.associate = function (models) {
+  Board.associate = function(models) {
     // associations can be defined here
   }
   return Board

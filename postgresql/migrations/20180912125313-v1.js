@@ -1,11 +1,11 @@
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    const ValuePermission = Sequelize.ENUM('READ_ONLY', 'READ_WRITE')
-    const ValueRelevance = Sequelize.ENUM('VISIBLE', 'HIDDEN', 'INVISIBLE')
-    const TileSize = Sequelize.ENUM('NORMAL', 'WIDE', 'TALL', 'LARGE')
-    const PaymentPlan = Sequelize.ENUM('FREE', 'PAYING')
+    const ValuePermission = Sequelize.ENUM("READ_ONLY", "READ_WRITE")
+    const ValueRelevance = Sequelize.ENUM("VISIBLE", "HIDDEN", "INVISIBLE")
+    const TileSize = Sequelize.ENUM("NORMAL", "WIDE", "TALL", "LARGE")
+    const PaymentPlan = Sequelize.ENUM("FREE", "PAYING")
 
-    await queryInterface.createTable('users', {
+    await queryInterface.createTable("users", {
       id: {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
@@ -25,19 +25,7 @@ module.exports = {
       twoFactorSecret: {
         type: Sequelize.STRING,
       },
-      language: {
-        type: Sequelize.STRING,
-      },
-      timezone: {
-        type: Sequelize.STRING,
-      },
       quietMode: {
-        type: Sequelize.BOOLEAN,
-      },
-      devMode: {
-        type: Sequelize.BOOLEAN,
-      },
-      nightMode: {
         type: Sequelize.BOOLEAN,
       },
       stripeCustomerId: {
@@ -52,7 +40,7 @@ module.exports = {
       usageCap: {
         type: Sequelize.INTEGER,
       },
-      displayName: {
+      name: {
         type: Sequelize.STRING,
       },
       profileIcon: {
@@ -64,9 +52,27 @@ module.exports = {
       emailIsVerified: {
         type: Sequelize.BOOLEAN,
       },
+      settings_language: {
+        type: Sequelize.STRING,
+      },
+      settings_timeZone: {
+        type: Sequelize.STRING,
+      },
+      settings_lengthAndMass: {
+        type: Sequelize.STRING,
+      },
+      settings_temperature: {
+        type: Sequelize.STRING,
+      },
+      settings_dateFormat: {
+        type: Sequelize.STRING,
+      },
+      settings_timeFormat: {
+        type: Sequelize.STRING,
+      },
     })
 
-    await queryInterface.createTable('boards', {
+    await queryInterface.createTable("boards", {
       id: {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
@@ -75,13 +81,13 @@ module.exports = {
       ownerId: {
         type: Sequelize.UUID,
         references: {
-          model: 'users', // name of Target model
-          key: 'id', // key in Target model that we're referencing
+          model: "users", // name of Target model
+          key: "id", // key in Target model that we're referencing
         },
-        onUpdate: 'CASCADE',
-        onDelete: 'SET NULL',
+        onUpdate: "CASCADE",
+        onDelete: "SET NULL",
       },
-      customName: {
+      name: {
         type: Sequelize.STRING,
         allowNull: false,
       },
@@ -94,12 +100,12 @@ module.exports = {
       index: {
         type: Sequelize.INTEGER,
       },
-      quietMode: {
+      muted: {
         type: Sequelize.BOOLEAN,
       },
     })
 
-    await queryInterface.createTable('devices', {
+    await queryInterface.createTable("devices", {
       id: {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
@@ -108,25 +114,25 @@ module.exports = {
       ownerId: {
         type: Sequelize.UUID,
         references: {
-          model: 'users', // name of Target model
-          key: 'id', // key in Target model that we're referencing
+          model: "users", // name of Target model
+          key: "id", // key in Target model that we're referencing
         },
-        onUpdate: 'CASCADE',
-        onDelete: 'SET NULL',
+        onUpdate: "CASCADE",
+        onDelete: "SET NULL",
       },
       boardId: {
         type: Sequelize.UUID,
         references: {
-          model: 'boards', // name of Target model
-          key: 'id', // key in Target model that we're referencing
+          model: "boards", // name of Target model
+          key: "id", // key in Target model that we're referencing
         },
-        onUpdate: 'CASCADE',
-        onDelete: 'SET NULL',
+        onUpdate: "CASCADE",
+        onDelete: "SET NULL",
       },
       deviceType: {
         type: Sequelize.STRING,
       },
-      customName: {
+      name: {
         type: Sequelize.STRING,
       },
       icon: {
@@ -150,9 +156,12 @@ module.exports = {
       firmware: {
         type: Sequelize.STRING,
       },
+      muted: {
+        type: Sequelize.BOOLEAN,
+      },
     })
 
-    await queryInterface.createTable('permanentTokens', {
+    await queryInterface.createTable("permanentTokens", {
       id: {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
@@ -161,13 +170,13 @@ module.exports = {
       userId: {
         type: Sequelize.UUID,
         references: {
-          model: 'users', // name of Target model
-          key: 'id', // key in Target model that we're referencing
+          model: "users", // name of Target model
+          key: "id", // key in Target model that we're referencing
         },
-        onUpdate: 'CASCADE',
-        onDelete: 'SET NULL',
+        onUpdate: "CASCADE",
+        onDelete: "SET NULL",
       },
-      customName: {
+      name: {
         type: Sequelize.STRING,
         allowNull: false,
       },
@@ -176,7 +185,7 @@ module.exports = {
       },
     })
 
-    await queryInterface.createTable('webPushSubscriptions', {
+    await queryInterface.createTable("webPushSubscriptions", {
       id: {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
@@ -185,11 +194,11 @@ module.exports = {
       userId: {
         type: Sequelize.UUID,
         references: {
-          model: 'users', // name of Target model
-          key: 'id', // key in Target model that we're referencing
+          model: "users", // name of Target model
+          key: "id", // key in Target model that we're referencing
         },
-        onUpdate: 'CASCADE',
-        onDelete: 'SET NULL',
+        onUpdate: "CASCADE",
+        onDelete: "SET NULL",
       },
       endpoint: {
         type: Sequelize.STRING(2000),
@@ -205,7 +214,7 @@ module.exports = {
       },
     })
 
-    await queryInterface.createTable('notifications', {
+    await queryInterface.createTable("notifications", {
       id: {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
@@ -214,20 +223,20 @@ module.exports = {
       userId: {
         type: Sequelize.UUID,
         references: {
-          model: 'users', // name of Target model
-          key: 'id', // key in Target model that we're referencing
+          model: "users", // name of Target model
+          key: "id", // key in Target model that we're referencing
         },
-        onUpdate: 'CASCADE',
-        onDelete: 'SET NULL',
+        onUpdate: "CASCADE",
+        onDelete: "SET NULL",
       },
       deviceId: {
         type: Sequelize.UUID,
         references: {
-          model: 'devices', // name of Target model
-          key: 'id', // key in Target model that we're referencing
+          model: "devices", // name of Target model
+          key: "id", // key in Target model that we're referencing
         },
-        onUpdate: 'CASCADE',
-        onDelete: 'SET NULL',
+        onUpdate: "CASCADE",
+        onDelete: "SET NULL",
       },
       content: {
         type: Sequelize.STRING,
@@ -237,9 +246,6 @@ module.exports = {
         defaultValue: Sequelize.NOW,
       },
       visualized: {
-        type: Sequelize.BOOLEAN,
-      },
-      snackbarVisualized: {
         type: Sequelize.BOOLEAN,
       },
     })
@@ -253,11 +259,11 @@ module.exports = {
       ownerId: {
         type: Sequelize.UUID,
         references: {
-          model: 'users', // name of Target model
-          key: 'id', // key in Target model that we're referencing
+          model: "users", // name of Target model
+          key: "id", // key in Target model that we're referencing
         },
-        onUpdate: 'CASCADE',
-        onDelete: 'SET NULL',
+        onUpdate: "CASCADE",
+        onDelete: "SET NULL",
       },
       valueDetails: {
         type: Sequelize.STRING,
@@ -279,14 +285,14 @@ module.exports = {
       },
     }
 
-    await queryInterface.createTable('boolValues', {
+    await queryInterface.createTable("boolValues", {
       ...Value,
       value: {
         type: Sequelize.BOOLEAN,
         allowNull: false,
       },
     })
-    await queryInterface.createTable('floatValues', {
+    await queryInterface.createTable("floatValues", {
       ...Value,
       value: {
         type: Sequelize.FLOAT,
@@ -299,7 +305,7 @@ module.exports = {
         type: Sequelize.ARRAY(Sequelize.FLOAT),
       },
     })
-    await queryInterface.createTable('stringValues', {
+    await queryInterface.createTable("stringValues", {
       ...Value,
       value: {
         type: Sequelize.TEXT,
@@ -312,7 +318,7 @@ module.exports = {
         type: Sequelize.ARRAY(Sequelize.STRING),
       },
     })
-    await queryInterface.createTable('plotValues', {
+    await queryInterface.createTable("plotValues", {
       ...Value,
       precision: {
         type: Sequelize.FLOAT,
@@ -324,7 +330,7 @@ module.exports = {
         type: Sequelize.ARRAY(Sequelize.FLOAT),
       },
     })
-    await queryInterface.createTable('plotNodes', {
+    await queryInterface.createTable("plotNodes", {
       id: {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
@@ -333,29 +339,29 @@ module.exports = {
       userId: {
         type: Sequelize.UUID,
         references: {
-          model: 'users', // name of Target model
-          key: 'id', // key in Target model that we're referencing
+          model: "users", // name of Target model
+          key: "id", // key in Target model that we're referencing
         },
-        onUpdate: 'CASCADE',
-        onDelete: 'SET NULL',
+        onUpdate: "CASCADE",
+        onDelete: "SET NULL",
       },
       deviceId: {
         type: Sequelize.UUID,
         references: {
-          model: 'devices', // name of Target model
-          key: 'id', // key in Target model that we're referencing
+          model: "devices", // name of Target model
+          key: "id", // key in Target model that we're referencing
         },
-        onUpdate: 'CASCADE',
-        onDelete: 'SET NULL',
+        onUpdate: "CASCADE",
+        onDelete: "SET NULL",
       },
       plotId: {
         type: Sequelize.UUID,
         references: {
-          model: 'plotValues', // name of Target model
-          key: 'id', // key in Target model that we're referencing
+          model: "plotValues", // name of Target model
+          key: "id", // key in Target model that we're referencing
         },
-        onUpdate: 'CASCADE',
-        onDelete: 'SET NULL',
+        onUpdate: "CASCADE",
+        onDelete: "SET NULL",
       },
       value: {
         type: Sequelize.FLOAT,
@@ -366,13 +372,13 @@ module.exports = {
         allowNull: false,
       },
     })
-    await queryInterface.createTable('stringPlotValues', {
+    await queryInterface.createTable("stringPlotValues", {
       ...Value,
       allowedValues: {
         type: Sequelize.ARRAY(Sequelize.STRING),
       },
     })
-    await queryInterface.createTable('stringPlotNodes', {
+    await queryInterface.createTable("stringPlotNodes", {
       id: {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
@@ -381,29 +387,29 @@ module.exports = {
       userId: {
         type: Sequelize.UUID,
         references: {
-          model: 'users', // name of Target model
-          key: 'id', // key in Target model that we're referencing
+          model: "users", // name of Target model
+          key: "id", // key in Target model that we're referencing
         },
-        onUpdate: 'CASCADE',
-        onDelete: 'SET NULL',
+        onUpdate: "CASCADE",
+        onDelete: "SET NULL",
       },
       deviceId: {
         type: Sequelize.UUID,
         references: {
-          model: 'devices', // name of Target model
-          key: 'id', // key in Target model that we're referencing
+          model: "devices", // name of Target model
+          key: "id", // key in Target model that we're referencing
         },
-        onUpdate: 'CASCADE',
-        onDelete: 'SET NULL',
+        onUpdate: "CASCADE",
+        onDelete: "SET NULL",
       },
       plotId: {
         type: Sequelize.UUID,
         references: {
-          model: 'stringPlotValues', // name of Target model
-          key: 'id', // key in Target model that we're referencing
+          model: "stringPlotValues", // name of Target model
+          key: "id", // key in Target model that we're referencing
         },
-        onUpdate: 'CASCADE',
-        onDelete: 'SET NULL',
+        onUpdate: "CASCADE",
+        onDelete: "SET NULL",
       },
 
       value: {
@@ -415,7 +421,7 @@ module.exports = {
         allowNull: false,
       },
     })
-    await queryInterface.createTable('mapValues', {
+    await queryInterface.createTable("mapValues", {
       ...Value,
       latitude: {
         type: Sequelize.FLOAT,
@@ -430,7 +436,7 @@ module.exports = {
         type: Sequelize.TEXT,
       },
     })
-    await queryInterface.createTable('colourValues', {
+    await queryInterface.createTable("colourValues", {
       ...Value,
       value: {
         type: Sequelize.STRING,
@@ -441,20 +447,20 @@ module.exports = {
     })
   },
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.dropTable('users')
-    await queryInterface.dropTable('boards')
-    await queryInterface.dropTable('devices')
-    await queryInterface.dropTable('permanentTokens')
-    await queryInterface.dropTable('webPushSubscriptions')
-    await queryInterface.dropTable('notifications')
-    await queryInterface.dropTable('floatValues')
-    await queryInterface.dropTable('stringValues')
-    await queryInterface.dropTable('boolValues')
-    await queryInterface.dropTable('colourValues')
-    await queryInterface.dropTable('mapValues')
-    await queryInterface.dropTable('plotValues')
-    await queryInterface.dropTable('stringPlotValues')
-    await queryInterface.dropTable('plotNodes')
-    await queryInterface.dropTable('stringPlotNodes')
+    await queryInterface.dropTable("users")
+    await queryInterface.dropTable("boards")
+    await queryInterface.dropTable("devices")
+    await queryInterface.dropTable("permanentTokens")
+    await queryInterface.dropTable("webPushSubscriptions")
+    await queryInterface.dropTable("notifications")
+    await queryInterface.dropTable("floatValues")
+    await queryInterface.dropTable("stringValues")
+    await queryInterface.dropTable("boolValues")
+    await queryInterface.dropTable("colourValues")
+    await queryInterface.dropTable("mapValues")
+    await queryInterface.dropTable("plotValues")
+    await queryInterface.dropTable("stringPlotValues")
+    await queryInterface.dropTable("plotNodes")
+    await queryInterface.dropTable("stringPlotNodes")
   },
 }

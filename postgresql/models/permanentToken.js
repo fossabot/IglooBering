@@ -1,11 +1,11 @@
 module.exports = (queryInterface, Sequelize) => {
-  const PermanentToken = queryInterface.define('permanentToken', {
+  const PermanentToken = queryInterface.define("permanentToken", {
     id: {
       type: Sequelize.UUID,
       defaultValue: Sequelize.UUIDV4,
       primaryKey: true,
     },
-    customName: {
+    name: {
       type: Sequelize.STRING,
       allowNull: false,
     },
@@ -13,7 +13,7 @@ module.exports = (queryInterface, Sequelize) => {
       type: Sequelize.DATE,
     },
   })
-  PermanentToken.associate = function (models) {
+  PermanentToken.associate = function(models) {
     PermanentToken.belongsTo(models.User)
     models.User.hasMany(PermanentToken)
   }

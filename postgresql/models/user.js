@@ -1,7 +1,7 @@
 module.exports = (queryInterface, Sequelize) => {
-  const PaymentPlan = Sequelize.ENUM('FREE', 'PAYING')
+  const PaymentPlan = Sequelize.ENUM("FREE", "PAYING")
 
-  const User = queryInterface.define('user', {
+  const User = queryInterface.define("user", {
     id: {
       type: Sequelize.UUID,
       defaultValue: Sequelize.UUIDV4,
@@ -21,19 +21,7 @@ module.exports = (queryInterface, Sequelize) => {
     twoFactorSecret: {
       type: Sequelize.STRING,
     },
-    language: {
-      type: Sequelize.STRING,
-    },
-    timezone: {
-      type: Sequelize.STRING,
-    },
     quietMode: {
-      type: Sequelize.BOOLEAN,
-    },
-    devMode: {
-      type: Sequelize.BOOLEAN,
-    },
-    nightMode: {
       type: Sequelize.BOOLEAN,
     },
     stripeCustomerId: {
@@ -48,7 +36,7 @@ module.exports = (queryInterface, Sequelize) => {
     usageCap: {
       type: Sequelize.INTEGER,
     },
-    displayName: {
+    name: {
       type: Sequelize.STRING,
     },
     profileIcon: {
@@ -60,8 +48,26 @@ module.exports = (queryInterface, Sequelize) => {
     emailIsVerified: {
       type: Sequelize.BOOLEAN,
     },
+    settings_language: {
+      type: Sequelize.STRING,
+    },
+    settings_timeZone: {
+      type: Sequelize.STRING,
+    },
+    settings_lengthAndMass: {
+      type: Sequelize.STRING,
+    },
+    settings_temperature: {
+      type: Sequelize.STRING,
+    },
+    settings_dateFormat: {
+      type: Sequelize.STRING,
+    },
+    settings_timeFormat: {
+      type: Sequelize.STRING,
+    },
   })
-  User.associate = function (models) {
+  User.associate = function(models) {
     // associations can be defined here
   }
   return User

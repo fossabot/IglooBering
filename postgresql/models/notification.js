@@ -1,5 +1,5 @@
 module.exports = (queryInterface, Sequelize) => {
-  const Notification = queryInterface.define('notification', {
+  const Notification = queryInterface.define("notification", {
     id: {
       type: Sequelize.UUID,
       defaultValue: Sequelize.UUIDV4,
@@ -8,11 +8,11 @@ module.exports = (queryInterface, Sequelize) => {
     userId: {
       type: Sequelize.UUID,
       references: {
-        model: 'users', // name of Target model
-        key: 'id', // key in Target model that we're referencing
+        model: "users", // name of Target model
+        key: "id", // key in Target model that we're referencing
       },
-      onUpdate: 'CASCADE',
-      onDelete: 'SET NULL',
+      onUpdate: "CASCADE",
+      onDelete: "SET NULL",
     },
     content: {
       type: Sequelize.STRING,
@@ -24,12 +24,9 @@ module.exports = (queryInterface, Sequelize) => {
     visualized: {
       type: Sequelize.BOOLEAN,
     },
-    snackbarVisualized: {
-      type: Sequelize.BOOLEAN,
-    },
   })
 
-  Notification.associate = function (models) {
+  Notification.associate = function(models) {
     Notification.belongsTo(models.User)
     models.User.hasMany(Notification)
   }

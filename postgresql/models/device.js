@@ -1,5 +1,5 @@
 module.exports = (queryInterface, Sequelize) => {
-  const Device = queryInterface.define('device', {
+  const Device = queryInterface.define("device", {
     id: {
       type: Sequelize.UUID,
       defaultValue: Sequelize.UUIDV4,
@@ -8,10 +8,7 @@ module.exports = (queryInterface, Sequelize) => {
     deviceType: {
       type: Sequelize.STRING,
     },
-    customName: {
-      type: Sequelize.STRING,
-    },
-    icon: {
+    name: {
       type: Sequelize.STRING,
     },
     index: {
@@ -32,8 +29,11 @@ module.exports = (queryInterface, Sequelize) => {
     firmware: {
       type: Sequelize.STRING,
     },
+    muted: {
+      type: Sequelize.BOOLEAN,
+    },
   })
-  Device.associate = function (models) {
+  Device.associate = function(models) {
     // associations can be defined here
   }
   return Device
