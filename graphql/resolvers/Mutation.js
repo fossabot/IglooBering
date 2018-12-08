@@ -366,6 +366,22 @@ const MutationResolver = (
           if (!userFound) {
             reject("User doesn't exist. Use `` to create one")
           } else {
+            // check password strength
+            const zxcvbnDictionary = [
+              userFound.email,
+              userFound.email.split("@")[0],
+              userFound.name,
+              "igloo",
+              "igloo aurora",
+              "aurora",
+            ]
+            if (zxcvbn(args.newPassword, zxcvbnDictionary).score < 2) {
+              reject(
+                "Password too weak, avoid easily guessable password or short ones"
+              )
+              return
+            }
+
             const encryptedPass = bcrypt.hashSync(args.newPassword, SALT_ROUNDS)
 
             const newUser = await userFound.update({
