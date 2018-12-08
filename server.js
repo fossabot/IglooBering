@@ -4,7 +4,7 @@ import jwt from "jwt-simple"
 import { createServer } from "http"
 import schema from "./graphql/schema"
 import graphQLServer from "./app"
-import { logger } from "./graphql/resolvers/utilities"
+import { log } from "./graphql/resolvers/utilities"
 import { socketToDeviceMap } from "./graphql/resolvers/utilities"
 import { Device } from "./postgresql/databaseConnection"
 import { pubsub } from "./shared"
@@ -19,10 +19,7 @@ const GRAPHQL_PORT = process.env.PORT || 3000
 
 const httpServer = createServer(graphQLServer)
 httpServer.listen(GRAPHQL_PORT, () => {
-  logger.info(
-    `GraphiQL is now running on http://localhost:${GRAPHQL_PORT}/graphiql`,
-    { label: "httpServer" }
-  )
+  log(`GraphiQL is now running on http://localhost:${GRAPHQL_PORT}/graphiql`, 0)
 
   new SubscriptionServer( // eslint-disable-line no-new
     {

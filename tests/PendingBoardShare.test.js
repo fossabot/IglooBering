@@ -49,11 +49,13 @@ describe("PendingBoardShare", () => {
     const usersWithAccesIds = ["mockUserId", "mockUserId2", "mockUserId3"];
 
     for (let userId of usersWithAccesIds) {
-      const receiverFound = await PendingBoardShareResolver.receiver(
-        { id: "mockPendingBoardShareId" },
-        {},
-        { auth: { userId, tokenType: "TEMPORARY" } }
-      );
+      const receiverFound = await new Promise((resolve, reject) => {
+        PendingBoardShareResolver.receiver(
+          { id: "mockPendingBoardShareId" },
+          {},
+          { auth: { userId, tokenType: "TEMPORARY" } }
+        )(resolve, reject);
+      });
 
       expect(receiverFound).toMatchObject({ id: mockPendingBoardShareData[0].receiverId });
     }
@@ -63,11 +65,13 @@ describe("PendingBoardShare", () => {
     const usersWithAccesIds = ["mockUserId", "mockUserId2", "mockUserId3"];
 
     for (let userId of usersWithAccesIds) {
-      const senderFound = await PendingBoardShareResolver.sender(
-        { id: "mockPendingBoardShareId" },
-        {},
-        { auth: { userId: "mockUserId", tokenType: "TEMPORARY" } }
-      );
+      const senderFound = await new Promise((resolve, reject) => {
+        PendingBoardShareResolver.sender(
+          { id: "mockPendingBoardShareId" },
+          {},
+          { auth: { userId: "mockUserId", tokenType: "TEMPORARY" } }
+        )(resolve, reject);
+      });
 
       expect(senderFound).toMatchObject({ id: mockPendingBoardShareData[0].senderId });
     }
@@ -77,11 +81,13 @@ describe("PendingBoardShare", () => {
     const usersWithAccesIds = ["mockUserId", "mockUserId2", "mockUserId3"];
 
     for (let userId of usersWithAccesIds) {
-      const boardFound = await PendingBoardShareResolver.board(
-        { id: "mockPendingBoardShareId" },
-        {},
-        { auth: { userId: "mockUserId", tokenType: "TEMPORARY" } }
-      );
+      const boardFound = await new Promise((resolve, reject) => {
+        PendingBoardShareResolver.board(
+          { id: "mockPendingBoardShareId" },
+          {},
+          { auth: { userId: "mockUserId", tokenType: "TEMPORARY" } }
+        )(resolve, reject);
+      });
 
       expect(boardFound).toMatchObject({ id: mockPendingBoardShareData[0].boardId });
     }

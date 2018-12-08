@@ -1,6 +1,9 @@
 import jwt from "jwt-simple"
 import moment from "moment"
 import chalk from "chalk"
+import { appendFile } from "fs"
+import uuid from "uuid"
+import stackTrace from "stack-trace"
 import OTP from "otp.js"
 import fortuna from "javascript-fortuna"
 import { withFilter } from "graphql-subscriptions"
@@ -17,37 +20,6 @@ if (!process.env.JWT_SECRET) {
 }
 
 const ses = new AWS.SES({ region: "eu-west-1" })
-
-const { combine, timestamp, printf } = winston.format
-
-const formatString = info =>
-  `${info.timestamp} [${info.label ? info.label : "generic"}${chalk.bold(
-    info.code ? ` ${info.code}` : ""
-  )}] ${info.level}: ${info.message}`
-
-const colorizedFormat = printf(info => {
-  /* istanbul ignore next */
-  const colorizer =
-    info.level === "error"
-      ? chalk.red
-      : info.level === "warn"
-        ? chalk.yellow
-        : info.level === "info" ? chalk.blue : id => id
-
-  return colorizer(formatString(info))
-})
-const logger = winston.createLogger({
-  level: "verbose",
-  transports: [
-    new winston.transports.Console({
-      format: combine(timestamp(), colorizedFormat),
-    }),
-    new winston.transports.File({
-      filename: "logs.log",
-      format: combine(timestamp(), printf(formatString)), // do not colorize file logs
-    }),
-  ],
-})
 
 const GA = OTP.googleAuthenticator
 const JWT_EXPIRE_DAYS = 7
@@ -143,110 +115,132 @@ const CreateGenericValue = (
   pubsub,
   argsChecks = (args, reject) => true
 ) => (root, args, context) =>
-  logErrorsPromise(
-    "CreateGenericValue",
-    112,
-    authorized(
-      args.deviceId,
-      context,
-      Device,
-      User,
-      2,
-      async (resolve, reject, deviceFound, [_, boardFound], userFound) => {
-        if (!argsChecks(args, reject)) {
-          return
-        }
+  authorized(
+    args.deviceId,
+    context,
+    Device,
+    User,
+    2,
+    async (resolve, reject, deviceFound, [_, boardFound], userFound) => {
+      if (!argsChecks(args, reject)) {
+        return
+      }
 
-        if (args.name === "") {
-          reject("name cannot be an empty string")
-          return
-        } else if (args.valueDetails === "") {
-          reject("valueDetails cannot be an empty string, pass null instead")
-          return
-        }
+      if (args.name === "") {
+        reject("name cannot be an empty string")
+        return
+      } else if (args.valueDetails === "") {
+        reject("valueDetails cannot be an empty string, pass null instead")
+        return
+      }
 
-        async function calculateIndex() {
-          const valuesCountPromises = ValueModels.map(
-            async model =>
-              await model.max("index", { where: { deviceId: args.deviceId } })
-          )
-          const valuesCount = await Promise.all(valuesCountPromises)
-
-          const maxIndex = valuesCount.reduce(
-            (acc, curr) => Math.max(acc, !isNaN(curr) ? curr : 0),
-            0
-          )
-          return maxIndex + 1
-        }
-
-        const index =
-          args.index !== null && args.index !== undefined
-            ? args.index
-            : await calculateIndex()
-
-        const newValue = await Model.create({
-          ...args,
-          tileSize: args.tileSize || "NORMAL",
-          visibility: isNullOrUndefined(args.visibility)
-            ? "VISIBLE"
-            : args.visibility,
-          index,
-        })
-
-        await boardFound[`add${ModelName}`](newValue)
-
-        const resolveObj = {
-          ...newValue.dataValues,
-          user: {
-            id: newValue.userId,
-          },
-          device: {
-            id: newValue.deviceId,
-          },
-        }
-
-        resolve(resolveObj)
-
-        Board.update(
-          { updatedAt: newValue.createdAt },
-          { where: { id: boardFound.id } }
+      async function calculateIndex() {
+        const valuesCountPromises = ValueModels.map(
+          async model =>
+            await model.max("index", { where: { deviceId: args.deviceId } })
         )
-        Device.update(
-          { updatedAt: newValue.createdAt },
-          { where: { id: args.deviceId } }
-        )
+        const valuesCount = await Promise.all(valuesCountPromises)
 
-        pubsub.publish("valueCreated", {
-          valueCreated: resolveObj,
-          userIds: await instanceToSharedIds(boardFound),
-        })
-        context.billingUpdater.update(MUTATION_COST)
-      },
-      deviceToParent(Board)
-    )
+        const maxIndex = valuesCount.reduce(
+          (acc, curr) => Math.max(acc, !isNaN(curr) ? curr : 0),
+          0
+        )
+        return maxIndex + 1
+      }
+
+      const index =
+        args.index !== null && args.index !== undefined
+          ? args.index
+          : await calculateIndex()
+
+      const newValue = await Model.create({
+        ...args,
+        tileSize: args.tileSize || "NORMAL",
+        visibility: isNullOrUndefined(args.visibility)
+          ? "VISIBLE"
+          : args.visibility,
+        index,
+      })
+
+      await boardFound[`add${ModelName}`](newValue)
+
+      const resolveObj = {
+        ...newValue.dataValues,
+        user: {
+          id: newValue.userId,
+        },
+        device: {
+          id: newValue.deviceId,
+        },
+      }
+
+      resolve(resolveObj)
+
+      Board.update(
+        { updatedAt: newValue.createdAt },
+        { where: { id: boardFound.id } }
+      )
+      Device.update(
+        { updatedAt: newValue.createdAt },
+        { where: { id: args.deviceId } }
+      )
+
+      pubsub.publish("valueCreated", {
+        valueCreated: resolveObj,
+        userIds: await instanceToSharedIds(boardFound),
+      })
+      context.billingUpdater.update(MUTATION_COST)
+    },
+    deviceToParent(Board)
   )
 
-const logErrorsPromise = (name, code, callback) =>
-  new Promise(async (resolve, reject) => {
+// logs messages colorized by priority, both to console and to `logs` file
+function log(message, priority = 1) {
+  // choose color
+  let colorize =
+    priority === 2 ? chalk.bgRedBright : priority === 1 ? chalk.green : id => id
+
+  console.log(colorize(message))
+
+  if (priority > 0) {
+    appendFile(
+      "./logs",
+      message + "\n",
+      "utf-8",
+      err => err && console.log(err)
+    )
+  }
+}
+
+// returns promise that gracefully logs errors without crashing
+function logErrorsPromise(_, _a, callback) {
+  return new Promise(async (resolve, reject) => {
     try {
-      await callback(resolve, reject)
-    } catch (e) /* istanbul ignore next */ {
-      if (e.parent && e.parent.routine === "string_to_uuid") {
-        reject(
-          new Error(
-            "The ID you provided is not a valid ID, check for typing mistakes"
-          )
+      return await callback(resolve, reject)
+    } catch (e) {
+      const uniqueErrorCode = uuid() // date in milliseconds
+
+      const trace = stackTrace.parse(e)
+      const fileName = trace[0].getFileName().substr(process.cwd().length)
+      const lineNumber = trace[0].getLineNumber()
+      const context = `${fileName}:${lineNumber}`
+      const date = new Date().toISOString()
+
+      const lineToPrint = `[${context}](${date}) Error ${uniqueErrorCode}\n${e}`
+      log(lineToPrint, 2)
+
+      const traceString = JSON.stringify(trace, null, 2)
+      log(traceString)
+
+      // sends error message as graphql response
+      reject(
+        new Error(
+          `An internal error occured, please contact us. The error code is ${uniqueErrorCode}`
         )
-      } else {
-        logger.error(e.toString(), { label: name, code })
-        reject(
-          new Error(
-            `${code} - An internal error occured, please contact us. The error code is ${code}`
-          )
-        )
-      }
+      )
     }
   })
+}
 
 const genericValueMutation = (
   childModel,
@@ -257,60 +251,56 @@ const genericValueMutation = (
   Board,
   checkArgs = (args, valueFound, reject) => true
 ) => (root, args, context) =>
-  logErrorsPromise(
-    "genericValue mutation",
-    117,
-    authorized(
-      args.id,
-      context,
-      childModel,
-      User,
-      2,
-      async (resolve, reject, valueFound, [_, boardFound]) => {
-        if (!checkArgs(args, valueFound, reject)) return
-        if (args.value === null) {
-          reject("value cannot be null")
-          return
-        } else if (args.name === null || args.name === "") {
-          reject("name cannot be null or an empty string")
-          return
-        } else if (Object.keys(args).length === 1) {
-          reject("You cannot make a mutation with only the id field")
-          return
-        } else if (args.valueDetails === "") {
-          reject("valueDetails cannot be an empty string, pass null instead")
-          return
-        }
+  authorized(
+    args.id,
+    context,
+    childModel,
+    User,
+    2,
+    async (resolve, reject, valueFound, [_, boardFound]) => {
+      if (!checkArgs(args, valueFound, reject)) return
+      if (args.value === null) {
+        reject("value cannot be null")
+        return
+      } else if (args.name === null || args.name === "") {
+        reject("name cannot be null or an empty string")
+        return
+      } else if (Object.keys(args).length === 1) {
+        reject("You cannot make a mutation with only the id field")
+        return
+      } else if (args.valueDetails === "") {
+        reject("valueDetails cannot be an empty string, pass null instead")
+        return
+      }
 
-        const newValue = await valueFound.update(args)
-        const resolveObj = {
-          ...newValue.dataValues,
-          owner: {
-            id: newValue.dataValues.userId,
-          },
-          device: {
-            id: newValue.dataValues.deviceId,
-          },
-        }
-        resolve(resolveObj)
+      const newValue = await valueFound.update(args)
+      const resolveObj = {
+        ...newValue.dataValues,
+        owner: {
+          id: newValue.dataValues.userId,
+        },
+        device: {
+          id: newValue.dataValues.deviceId,
+        },
+      }
+      resolve(resolveObj)
 
-        Board.update(
-          { updatedAt: newValue.updatedAt },
-          { where: { id: boardFound.id } }
-        )
-        Device.update(
-          { updatedAt: newValue.updatedAt },
-          { where: { id: valueFound.deviceId } }
-        )
+      Board.update(
+        { updatedAt: newValue.updatedAt },
+        { where: { id: boardFound.id } }
+      )
+      Device.update(
+        { updatedAt: newValue.updatedAt },
+        { where: { id: valueFound.deviceId } }
+      )
 
-        pubsub.publish("valueUpdated", {
-          valueUpdated: { ...resolveObj, __resolveType },
-          userIds: await instanceToSharedIds(boardFound),
-        })
-        context.billingUpdater.update(MUTATION_COST)
-      },
-      valueToParent(Board)
-    )
+      pubsub.publish("valueUpdated", {
+        valueUpdated: { ...resolveObj, __resolveType },
+        userIds: await instanceToSharedIds(boardFound),
+      })
+      context.billingUpdater.update(MUTATION_COST)
+    },
+    valueToParent(Board)
   )
 
 const create2FSecret = user => {
@@ -792,21 +782,17 @@ const authorizedRetrieveScalarProp = (
   childToParent,
   acceptedTokenTypes
 ) => (root, args, context) =>
-  logErrorsPromise(
-    "authorizedRetrieveScalarProp",
-    920,
-    authorized(
-      root.id,
-      context,
-      Model,
-      User,
-      1,
-      async (resolve, reject, resourceFound) => {
-        resolve(resourceFound[prop])
-      },
-      childToParent,
-      acceptedTokenTypes
-    )
+  authorized(
+    root.id,
+    context,
+    Model,
+    User,
+    1,
+    async (resolve, reject, resourceFound) => {
+      resolve(resourceFound[prop])
+    },
+    childToParent,
+    acceptedTokenTypes
   )
 
 const authorizedScalarPropsResolvers = (
@@ -974,21 +960,17 @@ const inheritAuthorizedRetrieveScalarProp = (
   childToParent,
   acceptedTokenTypes
 ) => (root, args, context) =>
-  logErrorsPromise(
-    "inheritAuthorizedRetrieveScalarProp",
-    1003,
-    inheritAuthorized(
-      root.id,
-      Model,
-      User,
-      ownIstanceToParentId,
-      context,
-      parentModel,
-      1,
-      (resolve, reject, resourceFound) => resolve(resourceFound[prop]),
-      childToParent,
-      acceptedTokenTypes
-    )
+  inheritAuthorized(
+    root.id,
+    Model,
+    User,
+    ownIstanceToParentId,
+    context,
+    parentModel,
+    1,
+    (resolve, reject, resourceFound) => resolve(resourceFound[prop]),
+    childToParent,
+    acceptedTokenTypes
   )
 
 const inheritAuthorizedScalarPropsResolvers = (
@@ -1118,8 +1100,8 @@ module.exports = {
   create2FSecret,
   check2FCode,
   logErrorsPromise,
+  log,
   subscriptionFilterOnlyMine,
-  logger,
   findAllValues,
   findValue,
   generatePermanentAuthenticationToken,

@@ -1,6 +1,5 @@
 import {
   authorized,
-  logErrorsPromise,
   findAllValues,
   authorizedScalarPropsResolvers,
   deviceToParent,
@@ -40,128 +39,108 @@ const DeviceResolver = ({
     deviceToParent(Board)
   ),
   values(root, args, context) {
-    return logErrorsPromise(
-      "Device values resolver",
-      110,
-      authorized(
-        root.id,
-        context,
-        Device,
-        User,
-        1,
-        async (resolve, reject, deviceFound) => {
-          const valuesFound = await findAllValues(
-            {
-              BooleanValue,
-              FloatValue,
-              StringValue,
-              PlotValue,
-              StringPlotValue,
-              MapValue,
-            },
-            {
-              where: { deviceId: deviceFound.id },
-            }
-          )
+    return authorized(
+      root.id,
+      context,
+      Device,
+      User,
+      1,
+      async (resolve, reject, deviceFound) => {
+        const valuesFound = await findAllValues(
+          {
+            BooleanValue,
+            FloatValue,
+            StringValue,
+            PlotValue,
+            StringPlotValue,
+            MapValue,
+          },
+          {
+            where: { deviceId: deviceFound.id },
+          }
+        )
 
-          resolve(valuesFound)
+        resolve(valuesFound)
 
-          context.billingUpdater.update(QUERY_COST * valuesFound.length)
-        },
-        deviceToParent(Board)
-      )
+        context.billingUpdater.update(QUERY_COST * valuesFound.length)
+      },
+      deviceToParent(Board)
     )
   },
   muted(root, args, context) {
-    return logErrorsPromise(
-      "Device board resolver",
-      903,
-      authorized(
-        root.id,
-        context,
-        Device,
-        User,
-        1,
-        async (resolve, reject, deviceFound, [_, boardFound], userFound) => {
-          // the Board resolver will take care of loading the other props,
-          // it only needs to know the board id
-          resolve(deviceFound.muted || boardFound.muted || userFound.muted)
+    return authorized(
+      root.id,
+      context,
+      Device,
+      User,
+      1,
+      async (resolve, reject, deviceFound, [_, boardFound], userFound) => {
+        // the Board resolver will take care of loading the other props,
+        // it only needs to know the board id
+        resolve(deviceFound.muted || boardFound.muted || userFound.muted)
 
-          context.billingUpdater.update(QUERY_COST)
-        },
-        deviceToParent(Board)
-      )
+        context.billingUpdater.update(QUERY_COST)
+      },
+      deviceToParent(Board)
     )
   },
   board(root, args, context) {
-    return logErrorsPromise(
-      "Device board resolver",
-      903,
-      authorized(
-        root.id,
-        context,
-        Device,
-        User,
-        1,
-        async (resolve, reject, deviceFound) => {
-          // the Board resolver will take care of loading the other props,
-          // it only needs to know the board id
-          resolve({ id: deviceFound.boardId })
+    return authorized(
+      root.id,
+      context,
+      Device,
+      User,
+      1,
+      async (resolve, reject, deviceFound) => {
+        // the Board resolver will take care of loading the other props,
+        // it only needs to know the board id
+        resolve({ id: deviceFound.boardId })
 
-          context.billingUpdater.update(QUERY_COST)
-        },
-        deviceToParent(Board)
-      )
+        context.billingUpdater.update(QUERY_COST)
+      },
+      deviceToParent(Board)
     )
   },
   notifications(root, args, context) {
-    return logErrorsPromise(
-      "User devices resolver",
-      119,
-      authorized(
-        root.id,
-        context,
-        Device,
-        User,
-        1,
-        async (resolve, reject, deviceFound) => {
-          const notifications = await deviceFound.getNotifications()
+    return authorized(
+      root.id,
+      context,
+      Device,
+      User,
+      1,
+      async (resolve, reject, deviceFound) => {
+        const notifications = await deviceFound.getNotifications()
 
-          // the database returns ISO-format dates, so sorting the strings without casting is fine
-          const compareDates = (a, b) =>
-            a.date > b.date ? -1 : a.date === b.date ? 0 : 1
+        // the database returns ISO-format dates, so sorting the strings without casting is fine
+        const compareDates = (a, b) =>
+          a.date > b.date ? -1 : a.date === b.date ? 0 : 1
 
-          resolve(notifications.sort(compareDates))
-          context.billingUpdater.update(QUERY_COST * notifications.length)
-        },
-        deviceToParent(Board)
-      )
+        resolve(notifications.sort(compareDates))
+        context.billingUpdater.update(QUERY_COST * notifications.length)
+      },
+      deviceToParent(Board)
     )
   },
   notificationCount(root, args, context) {
-    return logErrorsPromise(
-      "notificationCount device resolver",
-      916,
-      authorized(
-        root.id,
-        context,
-        Device,
-        User,
-        1,
-        async (resolve, reject, deviceFound) => {
-          const count = await Notification.count({
-            where: {
-              deviceId: root.id,
-              [Op.not]: {
-                visualized: { [Op.contains]: [context.auth.userId] },
-              },
+    return authorized(
+      root.id,
+      context,
+      Device,
+      User,
+      1,
+      async (resolve, reject, deviceFound) => {
+        const count = await Notification.count({
+          where: {
+            deviceId: root.id,
+            [Op.not]: {
+              visualized: { [Op.contains]: [context.auth.userId] },
             },
-          })
+          },
+        })
 
-          resolve(count)
-        },
-        deviceToParent(Board)
-      )
+        resolve(count)
+      },
+      deviceToParent(Board)
     )
   },
 })

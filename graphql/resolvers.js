@@ -13,6 +13,7 @@ import ValueResolvers from "./resolvers/Values"
 import DateTime from "./resolvers/DateTime"
 import SequelizeConnections from "../postgresql/databaseConnection"
 import { pubsub } from "../shared"
+import { logErrorsPromise } from "./resolvers/utilities"
 
 require("dotenv").config()
 
@@ -42,8 +43,6 @@ const {
 } = SequelizeConnections
 
 const resolvers = {
-  DateTime: DateTime({ name: "DateTime" }),
-  Json: GraphQLToolsTypes.JSON({ name: "Json" }),
   User: UserResolver(SequelizeConnections),
   PendingBoardShare: PendingBoardShareResolver(SequelizeConnections),
   PendingOwnerChange: PendingOwnerChangeResolver(SequelizeConnections),
@@ -87,4 +86,32 @@ const resolvers = {
   Notification: NotificationResolver(SequelizeConnections),
 }
 
-export default resolvers
+const wrappedResolvers = {
+  DateTime: DateTime({ name: "DateTime" }),
+  Json: GraphQLToolsTypes.JSON({ name: "Json" }),
+}
+
+function wrapInLogger(resolverFunctions) {
+  const wrappedResolverFunctions = {}
+
+  for (let resolverFunctionName in resolverFunctions) {
+    if (resolverFunctions.hasOwnProperty(resolverFunctionName)) {
+      wrappedResolverFunctions[resolverFunctionName] = (root, args, context) =>
+        logErrorsPromise(
+          "login",
+          1,
+          resolverFunctions[resolverFunctionName](root, args, context)
+        )
+    }
+  }
+
+  return wrappedResolverFunctions
+}
+
+for (let resolverName in resolvers) {
+  if (resolvers.hasOwnProperty(resolverName)) {
+    wrappedResolvers[resolverName] = wrapInLogger(resolvers[resolverName])
+  }
+}
+
+export default wrappedResolvers

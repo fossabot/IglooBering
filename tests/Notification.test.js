@@ -40,33 +40,39 @@ describe("Notification", () => {
   test("date is resolved correctly", testNotificationScalarProp("date"));
   test("visualized is resolved correctly", testNotificationScalarProp("visualized"));
   test("user is resolved correctly", async done => {
-    const userFound = await NotificationResolver.user(
-      { id: "mockNotificationId" },
-      {},
-      { auth: { userId: "mockUserId", tokenType: "TEMPORARY" } }
-    );
+    const userFound = await new Promise((resolve, reject) => {
+      NotificationResolver.user(
+        { id: "mockNotificationId" },
+        {},
+        { auth: { userId: "mockUserId", tokenType: "TEMPORARY" } }
+      )(resolve, reject);
+    });
 
     expect(userFound).toMatchObject({ id: mockNotificationData[0].userId });
 
     done();
   });
   test("device is resolved correctly", async done => {
-    const deviceFound = await NotificationResolver.device(
-      { id: "mockNotificationId" },
-      {},
-      { auth: { userId: "mockUserId", tokenType: "TEMPORARY" } }
-    );
+    const deviceFound = await new Promise((resolve, reject) => {
+      NotificationResolver.device(
+        { id: "mockNotificationId" },
+        {},
+        { auth: { userId: "mockUserId", tokenType: "TEMPORARY" } }
+      )(resolve, reject);
+    });
 
     expect(deviceFound).toMatchObject({ id: mockNotificationData[0].deviceId });
 
     done();
   });
   test("board is resolved correctly", async done => {
-    const boardFound = await NotificationResolver.board(
-      { id: "mockNotificationId" },
-      {},
-      { auth: { userId: "mockUserId", tokenType: "TEMPORARY" } }
-    );
+    const boardFound = await new Promise((resolve, reject) => {
+      NotificationResolver.board(
+        { id: "mockNotificationId" },
+        {},
+        { auth: { userId: "mockUserId", tokenType: "TEMPORARY" } }
+      )(resolve, reject);
+    });
 
     expect(boardFound).toMatchObject({ id: mockNotificationData[0].boardId });
 

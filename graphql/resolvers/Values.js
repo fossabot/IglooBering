@@ -2,7 +2,6 @@ import {
   authenticated,
   authorized,
   authorizedScalarPropsResolvers,
-  logErrorsPromise,
   valueToParent,
   inheritAuthorizedScalarPropsResolvers,
   inheritAuthorized,
@@ -28,38 +27,30 @@ const GenericResolver = (Model, User, Device, Board) => ({
     valueToParent(Board)
   ),
   device: (root, args, context) =>
-    logErrorsPromise(
-      "device ValueResolver",
-      135,
-      authorized(
-        root.id,
-        context,
-        Model,
-        User,
-        1,
-        async (resolve, reject, valueFound) => {
-          resolve({ id: valueFound.deviceId })
-          context.billingUpdater.update(QUERY_COST)
-        },
-        valueToParent(Board)
-      )
+    authorized(
+      root.id,
+      context,
+      Model,
+      User,
+      1,
+      async (resolve, reject, valueFound) => {
+        resolve({ id: valueFound.deviceId })
+        context.billingUpdater.update(QUERY_COST)
+      },
+      valueToParent(Board)
     ),
   board: (root, args, context) =>
-    logErrorsPromise(
-      "board ValueResolver",
-      135,
-      authorized(
-        root.id,
-        context,
-        Model,
-        User,
-        1,
-        async (resolve, reject, valueFound) => {
-          resolve({ id: valueFound.boardId })
-          context.billingUpdater.update(QUERY_COST)
-        },
-        valueToParent(Board)
-      )
+    authorized(
+      root.id,
+      context,
+      Model,
+      User,
+      1,
+      async (resolve, reject, valueFound) => {
+        resolve({ id: valueFound.boardId })
+        context.billingUpdater.update(QUERY_COST)
+      },
+      valueToParent(Board)
     ),
 })
 
@@ -92,22 +83,18 @@ const PlotValueResolver = (PlotValue, PlotNode, User, Device, Board) => ({
   ),
   // overriding GenericResolver's value
   value: (root, args, context) =>
-    logErrorsPromise(
-      "PlotValueResolver",
-      135,
-      authorized(
-        root.id,
-        context,
-        PlotValue,
-        User,
-        1,
-        async (resolve, reject, plotFound) => {
-          const nodes = await plotFound.getPlotNodes()
-          resolve(nodes)
-          context.billingUpdater.update(QUERY_COST * nodes.length)
-        },
-        valueToParent(Board)
-      )
+    authorized(
+      root.id,
+      context,
+      PlotValue,
+      User,
+      1,
+      async (resolve, reject, plotFound) => {
+        const nodes = await plotFound.getPlotNodes()
+        resolve(nodes)
+        context.billingUpdater.update(QUERY_COST * nodes.length)
+      },
+      valueToParent(Board)
     ),
 })
 const StringPlotValueResolver = (
@@ -126,23 +113,19 @@ const StringPlotValueResolver = (
   ),
   // overriding GenericResolver's value
   value: (root, args, context) =>
-    logErrorsPromise(
-      "StringPlotValueResolver",
-      135,
-      authorized(
-        root.id,
-        context,
-        StringPlotValue,
-        User,
-        1,
-        async (resolve, reject, plotFound) => {
-          const nodes = await plotFound.getStringPlotNodes()
+    authorized(
+      root.id,
+      context,
+      StringPlotValue,
+      User,
+      1,
+      async (resolve, reject, plotFound) => {
+        const nodes = await plotFound.getStringPlotNodes()
 
-          resolve(nodes)
-          context.billingUpdater.update(QUERY_COST * nodes.length)
-        },
-        valueToParent(Board)
-      )
+        resolve(nodes)
+        context.billingUpdater.update(QUERY_COST * nodes.length)
+      },
+      valueToParent(Board)
     ),
 })
 
@@ -156,81 +139,69 @@ const PlotNodeResolver = (PlotNode, PlotValue, User, Device, Board) => ({
     valueToParent(Board)
   ),
   user(root, args, context) {
-    return logErrorsPromise(
-      "PlotNodeResolver user resolver",
-      136,
-      inheritAuthorized(
-        root.id,
-        PlotNode,
-        User,
-        plotNodeFound => plotNodeFound.plotId,
-        context,
-        PlotValue,
-        1,
-        async (
-          resolve,
-          reject,
-          plotNodeFound,
-          plotValueFound,
-          plotValueAndParents
-        ) => {
-          resolve({ id: plotNodeFound.userId })
-          context.billingUpdater.update(QUERY_COST)
-        },
-        valueToParent(Board)
-      )
+    return inheritAuthorized(
+      root.id,
+      PlotNode,
+      User,
+      plotNodeFound => plotNodeFound.plotId,
+      context,
+      PlotValue,
+      1,
+      async (
+        resolve,
+        reject,
+        plotNodeFound,
+        plotValueFound,
+        plotValueAndParents
+      ) => {
+        resolve({ id: plotNodeFound.userId })
+        context.billingUpdater.update(QUERY_COST)
+      },
+      valueToParent(Board)
     )
   },
   device(root, args, context) {
-    return logErrorsPromise(
-      "PlotNodeResolver device resolver",
-      137,
-      inheritAuthorized(
-        root.id,
-        PlotNode,
-        User,
-        plotNodeFound => plotNodeFound.plotId,
-        context,
-        PlotValue,
-        1,
-        async (
-          resolve,
-          reject,
-          plotNodeFound,
-          plotValueFound,
-          plotValueAndParents
-        ) => {
-          resolve({ id: plotNodeFound.deviceId })
-          context.billingUpdater.update(QUERY_COST)
-        },
-        valueToParent(Board)
-      )
+    return inheritAuthorized(
+      root.id,
+      PlotNode,
+      User,
+      plotNodeFound => plotNodeFound.plotId,
+      context,
+      PlotValue,
+      1,
+      async (
+        resolve,
+        reject,
+        plotNodeFound,
+        plotValueFound,
+        plotValueAndParents
+      ) => {
+        resolve({ id: plotNodeFound.deviceId })
+        context.billingUpdater.update(QUERY_COST)
+      },
+      valueToParent(Board)
     )
   },
   plot(root, args, context) {
-    return logErrorsPromise(
-      "PlotNodeResolver plot resolver",
-      138,
-      inheritAuthorized(
-        root.id,
-        PlotNode,
-        User,
-        plotNodeFound => plotNodeFound.plotId,
-        context,
-        PlotValue,
-        1,
-        async (
-          resolve,
-          reject,
-          plotNodeFound,
-          plotValueFound,
-          plotValueAndParents
-        ) => {
-          resolve(plotValueFound.dataValues)
-          context.billingUpdater.update(QUERY_COST)
-        },
-        valueToParent(Board)
-      )
+    return inheritAuthorized(
+      root.id,
+      PlotNode,
+      User,
+      plotNodeFound => plotNodeFound.plotId,
+      context,
+      PlotValue,
+      1,
+      async (
+        resolve,
+        reject,
+        plotNodeFound,
+        plotValueFound,
+        plotValueAndParents
+      ) => {
+        resolve(plotValueFound.dataValues)
+        context.billingUpdater.update(QUERY_COST)
+      },
+      valueToParent(Board)
     )
   },
 })

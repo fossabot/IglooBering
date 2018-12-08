@@ -41,11 +41,13 @@ describe("Board", () => {
   }
 
   test("muted is resolved correctly", async done => {
-    const mutedFound = await BoardResolver.muted(
-      { id: "mockBoardId" },
-      {},
-      { auth: { userId: "mockUserId", tokenType: "TEMPORARY" } }
-    );
+    const mutedFound = await new Promise((resolve, reject) => {
+      BoardResolver.muted(
+        { id: "mockBoardId" },
+        {},
+        { auth: { userId: "mockUserId", tokenType: "TEMPORARY" } }
+      )(resolve, reject);
+    });
 
     const correctQuietMode = mockBoardData[0].muted || mockUserData[0].muted;
     expect(mutedFound).toBe(correctQuietMode);
