@@ -2160,9 +2160,11 @@ const MutationResolver = (
             userIds: deviceSharedIds,
           })
 
-          // the notificationCount props are updated so send the device and board subscriptions
+          // the notificationCount props are updated so send the
+          // device and board subscriptions and change updatedAt
+          touch(Board, boardFound.id)
+          touch(Device, deviceFound.id)
 
-          //implement touch
           pubsub.publish("deviceUpdated", {
             deviceUpdated: {
               id: deviceFound.id,
@@ -2203,7 +2205,9 @@ const MutationResolver = (
             userIds: authorizedUsersIds,
           })
           resolve(args.id)
-          //implement touch
+
+          touch(Board, boardFound.id)
+          touch(Device, valueFound.deviceId)
           context.billingUpdater.update(MUTATION_COST)
         },
         Device,
@@ -2249,7 +2253,8 @@ const MutationResolver = (
           })
 
           resolve(args.id)
-          //implement touch
+
+          touch(Board, boardFound.id)
           context.billingUpdater.update(MUTATION_COST)
         },
         deviceToParent(Board)
@@ -2301,7 +2306,6 @@ const MutationResolver = (
           })
           resolve(args.id)
 
-          //implement touch
           context.billingUpdater.update(MUTATION_COST)
         },
         boardToParent
@@ -2325,7 +2329,11 @@ const MutationResolver = (
           await plotNodeFound.destroy()
 
           resolve(args.id)
-          //implement touch
+
+          touch(Board, boardFound.id)
+          touch(Device, plotNodeFound.deviceId)
+          touch(PlotValue, plotNodeFound.plotId)
+
           pubsub.publish("plotNodeDeleted", {
             plotNodeDeleted: args.id,
             userIds: await instanceToSharedIds(boardFound),
@@ -2355,7 +2363,10 @@ const MutationResolver = (
           await plotNodeFound.destroy()
 
           resolve(args.id)
-          //implement touch
+
+          touch(Board, boardFound.id)
+          touch(Device, plotNodeFound.deviceId)
+          touch(StringPlotValue, plotNodeFound.plotId)
           pubsub.publish("plotNodeDeleted", {
             plotNodeDeleted: args.id,
             userIds: await instanceToSharedIds(boardFound),
