@@ -2274,16 +2274,21 @@ const MutationResolver = (
 
           // TODO: send deleted notifications for children
           const deleteDevicesPromises = devices.map(async device => {
-            const deleteChild = Model =>
-              Model.destroy({
+            const deleteChild = async Model => {
+              await Model.destroy({
                 where: {
                   deviceId: device.id,
                 },
               })
+              pubsub.publish("valueDeleted", {
+                valueDeleted: args.id,
+                userIds: authorizedUsersIds,
+              })
+            }
 
             await Promise.all(
               [
-                FloatValue,
+                [FloatValue],
                 StringValue,
                 BooleanValue,
                 MapValue,
@@ -2295,6 +2300,10 @@ const MutationResolver = (
             )
 
             await device.destroy()
+            pubsub.publish("deviceDeleted", {
+              deviceDeleted: device.id,
+              userIds: authorizedUsersIds,
+            })
           })
           await Promise.all(deleteDevicesPromises)
 
@@ -2384,14 +2393,53 @@ const MutationResolver = (
           const userFound = await User.find({
             where: { id: context.auth.userId },
           })
-          // after enabling cascade delete in postgres destroying the boards should be enough to clear the user
 
-          // await Board.destroy({
-          //   where: {
-          //     ownerId: context.auth.userId,
-          //   },
-          // })
+          const boardsFound = await Board.findAll({
+            where: { ownerId: userFound.id },
+          })
 
+          async function deleteBoard(boardFound) {
+            const authorizedUsersIds = await instanceToSharedIds(boardFound)
+            const devices = await Device.findAll({
+              where: { boardId: boardFound.id },
+            })
+
+            const deleteDevicesPromises = devices.map(async device => {
+              const deleteChild = Model =>
+                Model.destroy({
+                  where: {
+                    deviceId: device.id,
+                  },
+                })
+
+              await Promise.all(
+                [
+                  FloatValue,
+                  StringValue,
+                  BooleanValue,
+                  MapValue,
+                  PlotValue,
+                  StringPlotValue,
+                  PlotNode,
+                  Notification,
+                ].map(deleteChild)
+              )
+
+              await device.destroy()
+            })
+            await Promise.all(deleteDevicesPromises)
+
+            await boardFound.destroy()
+
+            pubsub.publish("boardDeleted", {
+              boardDeleted: args.id,
+              userIds: authorizedUsersIds,
+            })
+          }
+
+          const deleteBoardsPromises = boardsFound.map(deleteBoard)
+
+          await Promise.all(deleteBoardsPromises)
           await userFound.destroy()
 
           pubsub.publish("userDeleted", {
