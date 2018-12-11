@@ -55,7 +55,6 @@ const resolvers = {
     JWT_SECRET
   ),
   Query: QueryResolver(SequelizeConnections),
-  Subscription: SubscriptionsResolver(pubsub, SequelizeConnections),
   Value: ValueResolver(
     {
       BooleanValue,
@@ -87,6 +86,7 @@ const resolvers = {
 }
 
 const wrappedResolvers = {
+  Subscription: SubscriptionsResolver(pubsub, SequelizeConnections),
   DateTime: DateTime({ name: "DateTime" }),
   Json: GraphQLToolsTypes.JSON({ name: "Json" }),
 }

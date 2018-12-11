@@ -2208,6 +2208,17 @@ const MutationResolver = (
 
           touch(Board, boardFound.id)
           touch(Device, valueFound.deviceId)
+
+          pubsub.publish("deviceUpdated", {
+            deviceUpdated: {
+              id: valueFound.deviceId,
+            },
+            userIds: authorizedUsersIds,
+          })
+          pubsub.publish("boardUpdated", {
+            boardUpdated: boardFound.dataValues,
+            userIds: authorizedUsersIds,
+          })
           context.billingUpdater.update(MUTATION_COST)
         },
         Device,
@@ -2223,25 +2234,35 @@ const MutationResolver = (
         async (resolve, reject, deviceFound, [_, boardFound]) => {
           const authorizedUsersIds = await instanceToSharedIds(boardFound)
 
-          // TODO: send deleted notifications also for children
-          const deleteChild = Model =>
-            Model.destroy({
+          const deleteChild = async ([Model, subscription]) => {
+            const childrenFound = await Model.findAll({
               where: {
                 deviceId: args.id,
               },
             })
 
+            await Promise.all(
+              childrenFound.map(async child => {
+                await child.destroy()
+                pubsub.publish(subscription, {
+                  [subscription]: args.id,
+                  userIds: authorizedUsersIds,
+                })
+              })
+            )
+          }
+
           await Promise.all(
             [
-              FloatValue,
-              StringValue,
-              BooleanValue,
-              MapValue,
-              PlotValue,
-              StringPlotValue,
-              PlotNode,
-              StringPlotNode,
-              Notification,
+              [FloatValue, "valueDeleted"],
+              [StringValue, "valueDeleted"],
+              [BooleanValue, "valueDeleted"],
+              [MapValue, "valueDeleted"],
+              [PlotValue, "valueDeleted"],
+              [StringPlotValue, "valueDeleted"],
+              [PlotNode, "plotNodeDeleted"],
+              [StringPlotNode, "stringPlotNodeDeleted"],
+              [Notification, "notificationDeleted"],
             ].map(deleteChild)
           )
 
@@ -2255,6 +2276,10 @@ const MutationResolver = (
           resolve(args.id)
 
           touch(Board, boardFound.id)
+          pubsub.publish("boardUpdated", {
+            boardUpdated: boardFound.dataValues,
+            userIds: authorizedUsersIds,
+          })
           context.billingUpdater.update(MUTATION_COST)
         },
         deviceToParent(Board)
@@ -2274,28 +2299,35 @@ const MutationResolver = (
 
           // TODO: send deleted notifications for children
           const deleteDevicesPromises = devices.map(async device => {
-            const deleteChild = async Model => {
-              await Model.destroy({
+            const deleteChild = async ([Model, subscription]) => {
+              const childrenFound = await Model.findAll({
                 where: {
                   deviceId: device.id,
                 },
               })
-              pubsub.publish("valueDeleted", {
-                valueDeleted: args.id,
-                userIds: authorizedUsersIds,
-              })
+
+              await Promise.all(
+                childrenFound.map(async child => {
+                  await child.destroy()
+                  pubsub.publish(subscription, {
+                    [subscription]: args.id,
+                    userIds: authorizedUsersIds,
+                  })
+                })
+              )
             }
 
             await Promise.all(
               [
-                [FloatValue],
-                StringValue,
-                BooleanValue,
-                MapValue,
-                PlotValue,
-                StringPlotValue,
-                PlotNode,
-                Notification,
+                [FloatValue, "valueDeleted"],
+                [StringValue, "valueDeleted"],
+                [BooleanValue, "valueDeleted"],
+                [MapValue, "valueDeleted"],
+                [PlotValue, "valueDeleted"],
+                [StringPlotValue, "valueDeleted"],
+                [PlotNode, "plotNodeDeleted"],
+                [StringPlotNode, "stringPlotNodeDeleted"],
+                [Notification, "notificationDeleted"],
               ].map(deleteChild)
             )
 
@@ -2343,9 +2375,26 @@ const MutationResolver = (
           touch(Device, plotNodeFound.deviceId)
           touch(PlotValue, plotNodeFound.plotId)
 
+          const authorizedUsersIds = await instanceToSharedIds(boardFound)
+          pubsub.publish("valueUpdated", {
+            valueUpdated: {
+              id: plotNodeFound.plotId,
+            },
+            userIds: authorizedUsersIds,
+          })
+          pubsub.publish("deviceUpdated", {
+            deviceUpdated: {
+              id: plotNodeFound.deviceId,
+            },
+            userIds: authorizedUsersIds,
+          })
+          pubsub.publish("boardUpdated", {
+            boardUpdated: boardFound.dataValues,
+            userIds: authorizedUsersIds,
+          })
           pubsub.publish("plotNodeDeleted", {
             plotNodeDeleted: args.id,
-            userIds: await instanceToSharedIds(boardFound),
+            userIds: authorizedUsersIds,
           })
 
           context.billingUpdater.update(MUTATION_COST)
@@ -2376,9 +2425,27 @@ const MutationResolver = (
           touch(Board, boardFound.id)
           touch(Device, plotNodeFound.deviceId)
           touch(StringPlotValue, plotNodeFound.plotId)
-          pubsub.publish("plotNodeDeleted", {
-            plotNodeDeleted: args.id,
-            userIds: await instanceToSharedIds(boardFound),
+
+          const authorizedUsersIds = await instanceToSharedIds(boardFound)
+          pubsub.publish("valueUpdated", {
+            valueUpdated: {
+              id: plotNodeFound.plotId,
+            },
+            userIds: authorizedUsersIds,
+          })
+          pubsub.publish("deviceUpdated", {
+            deviceUpdated: {
+              id: plotNodeFound.deviceId,
+            },
+            userIds: authorizedUsersIds,
+          })
+          pubsub.publish("boardUpdated", {
+            boardUpdated: boardFound.dataValues,
+            userIds: authorizedUsersIds,
+          })
+          pubsub.publish("stringPlotNodeDeleted", {
+            stringPlotNodeDeleted: args.id,
+            userIds: authorizedUsersIds,
           })
 
           context.billingUpdater.update(MUTATION_COST)
@@ -2405,34 +2472,50 @@ const MutationResolver = (
             })
 
             const deleteDevicesPromises = devices.map(async device => {
-              const deleteChild = Model =>
-                Model.destroy({
+              const deleteChild = async ([Model, subscription]) => {
+                const childrenFound = await Model.findAll({
                   where: {
                     deviceId: device.id,
                   },
                 })
 
+                await Promise.all(
+                  childrenFound.map(async child => {
+                    await child.destroy()
+                    pubsub.publish(subscription, {
+                      [subscription]: child.id,
+                      userIds: authorizedUsersIds,
+                    })
+                  })
+                )
+              }
+
               await Promise.all(
                 [
-                  FloatValue,
-                  StringValue,
-                  BooleanValue,
-                  MapValue,
-                  PlotValue,
-                  StringPlotValue,
-                  PlotNode,
-                  Notification,
+                  [FloatValue, "valueDeleted"],
+                  [StringValue, "valueDeleted"],
+                  [BooleanValue, "valueDeleted"],
+                  [MapValue, "valueDeleted"],
+                  [PlotValue, "valueDeleted"],
+                  [StringPlotValue, "valueDeleted"],
+                  [PlotNode, "plotNodeDeleted"],
+                  [StringPlotNode, "stringPlotNodeDeleted"],
+                  [Notification, "notificationDeleted"],
                 ].map(deleteChild)
               )
 
               await device.destroy()
+              pubsub.publish("deviceDeleted", {
+                deviceDeleted: device.id,
+                userIds: authorizedUsersIds,
+              })
             })
             await Promise.all(deleteDevicesPromises)
 
             await boardFound.destroy()
 
             pubsub.publish("boardDeleted", {
-              boardDeleted: args.id,
+              boardDeleted: boardFound.id,
               userIds: authorizedUsersIds,
             })
           }
