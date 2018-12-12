@@ -109,7 +109,9 @@ const DeviceResolver = ({
       User,
       1,
       async (resolve, reject, deviceFound) => {
-        const notifications = await deviceFound.getNotifications()
+        const notifications = await Notification.findAll({
+          where: { deviceId: deviceFound.id },
+        })
 
         // the database returns ISO-format dates, so sorting the strings without casting is fine
         const compareDates = (a, b) =>

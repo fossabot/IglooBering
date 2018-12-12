@@ -1,9 +1,13 @@
 const testScalarProp = (Resolver, root, mockData) => prop => async () => {
   const propFound = await new Promise((resolve, reject) => {
-    Resolver[prop](root, {}, { auth: { userId: "mockUserId", tokenType: "TEMPORARY" } })(
-      resolve,
-      reject
-    );
+    Resolver[prop](
+      root,
+      {},
+      {
+        auth: { userId: "mockUserId", tokenType: "TEMPORARY" },
+        billingUpdater: { update: () => {} }
+      }
+    )(resolve, reject);
   });
 
   expect(propFound).toBe(mockData[prop]);

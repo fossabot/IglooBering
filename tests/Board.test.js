@@ -7,11 +7,22 @@ import {
   notAuthorizedShouldFail
 } from "./testUtils";
 
-const { MockedBoard, MockedUser, mockBoardData, mockUserData } = MocksGenerator();
+const {
+  MockedBoard,
+  MockedUser,
+  mockBoardData,
+  mockUserData,
+  mockDeviceData,
+  MockedDevice,
+  MockedNotification,
+  mockNotificationData
+} = MocksGenerator();
 
 const BoardResolver = BoardResolverFactory({
   User: MockedUser,
-  Board: MockedBoard
+  Board: MockedBoard,
+  Device: MockedDevice,
+  Notification: MockedNotification
 });
 
 describe("Board", () => {
@@ -45,13 +56,66 @@ describe("Board", () => {
       BoardResolver.muted(
         { id: "mockBoardId" },
         {},
-        { auth: { userId: "mockUserId", tokenType: "TEMPORARY" } }
+        {
+          auth: { userId: "mockUserId", tokenType: "TEMPORARY" },
+          billingUpdater: { update: () => {} }
+        }
       )(resolve, reject);
     });
 
     const correctQuietMode = mockBoardData[0].muted || mockUserData[0].quietMode;
     expect(mutedFound).toBe(correctQuietMode);
 
+    done();
+  });
+
+  test("devices is resolved correctly", async done => {
+    const devicesFound = await new Promise((resolve, reject) => {
+      BoardResolver.devices(
+        { id: "mockBoardId" },
+        {},
+        {
+          auth: { userId: "mockUserId", tokenType: "TEMPORARY" },
+          billingUpdater: { update: () => {} }
+        }
+      )(resolve, reject);
+    });
+
+    expect(devicesFound.length).toBeDefined();
+    expect(devicesFound.length).toBe(1);
+    expect(devicesFound[0]).toMatchObject({ id: mockDeviceData[0].id });
+    done();
+  });
+
+  test("deviceCount is resolved correctly", async done => {
+    const deviceCount = await new Promise((resolve, reject) => {
+      BoardResolver.deviceCount(
+        { id: "mockBoardId" },
+        {},
+        {
+          auth: { userId: "mockUserId", tokenType: "TEMPORARY" },
+          billingUpdater: { update: () => {} }
+        }
+      )(resolve, reject);
+    });
+
+    expect(deviceCount).toBe(1);
+    done();
+  });
+
+  test("notificationCount is resolved correctly", async done => {
+    const notificationCount = await new Promise((resolve, reject) => {
+      BoardResolver.notificationCount(
+        { id: "mockBoardId" },
+        {},
+        {
+          auth: { userId: "mockUserId", tokenType: "TEMPORARY" },
+          billingUpdater: { update: () => {} }
+        }
+      )(resolve, reject);
+    });
+
+    expect(notificationCount).toBe(2);
     done();
   });
 

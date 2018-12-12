@@ -80,6 +80,15 @@ module.exports = () => {
       content: "mockContent",
       date: "2018-11-27T22:09:44.183Z",
       visualized: []
+    },
+    {
+      id: "mockNotificationId2",
+      userId: "mockUserId",
+      deviceId: "mockDeviceId",
+      boardId: "mockBoardId",
+      content: "mockContent2",
+      date: "2018-11-27T22:09:44.183Z",
+      visualized: []
     }
   ];
 
@@ -125,6 +134,15 @@ module.exports = () => {
     };
   };
 
+  const mockCount = database => {
+    const hydratedMockFindAll = mockFindAll(database);
+
+    return async (...args) => {
+      const allResults = await hydratedMockFindAll(...args);
+      return allResults.length;
+    };
+  };
+
   const mockCreate = database => async newInstance => {
     database.push(newInstance);
 
@@ -142,6 +160,7 @@ module.exports = () => {
   const MockedModel = mockData => ({
     find: mockFind(mockData),
     findAll: mockFindAll(mockData),
+    count: mockCount(mockData),
     create: mockCreate(mockData),
     update: mockUpdate(mockData)
   });
