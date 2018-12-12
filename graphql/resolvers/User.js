@@ -189,7 +189,7 @@ const UserResolver = ({
         reject("You are not allowed to perform this operation")
       } else {
         const pendingOwnerChanges = await PendingOwnerChange.findAll({
-          where: { newOwnerId: context.auth.userId },
+          where: { receiverId: context.auth.userId },
         })
 
         resolve(pendingOwnerChanges)
@@ -203,7 +203,7 @@ const UserResolver = ({
         reject("You are not allowed to perform this operation")
       } else {
         const pendingOwnerChanges = await PendingOwnerChange.count({
-          where: { newOwnerId: context.auth.userId },
+          where: { receiverId: context.auth.userId },
         })
 
         resolve(pendingOwnerChanges)

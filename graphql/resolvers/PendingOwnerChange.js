@@ -16,7 +16,7 @@ const PendingOwnerChangeResolver = ({ User, Board, PendingOwnerChange }) => ({
       if (!pendingOwnerChange) {
         reject("The requested resource does not exist")
       } else if (
-        context.auth.userId !== pendingOwnerChange.newOwnerId &&
+        context.auth.userId !== pendingOwnerChange.receiverId &&
         (await authorizationLevel(await findSharedBoard(), await findUser())) <
           3
       ) {
@@ -26,7 +26,7 @@ const PendingOwnerChangeResolver = ({ User, Board, PendingOwnerChange }) => ({
       }
     })
   },
-  newOwner(root, args, context) {
+  receiver(root, args, context) {
     return authenticated(context, async (resolve, reject) => {
       const pendingOwnerChange = await PendingOwnerChange.find({
         where: { id: root.id },
@@ -41,17 +41,17 @@ const PendingOwnerChangeResolver = ({ User, Board, PendingOwnerChange }) => ({
       if (!pendingOwnerChange) {
         reject("The requested resource does not exist")
       } else if (
-        context.auth.userId !== pendingOwnerChange.newOwnerId &&
+        context.auth.userId !== pendingOwnerChange.receiverId &&
         (await authorizationLevel(await findSharedBoard(), await findUser())) <
           3
       ) {
         reject("You are not allowed to perform this operation")
       } else {
-        resolve({ id: pendingOwnerChange.newOwnerId })
+        resolve({ id: pendingOwnerChange.receiverId })
       }
     })
   },
-  formerOwner(root, args, context) {
+  sender(root, args, context) {
     return authenticated(context, async (resolve, reject) => {
       const pendingOwnerChange = await PendingOwnerChange.find({
         where: { id: root.id },
@@ -66,13 +66,13 @@ const PendingOwnerChangeResolver = ({ User, Board, PendingOwnerChange }) => ({
       if (!pendingOwnerChange) {
         reject("The requested resource does not exist")
       } else if (
-        context.auth.userId !== pendingOwnerChange.newOwnerId &&
+        context.auth.userId !== pendingOwnerChange.receiverId &&
         (await authorizationLevel(await findSharedBoard(), await findUser())) <
           3
       ) {
         reject("You are not allowed to perform this operation")
       } else {
-        resolve({ id: pendingOwnerChange.formerOwnerId })
+        resolve({ id: pendingOwnerChange.senderId })
       }
     })
   },
@@ -91,7 +91,7 @@ const PendingOwnerChangeResolver = ({ User, Board, PendingOwnerChange }) => ({
       if (!pendingOwnerChange) {
         reject("The requested resource does not exist")
       } else if (
-        context.auth.userId !== pendingOwnerChange.newOwnerId &&
+        context.auth.userId !== pendingOwnerChange.receiverId &&
         (await authorizationLevel(await findSharedBoard(), await findUser())) <
           3
       ) {

@@ -706,8 +706,8 @@ type PendingBoardShare {
 
 type PendingOwnerChange {
   id: ID!
-  formerOwner: User!
-  newOwner: User!
+  sender: User!
+  receiver: User!
   board: Board!
 }
 

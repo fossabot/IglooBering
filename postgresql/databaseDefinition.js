@@ -312,8 +312,8 @@ const databaseDefinition = sequelize => {
 
   const PendingOwnerChange = sequelize.define("pendingOwnerChange", {
     ...selfId,
-    ...otherId("formerOwnerId", User),
-    ...otherId("newOwnerId", User),
+    ...otherId("senderId", User),
+    ...otherId("receiverId", User),
     ...otherId("boardId", Board),
   })
 

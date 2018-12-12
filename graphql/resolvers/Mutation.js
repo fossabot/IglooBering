@@ -659,14 +659,14 @@ const MutationResolver = (
         Board,
         User,
         4,
-        async (resolve, reject, boardFound, _, formerOwnerFound) => {
-          const newOwnerFound = await User.find({
+        async (resolve, reject, boardFound, _, senderFound) => {
+          const receiverFound = await User.find({
             where: { email: args.email },
           })
 
-          if (!newOwnerFound) {
+          if (!receiverFound) {
             reject("This account doesn't exist, check the email passed")
-          } else if (newOwnerFound.id === context.auth.userId) {
+          } else if (receiverFound.id === context.auth.userId) {
             reject("You already are the owner of this board")
           } else {
             // if the board already has a pending owner change remove it
@@ -680,18 +680,18 @@ const MutationResolver = (
             }
 
             let newOwnerChange = await PendingOwnerChange.create({
-              formerOwnerId: formerOwnerFound.id,
-              newOwnerId: newOwnerFound.id,
+              senderId: senderFound.id,
+              receiverId: receiverFound.id,
               boardId: boardFound.id,
             })
 
             resolve({
               id: newOwnerChange.id,
-              formerOwner: {
-                id: newOwnerChange.formerOwnerId,
+              sender: {
+                id: newOwnerChange.senderId,
               },
-              newOwner: {
-                id: newOwnerChange.newOwnerId,
+              receiver: {
+                id: newOwnerChange.receiverId,
               },
               board: {
                 id: newOwnerChange.boardId,
@@ -703,17 +703,17 @@ const MutationResolver = (
 
             pubsub.publish("ownerChangeBegan", {
               ownerChangeBegan: newOwnerChange,
-              userId: newOwnerFound.id,
+              userId: receiverFound.id,
             })
             sendBoardSharedEmail(
-              newOwnerFound.email,
-              formerOwnerFound.name,
+              receiverFound.email,
+              senderFound.name,
               boardFound.name
             )
 
             const usersWithAccessIds = (await instanceToSharedIds(
               boardFound
-            )).filter(id => id !== newOwnerFound.id)
+            )).filter(id => id !== receiverFound.id)
 
             pubsub.publish("boardUpdated", {
               boardUpdated: boardFound,
@@ -733,7 +733,7 @@ const MutationResolver = (
         Board,
         3,
         async (resolve, reject, pendingOwnerChangeFound, boardFound) => {
-          const targetUserId = pendingOwnerChangeFound.newOwnerId
+          const targetUserId = pendingOwnerChangeFound.receiverId
           await pendingOwnerChangeFound.destroy()
 
           resolve(args.pendingOwnerChangeId)
@@ -766,14 +766,14 @@ const MutationResolver = (
 
         if (!pendingOwnerChangeFound) {
           reject("The requested resource does not exist")
-        } else if (context.auth.userId !== pendingOwnerChangeFound.newOwnerId) {
+        } else if (context.auth.userId !== pendingOwnerChangeFound.receiverId) {
           reject("You are not the receiver of this owner change")
         } else {
           const boardFound = await Board.find({
             where: { id: pendingOwnerChangeFound.boardId },
           })
           const userFound = await User.find({
-            where: { id: pendingOwnerChangeFound.newOwnerId },
+            where: { id: pendingOwnerChangeFound.receiverId },
           })
 
           // remove old roles
@@ -787,7 +787,7 @@ const MutationResolver = (
           await userFound.addOwnBoard(boardFound)
 
           const oldOwnerFound = await User.find({
-            where: { id: pendingOwnerChangeFound.formerOwnerId },
+            where: { id: pendingOwnerChangeFound.senderId },
           })
           await oldOwnerFound.removeOwnBoard(boardFound)
           await oldOwnerFound[`add${Board.Admins}`](boardFound)
@@ -822,10 +822,10 @@ const MutationResolver = (
 
         if (!pendingOwnerChangeFound) {
           reject("The requested resource does not exist")
-        } else if (context.auth.userId !== pendingOwnerChangeFound.newOwnerId) {
+        } else if (context.auth.userId !== pendingOwnerChangeFound.receiverId) {
           reject("You are not the receiver of this owner change")
         } else {
-          const targetUserId = pendingOwnerChangeFound.newOwnerId
+          const targetUserId = pendingOwnerChangeFound.receiverId
           await pendingOwnerChangeFound.destroy()
 
           resolve(args.pendingOwnerChangeId)
