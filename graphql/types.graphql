@@ -686,7 +686,7 @@ type Board {
   # returns null only if you don't have admin rights
   pendingOwnerChangeCount: Int
   # returns null only if you don't have admin rights
-  pendingOwnerChanges: [PendingOwnerChange!]!
+  pendingOwnerChanges: [PendingOwnerChange!]
   name: String!
   avatar: BoardPicture!
   deviceCount: Int
