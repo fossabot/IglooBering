@@ -2337,7 +2337,43 @@ const MutationResolver = (
               userIds: authorizedUsersIds,
             })
           })
-          await Promise.all(deleteDevicesPromises)
+
+          async function destroyPendingBoardShare() {
+            const boardSharesFound = await PendingBoardShare.findAll({
+              where: { boardId: boardFound.id },
+            })
+
+            await Promise.all(
+              boardSharesFound.map(async boardShare => {
+                pubsub.publish("boardShareRevoked", {
+                  boardShareRevoked: boardShare.id,
+                  userIds: [boardShare.receiverId],
+                })
+                await boardShare.destroy()
+              })
+            )
+          }
+          async function destroyPendingOwnerChange() {
+            const ownerChangesFound = await PendingOwnerChange.findAll({
+              where: { boardId: boardFound.id },
+            })
+
+            await Promise.all(
+              ownerChangesFound.map(async ownerChange => {
+                pubsub.publish("ownerChangeRevoked", {
+                  ownerChangeRevoked: ownerChange.id,
+                  userId: ownerChange.receiverId,
+                })
+                await ownerChange.destroy()
+              })
+            )
+          }
+
+          await Promise.all([
+            ...deleteDevicesPromises,
+            destroyPendingBoardShare(),
+            destroyPendingOwnerChange(),
+          ])
 
           await boardFound.destroy()
 
@@ -2510,7 +2546,43 @@ const MutationResolver = (
                 userIds: authorizedUsersIds,
               })
             })
-            await Promise.all(deleteDevicesPromises)
+
+            async function destroyPendingBoardShare() {
+              const boardSharesFound = await PendingBoardShare.findAll({
+                where: { boardId: boardFound.id },
+              })
+
+              await Promise.all(
+                boardSharesFound.map(async boardShare => {
+                  pubsub.publish("boardShareRevoked", {
+                    boardShareRevoked: boardShare.id,
+                    userIds: [boardShare.receiverId],
+                  })
+                  await boardShare.destroy()
+                })
+              )
+            }
+            async function destroyPendingOwnerChange() {
+              const ownerChangesFound = await PendingOwnerChange.findAll({
+                where: { boardId: boardFound.id },
+              })
+
+              await Promise.all(
+                ownerChangesFound.map(async ownerChange => {
+                  pubsub.publish("ownerChangeRevoked", {
+                    ownerChangeRevoked: ownerChange.id,
+                    userId: ownerChange.receiverId,
+                  })
+                  await ownerChange.destroy()
+                })
+              )
+            }
+
+            await Promise.all([
+              ...deleteDevicesPromises,
+              destroyPendingBoardShare(),
+              destroyPendingOwnerChange(),
+            ])
 
             await boardFound.destroy()
 
@@ -2522,7 +2594,11 @@ const MutationResolver = (
 
           const deleteBoardsPromises = boardsFound.map(deleteBoard)
 
-          await Promise.all(deleteBoardsPromises)
+          const destroyTokenPromise = PermanentToken.destroy({
+            where: { userId: userFound.id },
+          })
+
+          await Promise.all([...deleteBoardsPromises, destroyTokenPromise])
           await userFound.destroy()
 
           pubsub.publish("userDeleted", {
