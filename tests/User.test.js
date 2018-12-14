@@ -15,14 +15,17 @@ const {
   mockDeviceData,
   MockedDevice,
   MockedNotification,
-  mockNotificationData
+  mockNotificationData,
+  MockedPendingBoardShare,
+  mockPendingBoardShareData
 } = MocksGenerator();
 
 const UserResolver = UserResolverFactory({
   User: MockedUser,
   Board: MockedBoard,
   Device: MockedDevice,
-  Notification: MockedNotification
+  Notification: MockedNotification,
+  PendingBoardShare: MockedPendingBoardShare
 });
 
 describe("User", () => {
@@ -73,6 +76,126 @@ describe("User", () => {
     });
 
     done();
+  });
+  test.skip("devices is resolved correctly", async done => {
+    //TODO: need implementation of includes in the mock search
+    const devicesFound = await new Promise((resolve, reject) => {
+      UserResolver.devices(
+        { id: "mockUserId" },
+        {},
+        {
+          auth: { userId: "mockUserId", tokenType: "TEMPORARY" },
+          billingUpdater: { update: () => {} }
+        }
+      )(resolve, reject);
+    });
+
+    expect(devicesFound.length).toBe(1);
+    expect(devicesFound[0]).toMatchObject({ id: "mockDeviceId" });
+
+    done();
+  });
+  test.skip("deviceCount is resolved correctly", async done => {
+    //TODO: need implementation of includes in the mock search
+  });
+  test.skip("boards is resolved correctly", async done => {
+    //TODO: need implementation of includes in the mock search
+  });
+  test.skip("boardCount is resolved correctly", async done => {
+    //TODO: need implementation of includes in the mock search
+  });
+  test.skip("notifications is resolved correctly", async done => {
+    //TODO: need implementation of includes in the mock search
+  });
+  test.skip("notificationCount is resolved correctly", async done => {
+    //TODO: need implementation of includes in the mock search
+  });
+  test.skip("values is resolved correctly", async done => {
+    //TODO: need implementation of includes in the mock search
+  });
+  test.skip("valueCount is resolved correctly", async done => {
+    //TODO: need implementation of includes in the mock search
+  });
+  test.skip("values is resolved correctly", async done => {
+    //TODO: need implementation of includes in the mock search
+  });
+  test.skip("valueCount is resolved correctly", async done => {
+    //TODO: need implementation of includes in the mock search
+  });
+  test("pendingBoardShares is resolved correctly", async done => {
+    // sender user should see the pendingBoardShare in the user prop
+    const pendingBoardSharesFound = await new Promise((resolve, reject) => {
+      UserResolver.pendingBoardShares(
+        { id: "mockUserId" },
+        {},
+        {
+          auth: { userId: "mockUserId", tokenType: "TEMPORARY" },
+          billingUpdater: { update: () => {} }
+        }
+      )(resolve, reject);
+    });
+
+    expect(pendingBoardSharesFound.length).toBe(0);
+
+    // receiver user should see the pendingBoardShares
+    const pendingBoardSharesFound2 = await new Promise((resolve, reject) => {
+      UserResolver.pendingBoardShares(
+        { id: "mockUserId2" },
+        {},
+        {
+          auth: { userId: "mockUserId2", tokenType: "TEMPORARY" },
+          billingUpdater: { update: () => {} }
+        }
+      )(resolve, reject);
+    });
+
+    expect(pendingBoardSharesFound2.length).toBe(1);
+    expect(pendingBoardSharesFound2[0]).toMatchObject({ id: "mockPendingBoardShareId" });
+
+    done();
+  });
+  test("pendingBoardShareCount is resolved correctly", async done => {
+    // sender user should see the pendingBoardShare in the user prop
+    const pendingBoardSharesFound = await new Promise((resolve, reject) => {
+      UserResolver.pendingBoardShareCount(
+        { id: "mockUserId" },
+        {},
+        {
+          auth: { userId: "mockUserId", tokenType: "TEMPORARY" },
+          billingUpdater: { update: () => {} }
+        }
+      )(resolve, reject);
+    });
+
+    expect(pendingBoardSharesFound).toBe(0);
+
+    // receiver user should see the pendingBoardShares
+    const pendingBoardSharesFound2 = await new Promise((resolve, reject) => {
+      UserResolver.pendingBoardShareCount(
+        { id: "mockUserId2" },
+        {},
+        {
+          auth: { userId: "mockUserId2", tokenType: "TEMPORARY" },
+          billingUpdater: { update: () => {} }
+        }
+      )(resolve, reject);
+    });
+
+    expect(pendingBoardSharesFound2).toBe(1);
+
+    done();
+  });
+  test.skip("pendingOwnerChanges is resolved correctly", async done => {
+    //TODO: need mocks of PendingOwnerChange
+  });
+  test.skip("pendingOwnerChangeCount is resolved correctly", async done => {
+    //TODO: need mocks of PendingOwnerChange
+  });
+  test.skip("permanentTokens is resolved correctly", async done => {
+    //TODO: need mocks of PendingOwnerChange
+  });
+  test.skip("permanentTokenCount is resolved correctly", async done => {
+    //TODO: need mocks of PendingOwnerChange
   });
 
   const authorizedProps = [
