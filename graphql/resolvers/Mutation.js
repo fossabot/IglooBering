@@ -1443,16 +1443,22 @@ const MutationResolver = (
             }
           })
 
-          userFound.update(updateQuery)
+          const newUser = await userFound.update(updateQuery)
 
           resolve({
-            timeZone: userFound.settings_timeZone,
-            language: userFound.settings_language,
-            lengthAndMass: userFound.settings_lengthAndMass,
-            temperature: userFound.settings_temperature,
-            dateFormat: userFound.settings_dateFormat,
-            timeFormat: userFound.settings_timeFormat,
+            timeZone: newUser.settings_timeZone,
+            language: newUser.settings_language,
+            lengthAndMass: newUser.settings_lengthAndMass,
+            temperature: newUser.settings_temperature,
+            dateFormat: newUser.settings_dateFormat,
+            timeFormat: newUser.settings_timeFormat,
           })
+
+          pubsub.publish("userUpdated", {
+            userUpdated: newUser.dataValues,
+            userId: context.auth.userId,
+          })
+
           context.billingUpdater.update(MUTATION_COST)
         }
       })

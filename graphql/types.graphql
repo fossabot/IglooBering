@@ -45,7 +45,7 @@ enum LengthAndMass {
 
 enum Temperature {
   CELSIUS
-  FARENHEIT
+  FAHRENHEIT
   KELVIN
 }
 
