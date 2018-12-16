@@ -1091,6 +1091,8 @@ const GenerateUserBillingBatcher = (User, auth) =>
 // a board is it's own parent
 const boardToParent = x => x
 
+const runInParallel = async (...funcs) => await Promise.all(funcs.map(f => f()))
+
 module.exports = {
   authenticated,
   generateAuthenticationToken,
@@ -1131,4 +1133,5 @@ module.exports = {
   updateUserBilling,
   GenerateUserBillingBatcher,
   boardToParent,
+  runInParallel,
 }

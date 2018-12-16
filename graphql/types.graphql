@@ -24,6 +24,11 @@ type logInPayload {
   user: User!
 }
 
+type permanentAccessTokenPayload {
+  token: String!
+  id: ID!
+}
+
 # Data needed to display the QR code when upgrading to 2-Factor Authentication
 # type UpgradeTo2FactorPayload {
 #   # totp secret
@@ -79,7 +84,7 @@ type Mutation {
   # Generates a permanent access token
   createPermanentAccessToken(
     name: String! # name of the token
-  ): logInPayload
+  ): permanentAccessTokenPayload
 
   # removes a permanent access token
   deletePermanentAccesToken(id: ID!): ID
@@ -104,8 +109,8 @@ type Mutation {
   revokePendingBoardShare(pendingBoardShareId: ID!): ID
 
   # returns the ID of the accepted board
-  acceptPendingBoardShare(pendingBoardShareId: ID!): ID
-  # returns the ID of the accepted board
+  acceptPendingBoardShare(pendingBoardShareId: ID!): Board
+  # returns the ID of the declined board
   declinePendingBoardShare(pendingBoardShareId: ID!): ID
 
   stopSharingBoard(boardId: ID!, email: String!): Board
@@ -570,8 +575,9 @@ type Subscription {
   deviceMoved: Device
   # subscribes to board shares to you
   boardSharedWithYou: PendingBoardShare
-  # returns the id of the board accepted
-  boardShareAccepted: ID
+  boardShareUpdated: PendingBoardShare
+  # returns the board accepted
+  boardShareAccepted: Board
   # returns the id of the board declined
   boardShareDeclined: ID
   # returns the id of the board share that was revoked

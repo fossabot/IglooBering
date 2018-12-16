@@ -26,6 +26,7 @@ import {
   GenerateUserBillingBatcher,
   boardToParent,
   sendBoardSharedEmail,
+  runInParallel,
 } from "./utilities"
 import webpush from "web-push"
 import Stripe from "stripe"
@@ -451,6 +452,18 @@ const MutationResolver = (
               return
             }
 
+            // if receiver has already an owner change throw error
+            const otherOwnerChange = await PendingOwnerChange.find({
+              where: {
+                receiverId: receiverFound.id,
+                boardId: args.boardId,
+              },
+            })
+            if (otherOwnerChange) {
+              reject(`There is already an ownerChange pending`)
+              return
+            }
+
             let newPendingShare = await PendingBoardShare.create({
               senderId: senderFound.id,
               receiverId: receiverFound.id,
@@ -514,8 +527,8 @@ const MutationResolver = (
 
           touch(Board, boardFound.id, newPendingBoardShare.updatedAt)
 
-          pubsub.publish("boardSharedWithYou", {
-            boardSharedWithYou: newPendingBoardShare,
+          pubsub.publish("boardShareUpdated", {
+            boardShareUpdated: newPendingBoardShare,
             userId: newPendingBoardShare.receiverId,
           })
 
@@ -553,7 +566,7 @@ const MutationResolver = (
 
           await userFound[`add${Board[parsedRole]}`](boardFound)
 
-          resolve(boardFound.id)
+          resolve({ id: boardFound.id })
 
           touch(Board, boardFound.id)
 
@@ -561,7 +574,7 @@ const MutationResolver = (
           context.billingUpdater.update(MUTATION_COST)
 
           pubsub.publish("boardShareAccepted", {
-            boardShareAccepted: boardFound.id,
+            boardShareAccepted: { id: boardFound.id },
             userId: userFound.id,
           })
 
@@ -643,7 +656,7 @@ const MutationResolver = (
 
             pubsub.publish("boardShareRevoked", {
               boardShareRevoked: revokedId,
-              userId: receiverId,
+              userIds: [receiverId],
             })
             pubsub.publish("boardUpdated", {
               boardUpdated: boardFound,
@@ -677,6 +690,21 @@ const MutationResolver = (
             })
             if (otherOwnerChange) {
               await otherOwnerChange.destroy()
+            }
+
+            const otherPendingShare = await PendingBoardShare.find({
+              where: {
+                receiverId: receiverFound.id,
+                boardId: args.boardId,
+              },
+            })
+            if (otherPendingShare) {
+              await otherPendingShare.destroy()
+
+              pubsub.publish("boardShareRevoked", {
+                boardShareRevoked: otherPendingShare.id,
+                userIds: [receiverFound.id],
+              })
             }
 
             let newOwnerChange = await PendingOwnerChange.create({
@@ -777,11 +805,11 @@ const MutationResolver = (
           })
 
           // remove old roles
-          await Promise.all([
-            userFound[`remove${Board.Admins}`](boardFound),
-            userFound[`remove${Board.Editors}`](boardFound),
-            userFound[`remove${Board.Spectators}`](boardFound),
-          ])
+          await runInParallel(
+            () => userFound[`remove${Board.Admins}`](boardFound),
+            () => userFound[`remove${Board.Editors}`](boardFound),
+            () => userFound[`remove${Board.Spectators}`](boardFound)
+          )
 
           await boardFound.setOwner(userFound)
           await userFound.addOwnBoard(boardFound)
@@ -874,11 +902,11 @@ const MutationResolver = (
             )
           } else {
             // remove old role
-            await Promise.all([
-              targetUserFound[`remove${Board.Admins}`](boardFound),
-              targetUserFound[`remove${Board.Editors}`](boardFound),
-              targetUserFound[`remove${Board.Spectators}`](boardFound),
-            ])
+            await runInParallel(
+              () => targetUserFound[`remove${Board.Admins}`](boardFound),
+              () => targetUserFound[`remove${Board.Editors}`](boardFound),
+              () => targetUserFound[`remove${Board.Spectators}`](boardFound)
+            )
 
             // add new role
             const parsedRole = `${args.newRole[0] +
@@ -914,11 +942,11 @@ const MutationResolver = (
             return
           }
 
-          await Promise.all([
-            userFound[`remove${Board.Admins}`](boardFound),
-            userFound[`remove${Board.Editors}`](boardFound),
-            userFound[`remove${Board.Spectators}`](boardFound),
-          ])
+          await runInParallel(
+            () => userFound[`remove${Board.Admins}`](boardFound),
+            () => userFound[`remove${Board.Editors}`](boardFound),
+            () => userFound[`remove${Board.Spectators}`](boardFound)
+          )
           resolve(boardFound.id)
 
           touch(Board, args.boardId)
@@ -967,11 +995,11 @@ const MutationResolver = (
           } else if (role === "OWNER") {
             reject("You cannot stop sharing a resource with its owner")
           } else {
-            await Promise.all([
-              userFound[`remove${Board.Admins}`](boardFound),
-              userFound[`remove${Board.Editors}`](boardFound),
-              userFound[`remove${Board.Spectators}`](boardFound),
-            ])
+            await runInParallel(
+              () => userFound[`remove${Board.Admins}`](boardFound),
+              () => userFound[`remove${Board.Editors}`](boardFound),
+              () => userFound[`remove${Board.Spectators}`](boardFound)
+            )
 
             resolve(boardFound)
             context.billingUpdater.update(MUTATION_COST)

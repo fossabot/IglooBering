@@ -10,6 +10,7 @@ import {
 
 const subscriptionResolver = (pubsub, { User, Device, Board }) => ({
   boardSharedWithYou: subscriptionFilterOnlyMine("boardSharedWithYou", pubsub),
+  boardShareUpdated: subscriptionFilterOnlyMine("boardShareUpdated", pubsub),
   boardStoppedSharingWithYou: subscriptionFilterOnlyMine(
     "boardStoppedSharingWithYou",
     pubsub
