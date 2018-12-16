@@ -4,10 +4,10 @@ import { testScalarProp, unauthenticatedShouldFail, wrongIdShouldFail } from "./
 
 const {
   MockedNotification,
-  MockedBoard,
+  MockedEnvironment,
   MockedUser,
   MockedDevice,
-  mockBoardData,
+  mockEnvironmentData,
   mockUserData,
   mockDeviceData,
   mockNotificationData
@@ -15,7 +15,7 @@ const {
 
 const NotificationResolver = NotificationResolverFactory({
   User: MockedUser,
-  Board: MockedBoard,
+  Environment: MockedEnvironment,
   Device: MockedDevice,
   Notification: MockedNotification
 });
@@ -65,16 +65,16 @@ describe("Notification", () => {
 
     done();
   });
-  test("board is resolved correctly", async done => {
-    const boardFound = await new Promise((resolve, reject) => {
-      NotificationResolver.board(
+  test("environment is resolved correctly", async done => {
+    const environmentFound = await new Promise((resolve, reject) => {
+      NotificationResolver.environment(
         { id: "mockNotificationId" },
         {},
         { auth: { userId: "mockUserId", tokenType: "TEMPORARY" } }
       )(resolve, reject);
     });
 
-    expect(boardFound).toMatchObject({ id: mockNotificationData[0].boardId });
+    expect(environmentFound).toMatchObject({ id: mockNotificationData[0].environmentId });
 
     done();
   });
@@ -83,13 +83,13 @@ describe("Notification", () => {
   test("date fails if unauthenticated", testWrongId("date"));
   test("visualized fails if unauthenticated", testWrongId("visualized"));
   test("user fails if unauthenticated", testWrongId("user"));
-  test("board fails if unauthenticated", testWrongId("board"));
+  test("environment fails if unauthenticated", testWrongId("environment"));
   test("device fails if unauthenticated", testWrongId("device"));
 
   test("content fails if unauthenticated", testUnauthenticated("content"));
   test("date fails if unauthenticated", testUnauthenticated("date"));
   test("visualized fails if unauthenticated", testUnauthenticated("visualized"));
   test("user fails if unauthenticated", testUnauthenticated("user"));
-  test("board fails if unauthenticated", testUnauthenticated("board"));
+  test("environment fails if unauthenticated", testUnauthenticated("environment"));
   test("device fails if unauthenticated", testUnauthenticated("device"));
 });

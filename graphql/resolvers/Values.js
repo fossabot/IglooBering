@@ -9,7 +9,7 @@ import {
 
 const QUERY_COST = 1
 
-const GenericResolver = (Model, User, Device, Board) => ({
+const GenericResolver = (Model, User, Device, Environment) => ({
   ...authorizedScalarPropsResolvers(
     Model,
     User,
@@ -24,7 +24,7 @@ const GenericResolver = (Model, User, Device, Board) => ({
       "value",
       "index",
     ],
-    valueToParent(Board)
+    valueToParent(Environment)
   ),
   device: (root, args, context) =>
     authorized(
@@ -37,9 +37,9 @@ const GenericResolver = (Model, User, Device, Board) => ({
         resolve({ id: valueFound.deviceId })
         context.billingUpdater.update(QUERY_COST)
       },
-      valueToParent(Board)
+      valueToParent(Environment)
     ),
-  board: (root, args, context) =>
+  environment: (root, args, context) =>
     authorized(
       root.id,
       context,
@@ -47,39 +47,39 @@ const GenericResolver = (Model, User, Device, Board) => ({
       User,
       1,
       async (resolve, reject, valueFound) => {
-        resolve({ id: valueFound.boardId })
+        resolve({ id: valueFound.environmentId })
         context.billingUpdater.update(QUERY_COST)
       },
-      valueToParent(Board)
+      valueToParent(Environment)
     ),
 })
 
 const BooleanValueResolver = GenericResolver
-const FloatValueResolver = (Model, User, Device, Board) => ({
-  ...GenericResolver(Model, User, Device, Board),
+const FloatValueResolver = (Model, User, Device, Environment) => ({
+  ...GenericResolver(Model, User, Device, Environment),
   ...authorizedScalarPropsResolvers(
     Model,
     User,
     ["precision", "boundaries"],
-    valueToParent(Board)
+    valueToParent(Environment)
   ),
 })
-const StringValueResolver = (Model, User, Device, Board) => ({
-  ...GenericResolver(Model, User, Device, Board),
+const StringValueResolver = (Model, User, Device, Environment) => ({
+  ...GenericResolver(Model, User, Device, Environment),
   ...authorizedScalarPropsResolvers(
     Model,
     User,
     ["maxChars", "allowedValues"],
-    valueToParent(Board)
+    valueToParent(Environment)
   ),
 })
-const PlotValueResolver = (PlotValue, PlotNode, User, Device, Board) => ({
-  ...GenericResolver(PlotValue, User, Device, Board),
+const PlotValueResolver = (PlotValue, PlotNode, User, Device, Environment) => ({
+  ...GenericResolver(PlotValue, User, Device, Environment),
   ...authorizedScalarPropsResolvers(
     PlotValue,
     User,
     ["precision", "boundaries", "threshold"],
-    valueToParent(Board)
+    valueToParent(Environment)
   ),
   // overriding GenericResolver's value
   value: (root, args, context) =>
@@ -94,7 +94,7 @@ const PlotValueResolver = (PlotValue, PlotNode, User, Device, Board) => ({
         resolve(nodes)
         context.billingUpdater.update(QUERY_COST * nodes.length)
       },
-      valueToParent(Board)
+      valueToParent(Environment)
     ),
 })
 const StringPlotValueResolver = (
@@ -102,14 +102,14 @@ const StringPlotValueResolver = (
   StringPlotNode,
   User,
   Device,
-  Board
+  Environment
 ) => ({
-  ...GenericResolver(StringPlotValue, User, Device, Board),
+  ...GenericResolver(StringPlotValue, User, Device, Environment),
   ...authorizedScalarPropsResolvers(
     StringPlotValue,
     User,
     ["allowedValues"],
-    valueToParent(Board)
+    valueToParent(Environment)
   ),
   // overriding GenericResolver's value
   value: (root, args, context) =>
@@ -125,18 +125,18 @@ const StringPlotValueResolver = (
         resolve(nodes)
         context.billingUpdater.update(QUERY_COST * nodes.length)
       },
-      valueToParent(Board)
+      valueToParent(Environment)
     ),
 })
 
-const PlotNodeResolver = (PlotNode, PlotValue, User, Device, Board) => ({
+const PlotNodeResolver = (PlotNode, PlotValue, User, Device, Environment) => ({
   ...inheritAuthorizedScalarPropsResolvers(
     PlotNode,
     User,
     ["timestamp", "value"],
     plotNodeFound => plotNodeFound.plotId,
     PlotValue,
-    valueToParent(Board)
+    valueToParent(Environment)
   ),
   user(root, args, context) {
     return inheritAuthorized(
@@ -157,7 +157,7 @@ const PlotNodeResolver = (PlotNode, PlotValue, User, Device, Board) => ({
         resolve({ id: plotNodeFound.userId })
         context.billingUpdater.update(QUERY_COST)
       },
-      valueToParent(Board)
+      valueToParent(Environment)
     )
   },
   device(root, args, context) {
@@ -179,7 +179,7 @@ const PlotNodeResolver = (PlotNode, PlotValue, User, Device, Board) => ({
         resolve({ id: plotNodeFound.deviceId })
         context.billingUpdater.update(QUERY_COST)
       },
-      valueToParent(Board)
+      valueToParent(Environment)
     )
   },
   plot(root, args, context) {
@@ -201,7 +201,7 @@ const PlotNodeResolver = (PlotNode, PlotValue, User, Device, Board) => ({
         resolve(plotValueFound.dataValues)
         context.billingUpdater.update(QUERY_COST)
       },
-      valueToParent(Board)
+      valueToParent(Environment)
     )
   },
 })
@@ -218,25 +218,25 @@ export default (
   },
   User,
   Device,
-  Board
+  Environment
 ) => ({
-  BooleanValue: BooleanValueResolver(BooleanValue, User, Device, Board),
-  FloatValue: FloatValueResolver(FloatValue, User, Device, Board),
-  StringValue: StringValueResolver(StringValue, User, Device, Board),
-  PlotValue: PlotValueResolver(PlotValue, PlotNode, User, Device, Board),
-  PlotNode: PlotNodeResolver(PlotNode, PlotValue, User, Device, Board),
+  BooleanValue: BooleanValueResolver(BooleanValue, User, Device, Environment),
+  FloatValue: FloatValueResolver(FloatValue, User, Device, Environment),
+  StringValue: StringValueResolver(StringValue, User, Device, Environment),
+  PlotValue: PlotValueResolver(PlotValue, PlotNode, User, Device, Environment),
+  PlotNode: PlotNodeResolver(PlotNode, PlotValue, User, Device, Environment),
   StringPlotValue: StringPlotValueResolver(
     StringPlotValue,
     StringPlotNode,
     User,
     Device,
-    Board
+    Environment
   ),
   StringPlotNode: PlotNodeResolver(
     StringPlotNode,
     StringPlotValue,
     User,
     Device,
-    Board
+    Environment
   ),
 })

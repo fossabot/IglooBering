@@ -8,18 +8,21 @@ import {
 } from "./testUtils";
 
 const {
-  MockedBoard,
+  MockedEnvironment,
   MockedUser,
   MockedDevice,
-  mockBoardData,
+  mockEnvironmentData,
   mockUserData,
-  mockDeviceData
+  mockDeviceData,
+  MockedNotification,
+  mockNotificationData
 } = MocksGenerator();
 
 const DeviceResolver = DeviceResolverFactory({
   User: MockedUser,
-  Board: MockedBoard,
-  Device: MockedDevice
+  Environment: MockedEnvironment,
+  Device: MockedDevice,
+  Notification: MockedNotification
 });
 
 describe("Device", () => {
@@ -68,8 +71,67 @@ describe("Device", () => {
     });
 
     const correctQuietMode =
-      mockDeviceData[0].muted || mockBoardData[0].muted || mockUserData[0].quietMode;
+      mockDeviceData[0].muted || mockEnvironmentData[0].muted || mockUserData[0].quietMode;
     expect(mutedFound).toBe(correctQuietMode);
+
+    done();
+  });
+  test("environment is resolved correctly", async done => {
+    const environmentFound = await new Promise((resolve, reject) => {
+      DeviceResolver.environment(
+        { id: "mockDeviceId" },
+        {},
+        { auth: { userId: "mockUserId", tokenType: "TEMPORARY" } }
+      )(resolve, reject);
+    });
+
+    expect(environmentFound).toMatchObject({ id: mockDeviceData[0].environmentId });
+
+    done();
+  });
+  test.skip("values is resolved correctly", async done => {
+    const valuesFound = await new Promise((resolve, reject) => {
+      DeviceResolver.values(
+        { id: "mockDeviceId" },
+        {},
+        { auth: { userId: "mockUserId", tokenType: "TEMPORARY" } }
+      )(resolve, reject);
+    });
+
+    expect(mutedFound).toBe(correctQuietMode);
+
+    done();
+  });
+  test("notifications is resolved correctly", async done => {
+    const notificationsFound = await new Promise((resolve, reject) => {
+      DeviceResolver.notifications(
+        { id: "mockDeviceId" },
+        {},
+        {
+          auth: { userId: "mockUserId", tokenType: "TEMPORARY" },
+          billingUpdater: { update: () => {} }
+        }
+      )(resolve, reject);
+    });
+
+    expect(notificationsFound.length).toBeDefined();
+    expect(notificationsFound.length).toBe(2);
+    expect(notificationsFound[0]).toMatchObject({ id: mockNotificationData[0].id });
+    done();
+  });
+  test("notificationCount is resolved correctly", async done => {
+    const notificationCount = await new Promise((resolve, reject) => {
+      DeviceResolver.notificationCount(
+        { id: "mockDeviceId" },
+        {},
+        {
+          auth: { userId: "mockUserId", tokenType: "TEMPORARY" },
+          billingUpdater: { update: () => {} }
+        }
+      )(resolve, reject);
+    });
+
+    expect(notificationCount).toBe(2);
 
     done();
   });
@@ -88,7 +150,7 @@ describe("Device", () => {
     "values",
     "notifications",
     "notificationCount",
-    "board",
+    "environment",
     "muted"
   ];
 

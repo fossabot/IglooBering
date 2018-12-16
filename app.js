@@ -102,7 +102,18 @@ app.use("/graphql", async (req, res, next) => {
     const userFound = await User.find({ where: { id: req.user.userId } })
 
     if (!userFound) {
-      res.send("This user doesn't exist anymore")
+      res.send(
+        JSON.stringify({
+          data: null,
+          errors: [
+            {
+              message: "This user doesn't exist anymore",
+              path: [],
+              locations: [],
+            },
+          ],
+        })
+      )
       return
     } else if (
       userFound.paymentPlan === "FREE" &&

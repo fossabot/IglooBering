@@ -1,4 +1,4 @@
-import PendingBoardShareResolverFactory from "../graphql/resolvers/PendingBoardShare";
+import PendingEnvironmentShareResolverFactory from "../graphql/resolvers/PendingEnvironmentShare";
 import MocksGenerator from "./mockUtils";
 import {
   testScalarProp,
@@ -8,56 +8,56 @@ import {
 } from "./testUtils";
 
 const {
-  MockedBoard,
+  MockedEnvironment,
   MockedUser,
-  MockedPendingBoardShare,
-  mockBoardData,
+  MockedPendingEnvironmentShare,
+  mockEnvironmentData,
   mockUserData,
-  mockPendingBoardShareData
+  mockPendingEnvironmentShareData
 } = MocksGenerator();
 
-const PendingBoardShareResolver = PendingBoardShareResolverFactory({
+const PendingEnvironmentShareResolver = PendingEnvironmentShareResolverFactory({
   User: MockedUser,
-  Board: MockedBoard,
-  PendingBoardShare: MockedPendingBoardShare
+  Environment: MockedEnvironment,
+  PendingEnvironmentShare: MockedPendingEnvironmentShare
 });
 
-describe("PendingBoardShare", () => {
-  const testPendingBoardShareScalarProp = testScalarProp(
-    PendingBoardShareResolver,
-    { id: "mockPendingBoardShareId" },
-    mockPendingBoardShareData[0]
+describe("PendingEnvironmentShare", () => {
+  const testPendingEnvironmentShareScalarProp = testScalarProp(
+    PendingEnvironmentShareResolver,
+    { id: "mockPendingEnvironmentShareId" },
+    mockPendingEnvironmentShareData[0]
   );
-  const testUnauthenticated = unauthenticatedShouldFail(PendingBoardShareResolver, {
-    id: "mockPendingBoardShareId"
+  const testUnauthenticated = unauthenticatedShouldFail(PendingEnvironmentShareResolver, {
+    id: "mockPendingEnvironmentShareId"
   });
   const testNotAuthorized = notAuthorizedShouldFail(
-    PendingBoardShareResolver,
-    { id: "mockPendingBoardShareId" },
+    PendingEnvironmentShareResolver,
+    { id: "mockPendingEnvironmentShareId" },
     { auth: { userId: "mockUserId4", tokenType: "TEMPORARY" } }
   );
   const testWrongId = wrongIdShouldFail(
-    PendingBoardShareResolver,
-    { id: "wrongPendingBoardShareId" },
+    PendingEnvironmentShareResolver,
+    { id: "wrongPendingEnvironmentShareId" },
     { auth: { userId: "mockUserId", tokenType: "TEMPORARY" } }
   );
 
   // not using a for loop because this syntax integrates better with the IDE
-  test("id is resolved correctly", testPendingBoardShareScalarProp("id"));
-  test("role is resolved correctly", testPendingBoardShareScalarProp("role"));
+  test("id is resolved correctly", testPendingEnvironmentShareScalarProp("id"));
+  test("role is resolved correctly", testPendingEnvironmentShareScalarProp("role"));
   test("receiver is resolved correctly", async done => {
     const usersWithAccesIds = ["mockUserId", "mockUserId2", "mockUserId3"];
 
     for (let userId of usersWithAccesIds) {
       const receiverFound = await new Promise((resolve, reject) => {
-        PendingBoardShareResolver.receiver(
-          { id: "mockPendingBoardShareId" },
+        PendingEnvironmentShareResolver.receiver(
+          { id: "mockPendingEnvironmentShareId" },
           {},
           { auth: { userId, tokenType: "TEMPORARY" } }
         )(resolve, reject);
       });
 
-      expect(receiverFound).toMatchObject({ id: mockPendingBoardShareData[0].receiverId });
+      expect(receiverFound).toMatchObject({ id: mockPendingEnvironmentShareData[0].receiverId });
     }
     done();
   });
@@ -66,30 +66,32 @@ describe("PendingBoardShare", () => {
 
     for (let userId of usersWithAccesIds) {
       const senderFound = await new Promise((resolve, reject) => {
-        PendingBoardShareResolver.sender(
-          { id: "mockPendingBoardShareId" },
+        PendingEnvironmentShareResolver.sender(
+          { id: "mockPendingEnvironmentShareId" },
           {},
           { auth: { userId: "mockUserId", tokenType: "TEMPORARY" } }
         )(resolve, reject);
       });
 
-      expect(senderFound).toMatchObject({ id: mockPendingBoardShareData[0].senderId });
+      expect(senderFound).toMatchObject({ id: mockPendingEnvironmentShareData[0].senderId });
     }
     done();
   });
-  test("board is resolved correctly", async done => {
+  test("environment is resolved correctly", async done => {
     const usersWithAccesIds = ["mockUserId", "mockUserId2", "mockUserId3"];
 
     for (let userId of usersWithAccesIds) {
-      const boardFound = await new Promise((resolve, reject) => {
-        PendingBoardShareResolver.board(
-          { id: "mockPendingBoardShareId" },
+      const environmentFound = await new Promise((resolve, reject) => {
+        PendingEnvironmentShareResolver.environment(
+          { id: "mockPendingEnvironmentShareId" },
           {},
           { auth: { userId: "mockUserId", tokenType: "TEMPORARY" } }
         )(resolve, reject);
       });
 
-      expect(boardFound).toMatchObject({ id: mockPendingBoardShareData[0].boardId });
+      expect(environmentFound).toMatchObject({
+        id: mockPendingEnvironmentShareData[0].environmentId
+      });
     }
     done();
   });
@@ -98,17 +100,17 @@ describe("PendingBoardShare", () => {
   test("sender fails if unauthenticated", testUnauthenticated("sender"));
   test("receiver fails if unauthenticated", testUnauthenticated("receiver"));
   test("role fails if unauthenticated", testUnauthenticated("role"));
-  test("board fails if unauthenticated", testUnauthenticated("board"));
+  test("environment fails if unauthenticated", testUnauthenticated("environment"));
 
   test("id fails if unauthenticated", testNotAuthorized("id"));
   test("sender fails if unauthenticated", testNotAuthorized("sender"));
   test("receiver fails if unauthenticated", testNotAuthorized("receiver"));
   test("role fails if unauthenticated", testNotAuthorized("role"));
-  test("board fails if unauthenticated", testNotAuthorized("board"));
+  test("environment fails if unauthenticated", testNotAuthorized("environment"));
 
   test("id fails if unauthenticated", testWrongId("id"));
   test("sender fails if unauthenticated", testWrongId("sender"));
   test("receiver fails if unauthenticated", testWrongId("receiver"));
   test("role fails if unauthenticated", testWrongId("role"));
-  test("board fails if unauthenticated", testWrongId("board"));
+  test("environment fails if unauthenticated", testWrongId("environment"));
 });

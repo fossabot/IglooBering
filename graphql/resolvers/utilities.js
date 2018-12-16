@@ -108,7 +108,7 @@ const MUTATION_COST = 2
 const CreateGenericValue = (
   User,
   Device,
-  Board,
+  Environment,
   Model,
   ModelName,
   ValueModels,
@@ -121,7 +121,7 @@ const CreateGenericValue = (
     Device,
     User,
     2,
-    async (resolve, reject, deviceFound, [_, boardFound], userFound) => {
+    async (resolve, reject, deviceFound, [_, environmentFound], userFound) => {
       if (!argsChecks(args, reject)) {
         return
       }
@@ -162,7 +162,7 @@ const CreateGenericValue = (
         index,
       })
 
-      await boardFound[`add${ModelName}`](newValue)
+      await environmentFound[`add${ModelName}`](newValue)
 
       const resolveObj = {
         ...newValue.dataValues,
@@ -176,9 +176,9 @@ const CreateGenericValue = (
 
       resolve(resolveObj)
 
-      Board.update(
+      Environment.update(
         { updatedAt: newValue.createdAt },
-        { where: { id: boardFound.id } }
+        { where: { id: environmentFound.id } }
       )
       Device.update(
         { updatedAt: newValue.createdAt },
@@ -187,11 +187,11 @@ const CreateGenericValue = (
 
       pubsub.publish("valueCreated", {
         valueCreated: resolveObj,
-        userIds: await instanceToSharedIds(boardFound),
+        userIds: await instanceToSharedIds(environmentFound),
       })
       context.billingUpdater.update(MUTATION_COST)
     },
-    deviceToParent(Board)
+    deviceToParent(Environment)
   )
 
 // logs messages colorized by priority, both to console and to `logs` file
@@ -248,7 +248,7 @@ const genericValueMutation = (
   pubsub,
   User,
   Device,
-  Board,
+  Environment,
   checkArgs = (args, valueFound, reject) => true
 ) => (root, args, context) =>
   authorized(
@@ -257,7 +257,7 @@ const genericValueMutation = (
     childModel,
     User,
     2,
-    async (resolve, reject, valueFound, [_, boardFound]) => {
+    async (resolve, reject, valueFound, [_, environmentFound]) => {
       if (!checkArgs(args, valueFound, reject)) return
       if (args.value === null) {
         reject("value cannot be null")
@@ -285,9 +285,9 @@ const genericValueMutation = (
       }
       resolve(resolveObj)
 
-      Board.update(
+      Environment.update(
         { updatedAt: newValue.updatedAt },
-        { where: { id: boardFound.id } }
+        { where: { id: environmentFound.id } }
       )
       Device.update(
         { updatedAt: newValue.updatedAt },
@@ -296,11 +296,11 @@ const genericValueMutation = (
 
       pubsub.publish("valueUpdated", {
         valueUpdated: { ...resolveObj, __resolveType },
-        userIds: await instanceToSharedIds(boardFound),
+        userIds: await instanceToSharedIds(environmentFound),
       })
       context.billingUpdater.update(MUTATION_COST)
     },
-    valueToParent(Board)
+    valueToParent(Environment)
   )
 
 const create2FSecret = user => {
@@ -461,7 +461,7 @@ const findValue = (
     MapValue,
   },
   Device,
-  Board,
+  Environment,
   query,
   userFound
 ) => {
@@ -547,11 +547,11 @@ const findValue = (
     .then(async value => {
       if (!value) throw new Error("The requested resource does not exist")
       else {
-        const boardFound = await Board.find({
-          where: { id: value.boardId },
+        const environmentFound = await Environment.find({
+          where: { id: value.environmentId },
         })
 
-        if ((await authorizationLevel(boardFound, userFound)) < 1) {
+        if ((await authorizationLevel(environmentFound, userFound)) < 1) {
           throw new Error("You are not allowed to perform this operation")
         } else return value
       }
@@ -698,7 +698,7 @@ const sendTokenCreatedEmail = email => {
     console.log
   )
 }
-const sendBoardSharedEmail = (email, userName, boardName) => {
+const sendEnvironmentSharedEmail = (email, userName, environmentName) => {
   // TODO: create a template for the email verification
   ses.sendEmail(
     {
@@ -708,16 +708,16 @@ const sendBoardSharedEmail = (email, userName, boardName) => {
         Body: {
           Html: {
             Charset: "UTF-8",
-            Data: `${userName} has shared the board ${boardName} with you. <a href="igloo.ooo">Check it out now</a>`,
+            Data: `${userName} has shared the environment ${environmentName} with you. <a href="igloo.ooo">Check it out now</a>`,
           },
           Text: {
             Charset: "UTF-8",
-            Data: `${userName} has shared the board ${boardName} with you. Check it out on igloo.ooo`,
+            Data: `${userName} has shared the environment ${environmentName} with you. Check it out on igloo.ooo`,
           },
         },
         Subject: {
           Charset: "UTF-8",
-          Data: "A board was shared with you",
+          Data: "A environment was shared with you",
         },
       },
     },
@@ -726,10 +726,10 @@ const sendBoardSharedEmail = (email, userName, boardName) => {
 }
 
 async function authorizationLevel(instance, userFound) {
-  const isOwner = await userFound.hasOwnBoard(instance)
-  const isAdmin = await userFound.hasAdminBoard(instance)
-  const isEditor = await userFound.hasEditorBoard(instance)
-  const isSpectator = await userFound.hasSpectatorBoard(instance)
+  const isOwner = await userFound.hasOwnEnvironment(instance)
+  const isAdmin = await userFound.hasAdminEnvironment(instance)
+  const isEditor = await userFound.hasEditorEnvironment(instance)
+  const isSpectator = await userFound.hasSpectatorEnvironment(instance)
 
   if (isOwner) return 4
   else if (isAdmin) return 3
@@ -813,16 +813,20 @@ const authorizedScalarPropsResolvers = (
     return acc
   }, {})
 
-const deviceToParent = Board => async deviceFound => {
-  const boardFound = await Board.find({ where: { id: deviceFound.boardId } })
+const deviceToParent = Environment => async deviceFound => {
+  const environmentFound = await Environment.find({
+    where: { id: deviceFound.environmentId },
+  })
 
-  return boardFound
+  return environmentFound
 }
 
-const valueToParent = Board => async valueFound => {
-  const boardFound = await Board.find({ where: { id: valueFound.boardId } })
+const valueToParent = Environment => async valueFound => {
+  const environmentFound = await Environment.find({
+    where: { id: valueFound.environmentId },
+  })
 
-  return boardFound
+  return environmentFound
 }
 
 const authorizedValue = (
@@ -833,7 +837,7 @@ const authorizedValue = (
   authorizationRequired,
   callbackFunc,
   Device,
-  Board
+  Environment
 ) =>
   authenticated(context, async (resolve, reject) => {
     const NOT_ALLOWED = "You are not allowed to perform this operation"
@@ -850,18 +854,18 @@ const authorizedValue = (
       if (!resourceFound) {
         throw new Error(NOT_EXIST)
       } else {
-        const boardFound = await Board.find({
-          where: { id: resourceFound.boardId },
+        const environmentFound = await Environment.find({
+          where: { id: resourceFound.environmentId },
         })
 
         if (
-          (await authorizationLevel(boardFound, userFound)) <
+          (await authorizationLevel(environmentFound, userFound)) <
           authorizationRequired
         ) {
           throw new Error(NOT_ALLOWED)
         } else {
           resourceFound.Model = Model
-          return [resourceFound, boardFound]
+          return [resourceFound, environmentFound]
         }
       }
     })
@@ -1068,7 +1072,7 @@ const randomChoice = (...args) => {
   return chooseAmong[randomIndex]
 }
 
-const randomBoardAvatar = () =>
+const randomEnvironmentAvatar = () =>
   randomChoice(["NORTHERN_LIGHTS", "DENALI", "FOX", "PUFFIN", "TREETOPS"])
 
 const randomUserIconColor = () => randomChoice(["blue", "red", "green"])
@@ -1088,8 +1092,10 @@ const updateUserBilling = (User, auth) => async bill => {
 const GenerateUserBillingBatcher = (User, auth) =>
   new UpdateBatcher(updateUserBilling(User, auth))
 
-// a board is it's own parent
-const boardToParent = x => x
+// a environment is it's own parent
+const environmentToParent = x => x
+
+const runInParallel = async (...funcs) => await Promise.all(funcs.map(f => f()))
 
 module.exports = {
   authenticated,
@@ -1111,7 +1117,7 @@ module.exports = {
   sendPasswordRecoveryEmail,
   sendPasswordUpdatedEmail,
   sendTokenCreatedEmail,
-  sendBoardSharedEmail,
+  sendEnvironmentSharedEmail,
   authorizationLevel,
   authorized,
   authorizedScalarPropsResolvers,
@@ -1126,9 +1132,10 @@ module.exports = {
   inheritAuthorizedScalarPropsResolvers,
   getAll,
   randomChoice,
-  randomBoardAvatar,
+  randomEnvironmentAvatar,
   randomUserIconColor,
   updateUserBilling,
   GenerateUserBillingBatcher,
-  boardToParent,
+  environmentToParent,
+  runInParallel,
 }

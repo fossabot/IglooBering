@@ -5,7 +5,7 @@ import {
   deviceToParent,
   notificationToParent,
   inheritAuthorized,
-  boardToParent,
+  environmentToParent,
   valueToParent,
 } from "./utilities"
 import bcrypt from "bcryptjs"
@@ -15,7 +15,7 @@ const QUERY_COST = 1
 const QueryResolver = ({
   User,
   Device,
-  Board,
+  Environment,
   FloatValue,
   StringValue,
   BooleanValue,
@@ -48,21 +48,21 @@ const QueryResolver = ({
 
         context.billingUpdater.update(QUERY_COST)
       },
-      deviceToParent(Board)
+      deviceToParent(Environment)
     )
   },
-  board(root, args, context) {
+  environment(root, args, context) {
     return authorized(
       args.id,
       context,
-      Board,
+      Environment,
       User,
       1,
-      async (resolve, reject, boardFound) => {
-        resolve(boardFound.dataValues)
+      async (resolve, reject, environmentFound) => {
+        resolve(environmentFound.dataValues)
         context.billingUpdater.update(QUERY_COST)
       },
-      boardToParent
+      environmentToParent
     )
   },
   value(root, args, context) {
@@ -80,7 +80,7 @@ const QueryResolver = ({
           MapValue,
         },
         Device,
-        Board,
+        Environment,
         { where: { id: args.id } },
         userFound
       ).catch(e => reject(e))
@@ -102,7 +102,7 @@ const QueryResolver = ({
         resolve(notificationFound)
         context.billingUpdater.update(QUERY_COST)
       },
-      deviceToParent(Board)
+      deviceToParent(Environment)
     )
   },
   plotNode(root, args, context) {
@@ -117,7 +117,7 @@ const QueryResolver = ({
       async (resolve, reject, plotNodeFound) => {
         resolve(plotNodeFound)
       },
-      valueToParent(Board)
+      valueToParent(Environment)
     )
   },
   stringPlotNode(root, args, context) {
@@ -132,7 +132,7 @@ const QueryResolver = ({
       async (resolve, reject, plotNodeFound) => {
         resolve(plotNodeFound)
       },
-      valueToParent(Board)
+      valueToParent(Environment)
     )
   },
 })

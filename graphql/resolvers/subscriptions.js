@@ -8,15 +8,25 @@ import {
   instanceToSharedIds,
 } from "./utilities"
 
-const subscriptionResolver = (pubsub, { User, Device, Board }) => ({
-  boardSharedWithYou: subscriptionFilterOnlyMine("boardSharedWithYou", pubsub),
-  boardStoppedSharingWithYou: subscriptionFilterOnlyMine(
-    "boardStoppedSharingWithYou",
+const subscriptionResolver = (pubsub, { User, Device, Environment }) => ({
+  environmentSharedWithYou: subscriptionFilterOnlyMine(
+    "environmentSharedWithYou",
     pubsub
   ),
-  boardShareDeclined: subscriptionFilterOnlyMine("boardShareDeclined", pubsub),
-  boardShareRevoked: subscriptionFilterOwnedOrShared(
-    "boardShareRevoked",
+  environmentShareUpdated: subscriptionFilterOnlyMine(
+    "environmentShareUpdated",
+    pubsub
+  ),
+  environmentStoppedSharingWithYou: subscriptionFilterOnlyMine(
+    "environmentStoppedSharingWithYou",
+    pubsub
+  ),
+  environmentShareDeclined: subscriptionFilterOnlyMine(
+    "environmentShareDeclined",
+    pubsub
+  ),
+  environmentShareRevoked: subscriptionFilterOwnedOrShared(
+    "environmentShareRevoked",
     pubsub
   ),
   ownerChangeBegan: subscriptionFilterOnlyMine("ownerChangeBegan", pubsub),
@@ -29,7 +39,7 @@ const subscriptionResolver = (pubsub, { User, Device, Board }) => ({
     pubsub
   ),
   ownerChangeRevoked: subscriptionFilterOnlyMine("ownerChangeRevoked", pubsub),
-  boardCreated: subscriptionFilterOnlyMine("boardCreated", pubsub),
+  environmentCreated: subscriptionFilterOnlyMine("environmentCreated", pubsub),
   deviceCreated: subscriptionFilterOwnedOrShared("deviceCreated", pubsub),
   deviceMoved: subscriptionFilterOwnedOrShared("deviceMoved", pubsub),
   valueCreated: subscriptionFilterOwnedOrShared("valueCreated", pubsub),
@@ -48,7 +58,10 @@ const subscriptionResolver = (pubsub, { User, Device, Board }) => ({
   ),
   userUpdated: subscriptionFilterOnlyMine("userUpdated", pubsub),
   deviceUpdated: subscriptionFilterOwnedOrShared("deviceUpdated", pubsub),
-  boardUpdated: subscriptionFilterOwnedOrShared("boardUpdated", pubsub),
+  environmentUpdated: subscriptionFilterOwnedOrShared(
+    "environmentUpdated",
+    pubsub
+  ),
   valueUpdated: subscriptionFilterOwnedOrShared("valueUpdated", pubsub),
   plotNodeUpdated: subscriptionFilterOwnedOrShared("plotNodeUpdated", pubsub),
   stringPlotNodeUpdated: subscriptionFilterOwnedOrShared(
@@ -65,7 +78,10 @@ const subscriptionResolver = (pubsub, { User, Device, Board }) => ({
   ),
   valueDeleted: subscriptionFilterOwnedOrShared("valueDeleted", pubsub),
   deviceDeleted: subscriptionFilterOwnedOrShared("deviceDeleted", pubsub),
-  boardDeleted: subscriptionFilterOwnedOrShared("boardDeleted", pubsub),
+  environmentDeleted: subscriptionFilterOwnedOrShared(
+    "environmentDeleted",
+    pubsub
+  ),
   userDeleted: subscriptionFilterOnlyMine("userDeleted", pubsub),
   plotNodeDeleted: subscriptionFilterOwnedOrShared("plotNodeDeleted", pubsub),
   stringPlotNodeDeleted: subscriptionFilterOwnedOrShared(
@@ -87,9 +103,9 @@ const subscriptionResolver = (pubsub, { User, Device, Board }) => ({
           Device,
           User,
           2,
-          async (resolve, reject, deviceFound, [_, boardFound]) => {
+          async (resolve, reject, deviceFound, [_, environmentFound]) => {
             const newDevice = await deviceFound.update({ online: true })
-            const userIds = await instanceToSharedIds(boardFound)
+            const userIds = await instanceToSharedIds(environmentFound)
 
             pubsub.publish("deviceUpdated", {
               deviceUpdated: newDevice.dataValues,
@@ -103,7 +119,7 @@ const subscriptionResolver = (pubsub, { User, Device, Board }) => ({
 
             resolve(pubsub.asyncIterator("bogusIterator")) // this iterator will never send any data
           },
-          deviceToParent(Board)
+          deviceToParent(Environment)
         )
       ),
   },

@@ -1,24 +1,30 @@
 import { authenticated, instanceToRole, authorizationLevel } from "./utilities"
 
-const PendingOwnerChangeResolver = ({ User, Board, PendingOwnerChange }) => ({
+const PendingOwnerChangeResolver = ({
+  User,
+  Environment,
+  PendingOwnerChange,
+}) => ({
   id(root, args, context) {
     return authenticated(context, async (resolve, reject) => {
       const pendingOwnerChange = await PendingOwnerChange.find({
         where: { id: root.id },
       })
 
-      const findSharedBoard = () =>
-        Board.find({
-          where: { id: pendingOwnerChange.boardId },
+      const findSharedEnvironment = () =>
+        Environment.find({
+          where: { id: pendingOwnerChange.environmentId },
         })
       const findUser = () => User.find({ where: { id: context.auth.userId } })
 
       if (!pendingOwnerChange) {
         reject("The requested resource does not exist")
       } else if (
-        context.auth.userId !== pendingOwnerChange.newOwnerId &&
-        (await authorizationLevel(await findSharedBoard(), await findUser())) <
-          3
+        context.auth.userId !== pendingOwnerChange.receiverId &&
+        (await authorizationLevel(
+          await findSharedEnvironment(),
+          await findUser()
+        )) < 3
       ) {
         reject("You are not allowed to perform this operation")
       } else {
@@ -26,78 +32,84 @@ const PendingOwnerChangeResolver = ({ User, Board, PendingOwnerChange }) => ({
       }
     })
   },
-  newOwner(root, args, context) {
+  receiver(root, args, context) {
     return authenticated(context, async (resolve, reject) => {
       const pendingOwnerChange = await PendingOwnerChange.find({
         where: { id: root.id },
       })
 
-      const findSharedBoard = () =>
-        Board.find({
-          where: { id: pendingOwnerChange.boardId },
+      const findSharedEnvironment = () =>
+        Environment.find({
+          where: { id: pendingOwnerChange.environmentId },
         })
       const findUser = () => User.find({ where: { id: context.auth.userId } })
 
       if (!pendingOwnerChange) {
         reject("The requested resource does not exist")
       } else if (
-        context.auth.userId !== pendingOwnerChange.newOwnerId &&
-        (await authorizationLevel(await findSharedBoard(), await findUser())) <
-          3
+        context.auth.userId !== pendingOwnerChange.receiverId &&
+        (await authorizationLevel(
+          await findSharedEnvironment(),
+          await findUser()
+        )) < 3
       ) {
         reject("You are not allowed to perform this operation")
       } else {
-        resolve({ id: pendingOwnerChange.newOwnerId })
+        resolve({ id: pendingOwnerChange.receiverId })
       }
     })
   },
-  formerOwner(root, args, context) {
+  sender(root, args, context) {
     return authenticated(context, async (resolve, reject) => {
       const pendingOwnerChange = await PendingOwnerChange.find({
         where: { id: root.id },
       })
 
-      const findSharedBoard = () =>
-        Board.find({
-          where: { id: pendingOwnerChange.boardId },
+      const findSharedEnvironment = () =>
+        Environment.find({
+          where: { id: pendingOwnerChange.environmentId },
         })
       const findUser = () => User.find({ where: { id: context.auth.userId } })
 
       if (!pendingOwnerChange) {
         reject("The requested resource does not exist")
       } else if (
-        context.auth.userId !== pendingOwnerChange.newOwnerId &&
-        (await authorizationLevel(await findSharedBoard(), await findUser())) <
-          3
+        context.auth.userId !== pendingOwnerChange.receiverId &&
+        (await authorizationLevel(
+          await findSharedEnvironment(),
+          await findUser()
+        )) < 3
       ) {
         reject("You are not allowed to perform this operation")
       } else {
-        resolve({ id: pendingOwnerChange.formerOwnerId })
+        resolve({ id: pendingOwnerChange.senderId })
       }
     })
   },
-  board(root, args, context) {
+  environment(root, args, context) {
     return authenticated(context, async (resolve, reject) => {
       const pendingOwnerChange = await PendingOwnerChange.find({
         where: { id: root.id },
       })
 
-      const findSharedBoard = () =>
-        Board.find({
-          where: { id: pendingOwnerChange.boardId },
+      const findSharedEnvironment = () =>
+        Environment.find({
+          where: { id: pendingOwnerChange.environmentId },
         })
       const findUser = () => User.find({ where: { id: context.auth.userId } })
 
       if (!pendingOwnerChange) {
         reject("The requested resource does not exist")
       } else if (
-        context.auth.userId !== pendingOwnerChange.newOwnerId &&
-        (await authorizationLevel(await findSharedBoard(), await findUser())) <
-          3
+        context.auth.userId !== pendingOwnerChange.receiverId &&
+        (await authorizationLevel(
+          await findSharedEnvironment(),
+          await findUser()
+        )) < 3
       ) {
         reject("You are not allowed to perform this operation")
       } else {
-        resolve({ id: pendingOwnerChange.boardId })
+        resolve({ id: pendingOwnerChange.environmentId })
       }
     })
   },

@@ -8,14 +8,14 @@ import {
 const QUERY_COST = 1
 const notificationToParent = notificationFound => notificationFound.deviceId
 
-const UserResolver = ({ Notification, User, Device, Board }) => ({
+const UserResolver = ({ Notification, User, Device, Environment }) => ({
   ...inheritAuthorizedScalarPropsResolvers(
     Notification,
     User,
     ["content", "date"],
     notificationToParent,
     Device,
-    deviceToParent(Board)
+    deviceToParent(Environment)
   ),
   user(root, args, context) {
     return inheritAuthorized(
@@ -30,7 +30,7 @@ const UserResolver = ({ Notification, User, Device, Board }) => ({
         resolve({ id: notificationFound.userId })
         context.billingUpdater.update(QUERY_COST)
       },
-      deviceToParent(Board)
+      deviceToParent(Environment)
     )
   },
   device(root, args, context) {
@@ -46,10 +46,10 @@ const UserResolver = ({ Notification, User, Device, Board }) => ({
         resolve({ id: notificationFound.deviceId })
         context.billingUpdater.update(QUERY_COST)
       },
-      deviceToParent(Board)
+      deviceToParent(Environment)
     )
   },
-  board(root, args, context) {
+  environment(root, args, context) {
     return inheritAuthorized(
       root.id,
       Notification,
@@ -59,10 +59,10 @@ const UserResolver = ({ Notification, User, Device, Board }) => ({
       Device,
       1,
       async (resolve, reject, notificationFound) => {
-        resolve({ id: notificationFound.boardId })
+        resolve({ id: notificationFound.environmentId })
         context.billingUpdater.update(QUERY_COST)
       },
-      deviceToParent(Board)
+      deviceToParent(Environment)
     )
   },
   visualized(root, args, context) {
@@ -80,7 +80,7 @@ const UserResolver = ({ Notification, User, Device, Board }) => ({
         )
         context.billingUpdater.update(QUERY_COST)
       },
-      deviceToParent(Board)
+      deviceToParent(Environment)
     )
   },
 })

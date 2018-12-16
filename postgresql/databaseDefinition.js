@@ -91,7 +91,7 @@ const databaseDefinition = sequelize => {
     },
   })
 
-  const Board = sequelize.define("board", {
+  const Environment = sequelize.define("environment", {
     ...selfId,
     name: {
       type: Sequelize.STRING,
@@ -300,11 +300,11 @@ const databaseDefinition = sequelize => {
     },
   })
 
-  const PendingBoardShare = sequelize.define("pendingBoardShare", {
+  const PendingEnvironmentShare = sequelize.define("pendingEnvironmentShare", {
     ...selfId,
     ...otherId("senderId", User),
     ...otherId("receiverId", User),
-    ...otherId("boardId", Board),
+    ...otherId("environmentId", Environment),
     role: {
       type: Role,
     },
@@ -312,19 +312,19 @@ const databaseDefinition = sequelize => {
 
   const PendingOwnerChange = sequelize.define("pendingOwnerChange", {
     ...selfId,
-    ...otherId("formerOwnerId", User),
-    ...otherId("newOwnerId", User),
-    ...otherId("boardId", Board),
+    ...otherId("senderId", User),
+    ...otherId("receiverId", User),
+    ...otherId("environmentId", Environment),
   })
 
-  Board.hasMany(Device)
-  Device.belongsTo(Board)
+  Environment.hasMany(Device)
+  Device.belongsTo(Environment)
 
   Device.hasMany(Notification)
   Notification.belongsTo(Device)
 
-  Board.hasMany(Notification)
-  Notification.belongsTo(Board)
+  Environment.hasMany(Notification)
+  Notification.belongsTo(Environment)
 
   PlotValue.hasMany(PlotNode)
   PlotNode.belongsTo(PlotValue, { as: "plot" })
@@ -342,60 +342,60 @@ const databaseDefinition = sequelize => {
   ]
   values.forEach(Value => {
     Device.hasMany(Value)
-    Board.hasMany(Value)
+    Environment.hasMany(Value)
   })
 
-  Board.Owner = "OwnBoards"
-  Board.belongsTo(User, { as: "owner" })
-  User.OwnBoards = User.hasMany(Board, {
-    as: "OwnBoards",
+  Environment.Owner = "OwnEnvironments"
+  Environment.belongsTo(User, { as: "owner" })
+  User.OwnEnvironments = User.hasMany(Environment, {
+    as: "OwnEnvironments",
   })
 
   const associations = []
   const joinTables = {}
 
-  const adminAssociation = sequelize.define("BoardAdmins", {})
+  const adminAssociation = sequelize.define("EnvironmentAdmins", {})
   associations.push(adminAssociation)
-  joinTables.BoardAdmins = adminAssociation
-  Board.Admins = "AdminBoards"
-  Board.belongsToMany(User, {
+  joinTables.EnvironmentAdmins = adminAssociation
+  Environment.Admins = "AdminEnvironments"
+  Environment.belongsToMany(User, {
     as: "admin",
-    through: "BoardAdmins",
+    through: "EnvironmentAdmins",
   })
-  User.AdminBoards = User.belongsToMany(Board, {
-    through: "BoardAdmins",
-    as: "AdminBoards",
+  User.AdminEnvironments = User.belongsToMany(Environment, {
+    through: "EnvironmentAdmins",
+    as: "AdminEnvironments",
   })
 
-  const editorAssociation = sequelize.define("BoardEditors", {})
-  joinTables.BoardEditors = editorAssociation
+  const editorAssociation = sequelize.define("EnvironmentEditors", {})
+  joinTables.EnvironmentEditors = editorAssociation
   associations.push(editorAssociation)
-  Board.Editors = "EditorBoards"
-  Board.belongsToMany(User, {
+  Environment.Editors = "EditorEnvironments"
+  Environment.belongsToMany(User, {
     as: "editor",
-    through: "BoardEditors",
+    through: "EnvironmentEditors",
   })
-  User.EditorBoards = User.belongsToMany(Board, {
-    as: "EditorBoards",
-    through: "BoardEditors",
+  User.EditorEnvironments = User.belongsToMany(Environment, {
+    as: "EditorEnvironments",
+    through: "EnvironmentEditors",
   })
 
-  const spectatorAssociation = sequelize.define("BoardSpectators", {})
-  joinTables.BoardSpectators = spectatorAssociation
+  const spectatorAssociation = sequelize.define("EnvironmentSpectators", {})
+  joinTables.EnvironmentSpectators = spectatorAssociation
   associations.push(spectatorAssociation)
-  Board.Spectators = "SpectatorBoards"
-  Board.belongsToMany(User, {
+  Environment.Spectators = "SpectatorEnvironments"
+  Environment.belongsToMany(User, {
     as: "spectator",
-    through: "BoardSpectators",
+    through: "EnvironmentSpectators",
   })
-  User.SpectatorBoards = User.belongsToMany(Board, {
-    as: "SpectatorBoards",
-    through: "BoardSpectators",
+  User.SpectatorEnvironments = User.belongsToMany(Environment, {
+    as: "SpectatorEnvironments",
+    through: "EnvironmentSpectators",
   })
 
   return {
     User,
-    Board,
+    Environment,
     PermanentToken,
     Device,
     BooleanValue,
@@ -410,7 +410,7 @@ const databaseDefinition = sequelize => {
     StringPlotNode,
     associations,
     joinTables,
-    PendingBoardShare,
+    PendingEnvironmentShare,
     PendingOwnerChange,
   }
 }

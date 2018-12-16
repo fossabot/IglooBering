@@ -2,7 +2,7 @@ scalar DateTime
 
 scalar Json
 
-enum BoardPicture {
+enum EnvironmentPicture {
   NORTHERN_LIGHTS
   DENALI
   FOX
@@ -22,6 +22,11 @@ type logInPayload {
   # token used to authenticate, pass it as a bearer in the authentication header
   token: String!
   user: User!
+}
+
+type permanentAccessTokenPayload {
+  token: String!
+  id: ID!
 }
 
 # Data needed to display the QR code when upgrading to 2-Factor Authentication
@@ -45,7 +50,7 @@ enum LengthAndMass {
 
 enum Temperature {
   CELSIUS
-  FARENHEIT
+  FAHRENHEIT
   KELVIN
 }
 
@@ -79,7 +84,7 @@ type Mutation {
   # Generates a permanent access token
   createPermanentAccessToken(
     name: String! # name of the token
-  ): logInPayload
+  ): permanentAccessTokenPayload
 
   # removes a permanent access token
   deletePermanentAccesToken(id: ID!): ID
@@ -98,37 +103,41 @@ type Mutation {
 
   resendVerificationEmail: Boolean
 
-  shareBoard(boardId: ID!, email: String!, role: Role!): PendingBoardShare
-  pendingBoardShare(id: ID!, role: Role!): PendingBoardShare
+  shareEnvironment(
+    environmentId: ID!
+    email: String!
+    role: Role!
+  ): PendingEnvironmentShare
+  pendingEnvironmentShare(id: ID!, role: Role!): PendingEnvironmentShare
   # returns the ID of the pending share that was revoked
-  revokePendingBoardShare(pendingBoardShareId: ID!): ID
+  revokePendingEnvironmentShare(pendingEnvironmentShareId: ID!): ID
 
-  # returns the ID of the accepted board
-  acceptPendingBoardShare(pendingBoardShareId: ID!): ID
-  # returns the ID of the accepted board
-  declinePendingBoardShare(pendingBoardShareId: ID!): ID
+  # returns the ID of the accepted environment
+  acceptPendingEnvironmentShare(pendingEnvironmentShareId: ID!): Environment
+  # returns the ID of the declined environment
+  declinePendingEnvironmentShare(pendingEnvironmentShareId: ID!): ID
 
-  stopSharingBoard(boardId: ID!, email: String!): Board
-  leaveBoard(boardId: ID!): ID
+  stopSharingEnvironment(environmentId: ID!, email: String!): Environment
+  leaveEnvironment(environmentId: ID!): ID
 
-  changeOwner(boardId: ID!, email: String!): PendingOwnerChange
+  changeOwner(environmentId: ID!, email: String!): PendingOwnerChange
   # returns the ID of the pending share that was revoked
   revokePendingOwnerChange(pendingOwnerChangeId: ID!): ID
 
-  # returns the ID of the accepted board
+  # returns the ID of the accepted environment
   acceptPendingOwnerChange(pendingOwnerChangeId: ID!): ID
-  # returns the ID of the accepted board
+  # returns the ID of the accepted environment
   declinePendingOwnerChange(pendingOwnerChangeId: ID!): ID
 
-  changeRole(boardId: ID!, email: String!, newRole: Role!): Board
+  changeRole(environmentId: ID!, email: String!, newRole: Role!): Environment
 
-  # Creates a Board
-  createBoard(
+  # Creates a Environment
+  createEnvironment(
     name: String!
-    avatar: BoardPicture
+    avatar: EnvironmentPicture
     index: Int
     muted: Boolean
-  ): Board
+  ): Environment
 
   # Creates a new Device
   createDevice(
@@ -141,7 +150,7 @@ type Mutation {
     signalStatus: Float
     batteryStatus: Float
     batteryCharging: Boolean
-    boardId: ID!
+    environmentId: ID!
     firmware: String
     muted: Boolean
   ): Device
@@ -321,14 +330,14 @@ type Mutation {
 
   updatePaymentInfo(stripeToken: String!): Boolean
 
-  # changes board's data
-  board(
+  # changes environment's data
+  environment(
     id: ID!
     name: String
-    avatar: BoardPicture
+    avatar: EnvironmentPicture
     index: Int
     muted: Boolean
-  ): Board
+  ): Environment
 
   # changes device's data
   device(
@@ -347,7 +356,7 @@ type Mutation {
     muted: Boolean
   ): Device
 
-  moveDevice(deviceId: ID!, newBoardId: ID!): Device
+  moveDevice(deviceId: ID!, newEnvironmentId: ID!): Device
 
   resetOnlineState(deviceId: ID!): Device
 
@@ -517,8 +526,8 @@ type Mutation {
   deleteValue(id: ID!): ID
   # delete device
   deleteDevice(id: ID!): ID
-  # delete board
-  deleteBoard(id: ID!): ID
+  # delete environment
+  deleteEnvironment(id: ID!): ID
   # delte user
   deleteUser: ID
   # delte plot node
@@ -539,8 +548,8 @@ type Query {
   user: User
   #  get's device's data
   device(id: ID!): Device
-  # get's board's data
-  board(id: ID!): Board
+  # get's environment's data
+  environment(id: ID!): Environment
   # get's value's data
   value(id: ID!): Value
   # get notification's data
@@ -554,8 +563,8 @@ type Query {
 type Subscription {
   # subscribes to device creations
   deviceCreated: Device
-  # subscribes to board creations
-  boardCreated: Board
+  # subscribes to environment creations
+  environmentCreated: Environment
   # subscribes to value creations
   valueCreated: Value
   # subscribes to plot node creations
@@ -568,30 +577,31 @@ type Subscription {
   notificationCreated: Notification
   # subscribes to device creations
   deviceMoved: Device
-  # subscribes to board shares to you
-  boardSharedWithYou: PendingBoardShare
-  # returns the id of the board accepted
-  boardShareAccepted: ID
-  # returns the id of the board declined
-  boardShareDeclined: ID
-  # returns the id of the board share that was revoked
-  boardShareRevoked: ID
+  # subscribes to environment shares to you
+  environmentSharedWithYou: PendingEnvironmentShare
+  environmentShareUpdated: PendingEnvironmentShare
+  # returns the environment accepted
+  environmentShareAccepted: Environment
+  # returns the id of the environment declined
+  environmentShareDeclined: ID
+  # returns the id of the environment share that was revoked
+  environmentShareRevoked: ID
   # subscribes to owner change to you
   ownerChangeBegan: PendingOwnerChange
-  # returns the id of the board accepted
+  # returns the id of the environment accepted
   ownerChangeAccepted: ID
-  # returns the id of the board declined
+  # returns the id of the environment declined
   ownerChangeDeclined: ID
   # returns the id of the owner change that was revoked
   ownerChangeRevoked: ID
-  # subscribes to board unshares from you or you leave a board
-  boardStoppedSharingWithYou: ID
+  # subscribes to environment unshares from you or you leave a environment
+  environmentStoppedSharingWithYou: ID
   # subscribes to value updates
   userUpdated: User
   # subscribes to device updates
   deviceUpdated: Device
-  # subscribes to board updates
-  boardUpdated: Board
+  # subscribes to environment updates
+  environmentUpdated: Environment
   # subscribes to value updates
   valueUpdated: Value
   # subscribes to plot node updates
@@ -608,8 +618,8 @@ type Subscription {
   stringPlotNodeDeleted: ID
   # subscribes to device deletes
   deviceDeleted: ID
-  # subscribes to board deletes
-  boardDeleted: ID
+  # subscribes to environment deletes
+  environmentDeleted: ID
   # subscribes to user deletes
   userDeleted: ID
   # subscribes to token deletes
@@ -637,12 +647,12 @@ type Settings {
 type User {
   id: ID!
   email: String!
-  pendingBoardShareCount: Int!
-  pendingBoardShares: [PendingBoardShare!]!
+  pendingEnvironmentShareCount: Int!
+  pendingEnvironmentShares: [PendingEnvironmentShare!]!
   pendingOwnerChangeCount: Int!
   pendingOwnerChanges: [PendingOwnerChange!]!
-  boardCount: Int!
-  boards: [Board!]!
+  environmentCount: Int!
+  environments: [Environment!]!
   deviceCount: Int
   devices: [Device!]!
   valueCount: Int!
@@ -670,7 +680,7 @@ enum RoleExtended {
   SPECTATOR
 }
 
-type Board {
+type Environment {
   id: ID!
   createdAt: DateTime!
   updatedAt: DateTime!
@@ -680,15 +690,15 @@ type Board {
   editors: [User!]!
   spectators: [User!]!
   # returns null only if you don't have admin rights
-  pendingBoardShareCount: Int
+  pendingEnvironmentShareCount: Int
   # returns null only if you don't have admin rights
-  pendingBoardShares: [PendingBoardShare!]
+  pendingEnvironmentShares: [PendingEnvironmentShare!]
   # returns null only if you don't have admin rights
   pendingOwnerChangeCount: Int
   # returns null only if you don't have admin rights
-  pendingOwnerChanges: [PendingOwnerChange!]!
+  pendingOwnerChanges: [PendingOwnerChange!]
   name: String!
-  avatar: BoardPicture!
+  avatar: EnvironmentPicture!
   deviceCount: Int
   devices: [Device!]!
   notificationCount: Int!
@@ -696,19 +706,19 @@ type Board {
   muted: Boolean!
 }
 
-type PendingBoardShare {
+type PendingEnvironmentShare {
   id: ID!
   sender: User!
   receiver: User!
   role: Role!
-  board: Board!
+  environment: Environment!
 }
 
 type PendingOwnerChange {
   id: ID!
-  formerOwner: User!
-  newOwner: User!
-  board: Board!
+  sender: User!
+  receiver: User!
+  environment: Environment!
 }
 
 type PermanentToken {
@@ -730,7 +740,7 @@ type Device {
   # Custom name gave by the end-user to the device
   name: String
   values: [Value!]!
-  board: Board!
+  environment: Environment!
   notifications: [Notification!]!
   notificationCount: Int!
   online: Boolean
@@ -762,7 +772,7 @@ enum TileSize {
 type Notification {
   id: ID!
   device: Device!
-  board: Board!
+  environment: Environment!
   user: User!
   content: String!
   date: DateTime!
@@ -807,7 +817,7 @@ interface Value {
   createdAt: DateTime!
   updatedAt: DateTime!
   device: Device!
-  board: Board!
+  environment: Environment!
   permission: ValuePermission!
   visibility: ValueVisibility!
   valueDetails: String
@@ -821,7 +831,7 @@ type FloatValue implements Value {
   createdAt: DateTime!
   updatedAt: DateTime!
   device: Device!
-  board: Board!
+  environment: Environment!
   permission: ValuePermission!
   visibility: ValueVisibility!
   valueDetails: String
@@ -840,7 +850,7 @@ type StringValue implements Value {
   createdAt: DateTime!
   updatedAt: DateTime!
   device: Device!
-  board: Board!
+  environment: Environment!
   permission: ValuePermission!
   visibility: ValueVisibility!
   valueDetails: String
@@ -857,7 +867,7 @@ type PlotValue implements Value {
   createdAt: DateTime!
   updatedAt: DateTime!
   device: Device!
-  board: Board!
+  environment: Environment!
   permission: ValuePermission!
   visibility: ValueVisibility!
   valueDetails: String
@@ -878,7 +888,7 @@ type StringPlotValue implements Value {
   createdAt: DateTime!
   updatedAt: DateTime!
   device: Device!
-  board: Board!
+  environment: Environment!
   permission: ValuePermission!
   visibility: ValueVisibility!
   valueDetails: String
@@ -894,7 +904,7 @@ type BooleanValue implements Value {
   createdAt: DateTime!
   updatedAt: DateTime!
   device: Device!
-  board: Board!
+  environment: Environment!
   permission: ValuePermission!
   visibility: ValueVisibility!
   valueDetails: String
@@ -909,7 +919,7 @@ type MapValue implements Value {
   createdAt: DateTime!
   updatedAt: DateTime!
   device: Device!
-  board: Board!
+  environment: Environment!
   permission: ValuePermission!
   visibility: ValueVisibility!
   valueDetails: String

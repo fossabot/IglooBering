@@ -19,13 +19,14 @@ import {
   instanceToSharedIds,
   inheritAuthorized,
   valueToParent,
-  randomBoardAvatar,
+  randomEnvironmentAvatar,
   randomUserIconColor,
   instanceToRole,
   authorizationLevel,
   GenerateUserBillingBatcher,
-  boardToParent,
-  sendBoardSharedEmail,
+  environmentToParent,
+  sendEnvironmentSharedEmail,
+  runInParallel,
 } from "./utilities"
 import webpush from "web-push"
 import Stripe from "stripe"
@@ -62,7 +63,7 @@ const MutationResolver = (
     User,
     PermanentToken,
     Device,
-    Board,
+    Environment,
     FloatValue,
     StringValue,
     BooleanValue,
@@ -72,7 +73,7 @@ const MutationResolver = (
     StringPlotValue,
     StringPlotNode,
     Notification,
-    PendingBoardShare,
+    PendingEnvironmentShare,
     PendingOwnerChange,
   },
   WebPushSubscription,
@@ -286,15 +287,15 @@ const MutationResolver = (
               settings_timeFormat: "H24",
             })
 
-            const newBoard = await Board.create({
+            const newEnvironment = await Environment.create({
               name: "Home",
-              avatar: randomBoardAvatar(),
+              avatar: randomEnvironmentAvatar(),
               muted: false,
               index: 0,
             })
 
-            await newUser.addOwnBoard(newBoard)
-            await newBoard.setOwner(newUser)
+            await newUser.addOwnEnvironment(newEnvironment)
+            await newEnvironment.setOwner(newUser)
 
             // setting context so that the resolvers for user know that the user is authenticated
             context.auth = {
@@ -416,14 +417,14 @@ const MutationResolver = (
         }
       })
     },
-    shareBoard: (root, args, context) =>
+    shareEnvironment: (root, args, context) =>
       authorized(
-        args.boardId,
+        args.environmentId,
         context,
-        Board,
+        Environment,
         User,
         3,
-        async (resolve, reject, boardFound, _, senderFound) => {
+        async (resolve, reject, environmentFound, _, senderFound) => {
           const receiverFound = await User.find({
             where: { email: args.email },
           })
@@ -433,28 +434,40 @@ const MutationResolver = (
           } else if (receiverFound.id === context.auth.userId) {
             reject("You can't share a resource with yourself")
           } else {
-            const role = await instanceToRole(boardFound, receiverFound)
+            const role = await instanceToRole(environmentFound, receiverFound)
             if (role !== null) {
-              reject("The user already has a role on this board")
+              reject("The user already has a role on this environment")
               return
             }
 
             // if receiver has already a pending share throw error
-            const otherPendingShare = await PendingBoardShare.find({
+            const otherPendingShare = await PendingEnvironmentShare.find({
               where: {
                 receiverId: receiverFound.id,
-                boardId: args.boardId,
+                environmentId: args.environmentId,
               },
             })
             if (otherPendingShare) {
-              reject(`There is already a boardShare pending`)
+              reject(`There is already a environmentShare pending`)
               return
             }
 
-            let newPendingShare = await PendingBoardShare.create({
+            // if receiver has already an owner change throw error
+            const otherOwnerChange = await PendingOwnerChange.find({
+              where: {
+                receiverId: receiverFound.id,
+                environmentId: args.environmentId,
+              },
+            })
+            if (otherOwnerChange) {
+              reject(`There is already an ownerChange pending`)
+              return
+            }
+
+            let newPendingShare = await PendingEnvironmentShare.create({
               senderId: senderFound.id,
               receiverId: receiverFound.id,
-              boardId: boardFound.id,
+              environmentId: environmentFound.id,
               role: args.role,
             })
 
@@ -466,187 +479,200 @@ const MutationResolver = (
               sender: {
                 id: newPendingShare.senderId,
               },
-              board: {
-                id: newPendingShare.boardId,
+              environment: {
+                id: newPendingShare.environmentId,
               },
               role: newPendingShare.role,
             })
             context.billingUpdater.update(MUTATION_COST)
 
-            touch(Board, args.boardId, newPendingShare.updatedAt)
+            touch(Environment, args.environmentId, newPendingShare.updatedAt)
 
-            pubsub.publish("boardSharedWithYou", {
-              boardSharedWithYou: newPendingShare,
+            pubsub.publish("environmentSharedWithYou", {
+              environmentSharedWithYou: newPendingShare,
               userId: receiverFound.id,
             })
-            sendBoardSharedEmail(
+            sendEnvironmentSharedEmail(
               receiverFound.email,
               senderFound.name,
-              boardFound.name
+              environmentFound.name
             )
 
             const usersWithAccessIds = (await instanceToSharedIds(
-              boardFound
+              environmentFound
             )).filter(id => id !== receiverFound.id)
 
-            pubsub.publish("boardUpdated", {
-              boardUpdated: boardFound,
+            pubsub.publish("environmentUpdated", {
+              environmentUpdated: environmentFound,
               userIds: usersWithAccessIds,
             })
           }
         },
-        boardToParent
+        environmentToParent
       ),
-    pendingBoardShare: (root, args, context) =>
+    pendingEnvironmentShare: (root, args, context) =>
       inheritAuthorized(
         args.id,
-        PendingBoardShare,
+        PendingEnvironmentShare,
         User,
-        pendingBoardShare => pendingBoardShare.boardId,
+        pendingEnvironmentShare => pendingEnvironmentShare.environmentId,
         context,
-        Board,
+        Environment,
         3,
-        async (resolve, reject, pendingBoardShareFound, boardFound) => {
-          const newPendingBoardShare = await pendingBoardShareFound.update(args)
+        async (
+          resolve,
+          reject,
+          pendingEnvironmentShareFound,
+          environmentFound
+        ) => {
+          const newPendingEnvironmentShare = await pendingEnvironmentShareFound.update(
+            args
+          )
 
-          resolve(newPendingBoardShare)
+          resolve(newPendingEnvironmentShare)
           context.billingUpdater.update(MUTATION_COST)
 
-          touch(Board, boardFound.id, newPendingBoardShare.updatedAt)
+          touch(
+            Environment,
+            environmentFound.id,
+            newPendingEnvironmentShare.updatedAt
+          )
 
-          pubsub.publish("boardSharedWithYou", {
-            boardSharedWithYou: newPendingBoardShare,
-            userId: newPendingBoardShare.receiverId,
+          pubsub.publish("environmentShareUpdated", {
+            environmentShareUpdated: newPendingEnvironmentShare,
+            userId: newPendingEnvironmentShare.receiverId,
           })
 
           const usersWithAccessIds = (await instanceToSharedIds(
-            boardFound
-          )).filter(id => id !== newPendingBoardShare.receiverId)
+            environmentFound
+          )).filter(id => id !== newPendingEnvironmentShare.receiverId)
 
-          pubsub.publish("boardUpdated", {
-            boardUpdated: boardFound,
+          pubsub.publish("environmentUpdated", {
+            environmentUpdated: environmentFound,
             userIds: usersWithAccessIds,
           })
         },
-        boardToParent
+        environmentToParent
       ),
-    acceptPendingBoardShare: (root, args, context) =>
+    acceptPendingEnvironmentShare: (root, args, context) =>
       authenticated(context, async (resolve, reject) => {
-        const pendingBoardFound = await PendingBoardShare.find({
-          where: { id: args.pendingBoardShareId },
+        const pendingEnvironmentFound = await PendingEnvironmentShare.find({
+          where: { id: args.pendingEnvironmentShareId },
         })
 
-        if (!pendingBoardFound) {
+        if (!pendingEnvironmentFound) {
           reject("The requested resource does not exist")
-        } else if (context.auth.userId !== pendingBoardFound.receiverId) {
-          reject("You are not the receiver of this board share")
+        } else if (context.auth.userId !== pendingEnvironmentFound.receiverId) {
+          reject("You are not the receiver of this environment share")
         } else {
           // add new role
-          const parsedRole = `${pendingBoardFound.role[0] +
-            pendingBoardFound.role.slice(1).toLowerCase()}s`
-          const boardFound = await Board.find({
-            where: { id: pendingBoardFound.boardId },
+          const parsedRole = `${pendingEnvironmentFound.role[0] +
+            pendingEnvironmentFound.role.slice(1).toLowerCase()}s`
+          const environmentFound = await Environment.find({
+            where: { id: pendingEnvironmentFound.environmentId },
           })
           const userFound = await User.find({
             where: { id: context.auth.userId },
           })
 
-          await userFound[`add${Board[parsedRole]}`](boardFound)
+          await userFound[`add${Environment[parsedRole]}`](environmentFound)
 
-          resolve(boardFound.id)
+          resolve({ id: environmentFound.id })
 
-          touch(Board, boardFound.id)
+          touch(Environment, environmentFound.id)
 
-          await pendingBoardFound.destroy()
+          await pendingEnvironmentFound.destroy()
           context.billingUpdater.update(MUTATION_COST)
 
-          pubsub.publish("boardShareAccepted", {
-            boardShareAccepted: boardFound.id,
+          pubsub.publish("environmentShareAccepted", {
+            environmentShareAccepted: { id: environmentFound.id },
             userId: userFound.id,
           })
 
           const usersWithAccessIds = (await instanceToSharedIds(
-            boardFound
+            environmentFound
           )).filter(id => id !== context.auth.userId)
 
-          pubsub.publish("boardUpdated", {
-            boardUpdated: boardFound,
+          pubsub.publish("environmentUpdated", {
+            environmentUpdated: environmentFound,
             userIds: usersWithAccessIds,
           })
         }
       }),
-    declinePendingBoardShare: (root, args, context) =>
+    declinePendingEnvironmentShare: (root, args, context) =>
       authenticated(context, async (resolve, reject) => {
-        const pendingBoardFound = await PendingBoardShare.find({
-          where: { id: args.pendingBoardShareId },
+        const pendingEnvironmentFound = await PendingEnvironmentShare.find({
+          where: { id: args.pendingEnvironmentShareId },
         })
 
-        if (!pendingBoardFound) {
+        if (!pendingEnvironmentFound) {
           reject("The requested resource does not exist")
-        } else if (context.auth.userId !== pendingBoardFound.receiverId) {
-          reject("You are not the receiver of this board share")
+        } else if (context.auth.userId !== pendingEnvironmentFound.receiverId) {
+          reject("You are not the receiver of this environment share")
         } else {
-          const pendingBoardFoundId = pendingBoardFound.id
-          const boardFound = await Board.find({
-            where: { id: pendingBoardFound.boardId },
+          const pendingEnvironmentFoundId = pendingEnvironmentFound.id
+          const environmentFound = await Environment.find({
+            where: { id: pendingEnvironmentFound.environmentId },
           })
 
-          await pendingBoardFound.destroy()
+          await pendingEnvironmentFound.destroy()
 
-          resolve(pendingBoardFoundId)
+          resolve(pendingEnvironmentFoundId)
 
-          touch(Board, boardFound.id)
+          touch(Environment, environmentFound.id)
 
           context.billingUpdater.update(MUTATION_COST)
 
-          pubsub.publish("boardShareDeclined", {
-            boardShareDeclined: pendingBoardFoundId,
+          pubsub.publish("environmentShareDeclined", {
+            environmentShareDeclined: pendingEnvironmentFoundId,
             userId: context.auth.userId,
           })
 
-          const usersWithAccessIds = await instanceToSharedIds(boardFound)
+          const usersWithAccessIds = await instanceToSharedIds(environmentFound)
 
-          pubsub.publish("boardUpdated", {
-            boardUpdated: boardFound,
+          pubsub.publish("environmentUpdated", {
+            environmentUpdated: environmentFound,
             userIds: usersWithAccessIds,
           })
         }
       }),
-    revokePendingBoardShare: (root, args, context) =>
+    revokePendingEnvironmentShare: (root, args, context) =>
       authenticated(context, async (resolve, reject) => {
-        const pendingBoardFound = await PendingBoardShare.find({
-          where: { id: args.pendingBoardShareId },
+        const pendingEnvironmentFound = await PendingEnvironmentShare.find({
+          where: { id: args.pendingEnvironmentShareId },
         })
 
-        if (!pendingBoardFound) {
+        if (!pendingEnvironmentFound) {
           reject("The requested resource does not exist")
         } else {
-          const boardFound = await Board.find({
-            where: { id: pendingBoardFound.boardId },
+          const environmentFound = await Environment.find({
+            where: { id: pendingEnvironmentFound.environmentId },
           })
           const userFound = await User.find({
             where: { id: context.auth.userId },
           })
 
-          if ((await authorizationLevel(boardFound, userFound)) < 3) {
+          if ((await authorizationLevel(environmentFound, userFound)) < 3) {
             reject("You are not authorized to perform this operation")
           } else {
-            const revokedId = pendingBoardFound.id
-            const receiverId = pendingBoardFound.receiverId
-            await pendingBoardFound.destroy()
+            const revokedId = pendingEnvironmentFound.id
+            const receiverId = pendingEnvironmentFound.receiverId
+            await pendingEnvironmentFound.destroy()
 
             resolve(revokedId)
 
-            touch(Board, boardFound.id)
+            touch(Environment, environmentFound.id)
 
-            const usersWithAccessIds = await instanceToSharedIds(boardFound)
+            const usersWithAccessIds = await instanceToSharedIds(
+              environmentFound
+            )
 
-            pubsub.publish("boardShareRevoked", {
-              boardShareRevoked: revokedId,
-              userId: receiverId,
+            pubsub.publish("environmentShareRevoked", {
+              environmentShareRevoked: revokedId,
+              userIds: [receiverId],
             })
-            pubsub.publish("boardUpdated", {
-              boardUpdated: boardFound,
+            pubsub.publish("environmentUpdated", {
+              environmentUpdated: environmentFound,
               userIds: usersWithAccessIds,
             })
           }
@@ -654,91 +680,106 @@ const MutationResolver = (
       }),
     changeOwner: (root, args, context) =>
       authorized(
-        args.boardId,
+        args.environmentId,
         context,
-        Board,
+        Environment,
         User,
         4,
-        async (resolve, reject, boardFound, _, formerOwnerFound) => {
-          const newOwnerFound = await User.find({
+        async (resolve, reject, environmentFound, _, senderFound) => {
+          const receiverFound = await User.find({
             where: { email: args.email },
           })
 
-          if (!newOwnerFound) {
+          if (!receiverFound) {
             reject("This account doesn't exist, check the email passed")
-          } else if (newOwnerFound.id === context.auth.userId) {
-            reject("You already are the owner of this board")
+          } else if (receiverFound.id === context.auth.userId) {
+            reject("You already are the owner of this environment")
           } else {
-            // if the board already has a pending owner change remove it
+            // if the environment already has a pending owner change remove it
             const otherOwnerChange = await PendingOwnerChange.find({
               where: {
-                boardId: args.boardId,
+                environmentId: args.environmentId,
               },
             })
             if (otherOwnerChange) {
               await otherOwnerChange.destroy()
             }
 
+            const otherPendingShare = await PendingEnvironmentShare.find({
+              where: {
+                receiverId: receiverFound.id,
+                environmentId: args.environmentId,
+              },
+            })
+            if (otherPendingShare) {
+              await otherPendingShare.destroy()
+
+              pubsub.publish("environmentShareRevoked", {
+                environmentShareRevoked: otherPendingShare.id,
+                userIds: [receiverFound.id],
+              })
+            }
+
             let newOwnerChange = await PendingOwnerChange.create({
-              formerOwnerId: formerOwnerFound.id,
-              newOwnerId: newOwnerFound.id,
-              boardId: boardFound.id,
+              senderId: senderFound.id,
+              receiverId: receiverFound.id,
+              environmentId: environmentFound.id,
             })
 
             resolve({
               id: newOwnerChange.id,
-              formerOwner: {
-                id: newOwnerChange.formerOwnerId,
+              sender: {
+                id: newOwnerChange.senderId,
               },
-              newOwner: {
-                id: newOwnerChange.newOwnerId,
+              receiver: {
+                id: newOwnerChange.receiverId,
               },
-              board: {
-                id: newOwnerChange.boardId,
+              environment: {
+                id: newOwnerChange.environmentId,
               },
             })
             context.billingUpdater.update(MUTATION_COST)
 
-            touch(Board, args.boardId, newOwnerChange.updatedAt)
+            touch(Environment, args.environmentId, newOwnerChange.updatedAt)
 
             pubsub.publish("ownerChangeBegan", {
               ownerChangeBegan: newOwnerChange,
-              userId: newOwnerFound.id,
+              userId: receiverFound.id,
             })
-            sendBoardSharedEmail(
-              newOwnerFound.email,
-              formerOwnerFound.name,
-              boardFound.name
+            sendEnvironmentSharedEmail(
+              receiverFound.email,
+              senderFound.name,
+              environmentFound.name
             )
 
             const usersWithAccessIds = (await instanceToSharedIds(
-              boardFound
-            )).filter(id => id !== newOwnerFound.id)
+              environmentFound
+            )).filter(id => id !== receiverFound.id)
 
-            pubsub.publish("boardUpdated", {
-              boardUpdated: boardFound,
+            pubsub.publish("environmentUpdated", {
+              environmentUpdated: environmentFound,
               userIds: usersWithAccessIds,
             })
           }
         },
-        boardToParent
+        environmentToParent
       ),
     revokePendingOwnerChange: (root, args, context) =>
       inheritAuthorized(
         args.pendingOwnerChangeId,
         PendingOwnerChange,
         User,
-        pendingBoardShare => pendingBoardShare.boardId,
+        pendingEnvironmentShare => pendingEnvironmentShare.environmentId,
         context,
-        Board,
+        Environment,
         3,
-        async (resolve, reject, pendingOwnerChangeFound, boardFound) => {
-          const targetUserId = pendingOwnerChangeFound.newOwnerId
+        async (resolve, reject, pendingOwnerChangeFound, environmentFound) => {
+          const targetUserId = pendingOwnerChangeFound.receiverId
           await pendingOwnerChangeFound.destroy()
 
           resolve(args.pendingOwnerChangeId)
 
-          touch(Board, boardFound.id)
+          touch(Environment, environmentFound.id)
 
           context.billingUpdater.update(MUTATION_COST)
 
@@ -748,15 +789,15 @@ const MutationResolver = (
           })
 
           const usersWithAccessIds = (await instanceToSharedIds(
-            boardFound
+            environmentFound
           )).filter(id => id !== targetUserId)
 
-          pubsub.publish("boardUpdated", {
-            boardUpdated: boardFound,
+          pubsub.publish("environmentUpdated", {
+            environmentUpdated: environmentFound,
             userIds: usersWithAccessIds,
           })
         },
-        boardToParent
+        environmentToParent
       ),
     acceptPendingOwnerChange: (root, args, context) =>
       authenticated(context, async (resolve, reject) => {
@@ -766,50 +807,50 @@ const MutationResolver = (
 
         if (!pendingOwnerChangeFound) {
           reject("The requested resource does not exist")
-        } else if (context.auth.userId !== pendingOwnerChangeFound.newOwnerId) {
+        } else if (context.auth.userId !== pendingOwnerChangeFound.receiverId) {
           reject("You are not the receiver of this owner change")
         } else {
-          const boardFound = await Board.find({
-            where: { id: pendingOwnerChangeFound.boardId },
+          const environmentFound = await Environment.find({
+            where: { id: pendingOwnerChangeFound.environmentId },
           })
           const userFound = await User.find({
-            where: { id: pendingOwnerChangeFound.newOwnerId },
+            where: { id: pendingOwnerChangeFound.receiverId },
           })
 
           // remove old roles
-          await Promise.all([
-            userFound[`remove${Board.Admins}`](boardFound),
-            userFound[`remove${Board.Editors}`](boardFound),
-            userFound[`remove${Board.Spectators}`](boardFound),
-          ])
+          await runInParallel(
+            () => userFound[`remove${Environment.Admins}`](environmentFound),
+            () => userFound[`remove${Environment.Editors}`](environmentFound),
+            () => userFound[`remove${Environment.Spectators}`](environmentFound)
+          )
 
-          await boardFound.setOwner(userFound)
-          await userFound.addOwnBoard(boardFound)
+          await environmentFound.setOwner(userFound)
+          await userFound.addOwnEnvironment(environmentFound)
 
           const oldOwnerFound = await User.find({
-            where: { id: pendingOwnerChangeFound.formerOwnerId },
+            where: { id: pendingOwnerChangeFound.senderId },
           })
-          await oldOwnerFound.removeOwnBoard(boardFound)
-          await oldOwnerFound[`add${Board.Admins}`](boardFound)
+          await oldOwnerFound.removeOwnEnvironment(environmentFound)
+          await oldOwnerFound[`add${Environment.Admins}`](environmentFound)
 
-          resolve(boardFound.id)
+          resolve(environmentFound.id)
 
-          touch(Board, boardFound.id)
+          touch(Environment, environmentFound.id)
 
           await pendingOwnerChangeFound.destroy()
           context.billingUpdater.update(MUTATION_COST)
 
-          pubsub.publish("boardShareAccepted", {
-            boardShareAccepted: boardFound.id,
+          pubsub.publish("environmentShareAccepted", {
+            environmentShareAccepted: environmentFound.id,
             userId: userFound.id,
           })
 
           const usersWithAccessIds = (await instanceToSharedIds(
-            boardFound
+            environmentFound
           )).filter(id => id !== context.auth.userId)
 
-          pubsub.publish("boardUpdated", {
-            boardUpdated: boardFound,
+          pubsub.publish("environmentUpdated", {
+            environmentUpdated: environmentFound,
             userIds: usersWithAccessIds,
           })
         }
@@ -822,18 +863,18 @@ const MutationResolver = (
 
         if (!pendingOwnerChangeFound) {
           reject("The requested resource does not exist")
-        } else if (context.auth.userId !== pendingOwnerChangeFound.newOwnerId) {
+        } else if (context.auth.userId !== pendingOwnerChangeFound.receiverId) {
           reject("You are not the receiver of this owner change")
         } else {
-          const targetUserId = pendingOwnerChangeFound.newOwnerId
+          const targetUserId = pendingOwnerChangeFound.receiverId
           await pendingOwnerChangeFound.destroy()
 
           resolve(args.pendingOwnerChangeId)
 
-          const boardFound = await Board.find({
-            where: { id: pendingOwnerChangeFound.boardId },
+          const environmentFound = await Environment.find({
+            where: { id: pendingOwnerChangeFound.environmentId },
           })
-          touch(Board, args.boardId)
+          touch(Environment, args.environmentId)
 
           context.billingUpdater.update(MUTATION_COST)
 
@@ -842,27 +883,30 @@ const MutationResolver = (
             userId: targetUserId,
           })
 
-          // sending boardUpdated subscription also to the target user
+          // sending environmentUpdated subscription also to the target user
           // for ease of handling on the client side
-          const usersWithAccessIds = await instanceToSharedIds(boardFound)
-          pubsub.publish("boardUpdated", {
-            boardUpdated: boardFound,
+          const usersWithAccessIds = await instanceToSharedIds(environmentFound)
+          pubsub.publish("environmentUpdated", {
+            environmentUpdated: environmentFound,
             userIds: usersWithAccessIds,
           })
         }
       }),
     changeRole(root, args, context) {
       return authorized(
-        args.boardId,
+        args.environmentId,
         context,
-        Board,
+        Environment,
         User,
         3,
-        async (resolve, reject, boardFound, _, userFound) => {
+        async (resolve, reject, environmentFound, _, userFound) => {
           const targetUserFound = await User.find({
             where: { email: args.email },
           })
-          const currentRole = await instanceToRole(boardFound, targetUserFound)
+          const currentRole = await instanceToRole(
+            environmentFound,
+            targetUserFound
+          )
 
           if (!targetUserFound) {
             reject("This account doesn't exist, check the email passed")
@@ -870,82 +914,93 @@ const MutationResolver = (
             reject("You cannot change the role of the owner")
           } else if (!currentRole) {
             reject(
-              "This user doesn't have a role on this board you should use the `shareBoard` mutation"
+              "This user doesn't have a role on this environment you should use the `shareEnvironment` mutation"
             )
           } else {
             // remove old role
-            await Promise.all([
-              targetUserFound[`remove${Board.Admins}`](boardFound),
-              targetUserFound[`remove${Board.Editors}`](boardFound),
-              targetUserFound[`remove${Board.Spectators}`](boardFound),
-            ])
+            await runInParallel(
+              () =>
+                targetUserFound[`remove${Environment.Admins}`](
+                  environmentFound
+                ),
+              () =>
+                targetUserFound[`remove${Environment.Editors}`](
+                  environmentFound
+                ),
+              () =>
+                targetUserFound[`remove${Environment.Spectators}`](
+                  environmentFound
+                )
+            )
 
             // add new role
             const parsedRole = `${args.newRole[0] +
               args.newRole.slice(1).toLowerCase()}s`
 
-            await targetUserFound[`add${Board[parsedRole]}`](boardFound)
+            await targetUserFound[`add${Environment[parsedRole]}`](
+              environmentFound
+            )
 
-            resolve(boardFound)
+            resolve(environmentFound)
 
-            touch(Board, args.boardId)
+            touch(Environment, args.environmentId)
 
-            pubsub.publish("boardUpdated", {
-              boardUpdated: boardFound,
-              userIds: await instanceToSharedIds(boardFound),
+            pubsub.publish("environmentUpdated", {
+              environmentUpdated: environmentFound,
+              userIds: await instanceToSharedIds(environmentFound),
             })
 
             context.billingUpdater.update(MUTATION_COST)
           }
         },
-        boardToParent
+        environmentToParent
       )
     },
-    leaveBoard(root, args, context) {
+    leaveEnvironment(root, args, context) {
       return authorized(
-        args.boardId,
+        args.environmentId,
         context,
-        Board,
+        Environment,
         User,
         1,
-        async (resolve, reject, boardFound, _, userFound) => {
-          if ((await instanceToRole(boardFound, userFound)) === "OWNER") {
-            reject("You cannot leave a board that you own")
+        async (resolve, reject, environmentFound, _, userFound) => {
+          if ((await instanceToRole(environmentFound, userFound)) === "OWNER") {
+            reject("You cannot leave a environment that you own")
             return
           }
 
-          await Promise.all([
-            userFound[`remove${Board.Admins}`](boardFound),
-            userFound[`remove${Board.Editors}`](boardFound),
-            userFound[`remove${Board.Spectators}`](boardFound),
-          ])
-          resolve(boardFound.id)
+          await runInParallel(
+            () => userFound[`remove${Environment.Admins}`](environmentFound),
+            () => userFound[`remove${Environment.Editors}`](environmentFound),
+            () => userFound[`remove${Environment.Spectators}`](environmentFound)
+          )
+          resolve(environmentFound.id)
 
-          touch(Board, args.boardId)
+          touch(Environment, args.environmentId)
 
-          pubsub.publish("boardStoppedSharingWithYou", {
-            boardUpdated: boardFound.id,
+          pubsub.publish("environmentStoppedSharingWithYou", {
+            environmentUpdated: environmentFound.id,
             userId: userFound.id,
           })
 
-          pubsub.publish("boardUpdated", {
-            boardUpdated: boardFound,
-            userIds: await instanceToSharedIds(boardFound),
+          pubsub.publish("environmentUpdated", {
+            environmentUpdated: environmentFound,
+            userIds: await instanceToSharedIds(environmentFound),
           })
 
           context.billingUpdater.update(MUTATION_COST)
         },
-        boardToParent
+        environmentToParent
       )
     },
-    stopSharingBoard: (root, args, context) =>
+    stopSharingEnvironment: (root, args, context) =>
       authorized(
-        args.boardId,
+        args.environmentId,
         context,
-        Board,
+        Environment,
         User,
         3,
-        async (resolve, reject, boardFound) => {
+        async (resolve, reject, environmentFound) => {
           const userFound = await User.find({
             where: { email: args.email },
           })
@@ -954,7 +1009,7 @@ const MutationResolver = (
             return
           }
 
-          const role = await instanceToRole(boardFound, userFound)
+          const role = await instanceToRole(environmentFound, userFound)
 
           if (!userFound) {
             reject("This account doesn't exist, check the email passed")
@@ -962,53 +1017,56 @@ const MutationResolver = (
             reject("This resource isn't shared with that user")
           } else if (userFound.id === context.auth.userId) {
             reject(
-              "You cannot stopSharing the board with youself, use the `leaveBoard` mutation instead"
+              "You cannot stopSharing the environment with youself, use the `leaveEnvironment` mutation instead"
             )
           } else if (role === "OWNER") {
             reject("You cannot stop sharing a resource with its owner")
           } else {
-            await Promise.all([
-              userFound[`remove${Board.Admins}`](boardFound),
-              userFound[`remove${Board.Editors}`](boardFound),
-              userFound[`remove${Board.Spectators}`](boardFound),
-            ])
+            await runInParallel(
+              () => userFound[`remove${Environment.Admins}`](environmentFound),
+              () => userFound[`remove${Environment.Editors}`](environmentFound),
+              () =>
+                userFound[`remove${Environment.Spectators}`](environmentFound)
+            )
 
-            resolve(boardFound)
+            resolve(environmentFound)
             context.billingUpdater.update(MUTATION_COST)
 
-            touch(Board, args.boardId)
+            touch(Environment, args.environmentId)
 
-            pubsub.publish("boardStoppedSharingWithYou", {
-              boardStoppedSharingWithYou: args.boardId,
+            pubsub.publish("environmentStoppedSharingWithYou", {
+              environmentStoppedSharingWithYou: args.environmentId,
               userId: userFound.id,
             })
 
-            const usersWithAccessIds = await instanceToSharedIds(boardFound)
+            const usersWithAccessIds = await instanceToSharedIds(
+              environmentFound
+            )
 
-            pubsub.publish("boardUpdated", {
-              boardUpdated: boardFound,
+            pubsub.publish("environmentUpdated", {
+              environmentUpdated: environmentFound,
               userIds: usersWithAccessIds,
             })
           }
         },
-        boardToParent
+        environmentToParent
       ),
-    createBoard(root, args, context) {
+    createEnvironment(root, args, context) {
       return authenticated(context, async (resolve, reject) => {
         if (args.name === "" || args.name === null) {
           reject("name cannot be null or an empty string")
           return
         }
 
-        const newBoard = await Board.create({
+        const newEnvironment = await Environment.create({
           ...args,
-          avatar: args.avatar || randomBoardAvatar(),
+          avatar: args.avatar || randomEnvironmentAvatar(),
           // if muted is not passed then set it to false
           muted: !!args.muted,
           index:
             args.index !== null && args.index !== undefined
               ? args.index
-              : (await Board.max("index", {
+              : (await Environment.max("index", {
                   where: { ownerId: context.auth.userId },
                 })) + 1 || 0, // or 0 replaces NaN when there are no other devices
         })
@@ -1016,17 +1074,17 @@ const MutationResolver = (
         const userFound = await User.find({
           where: { id: context.auth.userId },
         })
-        await userFound.addOwnBoard(newBoard)
-        await newBoard.setOwner(userFound)
+        await userFound.addOwnEnvironment(newEnvironment)
+        await newEnvironment.setOwner(userFound)
 
         const resolveValue = {
-          ...newBoard.dataValues,
-          owner: { id: newBoard.ownerId },
+          ...newEnvironment.dataValues,
+          owner: { id: newEnvironment.ownerId },
           devices: [],
         }
 
-        pubsub.publish("boardCreated", {
-          boardCreated: resolveValue,
+        pubsub.publish("environmentCreated", {
+          environmentCreated: resolveValue,
           userId: context.auth.userId,
         })
 
@@ -1038,12 +1096,12 @@ const MutationResolver = (
     createDevice(root, args, context) {
       return async (resolve, reject) => {
         return authorized(
-          args.boardId,
+          args.environmentId,
           context,
-          Board,
+          Environment,
           User,
           2,
-          async (resolve, reject, boardFound) => {
+          async (resolve, reject, environmentFound) => {
             // checks that batteryStatus and signalStatus are within boundaries [0,100]
             if (
               isNotNullNorUndefined(args.batteryStatus) &&
@@ -1069,43 +1127,43 @@ const MutationResolver = (
               args.index !== null && args.index !== undefined
                 ? args.index
                 : (await Device.max("index", {
-                    where: { boardId: args.boardId },
+                    where: { environmentId: args.environmentId },
                   })) + 1 || 0 // or 0 replaces NaN when there are no other devices
 
             const newDevice = await Device.create({
               ...args,
               muted: !!args.muted,
-              boardId: args.boardId,
+              environmentId: args.environmentId,
               index,
             })
 
             const resolveValue = {
               ...newDevice.dataValues,
-              board: newDevice.boardId
+              environment: newDevice.environmentId
                 ? {
-                    id: newDevice.boardId,
+                    id: newDevice.environmentId,
                   }
                 : null,
             }
 
             pubsub.publish("deviceCreated", {
               deviceCreated: resolveValue,
-              userIds: await instanceToSharedIds(boardFound),
+              userIds: await instanceToSharedIds(environmentFound),
             })
 
             resolve(resolveValue)
 
-            touch(Board, boardFound.id, newDevice.createdAt)
+            touch(Environment, environmentFound.id, newDevice.createdAt)
             context.billingUpdater.update(MUTATION_COST)
           },
-          boardToParent
+          environmentToParent
         )(resolve, reject)
       }
     },
     createFloatValue: CreateGenericValue(
       User,
       Device,
-      Board,
+      Environment,
       FloatValue,
       "FloatValue",
       [
@@ -1138,7 +1196,7 @@ const MutationResolver = (
     createStringValue: CreateGenericValue(
       User,
       Device,
-      Board,
+      Environment,
       StringValue,
       "StringValue",
       [
@@ -1179,7 +1237,7 @@ const MutationResolver = (
     createBooleanValue: CreateGenericValue(
       User,
       Device,
-      Board,
+      Environment,
       BooleanValue,
       "BooleanValue",
       [
@@ -1195,7 +1253,7 @@ const MutationResolver = (
     createMapValue: CreateGenericValue(
       User,
       Device,
-      Board,
+      Environment,
       MapValue,
       "MapValue",
       [
@@ -1211,7 +1269,7 @@ const MutationResolver = (
     createPlotValue: CreateGenericValue(
       User,
       Device,
-      Board,
+      Environment,
       PlotValue,
       "PlotValue",
       [
@@ -1227,7 +1285,7 @@ const MutationResolver = (
     createStringPlotValue: CreateGenericValue(
       User,
       Device,
-      Board,
+      Environment,
       StringPlotValue,
       "StringPlotValue",
       [
@@ -1247,7 +1305,7 @@ const MutationResolver = (
         PlotValue,
         User,
         2,
-        async (resolve, reject, plotValueFound, [_, boardFound]) => {
+        async (resolve, reject, plotValueFound, [_, environmentFound]) => {
           const plotNode = await PlotNode.create({
             ...args,
             timestamp: args.timestamp || new Date(),
@@ -1267,18 +1325,18 @@ const MutationResolver = (
 
           resolve(resolveObj)
 
-          touch(Board, boardFound.id, plotNode.createdAt)
+          touch(Environment, environmentFound.id, plotNode.createdAt)
           touch(Device, plotValueFound.deviceId, plotNode.createdAt)
           touch(PlotValue, plotValueFound.id, plotNode.createdAt)
 
           pubsub.publish("plotNodeCreated", {
             plotNodeCreated: resolveObj,
-            userIds: await instanceToSharedIds(boardFound),
+            userIds: await instanceToSharedIds(environmentFound),
           })
 
           context.billingUpdater.update(MUTATION_COST)
         },
-        valueToParent(Board)
+        valueToParent(Environment)
       )
     },
     createStringPlotNode(root, args, context) {
@@ -1288,7 +1346,7 @@ const MutationResolver = (
         StringPlotValue,
         User,
         2,
-        async (resolve, reject, plotValueFound, [_, boardFound]) => {
+        async (resolve, reject, plotValueFound, [_, environmentFound]) => {
           const plotNode = await StringPlotNode.create({
             ...args,
             timestamp: args.timestamp || new Date(),
@@ -1308,17 +1366,17 @@ const MutationResolver = (
 
           resolve(resolveObj)
 
-          touch(Board, boardFound.id, plotNode.createdAt)
+          touch(Environment, environmentFound.id, plotNode.createdAt)
           touch(Device, plotValueFound.deviceId, plotNode.createdAt)
           touch(StringPlotValue, plotValueFound.id, plotNode.createdAt)
 
           pubsub.publish("stringPlotNodeCreated", {
             stringPlotNodeCreated: resolveObj,
-            userIds: await instanceToSharedIds(boardFound),
+            userIds: await instanceToSharedIds(environmentFound),
           })
           context.billingUpdater.update(MUTATION_COST)
         },
-        valueToParent(Board)
+        valueToParent(Environment)
       )
     },
     user(root, args, context) {
@@ -1443,16 +1501,22 @@ const MutationResolver = (
             }
           })
 
-          userFound.update(updateQuery)
+          const newUser = await userFound.update(updateQuery)
 
           resolve({
-            timeZone: userFound.settings_timeZone,
-            language: userFound.settings_language,
-            lengthAndMass: userFound.settings_lengthAndMass,
-            temperature: userFound.settings_temperature,
-            dateFormat: userFound.settings_dateFormat,
-            timeFormat: userFound.settings_timeFormat,
+            timeZone: newUser.settings_timeZone,
+            language: newUser.settings_language,
+            lengthAndMass: newUser.settings_lengthAndMass,
+            temperature: newUser.settings_temperature,
+            dateFormat: newUser.settings_dateFormat,
+            timeFormat: newUser.settings_timeFormat,
           })
+
+          pubsub.publish("userUpdated", {
+            userUpdated: newUser.dataValues,
+            userId: context.auth.userId,
+          })
+
           context.billingUpdater.update(MUTATION_COST)
         }
       })
@@ -1487,20 +1551,20 @@ const MutationResolver = (
         }
       })
     },
-    board(root, args, context) {
+    environment(root, args, context) {
       return authorized(
         args.id,
         context,
-        Board,
+        Environment,
         User,
         2,
-        async (resolve, reject, boardFound, _, userFound) => {
+        async (resolve, reject, environmentFound, _, userFound) => {
           if (args.name === "" || args.name === null) {
             reject("name cannot be null or an empty string")
             return
           } else if (userFound.quietMode && isNotNullNorUndefined(args.muted)) {
             reject(
-              "Cannot change muted at board level when quietMode is enabled at user level"
+              "Cannot change muted at environment level when quietMode is enabled at user level"
             )
             return
           } else if (Object.keys(args).length === 1) {
@@ -1508,17 +1572,17 @@ const MutationResolver = (
             return
           }
 
-          const newBoard = await boardFound.update(args)
+          const newEnvironment = await environmentFound.update(args)
 
-          resolve(newBoard.dataValues)
-          pubsub.publish("boardUpdated", {
-            boardUpdated: newBoard.dataValues,
-            userIds: await instanceToSharedIds(boardFound),
+          resolve(newEnvironment.dataValues)
+          pubsub.publish("environmentUpdated", {
+            environmentUpdated: newEnvironment.dataValues,
+            userIds: await instanceToSharedIds(environmentFound),
           })
 
           context.billingUpdater.update(MUTATION_COST)
         },
-        boardToParent
+        environmentToParent
       )
     },
     device(root, args, context) {
@@ -1528,7 +1592,13 @@ const MutationResolver = (
         Device,
         User,
         2,
-        async (resolve, reject, deviceFound, [_, boardFound], userFound) => {
+        async (
+          resolve,
+          reject,
+          deviceFound,
+          [_, environmentFound],
+          userFound
+        ) => {
           // runs sanity checks on the args
           if (
             isNotNullNorUndefined(args.batteryStatus) &&
@@ -1552,11 +1622,11 @@ const MutationResolver = (
             reject("You cannot make a mutation with only the id field")
             return
           } else if (
-            (boardFound.muted || userFound.quietMode) &&
+            (environmentFound.muted || userFound.quietMode) &&
             isNotNullNorUndefined(args.muted)
           ) {
             reject(
-              "Cannot change muted at device level when it is enabled at board level or quietMode is enabled at user level"
+              "Cannot change muted at device level when it is enabled at environment level or quietMode is enabled at user level"
             )
             return
           }
@@ -1581,15 +1651,15 @@ const MutationResolver = (
           const newDevice = await deviceFound.update(args)
           resolve(newDevice.dataValues)
 
-          touch(Board, boardFound.id, newDevice.updatedAt)
+          touch(Environment, environmentFound.id, newDevice.updatedAt)
 
           pubsub.publish("deviceUpdated", {
             deviceUpdated: newDevice.dataValues,
-            userIds: await instanceToSharedIds(boardFound),
+            userIds: await instanceToSharedIds(environmentFound),
           })
           context.billingUpdater.update(MUTATION_COST)
         },
-        deviceToParent(Board)
+        deviceToParent(Environment)
       )
     },
     moveDevice(root, args, context) {
@@ -1599,26 +1669,32 @@ const MutationResolver = (
         Device,
         User,
         4,
-        async (resolve, reject, deviceFound, [_, boardFound], userFound) => {
-          if (args.newBoardId === deviceFound.boardId) {
-            reject("The device already belongs to this board")
+        async (
+          resolve,
+          reject,
+          deviceFound,
+          [_, environmentFound],
+          userFound
+        ) => {
+          if (args.newEnvironmentId === deviceFound.environmentId) {
+            reject("The device already belongs to this environment")
             return
           }
 
-          const targetBoard = await Board.find({
-            where: { id: args.newBoardId },
+          const targetEnvironment = await Environment.find({
+            where: { id: args.newEnvironmentId },
           })
 
-          const isOwnerOfTargetBoard =
-            (await instanceToRole(targetBoard, userFound)) === "OWNER"
+          const isOwnerOfTargetEnvironment =
+            (await instanceToRole(targetEnvironment, userFound)) === "OWNER"
 
-          if (!isOwnerOfTargetBoard) {
-            reject("You can only move devices to boards you own")
+          if (!isOwnerOfTargetEnvironment) {
+            reject("You can only move devices to environments you own")
             return
           }
 
           const newDevice = await deviceFound.update({
-            boardId: args.newBoardId,
+            environmentId: args.newEnvironmentId,
           })
 
           const modelsToUpdate = [
@@ -1634,7 +1710,7 @@ const MutationResolver = (
           const updatePromises = modelsToUpdate.map(
             async Model =>
               await Model.update(
-                { boardId: newDevice.boardId },
+                { environmentId: newDevice.environmentId },
                 { where: { deviceId: newDevice.id } }
               )
           )
@@ -1643,18 +1719,18 @@ const MutationResolver = (
 
           resolve(newDevice.dataValues)
 
-          touch(Board, boardFound.id, newDevice.updatedAt)
+          touch(Environment, environmentFound.id, newDevice.updatedAt)
 
           pubsub.publish("deviceMoved", {
             deviceMoved: newDevice.dataValues,
             userIds: [
-              ...(await instanceToSharedIds(boardFound)),
-              ...(await instanceToSharedIds(targetBoard)),
+              ...(await instanceToSharedIds(environmentFound)),
+              ...(await instanceToSharedIds(targetEnvironment)),
             ],
           })
           context.billingUpdater.update(MUTATION_COST)
         },
-        deviceToParent(Board)
+        deviceToParent(Environment)
       )
     },
     resetOnlineState(root, args, context) {
@@ -1664,19 +1740,19 @@ const MutationResolver = (
         Device,
         User,
         2,
-        async (resolve, reject, deviceFound, [_, boardFound]) => {
+        async (resolve, reject, deviceFound, [_, environmentFound]) => {
           const newDevice = await deviceFound.update({ online: null })
           resolve(newDevice.dataValues)
 
-          touch(Board, boardFound.id, newDevice.updatedAt)
+          touch(Environment, environmentFound.id, newDevice.updatedAt)
 
           pubsub.publish("deviceUpdated", {
             deviceUpdated: newDevice.dataValues,
-            userIds: await instanceToSharedIds(boardFound),
+            userIds: await instanceToSharedIds(environmentFound),
           })
           context.billingUpdater.update(MUTATION_COST)
         },
-        deviceToParent(Board)
+        deviceToParent(Environment)
       )
     },
     floatValue: genericValueMutation(
@@ -1685,7 +1761,7 @@ const MutationResolver = (
       pubsub,
       User,
       Device,
-      Board,
+      Environment,
       (args, valueFound, reject) => {
         const expectedNewValue = { ...valueFound.dataValues, ...args }
 
@@ -1730,7 +1806,7 @@ const MutationResolver = (
       pubsub,
       User,
       Device,
-      Board,
+      Environment,
       (args, valueFound, reject) => {
         // Current or new value should respect maxChars and allowedValue
         const expectedNewValue = { ...valueFound.dataValues, ...args }
@@ -1796,7 +1872,7 @@ const MutationResolver = (
       pubsub,
       User,
       Device,
-      Board
+      Environment
     ),
     mapValue: genericValueMutation(
       MapValue,
@@ -1804,7 +1880,7 @@ const MutationResolver = (
       pubsub,
       User,
       Device,
-      Board
+      Environment
     ),
     plotValue: genericValueMutation(
       PlotValue,
@@ -1812,7 +1888,7 @@ const MutationResolver = (
       pubsub,
       User,
       Device,
-      Board
+      Environment
     ),
     stringPlotValue: genericValueMutation(
       StringPlotValue,
@@ -1820,7 +1896,7 @@ const MutationResolver = (
       pubsub,
       User,
       Device,
-      Board
+      Environment
     ),
     incrementFloatValue: (root, args, context) =>
       authorized(
@@ -1829,7 +1905,7 @@ const MutationResolver = (
         FloatValue,
         User,
         2,
-        async (resolve, reject, valueFound, [_, boardFound]) => {
+        async (resolve, reject, valueFound, [_, environmentFound]) => {
           if (
             isNotNullNorUndefined(valueFound.boundaries) &&
             isOutOfBoundaries(
@@ -1851,9 +1927,9 @@ const MutationResolver = (
           }
           resolve(resolveObj)
 
-          Board.update(
+          Environment.update(
             { updatedAt: newValue.updatedAt },
-            { where: { id: boardFound.id } }
+            { where: { id: environmentFound.id } }
           )
           Device.update(
             { updatedAt: newValue.updatedAt },
@@ -1862,11 +1938,11 @@ const MutationResolver = (
 
           pubsub.publish("valueUpdated", {
             valueUpdated: { ...resolveObj, __resolveType: "FloatValue" },
-            userIds: await instanceToSharedIds(boardFound),
+            userIds: await instanceToSharedIds(environmentFound),
           })
           context.billingUpdater.update(MUTATION_COST)
         },
-        valueToParent(Board)
+        valueToParent(Environment)
       ),
     plotNode(root, args, context) {
       return inheritAuthorized(
@@ -1882,7 +1958,7 @@ const MutationResolver = (
           reject,
           plotNodeFound,
           plotValueFound,
-          [_, boardFound]
+          [_, environmentFound]
         ) => {
           if (Object.keys(args).length === 1) {
             reject("You cannot make a mutation with only the id field")
@@ -1899,18 +1975,18 @@ const MutationResolver = (
           }
           resolve(resolveObj)
 
-          touch(Board, boardFound.id, newNode.updatedAt)
+          touch(Environment, environmentFound.id, newNode.updatedAt)
           touch(Device, plotValueFound.deviceId, newNode.updatedAt)
           touch(PlotValue, plotValueFound.id, newNode.updatedAt)
 
           pubsub.publish("plotNodeUpdated", {
             plotNodeUpdated: resolveObj,
-            userIds: await instanceToSharedIds(boardFound),
+            userIds: await instanceToSharedIds(environmentFound),
           })
 
           context.billingUpdater.update(MUTATION_COST)
         },
-        valueToParent(Board)
+        valueToParent(Environment)
       )
     },
     stringPlotNode(root, args, context) {
@@ -1927,7 +2003,7 @@ const MutationResolver = (
           reject,
           plotNodeFound,
           plotValueFound,
-          [_, boardFound]
+          [_, environmentFound]
         ) => {
           if (Object.keys(args).length === 1) {
             reject("You cannot make a mutation with only the id field")
@@ -1943,18 +2019,18 @@ const MutationResolver = (
           }
           resolve(resolveObj)
 
-          touch(Board, boardFound.id, newNode.updatedAt)
+          touch(Environment, environmentFound.id, newNode.updatedAt)
           touch(Device, plotValueFound.deviceId, newNode.updatedAt)
           touch(StringPlotValue, plotValueFound.id, newNode.updatedAt)
 
           pubsub.publish("stringPlotNodeUpdated", {
             stringPlotNodeUpdated: resolveObj,
-            userIds: await instanceToSharedIds(boardFound),
+            userIds: await instanceToSharedIds(environmentFound),
           })
 
           context.billingUpdater.update(MUTATION_COST)
         },
-        valueToParent(Board)
+        valueToParent(Environment)
       )
     },
     createNotification(root, args, context) {
@@ -1964,7 +2040,13 @@ const MutationResolver = (
         Device,
         User,
         2,
-        async (resolve, reject, deviceFound, [_, boardFound], userFound) => {
+        async (
+          resolve,
+          reject,
+          deviceFound,
+          [_, environmentFound],
+          userFound
+        ) => {
           if (args.content === "" || args.content === null) {
             reject("content cannot be null or an empty string")
             return
@@ -1972,7 +2054,7 @@ const MutationResolver = (
 
           const newNotification = await Notification.create({
             ...args,
-            boardId: boardFound.id,
+            environmentId: environmentFound.id,
             visualized: [],
             userId: context.auth.userId,
             date: args.date || new Date(),
@@ -1982,8 +2064,8 @@ const MutationResolver = (
           deviceFound.addNotification(newNotification)
           newNotification.setDevice(deviceFound)
 
-          boardFound.addNotification(newNotification)
-          newNotification.setBoard(boardFound)
+          environmentFound.addNotification(newNotification)
+          newNotification.setEnvironment(environmentFound)
 
           const {
             visualized,
@@ -1991,7 +2073,7 @@ const MutationResolver = (
             date,
             userId,
             deviceId,
-            boardId,
+            environmentId,
             id,
           } = newNotification.dataValues
 
@@ -2002,35 +2084,39 @@ const MutationResolver = (
             date,
             user: { id: userId },
             device: { id: deviceId },
-            board: { id: boardId },
+            environment: { id: environmentId },
           }
 
           resolve(resolveValue)
 
-          touch(Board, boardFound.id, newNotification.updatedAt)
+          touch(Environment, environmentFound.id, newNotification.updatedAt)
           touch(Device, newNotification.deviceId, newNotification.updatedAt)
 
-          const deviceSharedIds = await instanceToSharedIds(boardFound)
+          const deviceSharedIds = await instanceToSharedIds(environmentFound)
           pubsub.publish("notificationCreated", {
             notificationCreated: resolveValue,
             userIds: deviceSharedIds,
           })
 
-          // the notificationCount props are updated so send the device and board subscriptions
+          // the notificationCount props are updated so send the device and environment subscriptions
           pubsub.publish("deviceUpdated", {
             deviceUpdated: {
               id: deviceId,
             },
             userIds: deviceSharedIds,
           })
-          pubsub.publish("boardUpdated", {
-            boardUpdated: boardFound.dataValues,
+          pubsub.publish("environmentUpdated", {
+            environmentUpdated: environmentFound.dataValues,
             userIds: deviceSharedIds,
           })
 
           context.billingUpdater.update(MUTATION_COST)
 
-          if (!userFound.quietMode && !boardFound.muted && !deviceFound.muted) {
+          if (
+            !userFound.quietMode &&
+            !environmentFound.muted &&
+            !deviceFound.muted
+          ) {
             const notificationSubscriptions = await WebPushSubscription.findAll(
               {
                 where: {
@@ -2060,7 +2146,7 @@ const MutationResolver = (
             )
           }
         },
-        deviceToParent(Board)
+        deviceToParent(Environment)
       )
     },
     notification(root, args, context) {
@@ -2077,7 +2163,7 @@ const MutationResolver = (
           reject,
           notificationFound,
           deviceFound,
-          [_, boardFound]
+          [_, environmentFound]
         ) => {
           if (args.content === "" || args.content === null) {
             reject("content cannot be null or an empty string")
@@ -2120,10 +2206,10 @@ const MutationResolver = (
 
           resolve(resolveValue)
 
-          touch(Board, boardFound.id, updatedAt)
+          touch(Environment, environmentFound.id, updatedAt)
           touch(Device, deviceId, updatedAt)
 
-          const deviceSharedIds = await instanceToSharedIds(boardFound)
+          const deviceSharedIds = await instanceToSharedIds(environmentFound)
           pubsub.publish("notificationUpdated", {
             notificationUpdated: resolveValue,
             userIds: deviceSharedIds,
@@ -2131,7 +2217,7 @@ const MutationResolver = (
 
           context.billingUpdater.update(MUTATION_COST)
         },
-        deviceToParent(Board)
+        deviceToParent(Environment)
       )
     },
     deleteNotification(root, args, context) {
@@ -2148,34 +2234,36 @@ const MutationResolver = (
           reject,
           notificationFound,
           deviceFound,
-          [_, boardFound]
+          [_, environmentFound]
         ) => {
           await notificationFound.destroy()
 
           resolve(args.id)
 
-          const deviceSharedIds = await instanceToSharedIds(boardFound)
+          const deviceSharedIds = await instanceToSharedIds(environmentFound)
           pubsub.publish("notificationDeleted", {
             notificationDeleted: args.id,
             userIds: deviceSharedIds,
           })
 
-          // the notificationCount props are updated so send the device and board subscriptions
+          // the notificationCount props are updated so send the
+          // device and environment subscriptions and change updatedAt
+          touch(Environment, environmentFound.id)
+          touch(Device, deviceFound.id)
 
-          //implement touch
           pubsub.publish("deviceUpdated", {
             deviceUpdated: {
               id: deviceFound.id,
             },
             userIds: deviceSharedIds,
           })
-          pubsub.publish("boardUpdated", {
-            boardUpdated: boardFound.dataValues,
-            userIds: await instanceToSharedIds(boardFound),
+          pubsub.publish("environmentUpdated", {
+            environmentUpdated: environmentFound.dataValues,
+            userIds: await instanceToSharedIds(environmentFound),
           })
           context.billingUpdater.update(MUTATION_COST)
         },
-        deviceToParent(Board)
+        deviceToParent(Environment)
       )
     },
     deleteValue: (root, args, context) =>
@@ -2192,8 +2280,8 @@ const MutationResolver = (
         },
         User,
         3,
-        async (resolve, reject, valueFound, [_, boardFound]) => {
-          const authorizedUsersIds = await instanceToSharedIds(boardFound)
+        async (resolve, reject, valueFound, [_, environmentFound]) => {
+          const authorizedUsersIds = await instanceToSharedIds(environmentFound)
 
           // TODO: if value is plot remove nodes
           await valueFound.destroy()
@@ -2203,11 +2291,24 @@ const MutationResolver = (
             userIds: authorizedUsersIds,
           })
           resolve(args.id)
-          //implement touch
+
+          touch(Environment, environmentFound.id)
+          touch(Device, valueFound.deviceId)
+
+          pubsub.publish("deviceUpdated", {
+            deviceUpdated: {
+              id: valueFound.deviceId,
+            },
+            userIds: authorizedUsersIds,
+          })
+          pubsub.publish("environmentUpdated", {
+            environmentUpdated: environmentFound.dataValues,
+            userIds: authorizedUsersIds,
+          })
           context.billingUpdater.update(MUTATION_COST)
         },
         Device,
-        Board
+        Environment
       ),
     deleteDevice: (root, args, context) =>
       authorized(
@@ -2216,28 +2317,38 @@ const MutationResolver = (
         Device,
         User,
         3,
-        async (resolve, reject, deviceFound, [_, boardFound]) => {
-          const authorizedUsersIds = await instanceToSharedIds(boardFound)
+        async (resolve, reject, deviceFound, [_, environmentFound]) => {
+          const authorizedUsersIds = await instanceToSharedIds(environmentFound)
 
-          // TODO: send deleted notifications also for children
-          const deleteChild = Model =>
-            Model.destroy({
+          const deleteChild = async ([Model, subscription]) => {
+            const childrenFound = await Model.findAll({
               where: {
                 deviceId: args.id,
               },
             })
 
+            await Promise.all(
+              childrenFound.map(async child => {
+                await child.destroy()
+                pubsub.publish(subscription, {
+                  [subscription]: args.id,
+                  userIds: authorizedUsersIds,
+                })
+              })
+            )
+          }
+
           await Promise.all(
             [
-              FloatValue,
-              StringValue,
-              BooleanValue,
-              MapValue,
-              PlotValue,
-              StringPlotValue,
-              PlotNode,
-              StringPlotNode,
-              Notification,
+              [FloatValue, "valueDeleted"],
+              [StringValue, "valueDeleted"],
+              [BooleanValue, "valueDeleted"],
+              [MapValue, "valueDeleted"],
+              [PlotValue, "valueDeleted"],
+              [StringPlotValue, "valueDeleted"],
+              [PlotNode, "plotNodeDeleted"],
+              [StringPlotNode, "stringPlotNodeDeleted"],
+              [Notification, "notificationDeleted"],
             ].map(deleteChild)
           )
 
@@ -2249,62 +2360,126 @@ const MutationResolver = (
           })
 
           resolve(args.id)
-          //implement touch
+
+          touch(Environment, environmentFound.id)
+          pubsub.publish("environmentUpdated", {
+            environmentUpdated: environmentFound.dataValues,
+            userIds: authorizedUsersIds,
+          })
           context.billingUpdater.update(MUTATION_COST)
         },
-        deviceToParent(Board)
+        deviceToParent(Environment)
       ),
-    deleteBoard: (root, args, context) =>
+    deleteEnvironment: (root, args, context) =>
       authorized(
         args.id,
         context,
-        Board,
+        Environment,
         User,
         3,
-        async (resolve, reject, boardFound, boardAndParents, userFound) => {
-          const authorizedUsersIds = await instanceToSharedIds(boardFound)
+        async (
+          resolve,
+          reject,
+          environmentFound,
+          environmentAndParents,
+          userFound
+        ) => {
+          const authorizedUsersIds = await instanceToSharedIds(environmentFound)
           const devices = await Device.findAll({
-            where: { boardId: boardFound.id },
+            where: { environmentId: environmentFound.id },
           })
 
           // TODO: send deleted notifications for children
           const deleteDevicesPromises = devices.map(async device => {
-            const deleteChild = Model =>
-              Model.destroy({
+            const deleteChild = async ([Model, subscription]) => {
+              const childrenFound = await Model.findAll({
                 where: {
                   deviceId: device.id,
                 },
               })
 
+              await Promise.all(
+                childrenFound.map(async child => {
+                  await child.destroy()
+                  pubsub.publish(subscription, {
+                    [subscription]: args.id,
+                    userIds: authorizedUsersIds,
+                  })
+                })
+              )
+            }
+
             await Promise.all(
               [
-                FloatValue,
-                StringValue,
-                BooleanValue,
-                MapValue,
-                PlotValue,
-                StringPlotValue,
-                PlotNode,
-                Notification,
+                [FloatValue, "valueDeleted"],
+                [StringValue, "valueDeleted"],
+                [BooleanValue, "valueDeleted"],
+                [MapValue, "valueDeleted"],
+                [PlotValue, "valueDeleted"],
+                [StringPlotValue, "valueDeleted"],
+                [PlotNode, "plotNodeDeleted"],
+                [StringPlotNode, "stringPlotNodeDeleted"],
+                [Notification, "notificationDeleted"],
               ].map(deleteChild)
             )
 
             await device.destroy()
+            pubsub.publish("deviceDeleted", {
+              deviceDeleted: device.id,
+              userIds: authorizedUsersIds,
+            })
           })
-          await Promise.all(deleteDevicesPromises)
 
-          await boardFound.destroy()
+          async function destroyPendingEnvironmentShare() {
+            const environmentSharesFound = await PendingEnvironmentShare.findAll(
+              {
+                where: { environmentId: environmentFound.id },
+              }
+            )
 
-          pubsub.publish("boardDeleted", {
-            boardDeleted: args.id,
+            await Promise.all(
+              environmentSharesFound.map(async environmentShare => {
+                pubsub.publish("environmentShareRevoked", {
+                  environmentShareRevoked: environmentShare.id,
+                  userIds: [environmentShare.receiverId],
+                })
+                await environmentShare.destroy()
+              })
+            )
+          }
+          async function destroyPendingOwnerChange() {
+            const ownerChangesFound = await PendingOwnerChange.findAll({
+              where: { environmentId: environmentFound.id },
+            })
+
+            await Promise.all(
+              ownerChangesFound.map(async ownerChange => {
+                pubsub.publish("ownerChangeRevoked", {
+                  ownerChangeRevoked: ownerChange.id,
+                  userId: ownerChange.receiverId,
+                })
+                await ownerChange.destroy()
+              })
+            )
+          }
+
+          await Promise.all([
+            ...deleteDevicesPromises,
+            destroyPendingEnvironmentShare(),
+            destroyPendingOwnerChange(),
+          ])
+
+          await environmentFound.destroy()
+
+          pubsub.publish("environmentDeleted", {
+            environmentDeleted: args.id,
             userIds: authorizedUsersIds,
           })
           resolve(args.id)
 
-          //implement touch
           context.billingUpdater.update(MUTATION_COST)
         },
-        boardToParent
+        environmentToParent
       ),
     deletePlotNode(root, args, context) {
       return inheritAuthorized(
@@ -2320,20 +2495,41 @@ const MutationResolver = (
           reject,
           plotNodeFound,
           plotValueFound,
-          [_, boardFound]
+          [_, environmentFound]
         ) => {
           await plotNodeFound.destroy()
 
           resolve(args.id)
-          //implement touch
+
+          touch(Environment, environmentFound.id)
+          touch(Device, plotNodeFound.deviceId)
+          touch(PlotValue, plotNodeFound.plotId)
+
+          const authorizedUsersIds = await instanceToSharedIds(environmentFound)
+          pubsub.publish("valueUpdated", {
+            valueUpdated: {
+              id: plotNodeFound.plotId,
+            },
+            userIds: authorizedUsersIds,
+          })
+          pubsub.publish("deviceUpdated", {
+            deviceUpdated: {
+              id: plotNodeFound.deviceId,
+            },
+            userIds: authorizedUsersIds,
+          })
+          pubsub.publish("environmentUpdated", {
+            environmentUpdated: environmentFound.dataValues,
+            userIds: authorizedUsersIds,
+          })
           pubsub.publish("plotNodeDeleted", {
             plotNodeDeleted: args.id,
-            userIds: await instanceToSharedIds(boardFound),
+            userIds: authorizedUsersIds,
           })
 
           context.billingUpdater.update(MUTATION_COST)
         },
-        valueToParent(Board)
+        valueToParent(Environment)
       )
     },
     deleteStringPlotNode(root, args, context) {
@@ -2350,20 +2546,41 @@ const MutationResolver = (
           reject,
           plotNodeFound,
           plotValueFound,
-          [_, boardFound]
+          [_, environmentFound]
         ) => {
           await plotNodeFound.destroy()
 
           resolve(args.id)
-          //implement touch
-          pubsub.publish("plotNodeDeleted", {
-            plotNodeDeleted: args.id,
-            userIds: await instanceToSharedIds(boardFound),
+
+          touch(Environment, environmentFound.id)
+          touch(Device, plotNodeFound.deviceId)
+          touch(StringPlotValue, plotNodeFound.plotId)
+
+          const authorizedUsersIds = await instanceToSharedIds(environmentFound)
+          pubsub.publish("valueUpdated", {
+            valueUpdated: {
+              id: plotNodeFound.plotId,
+            },
+            userIds: authorizedUsersIds,
+          })
+          pubsub.publish("deviceUpdated", {
+            deviceUpdated: {
+              id: plotNodeFound.deviceId,
+            },
+            userIds: authorizedUsersIds,
+          })
+          pubsub.publish("environmentUpdated", {
+            environmentUpdated: environmentFound.dataValues,
+            userIds: authorizedUsersIds,
+          })
+          pubsub.publish("stringPlotNodeDeleted", {
+            stringPlotNodeDeleted: args.id,
+            userIds: authorizedUsersIds,
           })
 
           context.billingUpdater.update(MUTATION_COST)
         },
-        valueToParent(Board)
+        valueToParent(Environment)
       )
     },
     deleteUser: (root, args, context) =>
@@ -2373,14 +2590,118 @@ const MutationResolver = (
           const userFound = await User.find({
             where: { id: context.auth.userId },
           })
-          // after enabling cascade delete in postgres destroying the boards should be enough to clear the user
 
-          // await Board.destroy({
-          //   where: {
-          //     ownerId: context.auth.userId,
-          //   },
-          // })
+          const environmentsFound = await Environment.findAll({
+            where: { ownerId: userFound.id },
+          })
 
+          async function deleteEnvironment(environmentFound) {
+            const authorizedUsersIds = await instanceToSharedIds(
+              environmentFound
+            )
+            const devices = await Device.findAll({
+              where: { environmentId: environmentFound.id },
+            })
+
+            const deleteDevicesPromises = devices.map(async device => {
+              const deleteChild = async ([Model, subscription]) => {
+                const childrenFound = await Model.findAll({
+                  where: {
+                    deviceId: device.id,
+                  },
+                })
+
+                await Promise.all(
+                  childrenFound.map(async child => {
+                    await child.destroy()
+                    pubsub.publish(subscription, {
+                      [subscription]: child.id,
+                      userIds: authorizedUsersIds,
+                    })
+                  })
+                )
+              }
+
+              await Promise.all(
+                [
+                  [FloatValue, "valueDeleted"],
+                  [StringValue, "valueDeleted"],
+                  [BooleanValue, "valueDeleted"],
+                  [MapValue, "valueDeleted"],
+                  [PlotValue, "valueDeleted"],
+                  [StringPlotValue, "valueDeleted"],
+                  [PlotNode, "plotNodeDeleted"],
+                  [StringPlotNode, "stringPlotNodeDeleted"],
+                  [Notification, "notificationDeleted"],
+                ].map(deleteChild)
+              )
+
+              await device.destroy()
+              pubsub.publish("deviceDeleted", {
+                deviceDeleted: device.id,
+                userIds: authorizedUsersIds,
+              })
+            })
+
+            async function destroyPendingEnvironmentShare() {
+              const environmentSharesFound = await PendingEnvironmentShare.findAll(
+                {
+                  where: { environmentId: environmentFound.id },
+                }
+              )
+
+              await Promise.all(
+                environmentSharesFound.map(async environmentShare => {
+                  pubsub.publish("environmentShareRevoked", {
+                    environmentShareRevoked: environmentShare.id,
+                    userIds: [environmentShare.receiverId],
+                  })
+                  await environmentShare.destroy()
+                })
+              )
+            }
+            async function destroyPendingOwnerChange() {
+              const ownerChangesFound = await PendingOwnerChange.findAll({
+                where: { environmentId: environmentFound.id },
+              })
+
+              await Promise.all(
+                ownerChangesFound.map(async ownerChange => {
+                  pubsub.publish("ownerChangeRevoked", {
+                    ownerChangeRevoked: ownerChange.id,
+                    userId: ownerChange.receiverId,
+                  })
+                  await ownerChange.destroy()
+                })
+              )
+            }
+
+            await Promise.all([
+              ...deleteDevicesPromises,
+              destroyPendingEnvironmentShare(),
+              destroyPendingOwnerChange(),
+            ])
+
+            await environmentFound.destroy()
+
+            pubsub.publish("environmentDeleted", {
+              environmentDeleted: environmentFound.id,
+              userIds: authorizedUsersIds,
+            })
+          }
+
+          const deleteEnvironmentsPromises = environmentsFound.map(
+            deleteEnvironment
+          )
+
+          const destroyTokenPromise = PermanentToken.destroy({
+            where: { userId: userFound.id },
+          })
+
+          await Promise.all([
+            ...deleteEnvironmentsPromises,
+            destroyTokenPromise,
+          ])
           await userFound.destroy()
 
           pubsub.publish("userDeleted", {

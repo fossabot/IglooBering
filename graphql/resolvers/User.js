@@ -52,7 +52,7 @@ const UserResolver = ({
   User,
   PermanentToken,
   Device,
-  Board,
+  Environment,
   FloatValue,
   StringValue,
   BooleanValue,
@@ -60,7 +60,7 @@ const UserResolver = ({
   StringPlotValue,
   MapValue,
   Notification,
-  PendingBoardShare,
+  PendingEnvironmentShare,
   PendingOwnerChange,
 }) => ({
   ...scalarProps(User, [
@@ -123,11 +123,14 @@ const UserResolver = ({
       if (context.auth.userId !== root.id) {
         reject("You are not allowed to perform this operation")
       } else {
-        const devicesInheritedByBoards = await getAll(Board, User, root.id, [
-          { model: Device },
-        ])
+        const devicesInheritedByEnvironments = await getAll(
+          Environment,
+          User,
+          root.id,
+          [{ model: Device }]
+        )
 
-        const devices = devicesInheritedByBoards.reduce(
+        const devices = devicesInheritedByEnvironments.reduce(
           (acc, curr) => [...acc, ...curr.devices],
           []
         )
@@ -143,11 +146,14 @@ const UserResolver = ({
         reject("You are not allowed to perform this operation")
       } else {
         //TODO: use a count instead
-        const devicesInheritedByBoards = await getAll(Board, User, root.id, [
-          { model: Device },
-        ])
+        const devicesInheritedByEnvironments = await getAll(
+          Environment,
+          User,
+          root.id,
+          [{ model: Device }]
+        )
 
-        const devices = devicesInheritedByBoards.reduce(
+        const devices = devicesInheritedByEnvironments.reduce(
           (acc, curr) => [...acc, ...curr.devices],
           []
         )
@@ -156,30 +162,34 @@ const UserResolver = ({
       }
     })
   },
-  pendingBoardShares(root, args, context) {
+  pendingEnvironmentShares(root, args, context) {
     return authenticated(context, async (resolve, reject) => {
       if (context.auth.userId !== root.id) {
         reject("You are not allowed to perform this operation")
       } else {
-        const pendingBoardShares = await PendingBoardShare.findAll({
+        const pendingEnvironmentShares = await PendingEnvironmentShare.findAll({
           where: { receiverId: context.auth.userId },
         })
 
-        resolve(pendingBoardShares)
-        context.billingUpdater.update(QUERY_COST * pendingBoardShares.length)
+        resolve(pendingEnvironmentShares)
+        context.billingUpdater.update(
+          QUERY_COST * pendingEnvironmentShares.length
+        )
       }
     })
   },
-  pendingBoardShareCount(root, args, context) {
+  pendingEnvironmentShareCount(root, args, context) {
     return authenticated(context, async (resolve, reject) => {
       if (context.auth.userId !== root.id) {
         reject("You are not allowed to perform this operation")
       } else {
-        const pendingBoardShareCount = await PendingBoardShare.count({
-          where: { receiverId: context.auth.userId },
-        })
+        const pendingEnvironmentShareCount = await PendingEnvironmentShare.count(
+          {
+            where: { receiverId: context.auth.userId },
+          }
+        )
 
-        resolve(pendingBoardShareCount)
+        resolve(pendingEnvironmentShareCount)
       }
     })
   },
@@ -189,7 +199,7 @@ const UserResolver = ({
         reject("You are not allowed to perform this operation")
       } else {
         const pendingOwnerChanges = await PendingOwnerChange.findAll({
-          where: { newOwnerId: context.auth.userId },
+          where: { receiverId: context.auth.userId },
         })
 
         resolve(pendingOwnerChanges)
@@ -203,34 +213,34 @@ const UserResolver = ({
         reject("You are not allowed to perform this operation")
       } else {
         const pendingOwnerChanges = await PendingOwnerChange.count({
-          where: { newOwnerId: context.auth.userId },
+          where: { receiverId: context.auth.userId },
         })
 
         resolve(pendingOwnerChanges)
       }
     })
   },
-  boardCount(root, args, context) {
+  environmentCount(root, args, context) {
     return authenticated(context, async (resolve, reject) => {
       if (context.auth.userId !== root.id) {
         reject("You are not allowed to perform this operation")
       } else {
         // TODO: use count query instead
-        const boards = await getAll(Board, User, root.id)
+        const environments = await getAll(Environment, User, root.id)
 
-        resolve(boards.length)
+        resolve(environments.length)
       }
     })
   },
-  boards(root, args, context) {
+  environments(root, args, context) {
     return authenticated(context, async (resolve, reject) => {
       if (context.auth.userId !== root.id) {
         reject("You are not allowed to perform this operation")
       } else {
-        const boards = await getAll(Board, User, root.id)
+        const environments = await getAll(Environment, User, root.id)
 
-        resolve(boards)
-        context.billingUpdater.update(QUERY_COST * boards.length)
+        resolve(environments)
+        context.billingUpdater.update(QUERY_COST * environments.length)
       }
     })
   },
@@ -239,15 +249,18 @@ const UserResolver = ({
       if (context.auth.userId !== root.id) {
         reject("You are not allowed to perform this operation")
       } else {
-        const devicesInheritedByBoards = await getAll(Board, User, root.id, [
-          { model: Device, include: [{ model: Notification }] },
-        ])
+        const devicesInheritedByEnvironments = await getAll(
+          Environment,
+          User,
+          root.id,
+          [{ model: Device, include: [{ model: Notification }] }]
+        )
 
         // flattens the notifications
-        const allNotifications = devicesInheritedByBoards.reduce(
-          (acc, board) => [
+        const allNotifications = devicesInheritedByEnvironments.reduce(
+          (acc, environment) => [
             ...acc,
-            ...board.devices.reduce(
+            ...environment.devices.reduce(
               (acc, device) => [...acc, ...device.notifications],
               []
             ),
@@ -270,15 +283,18 @@ const UserResolver = ({
       if (context.auth.userId !== root.id) {
         reject("You are not allowed to perform this operation")
       } else {
-        const devicesInheritedByBoards = await getAll(Board, User, root.id, [
-          { model: Device, include: [{ model: Notification }] },
-        ])
+        const devicesInheritedByEnvironments = await getAll(
+          Environment,
+          User,
+          root.id,
+          [{ model: Device, include: [{ model: Notification }] }]
+        )
 
         // flattens the notifications
-        const allNotifications = devicesInheritedByBoards.reduce(
-          (acc, board) => [
+        const allNotifications = devicesInheritedByEnvironments.reduce(
+          (acc, environment) => [
             ...acc,
-            ...board.devices.reduce(
+            ...environment.devices.reduce(
               (acc, device) => [...acc, ...device.notifications],
               []
             ),
@@ -310,13 +326,18 @@ const UserResolver = ({
           MapValue,
         ]
 
-        const valuesInheritedFromBoards = await getAll(Board, User, root.id, [
-          {
-            model: Device,
-            include: valueModels.map(Model => ({ model: Model })),
-          },
-        ])
-        const flattenedAllValues = valuesInheritedFromBoards.reduce(
+        const valuesInheritedFromEnvironments = await getAll(
+          Environment,
+          User,
+          root.id,
+          [
+            {
+              model: Device,
+              include: valueModels.map(Model => ({ model: Model })),
+            },
+          ]
+        )
+        const flattenedAllValues = valuesInheritedFromEnvironments.reduce(
           (acc, curr) => [
             ...acc,
             ...curr.devices.reduce(
@@ -355,13 +376,18 @@ const UserResolver = ({
           MapValue,
         ]
 
-        const valuesInheritedFromBoards = await getAll(Board, User, root.id, [
-          {
-            model: Device,
-            include: valueModels.map(Model => ({ model: Model })),
-          },
-        ])
-        const flattenedAllValues = valuesInheritedFromBoards.reduce(
+        const valuesInheritedFromEnvironments = await getAll(
+          Environment,
+          User,
+          root.id,
+          [
+            {
+              model: Device,
+              include: valueModels.map(Model => ({ model: Model })),
+            },
+          ]
+        )
+        const flattenedAllValues = valuesInheritedFromEnvironments.reduce(
           (acc, curr) => [
             ...acc,
             ...curr.devices.reduce(
