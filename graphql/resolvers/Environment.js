@@ -2,7 +2,7 @@ import {
   authorizedScalarPropsResolvers,
   authorized,
   instanceToRole,
-  boardToParent,
+  environmentToParent,
   authenticated,
   authorizationLevel,
 } from "./utilities"
@@ -10,202 +10,216 @@ import { Op } from "sequelize"
 
 const QUERY_COST = 1
 
-const rolesResolver = (roleName, Board, User) => (root, args, context) =>
+const rolesResolver = (roleName, Environment, User) => (root, args, context) =>
   authorized(
     root.id,
     context,
-    Board,
+    Environment,
     User,
     1,
     async (resolve, reject, found) => {
-      const boardFound = await Board.find({
+      const environmentFound = await Environment.find({
         where: { id: root.id },
         include: [{ model: User, as: roleName }],
       })
 
-      resolve(boardFound[roleName])
+      resolve(environmentFound[roleName])
 
-      context.billingUpdater.update(QUERY_COST * boardFound[roleName].length)
+      context.billingUpdater.update(
+        QUERY_COST * environmentFound[roleName].length
+      )
     },
-    boardToParent
+    environmentToParent
   )
 
-const retrievePublicBoardScalarProp = (Board, prop) => (root, args, context) =>
+const retrievePublicEnvironmentScalarProp = (Environment, prop) => (
+  root,
+  args,
+  context
+) =>
   authenticated(context, async (resolve, reject) => {
-    const boardFound = await Board.find({ where: { id: root.id } })
-    if (!boardFound) {
+    const environmentFound = await Environment.find({ where: { id: root.id } })
+    if (!environmentFound) {
       reject("The requested resource does not exist")
     } else {
-      resolve(boardFound[prop])
+      resolve(environmentFound[prop])
     }
   })
 
-const BoardResolver = ({
+const EnvironmentResolver = ({
   User,
-  Board,
+  Environment,
   Device,
   Notification,
   joinTables,
-  PendingBoardShare,
+  PendingEnvironmentShare,
   PendingOwnerChange,
 }) => ({
   ...authorizedScalarPropsResolvers(
-    Board,
+    Environment,
     User,
     ["avatar", "createdAt", "updatedAt", "index"],
-    boardToParent
+    environmentToParent
   ),
-  name: retrievePublicBoardScalarProp(Board, "name"),
+  name: retrievePublicEnvironmentScalarProp(Environment, "name"),
   muted(root, args, context) {
     return authorized(
       root.id,
       context,
-      Board,
+      Environment,
       User,
       1,
-      async (resolve, reject, boardFound, _, userFound) => {
-        resolve(boardFound.muted || userFound.quietMode)
+      async (resolve, reject, environmentFound, _, userFound) => {
+        resolve(environmentFound.muted || userFound.quietMode)
       },
-      boardToParent
+      environmentToParent
     )
   },
   owner(root, args, context) {
     return authorized(
       root.id,
       context,
-      Board,
+      Environment,
       User,
       1,
-      async (resolve, reject, boardFound) => {
+      async (resolve, reject, environmentFound) => {
         resolve({
-          id: boardFound.ownerId,
+          id: environmentFound.ownerId,
         })
 
         context.billingUpdater.update(QUERY_COST)
       },
-      boardToParent
+      environmentToParent
     )
   },
-  admins: rolesResolver("admin", Board, User),
-  editors: rolesResolver("editor", Board, User),
-  spectators: rolesResolver("spectator", Board, User),
+  admins: rolesResolver("admin", Environment, User),
+  editors: rolesResolver("editor", Environment, User),
+  spectators: rolesResolver("spectator", Environment, User),
   devices(root, args, context) {
     return authorized(
       root.id,
       context,
-      Board,
+      Environment,
       User,
       1,
-      async (resolve, reject, boardFound) => {
-        const devices = await Device.findAll({ where: { boardId: root.id } })
+      async (resolve, reject, environmentFound) => {
+        const devices = await Device.findAll({
+          where: { environmentId: root.id },
+        })
 
         resolve(devices)
 
         context.billingUpdater.update(QUERY_COST * devices.length)
       },
-      boardToParent
+      environmentToParent
     )
   },
   deviceCount(root, args, context) {
     return authorized(
       root.id,
       context,
-      Board,
+      Environment,
       User,
       1,
-      async (resolve, reject, boardFound) => {
-        const devices = await Device.count({ where: { boardId: root.id } })
+      async (resolve, reject, environmentFound) => {
+        const devices = await Device.count({
+          where: { environmentId: root.id },
+        })
 
         resolve(devices)
       },
-      boardToParent
+      environmentToParent
     )
   },
-  pendingBoardShares(root, args, context) {
+  pendingEnvironmentShares(root, args, context) {
     return authorized(
       root.id,
       context,
-      Board,
+      Environment,
       User,
       1,
-      async (resolve, reject, boardFound) => {
+      async (resolve, reject, environmentFound) => {
         const userFound = await User.find({
           where: { id: context.auth.userId },
         })
 
         /*
-            users without admin authorization don't have access to pendingBoardShares,
+            users without admin authorization don't have access to pendingEnvironmentShares,
             instead of throwing error we return null to allow queries like
             {
               user{
-                  boards{
-                    pendingBoardShares{ id }
+                  environments{
+                    pendingEnvironmentShares{ id }
                   }
               }
             }
-            also for users that don't have admin access to all of their boards
+            also for users that don't have admin access to all of their environments
           */
-        if ((await authorizationLevel(boardFound, userFound)) < 3) {
+        if ((await authorizationLevel(environmentFound, userFound)) < 3) {
           resolve(null)
           return
         }
 
-        const pendingBoardShares = await PendingBoardShare.findAll({
-          where: { boardId: root.id },
+        const pendingEnvironmentShares = await PendingEnvironmentShare.findAll({
+          where: { environmentId: root.id },
         })
 
-        resolve(pendingBoardShares)
-        context.billingUpdater.update(QUERY_COST * pendingBoardShares.length)
+        resolve(pendingEnvironmentShares)
+        context.billingUpdater.update(
+          QUERY_COST * pendingEnvironmentShares.length
+        )
       },
-      boardToParent
+      environmentToParent
     )
   },
-  pendingBoardShareCount(root, args, context) {
+  pendingEnvironmentShareCount(root, args, context) {
     return authorized(
       root.id,
       context,
-      Board,
+      Environment,
       User,
       1,
-      async (resolve, reject, boardFound) => {
+      async (resolve, reject, environmentFound) => {
         const userFound = await User.find({
           where: { id: context.auth.userId },
         })
 
         /*
-            users without admin authorization don't have access to pendingBoardShares,
+            users without admin authorization don't have access to pendingEnvironmentShares,
             instead of throwing error we return null to allow queries like
             {
               user{
-                  boards{
-                    pendingBoardShares{ id }
+                  environments{
+                    pendingEnvironmentShares{ id }
                   }
               }
             }
-            also for users that don't have admin access to all of their boards
+            also for users that don't have admin access to all of their environments
           */
-        if ((await authorizationLevel(boardFound, userFound)) < 3) {
+        if ((await authorizationLevel(environmentFound, userFound)) < 3) {
           resolve(null)
           return
         }
 
-        const pendingBoardShareCount = await PendingBoardShare.count({
-          where: { boardId: root.id },
-        })
+        const pendingEnvironmentShareCount = await PendingEnvironmentShare.count(
+          {
+            where: { environmentId: root.id },
+          }
+        )
 
-        resolve(pendingBoardShareCount)
+        resolve(pendingEnvironmentShareCount)
       },
-      boardToParent
+      environmentToParent
     )
   },
   pendingOwnerChanges(root, args, context) {
     return authorized(
       root.id,
       context,
-      Board,
+      Environment,
       User,
       1,
-      async (resolve, reject, boardFound) => {
+      async (resolve, reject, environmentFound) => {
         const userFound = await User.find({
           where: { id: context.auth.userId },
         })
@@ -215,36 +229,36 @@ const BoardResolver = ({
             instead of throwing error we return null to allow queries like
             {
               user{
-                  boards{
-                    pendingBoardShares{ id }
+                  environments{
+                    pendingEnvironmentShares{ id }
                   }
               }
             }
-            also for users that don't have admin access to all of their boards
+            also for users that don't have admin access to all of their environments
           */
-        if ((await authorizationLevel(boardFound, userFound)) < 3) {
+        if ((await authorizationLevel(environmentFound, userFound)) < 3) {
           resolve(null)
           return
         }
 
         const pendingOwnerChanges = await PendingOwnerChange.findAll({
-          where: { boardId: root.id },
+          where: { environmentId: root.id },
         })
 
         resolve(pendingOwnerChanges)
         context.billingUpdater.update(QUERY_COST * pendingOwnerChanges.length)
       },
-      boardToParent
+      environmentToParent
     )
   },
   pendingOwnerChangeCount(root, args, context) {
     return authorized(
       root.id,
       context,
-      Board,
+      Environment,
       User,
       1,
-      async (resolve, reject, boardFound) => {
+      async (resolve, reject, environmentFound) => {
         const userFound = await User.find({
           where: { id: context.auth.userId },
         })
@@ -254,38 +268,38 @@ const BoardResolver = ({
             instead of throwing error we return null to allow queries like
             {
               user{
-                  boards{
-                    pendingBoardShares{ id }
+                  environments{
+                    pendingEnvironmentShares{ id }
                   }
               }
             }
-            also for users that don't have admin access to all of their boards
+            also for users that don't have admin access to all of their environments
           */
-        if ((await authorizationLevel(boardFound, userFound)) < 3) {
+        if ((await authorizationLevel(environmentFound, userFound)) < 3) {
           resolve(null)
           return
         }
 
         const pendingOwnerChangeCount = await PendingOwnerChange.count({
-          where: { boardId: root.id },
+          where: { environmentId: root.id },
         })
 
         resolve(pendingOwnerChangeCount)
       },
-      boardToParent
+      environmentToParent
     )
   },
   notificationCount(root, args, context) {
     return authorized(
       root.id,
       context,
-      Board,
+      Environment,
       User,
       1,
-      async (resolve, reject, boardFound) => {
+      async (resolve, reject, environmentFound) => {
         // TODO: consider changing implementation to that of user.notifications
         const devices = await Device.findAll({
-          where: { boardId: root.id },
+          where: { environmentId: root.id },
           attributes: ["id"],
         })
 
@@ -306,24 +320,30 @@ const BoardResolver = ({
         resolve(totalCount)
         context.billingUpdater.update(QUERY_COST)
       },
-      boardToParent
+      environmentToParent
     )
   },
   myRole(root, args, context) {
     return authorized(
       root.id,
       context,
-      Board,
+      Environment,
       User,
       1,
-      async (resolve, reject, boardFound, boardAndParents, userFound) => {
-        const myRole = await instanceToRole(boardFound, userFound)
+      async (
+        resolve,
+        reject,
+        environmentFound,
+        environmentAndParents,
+        userFound
+      ) => {
+        const myRole = await instanceToRole(environmentFound, userFound)
 
         resolve(myRole)
       },
-      boardToParent
+      environmentToParent
     )
   },
 })
 
-export default BoardResolver
+export default EnvironmentResolver

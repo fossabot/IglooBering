@@ -1,4 +1,4 @@
-import BoardResolverFactory from "../graphql/resolvers/Board";
+import EnvironmentResolverFactory from "../graphql/resolvers/Environment";
 import MocksGenerator from "./mockUtils";
 import {
   testScalarProp,
@@ -8,9 +8,9 @@ import {
 } from "./testUtils";
 
 const {
-  MockedBoard,
+  MockedEnvironment,
   MockedUser,
-  mockBoardData,
+  mockEnvironmentData,
   mockUserData,
   mockDeviceData,
   MockedDevice,
@@ -18,43 +18,43 @@ const {
   mockNotificationData
 } = MocksGenerator();
 
-const BoardResolver = BoardResolverFactory({
+const EnvironmentResolver = EnvironmentResolverFactory({
   User: MockedUser,
-  Board: MockedBoard,
+  Environment: MockedEnvironment,
   Device: MockedDevice,
   Notification: MockedNotification
 });
 
-describe("Board", () => {
-  const testBoardScalarProp = testScalarProp(
-    BoardResolver,
-    { id: "mockBoardId" },
-    mockBoardData[0]
+describe("Environment", () => {
+  const testEnvironmentScalarProp = testScalarProp(
+    EnvironmentResolver,
+    { id: "mockEnvironmentId" },
+    mockEnvironmentData[0]
   );
-  const testUnauthenticated = unauthenticatedShouldFail(BoardResolver, {
-    id: "mockBoardId"
+  const testUnauthenticated = unauthenticatedShouldFail(EnvironmentResolver, {
+    id: "mockEnvironmentId"
   });
   const testNotAuthorized = notAuthorizedShouldFail(
-    BoardResolver,
-    { id: "mockBoardId" },
+    EnvironmentResolver,
+    { id: "mockEnvironmentId" },
     { auth: { userId: "mockUserId4", tokenType: "TEMPORARY" } }
   );
   const testWrongId = wrongIdShouldFail(
-    BoardResolver,
-    { id: "wrongBoardId" },
+    EnvironmentResolver,
+    { id: "wrongEnvironmentId" },
     { auth: { userId: "mockUserId", tokenType: "TEMPORARY" } }
   );
 
   let scalarProps = ["name", "avatar", "index", "createdAt", "updatedAt"];
 
   for (let prop of scalarProps) {
-    test(`${prop} is resolved correctly`, testBoardScalarProp(prop));
+    test(`${prop} is resolved correctly`, testEnvironmentScalarProp(prop));
   }
 
   test("muted is resolved correctly", async done => {
     const mutedFound = await new Promise((resolve, reject) => {
-      BoardResolver.muted(
-        { id: "mockBoardId" },
+      EnvironmentResolver.muted(
+        { id: "mockEnvironmentId" },
         {},
         {
           auth: { userId: "mockUserId", tokenType: "TEMPORARY" },
@@ -63,7 +63,7 @@ describe("Board", () => {
       )(resolve, reject);
     });
 
-    const correctQuietMode = mockBoardData[0].muted || mockUserData[0].quietMode;
+    const correctQuietMode = mockEnvironmentData[0].muted || mockUserData[0].quietMode;
     expect(mutedFound).toBe(correctQuietMode);
 
     done();
@@ -71,8 +71,8 @@ describe("Board", () => {
 
   test("devices is resolved correctly", async done => {
     const devicesFound = await new Promise((resolve, reject) => {
-      BoardResolver.devices(
-        { id: "mockBoardId" },
+      EnvironmentResolver.devices(
+        { id: "mockEnvironmentId" },
         {},
         {
           auth: { userId: "mockUserId", tokenType: "TEMPORARY" },
@@ -89,8 +89,8 @@ describe("Board", () => {
 
   test("deviceCount is resolved correctly", async done => {
     const deviceCount = await new Promise((resolve, reject) => {
-      BoardResolver.deviceCount(
-        { id: "mockBoardId" },
+      EnvironmentResolver.deviceCount(
+        { id: "mockEnvironmentId" },
         {},
         {
           auth: { userId: "mockUserId", tokenType: "TEMPORARY" },
@@ -105,8 +105,8 @@ describe("Board", () => {
 
   test("notificationCount is resolved correctly", async done => {
     const notificationCount = await new Promise((resolve, reject) => {
-      BoardResolver.notificationCount(
-        { id: "mockBoardId" },
+      EnvironmentResolver.notificationCount(
+        { id: "mockEnvironmentId" },
         {},
         {
           auth: { userId: "mockUserId", tokenType: "TEMPORARY" },
@@ -132,7 +132,7 @@ describe("Board", () => {
     "spectators",
     "notificationCount",
     "myRole",
-    "pendingBoardShares"
+    "pendingEnvironmentShares"
   ];
 
   for (let prop of authorizedProps) {

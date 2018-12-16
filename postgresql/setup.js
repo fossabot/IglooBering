@@ -20,7 +20,7 @@ const sequelize = new Sequelize(process.env.DATABASE_URL, {
 
 const {
   User,
-  Board,
+  Environment,
   Device,
   BooleanValue,
   FloatValue,
@@ -34,14 +34,14 @@ const {
   PermanentToken,
   WebPushSubscription,
   associations,
-  PendingBoardShare,
+  PendingEnvironmentShare,
   PendingOwnerChange,
 } = require("./databaseDefinition")(sequelize)
 
 const setup = async () => {
   try {
     await User.sync({ force: true })
-    await Board.sync({ force: true })
+    await Environment.sync({ force: true })
     await Device.sync({ force: true })
     await BooleanValue.sync({ force: true })
     await FloatValue.sync({ force: true })
@@ -54,7 +54,7 @@ const setup = async () => {
     await Notification.sync({ force: true })
     await PermanentToken.sync({ force: true })
     await WebPushSubscription.sync({ force: true })
-    await PendingBoardShare.sync({ force: true })
+    await PendingEnvironmentShare.sync({ force: true })
     await PendingOwnerChange.sync({ force: true })
     for (let i = 0; i < associations.length; i++) {
       await associations[i].sync({ force: true })

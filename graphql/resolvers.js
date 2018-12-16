@@ -1,8 +1,8 @@
 import GraphQLToolsTypes from "graphql-tools-types"
 import UserResolver from "./resolvers/User"
-import BoardResolver from "./resolvers/Board"
+import EnvironmentResolver from "./resolvers/Environment"
 import MutationResolver from "./resolvers/Mutation"
-import PendingBoardShareResolver from "./resolvers/PendingBoardShare"
+import PendingEnvironmentShareResolver from "./resolvers/PendingEnvironmentShare"
 import PendingOwnerChangeResolver from "./resolvers/PendingOwnerChange"
 import QueryResolver from "./resolvers/Query"
 import DeviceResolver from "./resolvers/Device"
@@ -26,7 +26,7 @@ const { JWT_SECRET } = process.env
 
 const {
   User,
-  Board,
+  Environment,
   PermanentToken,
   Device,
   Value,
@@ -44,9 +44,11 @@ const {
 
 const resolvers = {
   User: UserResolver(SequelizeConnections),
-  PendingBoardShare: PendingBoardShareResolver(SequelizeConnections),
+  PendingEnvironmentShare: PendingEnvironmentShareResolver(
+    SequelizeConnections
+  ),
   PendingOwnerChange: PendingOwnerChangeResolver(SequelizeConnections),
-  Board: BoardResolver(SequelizeConnections),
+  Environment: EnvironmentResolver(SequelizeConnections),
   Device: DeviceResolver(SequelizeConnections),
   Mutation: MutationResolver(
     SequelizeConnections,
@@ -66,7 +68,7 @@ const resolvers = {
     },
     User,
     Device,
-    Board
+    Environment
   ),
   ...ValueResolvers(
     {
@@ -80,7 +82,7 @@ const resolvers = {
     },
     User,
     Device,
-    Board
+    Environment
   ),
   Notification: NotificationResolver(SequelizeConnections),
 }

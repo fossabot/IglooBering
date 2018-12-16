@@ -1,7 +1,7 @@
 module.exports = () => {
-  const mockBoardData = [
+  const mockEnvironmentData = [
     {
-      id: "mockBoardId",
+      id: "mockEnvironmentId",
       userId: "mockUserId",
       name: "fake name",
       avatar: "fake avatar",
@@ -33,10 +33,10 @@ module.exports = () => {
       settings_temperature: "CELSIUS",
       settings_dateFormat: "DMY",
       settings_timeFormat: "H24",
-      hasOwnBoard: ({ id }) => ["mockBoardId"].includes(id),
-      hasAdminBoard: () => false,
-      hasEditorBoard: () => false,
-      hasSpectatorBoard: () => false
+      hasOwnEnvironment: ({ id }) => ["mockEnvironmentId"].includes(id),
+      hasAdminEnvironment: () => false,
+      hasEditorEnvironment: () => false,
+      hasSpectatorEnvironment: () => false
     },
     {
       id: "mockUserId2",
@@ -58,10 +58,10 @@ module.exports = () => {
       settings_temperature: "CELSIUS",
       settings_dateFormat: "DMY",
       settings_timeFormat: "H24",
-      hasOwnBoard: () => false,
-      hasAdminBoard: () => false,
-      hasEditorBoard: () => false,
-      hasSpectatorBoard: () => false
+      hasOwnEnvironment: () => false,
+      hasAdminEnvironment: () => false,
+      hasEditorEnvironment: () => false,
+      hasSpectatorEnvironment: () => false
     },
     {
       id: "mockUserId3",
@@ -83,10 +83,10 @@ module.exports = () => {
       settings_temperature: "CELSIUS",
       settings_dateFormat: "DMY",
       settings_timeFormat: "H24",
-      hasOwnBoard: () => false,
-      hasAdminBoard: ({ id }) => ["mockBoardId"].includes(id),
-      hasEditorBoard: () => false,
-      hasSpectatorBoard: () => false
+      hasOwnEnvironment: () => false,
+      hasAdminEnvironment: ({ id }) => ["mockEnvironmentId"].includes(id),
+      hasEditorEnvironment: () => false,
+      hasSpectatorEnvironment: () => false
     },
     {
       id: "mockUserId4",
@@ -108,17 +108,17 @@ module.exports = () => {
       settings_temperature: "CELSIUS",
       settings_dateFormat: "DMY",
       settings_timeFormat: "H24",
-      hasOwnBoard: () => false,
-      hasAdminBoard: () => false,
-      hasEditorBoard: () => false,
-      hasSpectatorBoard: () => false
+      hasOwnEnvironment: () => false,
+      hasAdminEnvironment: () => false,
+      hasEditorEnvironment: () => false,
+      hasSpectatorEnvironment: () => false
     }
   ];
 
   const mockDeviceData = [
     {
       id: "mockDeviceId",
-      boardId: "mockBoardId",
+      environmentId: "mockEnvironmentId",
       deviceType: "mockDeviceType",
       name: "mockName",
       index: 0,
@@ -136,7 +136,7 @@ module.exports = () => {
       id: "mockNotificationId",
       userId: "mockUserId",
       deviceId: "mockDeviceId",
-      boardId: "mockBoardId",
+      environmentId: "mockEnvironmentId",
       content: "mockContent",
       date: "2018-11-27T22:09:44.183Z",
       visualized: []
@@ -145,19 +145,19 @@ module.exports = () => {
       id: "mockNotificationId2",
       userId: "mockUserId",
       deviceId: "mockDeviceId",
-      boardId: "mockBoardId",
+      environmentId: "mockEnvironmentId",
       content: "mockContent2",
       date: "2018-11-27T22:09:44.183Z",
       visualized: []
     }
   ];
 
-  const mockPendingBoardShareData = [
+  const mockPendingEnvironmentShareData = [
     {
-      id: "mockPendingBoardShareId",
+      id: "mockPendingEnvironmentShareId",
       senderId: "mockUserId",
       receiverId: "mockUserId2",
-      boardId: "mockBoardId",
+      environmentId: "mockEnvironmentId",
       role: "ADMIN"
     }
   ];
@@ -226,15 +226,15 @@ module.exports = () => {
   });
 
   return {
-    MockedBoard: MockedModel(mockBoardData),
-    mockBoardData,
+    MockedEnvironment: MockedModel(mockEnvironmentData),
+    mockEnvironmentData,
     MockedUser: MockedModel(mockUserData),
     mockUserData,
     MockedDevice: MockedModel(mockDeviceData),
     mockDeviceData,
     MockedNotification: MockedModel(mockNotificationData),
     mockNotificationData,
-    MockedPendingBoardShare: MockedModel(mockPendingBoardShareData),
-    mockPendingBoardShareData
+    MockedPendingEnvironmentShare: MockedModel(mockPendingEnvironmentShareData),
+    mockPendingEnvironmentShareData
   };
 };

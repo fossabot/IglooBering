@@ -8,24 +8,24 @@ import {
 } from "./testUtils";
 
 const {
-  MockedBoard,
+  MockedEnvironment,
   MockedUser,
-  mockBoardData,
+  mockEnvironmentData,
   mockUserData,
   mockDeviceData,
   MockedDevice,
   MockedNotification,
   mockNotificationData,
-  MockedPendingBoardShare,
-  mockPendingBoardShareData
+  MockedPendingEnvironmentShare,
+  mockPendingEnvironmentShareData
 } = MocksGenerator();
 
 const UserResolver = UserResolverFactory({
   User: MockedUser,
-  Board: MockedBoard,
+  Environment: MockedEnvironment,
   Device: MockedDevice,
   Notification: MockedNotification,
-  PendingBoardShare: MockedPendingBoardShare
+  PendingEnvironmentShare: MockedPendingEnvironmentShare
 });
 
 describe("User", () => {
@@ -98,10 +98,10 @@ describe("User", () => {
   test.skip("deviceCount is resolved correctly", async done => {
     //TODO: need implementation of includes in the mock search
   });
-  test.skip("boards is resolved correctly", async done => {
+  test.skip("environments is resolved correctly", async done => {
     //TODO: need implementation of includes in the mock search
   });
-  test.skip("boardCount is resolved correctly", async done => {
+  test.skip("environmentCount is resolved correctly", async done => {
     //TODO: need implementation of includes in the mock search
   });
   test.skip("notifications is resolved correctly", async done => {
@@ -122,10 +122,10 @@ describe("User", () => {
   test.skip("valueCount is resolved correctly", async done => {
     //TODO: need implementation of includes in the mock search
   });
-  test("pendingBoardShares is resolved correctly", async done => {
-    // sender user should see the pendingBoardShare in the user prop
-    const pendingBoardSharesFound = await new Promise((resolve, reject) => {
-      UserResolver.pendingBoardShares(
+  test("pendingEnvironmentShares is resolved correctly", async done => {
+    // sender user should see the pendingEnvironmentShare in the user prop
+    const pendingEnvironmentSharesFound = await new Promise((resolve, reject) => {
+      UserResolver.pendingEnvironmentShares(
         { id: "mockUserId" },
         {},
         {
@@ -135,11 +135,11 @@ describe("User", () => {
       )(resolve, reject);
     });
 
-    expect(pendingBoardSharesFound.length).toBe(0);
+    expect(pendingEnvironmentSharesFound.length).toBe(0);
 
-    // receiver user should see the pendingBoardShares
-    const pendingBoardSharesFound2 = await new Promise((resolve, reject) => {
-      UserResolver.pendingBoardShares(
+    // receiver user should see the pendingEnvironmentShares
+    const pendingEnvironmentSharesFound2 = await new Promise((resolve, reject) => {
+      UserResolver.pendingEnvironmentShares(
         { id: "mockUserId2" },
         {},
         {
@@ -149,15 +149,17 @@ describe("User", () => {
       )(resolve, reject);
     });
 
-    expect(pendingBoardSharesFound2.length).toBe(1);
-    expect(pendingBoardSharesFound2[0]).toMatchObject({ id: "mockPendingBoardShareId" });
+    expect(pendingEnvironmentSharesFound2.length).toBe(1);
+    expect(pendingEnvironmentSharesFound2[0]).toMatchObject({
+      id: "mockPendingEnvironmentShareId"
+    });
 
     done();
   });
-  test("pendingBoardShareCount is resolved correctly", async done => {
-    // sender user should see the pendingBoardShare in the user prop
-    const pendingBoardSharesFound = await new Promise((resolve, reject) => {
-      UserResolver.pendingBoardShareCount(
+  test("pendingEnvironmentShareCount is resolved correctly", async done => {
+    // sender user should see the pendingEnvironmentShare in the user prop
+    const pendingEnvironmentSharesFound = await new Promise((resolve, reject) => {
+      UserResolver.pendingEnvironmentShareCount(
         { id: "mockUserId" },
         {},
         {
@@ -167,11 +169,11 @@ describe("User", () => {
       )(resolve, reject);
     });
 
-    expect(pendingBoardSharesFound).toBe(0);
+    expect(pendingEnvironmentSharesFound).toBe(0);
 
-    // receiver user should see the pendingBoardShares
-    const pendingBoardSharesFound2 = await new Promise((resolve, reject) => {
-      UserResolver.pendingBoardShareCount(
+    // receiver user should see the pendingEnvironmentShares
+    const pendingEnvironmentSharesFound2 = await new Promise((resolve, reject) => {
+      UserResolver.pendingEnvironmentShareCount(
         { id: "mockUserId2" },
         {},
         {
@@ -181,7 +183,7 @@ describe("User", () => {
       )(resolve, reject);
     });
 
-    expect(pendingBoardSharesFound2).toBe(1);
+    expect(pendingEnvironmentSharesFound2).toBe(1);
 
     done();
   });
@@ -203,12 +205,12 @@ describe("User", () => {
     "settings",
     "devices",
     "deviceCount",
-    "pendingBoardShares",
-    "pendingBoardShareCount",
+    "pendingEnvironmentShares",
+    "pendingEnvironmentShareCount",
     "pendingOwnerChanges",
     "pendingOwnerChangeCount",
-    "boardCount",
-    "boards",
+    "environmentCount",
+    "environments",
     "notificationCount",
     "notifications",
     "values",

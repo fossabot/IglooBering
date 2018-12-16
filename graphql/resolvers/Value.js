@@ -2,7 +2,7 @@ import { authenticated, authorizationLevel, firstResolve } from "./utilities"
 
 const QUERY_COST = 1
 
-const ValueResolver = (Values, User, Device, Board) => ({
+const ValueResolver = (Values, User, Device, Environment) => ({
   __resolveType: (root, context) =>
     authenticated(context, async (resolve, reject) => {
       const NOT_ALLOWED = "You are not allowed to perform this operation"
@@ -32,11 +32,11 @@ const ValueResolver = (Values, User, Device, Board) => ({
               const userFound = await User.find({
                 where: { id: context.auth.userId },
               })
-              const boardFound = await Board.find({
-                where: { id: resourceFound.boardId },
+              const environmentFound = await Environment.find({
+                where: { id: resourceFound.environmentId },
               })
 
-              if ((await authorizationLevel(boardFound, userFound)) < 1) {
+              if ((await authorizationLevel(environmentFound, userFound)) < 1) {
                 /* istanbul ignore next */
                 rejectInner(NOT_ALLOWED)
               } else {

@@ -11,7 +11,7 @@ const QUERY_COST = 1
 const DeviceResolver = ({
   Device,
   User,
-  Board,
+  Environment,
   BooleanValue,
   FloatValue,
   StringValue,
@@ -36,7 +36,7 @@ const DeviceResolver = ({
       "batteryCharging",
       "firmware",
     ],
-    deviceToParent(Board)
+    deviceToParent(Environment)
   ),
   values(root, args, context) {
     return authorized(
@@ -64,7 +64,7 @@ const DeviceResolver = ({
 
         context.billingUpdater.update(QUERY_COST * valuesFound.length)
       },
-      deviceToParent(Board)
+      deviceToParent(Environment)
     )
   },
   muted(root, args, context) {
@@ -74,17 +74,25 @@ const DeviceResolver = ({
       Device,
       User,
       1,
-      async (resolve, reject, deviceFound, [_, boardFound], userFound) => {
-        // the Board resolver will take care of loading the other props,
-        // it only needs to know the board id
-        resolve(deviceFound.muted || boardFound.muted || userFound.quietMode)
+      async (
+        resolve,
+        reject,
+        deviceFound,
+        [_, environmentFound],
+        userFound
+      ) => {
+        // the Environment resolver will take care of loading the other props,
+        // it only needs to know the environment id
+        resolve(
+          deviceFound.muted || environmentFound.muted || userFound.quietMode
+        )
 
         context.billingUpdater.update(QUERY_COST)
       },
-      deviceToParent(Board)
+      deviceToParent(Environment)
     )
   },
-  board(root, args, context) {
+  environment(root, args, context) {
     return authorized(
       root.id,
       context,
@@ -92,13 +100,13 @@ const DeviceResolver = ({
       User,
       1,
       async (resolve, reject, deviceFound) => {
-        // the Board resolver will take care of loading the other props,
-        // it only needs to know the board id
-        resolve({ id: deviceFound.boardId })
+        // the Environment resolver will take care of loading the other props,
+        // it only needs to know the environment id
+        resolve({ id: deviceFound.environmentId })
 
         context.billingUpdater.update(QUERY_COST)
       },
-      deviceToParent(Board)
+      deviceToParent(Environment)
     )
   },
   notifications(root, args, context) {
@@ -120,7 +128,7 @@ const DeviceResolver = ({
         resolve(notifications.sort(compareDates))
         context.billingUpdater.update(QUERY_COST * notifications.length)
       },
-      deviceToParent(Board)
+      deviceToParent(Environment)
     )
   },
   notificationCount(root, args, context) {
@@ -142,7 +150,7 @@ const DeviceResolver = ({
 
         resolve(count)
       },
-      deviceToParent(Board)
+      deviceToParent(Environment)
     )
   },
 })

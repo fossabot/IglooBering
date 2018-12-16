@@ -8,10 +8,10 @@ import {
 } from "./testUtils";
 
 const {
-  MockedBoard,
+  MockedEnvironment,
   MockedUser,
   MockedDevice,
-  mockBoardData,
+  mockEnvironmentData,
   mockUserData,
   mockDeviceData,
   MockedNotification,
@@ -20,7 +20,7 @@ const {
 
 const DeviceResolver = DeviceResolverFactory({
   User: MockedUser,
-  Board: MockedBoard,
+  Environment: MockedEnvironment,
   Device: MockedDevice,
   Notification: MockedNotification
 });
@@ -71,21 +71,21 @@ describe("Device", () => {
     });
 
     const correctQuietMode =
-      mockDeviceData[0].muted || mockBoardData[0].muted || mockUserData[0].quietMode;
+      mockDeviceData[0].muted || mockEnvironmentData[0].muted || mockUserData[0].quietMode;
     expect(mutedFound).toBe(correctQuietMode);
 
     done();
   });
-  test("board is resolved correctly", async done => {
-    const boardFound = await new Promise((resolve, reject) => {
-      DeviceResolver.board(
+  test("environment is resolved correctly", async done => {
+    const environmentFound = await new Promise((resolve, reject) => {
+      DeviceResolver.environment(
         { id: "mockDeviceId" },
         {},
         { auth: { userId: "mockUserId", tokenType: "TEMPORARY" } }
       )(resolve, reject);
     });
 
-    expect(boardFound).toMatchObject({ id: mockDeviceData[0].boardId });
+    expect(environmentFound).toMatchObject({ id: mockDeviceData[0].environmentId });
 
     done();
   });
@@ -150,7 +150,7 @@ describe("Device", () => {
     "values",
     "notifications",
     "notificationCount",
-    "board",
+    "environment",
     "muted"
   ];
 
