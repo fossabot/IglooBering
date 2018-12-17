@@ -1,4 +1,4 @@
-import { User, sequelize } from "./postgresql/databaseConnection"
+import { User, sequelize } from "./postgresql/models/index"
 
 require("dotenv").config()
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY)

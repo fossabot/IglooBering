@@ -76,7 +76,7 @@ const MutationResolver = (
     PendingEnvironmentShare,
     PendingOwnerChange,
   },
-  WebPushSubscription,
+  WebPushNotification,
   pubsub,
   JWT_SECRET
 ) => {
@@ -289,13 +289,14 @@ const MutationResolver = (
 
             const newEnvironment = await Environment.create({
               name: "Home",
+              ownerId: newUser.id,
               avatar: randomEnvironmentAvatar(),
               muted: false,
               index: 0,
             })
 
-            await newUser.addOwnEnvironment(newEnvironment)
-            await newEnvironment.setOwner(newUser)
+            // await newUser.addOwnEnvironment(newEnvironment)
+            // await newEnvironment.setOwner(newUser)
 
             // setting context so that the resolvers for user know that the user is authenticated
             context.auth = {
@@ -1058,8 +1059,13 @@ const MutationResolver = (
           return
         }
 
+        const userFound = await User.find({
+          where: { id: context.auth.userId },
+        })
+
         const newEnvironment = await Environment.create({
           ...args,
+          ownerId: userFound.id,
           avatar: args.avatar || randomEnvironmentAvatar(),
           // if muted is not passed then set it to false
           muted: !!args.muted,
@@ -1071,9 +1077,6 @@ const MutationResolver = (
                 })) + 1 || 0, // or 0 replaces NaN when there are no other devices
         })
 
-        const userFound = await User.find({
-          where: { id: context.auth.userId },
-        })
         await userFound.addOwnEnvironment(newEnvironment)
         await newEnvironment.setOwner(userFound)
 
@@ -1101,7 +1104,7 @@ const MutationResolver = (
           Environment,
           User,
           2,
-          async (resolve, reject, environmentFound) => {
+          async (resolve, reject, environmentFound, _, userFound) => {
             // checks that batteryStatus and signalStatus are within boundaries [0,100]
             if (
               isNotNullNorUndefined(args.batteryStatus) &&
@@ -1136,6 +1139,7 @@ const MutationResolver = (
               environmentId: args.environmentId,
               index,
             })
+            console.log(newDevice.id)
 
             const resolveValue = {
               ...newDevice.dataValues,
@@ -2117,7 +2121,7 @@ const MutationResolver = (
             !environmentFound.muted &&
             !deviceFound.muted
           ) {
-            const notificationSubscriptions = await WebPushSubscription.findAll(
+            const notificationSubscriptions = await WebPushNotification.findAll(
               {
                 where: {
                   userId: {
@@ -2624,14 +2628,18 @@ const MutationResolver = (
 
               await Promise.all(
                 [
+                  [PlotNode, "plotNodeDeleted"],
+                  [StringPlotNode, "stringPlotNodeDeleted"],
+                ].map(deleteChild)
+              )
+              await Promise.all(
+                [
                   [FloatValue, "valueDeleted"],
                   [StringValue, "valueDeleted"],
                   [BooleanValue, "valueDeleted"],
                   [MapValue, "valueDeleted"],
                   [PlotValue, "valueDeleted"],
                   [StringPlotValue, "valueDeleted"],
-                  [PlotNode, "plotNodeDeleted"],
-                  [StringPlotNode, "stringPlotNodeDeleted"],
                   [Notification, "notificationDeleted"],
                 ].map(deleteChild)
               )

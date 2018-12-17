@@ -16,9 +16,9 @@ import AWS from "aws-sdk"
 import path from "path"
 import {
   PermanentToken,
-  WebPushSubscription,
+  WebPushNotification,
   User,
-} from "./postgresql/databaseConnection"
+} from "./postgresql/models/index"
 import jwt from "jwt-simple"
 import { GenerateUserBillingBatcher } from "./graphql/resolvers/utilities"
 
@@ -166,7 +166,7 @@ app.post("/webPushSubscribe", async (req, res) => {
   if (req.user) {
     const notificationSubscription = req.body
 
-    const oldSubscription = await WebPushSubscription.find({
+    const oldSubscription = await WebPushNotification.find({
       where: { endpoint: notificationSubscription.endpoint },
     })
 
@@ -179,7 +179,7 @@ app.post("/webPushSubscribe", async (req, res) => {
     }
 
     if (!oldSubscription) {
-      await WebPushSubscription.create(newSubscription)
+      await WebPushNotification.create(newSubscription)
     } else {
       oldSubscription.update(newSubscription)
     }

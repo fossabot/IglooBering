@@ -41,7 +41,6 @@ describe("User", () => {
 
   let privateScalarProps = [
     "quietMode",
-    "devMode",
     "monthUsage",
     "emailIsVerified",
     "paymentPlan",
