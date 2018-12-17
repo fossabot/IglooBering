@@ -21,6 +21,10 @@ const subscriptionResolver = (pubsub, { User, Device, Environment }) => ({
     "environmentStoppedSharingWithYou",
     pubsub
   ),
+  environmentShareAccepted: subscriptionFilterOnlyMine(
+    "environmentShareAccepted",
+    pubsub
+  ),
   environmentShareDeclined: subscriptionFilterOnlyMine(
     "environmentShareDeclined",
     pubsub
