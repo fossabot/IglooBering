@@ -1,1 +1,1 @@
-release: npm run release
+release: node_modules/.bin/sequelize db:migrate --config ./postgresql/config/config.json --models-path ./postgresql/models --migrations-path ./postgresql/migrations --seeders-path ./postgresql/seeders

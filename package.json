@@ -11,8 +11,6 @@
     "coveralls": "cat ./coverage/lcov.info | ./node_modules/.bin/coveralls",
     "lint": "prettier **/*.js --write",
     "precommit": "lint-staged",
-    "release":
-      "node_modules/.bin/sequelize db:migrate --config ./postgresql/config/config.json --models-path ./postgresql/models --migrations-path ./postgresql/migrations --seeders-path ./postgresql/seeders",
     "bill": "babel-node ./monthlyBilling"
   },
   "lint-staged": {
@@ -70,6 +68,7 @@
     "web-push": "^3.3.0",
     "winston": "^3.0.0-rc1",
     "winston-slacker": "^1.0.3",
+    "sequelize-cli": "^5.4.0",
     "zxcvbn": "^4.4.2"
   },
   "devDependencies": {
@@ -87,7 +86,6 @@
     "minimal-graphql": "^1.0.3",
     "nodemon": "^1.12.1",
     "prettier-eslint-cli": "^4.7.0",
-    "sequelize-cli": "^5.4.0",
     "supertest": "^3.0.0"
   },
   "peerDependencies": {
