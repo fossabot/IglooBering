@@ -102,7 +102,6 @@ const UserResolver = ({
         const userFound = await User.find({ where: { id: root.id } })
 
         resolve({
-          timeZone: userFound.settings_timeZone,
           language: userFound.settings_language,
           lengthAndMass: userFound.settings_lengthAndMass,
           temperature: userFound.settings_temperature,

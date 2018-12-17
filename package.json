@@ -11,6 +11,8 @@
     "coveralls": "cat ./coverage/lcov.info | ./node_modules/.bin/coveralls",
     "lint": "prettier **/*.js --write",
     "precommit": "lint-staged",
+    "sequelize":
+      "sequelize --config ./postgresql/config/config.json --models-path ./postgresql/models --migrations-path ./postgresql/migrations --seeders-path ./postgresql/seeders",
     "bill": "babel-node ./monthlyBilling"
   },
   "lint-staged": {

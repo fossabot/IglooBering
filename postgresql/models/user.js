@@ -51,9 +51,6 @@ module.exports = (queryInterface, Sequelize) => {
     settings_language: {
       type: Sequelize.STRING,
     },
-    settings_timeZone: {
-      type: Sequelize.STRING,
-    },
     settings_lengthAndMass: {
       type: Sequelize.STRING,
     },

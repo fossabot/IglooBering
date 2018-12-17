@@ -280,7 +280,6 @@ const MutationResolver = (
               name: args.name,
               profileIconColor: randomUserIconColor(),
               settings_language: "en-GB",
-              settings_timeZone: "+00:00_Greenwich", // TODO: Daylight Saving Time
               settings_lengthAndMass: "SI",
               settings_temperature: "CELSIUS",
               settings_dateFormat: "DMY",
@@ -437,7 +436,7 @@ const MutationResolver = (
           } else {
             const role = await instanceToRole(environmentFound, receiverFound)
             if (role !== null) {
-              reject("The user already has a role on this environment")
+              reject("This user already has a role on this environment")
               return
             }
 
@@ -449,7 +448,7 @@ const MutationResolver = (
               },
             })
             if (otherPendingShare) {
-              reject(`There is already a environmentShare pending`)
+              reject(`There is already a pending environmentShare`)
               return
             }
 
@@ -461,7 +460,7 @@ const MutationResolver = (
               },
             })
             if (otherOwnerChange) {
-              reject(`There is already an ownerChange pending`)
+              reject(`There is already a pending ownerChange`)
               return
             }
 
@@ -489,8 +488,8 @@ const MutationResolver = (
 
             touch(Environment, args.environmentId, newPendingShare.updatedAt)
 
-            pubsub.publish("environmentSharedWithYou", {
-              environmentSharedWithYou: newPendingShare,
+            pubsub.publish("environmentSharedReceived", {
+              environmentSharedReceived: newPendingShare,
               userId: receiverFound.id,
             })
             sendEnvironmentSharedEmail(
@@ -743,8 +742,8 @@ const MutationResolver = (
 
             touch(Environment, args.environmentId, newOwnerChange.updatedAt)
 
-            pubsub.publish("ownerChangeBegan", {
-              ownerChangeBegan: newOwnerChange,
+            pubsub.publish("ownerChangeReceived", {
+              ownerChangeReceived: newOwnerChange,
               userId: receiverFound.id,
             })
             sendEnvironmentSharedEmail(
@@ -966,7 +965,7 @@ const MutationResolver = (
         1,
         async (resolve, reject, environmentFound, _, userFound) => {
           if ((await instanceToRole(environmentFound, userFound)) === "OWNER") {
-            reject("You cannot leave a environment that you own")
+            reject("You cannot leave an environment that you own")
             return
           }
 
@@ -1481,7 +1480,6 @@ const MutationResolver = (
         if (!userFound) {
           reject("User doesn't exist. Use `` to create one")
         } else if (
-          args.timeZone === null ||
           args.language === null ||
           args.lengthAndMass === null ||
           args.temperature === null ||
@@ -1492,7 +1490,6 @@ const MutationResolver = (
         } else {
           const updateQuery = {}
           const fields = [
-            "timeZone",
             "language",
             "lengthAndMass",
             "temperature",
@@ -1508,7 +1505,6 @@ const MutationResolver = (
           const newUser = await userFound.update(updateQuery)
 
           resolve({
-            timeZone: newUser.settings_timeZone,
             language: newUser.settings_language,
             lengthAndMass: newUser.settings_lengthAndMass,
             temperature: newUser.settings_temperature,

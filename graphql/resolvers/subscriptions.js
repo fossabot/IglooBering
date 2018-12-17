@@ -9,8 +9,8 @@ import {
 } from "./utilities"
 
 const subscriptionResolver = (pubsub, { User, Device, Environment }) => ({
-  environmentSharedWithYou: subscriptionFilterOnlyMine(
-    "environmentSharedWithYou",
+  environmentSharedReceived: subscriptionFilterOnlyMine(
+    "environmentSharedReceived",
     pubsub
   ),
   environmentShareUpdated: subscriptionFilterOnlyMine(
@@ -29,7 +29,10 @@ const subscriptionResolver = (pubsub, { User, Device, Environment }) => ({
     "environmentShareRevoked",
     pubsub
   ),
-  ownerChangeBegan: subscriptionFilterOnlyMine("ownerChangeBegan", pubsub),
+  ownerChangeReceived: subscriptionFilterOnlyMine(
+    "ownerChangeReceived",
+    pubsub
+  ),
   ownerChangeAccepted: subscriptionFilterOnlyMine(
     "ownerChangeAccepted",
     pubsub

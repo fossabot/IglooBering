@@ -18,7 +18,7 @@ type signUpPayload {
 }
 
 # Payload returned when authenticating
-type logInPayload {
+type authenticationPayload {
   # token used to authenticate, pass it as a bearer in the authentication header
   token: String!
   user: User!
@@ -76,7 +76,7 @@ enum TokenType {
 # All available mutations
 type Mutation {
   # Gets an authentication token
-  logIn(email: String!, password: String!): logInPayload
+  logIn(email: String!, password: String!): authenticationPayload
 
   # creates a token to perform special operations
   createToken(password: String!, tokenType: TokenType!): String
@@ -99,7 +99,7 @@ type Mutation {
   # UpgradeTo2FactorAuthentication: UpgradeTo2FactorPayload
 
   # Changes the password of the authenticated user
-  changePassword(newPassword: String!): logInPayload
+  changePassword(newPassword: String!): authenticationPayload
 
   resendVerificationEmail: Boolean
 
@@ -319,7 +319,6 @@ type Mutation {
   changeEmail(newEmail: String!): Boolean
 
   settings(
-    timeZone: String
     language: String
     lengthAndMass: LengthAndMass
     temperature: Temperature
@@ -577,7 +576,7 @@ type Subscription {
   # subscribes to device creations
   deviceMoved: Device
   # subscribes to environment shares to you
-  environmentSharedWithYou: PendingEnvironmentShare
+  environmentSharedReceived: PendingEnvironmentShare
   environmentShareUpdated: PendingEnvironmentShare
   # returns the environment accepted
   environmentShareAccepted: Environment
@@ -586,14 +585,14 @@ type Subscription {
   # returns the id of the environment share that was revoked
   environmentShareRevoked: ID
   # subscribes to owner change to you
-  ownerChangeBegan: PendingOwnerChange
+  ownerChangeReceived: PendingOwnerChange
   # returns the id of the environment accepted
   ownerChangeAccepted: ID
   # returns the id of the environment declined
   ownerChangeDeclined: ID
   # returns the id of the owner change that was revoked
   ownerChangeRevoked: ID
-  # subscribes to environment unshares from you or you leave a environment
+  # subscribes to environment unshares from you or you leave an environment
   environmentStoppedSharingWithYou: ID
   # subscribes to value updates
   userUpdated: User
@@ -640,7 +639,6 @@ type Settings {
   timeFormat: TimeFormat!
   dateFormat: DateFormat!
   language: String!
-  timeZone: String!
 }
 
 type User {

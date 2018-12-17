@@ -68,7 +68,6 @@ describe("User", () => {
     expect(settingsFound).toMatchObject({
       language: mockUserData[0].settings_language,
       timeFormat: mockUserData[0].settings_timeFormat,
-      timeZone: mockUserData[0].settings_timeZone,
       dateFormat: mockUserData[0].settings_dateFormat,
       temperature: mockUserData[0].settings_temperature,
       lengthAndMass: mockUserData[0].settings_lengthAndMass

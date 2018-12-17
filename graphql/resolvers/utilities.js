@@ -1094,7 +1094,7 @@ const updateUserBilling = (User, auth) => async bill => {
 const GenerateUserBillingBatcher = (User, auth) =>
   new UpdateBatcher(updateUserBilling(User, auth))
 
-// a environment is it's own parent
+// an environment is it's own parent
 const environmentToParent = x => x
 
 const runInParallel = async (...funcs) => await Promise.all(funcs.map(f => f()))
