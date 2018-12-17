@@ -38,31 +38,31 @@ module.exports = (queryInterface, Sequelize) => {
     Environment.Admins = "AdminEnvironments"
     Environment.belongsToMany(models.User, {
       as: "admin",
-      through: "EnvironmentAdmins",
+      through: "environmentAdmins",
     })
     models.User.AdminEnvironments = models.User.belongsToMany(Environment, {
-      through: "EnvironmentAdmins",
+      through: "environmentAdmins",
       as: "AdminEnvironments",
     })
 
     Environment.Editors = "EditorEnvironments"
     Environment.belongsToMany(models.User, {
       as: "editor",
-      through: "EnvironmentEditors",
+      through: "environmentEditors",
     })
     models.User.EditorEnvironments = models.User.belongsToMany(Environment, {
       as: "EditorEnvironments",
-      through: "EnvironmentEditors",
+      through: "environmentEditors",
     })
 
     Environment.Spectators = "SpectatorEnvironments"
     Environment.belongsToMany(models.User, {
       as: "spectator",
-      through: "EnvironmentSpectators",
+      through: "environmentSpectators",
     })
     models.User.SpectatorEnvironments = models.User.belongsToMany(Environment, {
       as: "SpectatorEnvironments",
-      through: "EnvironmentSpectators",
+      through: "environmentSpectators",
     })
   }
   return Environment

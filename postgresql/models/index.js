@@ -14,7 +14,7 @@ const sequelize = new Sequelize(process.env.DATABASE_URL, {
   },
   logging: false,
   pool: {
-    max: 20,
+    max: 5,
     min: 1,
     idle: 20000,
     acquire: 40000,

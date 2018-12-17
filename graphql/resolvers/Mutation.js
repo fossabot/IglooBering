@@ -75,6 +75,9 @@ const MutationResolver = (
     Notification,
     PendingEnvironmentShare,
     PendingOwnerChange,
+    EnvironmentAdmin,
+    EnvironmentEditor,
+    EnvironmentSpectator,
   },
   WebPushNotification,
   pubsub,
@@ -575,7 +578,23 @@ const MutationResolver = (
             where: { id: context.auth.userId },
           })
 
-          await userFound[`add${Environment[parsedRole]}`](environmentFound)
+          // await userFound[`add${Environment[parsedRole]}`](environmentFound)
+          if (pendingEnvironmentFound.role === "ADMIN") {
+            await EnvironmentAdmin.create({
+              userId: userFound.id,
+              environmentId: environmentFound.id,
+            })
+          } else if (pendingEnvironmentFound.role === "EDITOR") {
+            await EnvironmentEditor.create({
+              userId: userFound.id,
+              environmentId: environmentFound.id,
+            })
+          } else {
+            await EnvironmentSpectator.create({
+              userId: userFound.id,
+              environmentId: environmentFound.id,
+            })
+          }
 
           resolve({ id: environmentFound.id })
 
@@ -819,9 +838,21 @@ const MutationResolver = (
 
           // remove old roles
           await runInParallel(
-            () => userFound[`remove${Environment.Admins}`](environmentFound),
-            () => userFound[`remove${Environment.Editors}`](environmentFound),
-            () => userFound[`remove${Environment.Spectators}`](environmentFound)
+            () =>
+              EnvironmentAdmin.remove({
+                userId: userFound.id,
+                environmentId: environmentFound.id,
+              }),
+            () =>
+              EnvironmentEditor.remove({
+                userId: userFound.id,
+                environmentId: environmentFound.id,
+              }),
+            () =>
+              EnvironmentSpectator.remove({
+                userId: userFound.id,
+                environmentId: environmentFound.id,
+              })
           )
 
           await environmentFound.setOwner(userFound)
@@ -831,7 +862,10 @@ const MutationResolver = (
             where: { id: pendingOwnerChangeFound.senderId },
           })
           await oldOwnerFound.removeOwnEnvironment(environmentFound)
-          await oldOwnerFound[`add${Environment.Admins}`](environmentFound)
+          await EnvironmentAdmin.create({
+            userId: oldOwnerFound.id,
+            environmentId: environmentFound.id,
+          })
 
           resolve(environmentFound.id)
 
@@ -920,26 +954,42 @@ const MutationResolver = (
             // remove old role
             await runInParallel(
               () =>
-                targetUserFound[`remove${Environment.Admins}`](
-                  environmentFound
-                ),
+                EnvironmentAdmin.remove({
+                  userId: userFound.id,
+                  environmentId: environmentFound.id,
+                }),
               () =>
-                targetUserFound[`remove${Environment.Editors}`](
-                  environmentFound
-                ),
+                EnvironmentEditor.remove({
+                  userId: userFound.id,
+                  environmentId: environmentFound.id,
+                }),
               () =>
-                targetUserFound[`remove${Environment.Spectators}`](
-                  environmentFound
-                )
+                EnvironmentSpectator.remove({
+                  userId: userFound.id,
+                  environmentId: environmentFound.id,
+                })
             )
 
             // add new role
             const parsedRole = `${args.newRole[0] +
               args.newRole.slice(1).toLowerCase()}s`
 
-            await targetUserFound[`add${Environment[parsedRole]}`](
-              environmentFound
-            )
+            if (pendingEnvironmentFound.role === "ADMIN") {
+              await EnvironmentAdmin.create({
+                userId: targetUserFound.id,
+                environmentId: environmentFound.id,
+              })
+            } else if (pendingEnvironmentFound.role === "EDITOR") {
+              await EnvironmentEditor.create({
+                userId: targetUserFound.id,
+                environmentId: environmentFound.id,
+              })
+            } else {
+              await EnvironmentSpectator.create({
+                userId: targetUserFound.id,
+                environmentId: environmentFound.id,
+              })
+            }
 
             resolve(environmentFound)
 
@@ -970,9 +1020,21 @@ const MutationResolver = (
           }
 
           await runInParallel(
-            () => userFound[`remove${Environment.Admins}`](environmentFound),
-            () => userFound[`remove${Environment.Editors}`](environmentFound),
-            () => userFound[`remove${Environment.Spectators}`](environmentFound)
+            () =>
+              EnvironmentAdmin.remove({
+                userId: userFound.id,
+                environmentId: environmentFound.id,
+              }),
+            () =>
+              EnvironmentEditor.remove({
+                userId: userFound.id,
+                environmentId: environmentFound.id,
+              }),
+            () =>
+              EnvironmentSpectator.remove({
+                userId: userFound.id,
+                environmentId: environmentFound.id,
+              })
           )
           resolve(environmentFound.id)
 
@@ -1023,10 +1085,21 @@ const MutationResolver = (
             reject("You cannot stop sharing a resource with its owner")
           } else {
             await runInParallel(
-              () => userFound[`remove${Environment.Admins}`](environmentFound),
-              () => userFound[`remove${Environment.Editors}`](environmentFound),
               () =>
-                userFound[`remove${Environment.Spectators}`](environmentFound)
+                EnvironmentAdmin.remove({
+                  userId: userFound.id,
+                  environmentId: environmentFound.id,
+                }),
+              () =>
+                EnvironmentEditor.remove({
+                  userId: userFound.id,
+                  environmentId: environmentFound.id,
+                }),
+              () =>
+                EnvironmentSpectator.remove({
+                  userId: userFound.id,
+                  environmentId: environmentFound.id,
+                })
             )
 
             resolve(environmentFound)
@@ -1283,7 +1356,18 @@ const MutationResolver = (
         PlotValue,
         StringPlotValue,
       ],
-      pubsub
+      pubsub,
+      (args, reject) => {
+        if (
+          isNotNullNorUndefined(args.boundaries) &&
+          (args.boundaries.length !== 2 ||
+            args.boundaries[0] >= args.boundaries[1])
+        ) {
+          reject("boundaries should be an array with 2 values [min, max]")
+          return false
+        }
+        return true
+      }
     ),
     createStringPlotValue: CreateGenericValue(
       User,
@@ -1299,7 +1383,18 @@ const MutationResolver = (
         PlotValue,
         StringPlotValue,
       ],
-      pubsub
+      pubsub,
+      (args, reject) => {
+        if (
+          isNotNullNorUndefined(args.allowedValues) &&
+          args.allowedValues.length === 0
+        ) {
+          reject("allowedValues cannot be an empty array")
+          return false
+        }
+
+        return true
+      }
     ),
     createPlotNode(root, args, context) {
       return authorized(
@@ -1408,7 +1503,7 @@ const MutationResolver = (
             })
 
             if (!userFound) {
-              reject("User doesn't exist. Use `` to create one")
+              reject("User doesn't exist. Use `signUp` to create one")
             } else {
               const newUser = await userFound.update(args)
               resolve(newUser.dataValues)
