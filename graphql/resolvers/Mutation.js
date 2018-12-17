@@ -76,7 +76,7 @@ const MutationResolver = (
     PendingEnvironmentShare,
     PendingOwnerChange,
   },
-  WebPushSubscription,
+  WebPushNotification,
   pubsub,
   JWT_SECRET
 ) => {
@@ -2121,7 +2121,7 @@ const MutationResolver = (
             !environmentFound.muted &&
             !deviceFound.muted
           ) {
-            const notificationSubscriptions = await WebPushSubscription.findAll(
+            const notificationSubscriptions = await WebPushNotification.findAll(
               {
                 where: {
                   userId: {

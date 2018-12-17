@@ -5,6 +5,14 @@ module.exports = (queryInterface, Sequelize) => {
       defaultValue: Sequelize.UUIDV4,
       primaryKey: true,
     },
+    userId: {
+      type: Sequelize.UUID,
+      allowNull: false,
+      references: {
+        model: "users",
+        key: "id",
+      },
+    },
     name: {
       type: Sequelize.STRING,
       allowNull: false,

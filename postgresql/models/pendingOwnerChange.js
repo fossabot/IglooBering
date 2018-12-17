@@ -1,11 +1,11 @@
 module.exports = (queryInterface, Sequelize) => {
-  const PlotNode = queryInterface.define("plotNode", {
+  const PendingOwnerChange = queryInterface.define("pendingOwnerChange", {
     id: {
       type: Sequelize.UUID,
       defaultValue: Sequelize.UUIDV4,
       primaryKey: true,
     },
-    userId: {
+    receiverId: {
       type: Sequelize.UUID,
       allowNull: false,
       references: {
@@ -13,35 +13,23 @@ module.exports = (queryInterface, Sequelize) => {
         key: "id",
       },
     },
-    deviceId: {
+    senderId: {
       type: Sequelize.UUID,
       allowNull: false,
       references: {
-        model: "devices",
+        model: "users",
         key: "id",
       },
     },
-    plotId: {
+    environmentId: {
       type: Sequelize.UUID,
       allowNull: false,
       references: {
-        model: "plotValues",
+        model: "environments",
         key: "id",
       },
-    },
-    value: {
-      type: Sequelize.FLOAT,
-      allowNull: false,
-    },
-    timestamp: {
-      type: Sequelize.DATE,
-      allowNull: false,
     },
   })
-
-  PlotNode.associate = function(models) {
-    PlotNode.belongsTo(models.PlotValue, { as: "plot" })
-    models.PlotValue.hasMany(PlotNode, { foreignKey: "plotId" })
-  }
-  return PlotNode
+  PendingOwnerChange.associate = function(models) {}
+  return PendingOwnerChange
 }

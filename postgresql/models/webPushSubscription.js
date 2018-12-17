@@ -1,9 +1,17 @@
 module.exports = (queryInterface, Sequelize) => {
-  const WebPushSubscription = queryInterface.define('webPushSubscription', {
+  const WebPushNotification = queryInterface.define("webPushNotification", {
     id: {
       type: Sequelize.UUID,
       defaultValue: Sequelize.UUIDV4,
       primaryKey: true,
+    },
+    userId: {
+      type: Sequelize.UUID,
+      allowNull: false,
+      references: {
+        model: "users",
+        key: "id",
+      },
     },
     endpoint: {
       type: Sequelize.STRING(2000),
@@ -18,9 +26,9 @@ module.exports = (queryInterface, Sequelize) => {
       type: Sequelize.STRING,
     },
   })
-  WebPushSubscription.associate = function (models) {
-    WebPushSubscription.belongsTo(models.User)
-    models.User.hasMany(WebPushSubscription)
+  WebPushNotification.associate = function(models) {
+    WebPushNotification.belongsTo(models.User)
+    models.User.hasMany(WebPushNotification)
   }
-  return WebPushSubscription
+  return WebPushNotification
 }

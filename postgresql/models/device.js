@@ -5,6 +5,14 @@ module.exports = (queryInterface, Sequelize) => {
       defaultValue: Sequelize.UUIDV4,
       primaryKey: true,
     },
+    environmentId: {
+      type: Sequelize.UUID,
+      allowNull: false,
+      references: {
+        model: "environments",
+        key: "id",
+      },
+    },
     deviceType: {
       type: Sequelize.STRING,
     },

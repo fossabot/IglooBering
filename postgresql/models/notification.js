@@ -14,6 +14,22 @@ module.exports = (queryInterface, Sequelize) => {
       onUpdate: "CASCADE",
       onDelete: "SET NULL",
     },
+    environmentId: {
+      type: Sequelize.UUID,
+      allowNull: false,
+      references: {
+        model: "environments",
+        key: "id",
+      },
+    },
+    deviceId: {
+      type: Sequelize.UUID,
+      allowNull: false,
+      references: {
+        model: "devices",
+        key: "id",
+      },
+    },
     content: {
       type: Sequelize.STRING,
     },
@@ -22,7 +38,7 @@ module.exports = (queryInterface, Sequelize) => {
       defaultValue: Sequelize.NOW,
     },
     visualized: {
-      type: Sequelize.BOOLEAN,
+      type: Sequelize.ARRAY(Sequelize.UUID),
     },
   })
 

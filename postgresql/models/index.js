@@ -1,37 +1,44 @@
-const fs = require('fs')
-const path = require('path')
-const Sequelize = require('sequelize')
-require('dotenv').load({ path: '../../.env' })
-
-console.log(process.env)
+const fs = require("fs")
+const path = require("path")
+const Sequelize = require("sequelize")
+require("dotenv").load({ path: "../../.env" })
+const { JWT_SECRET } = process.env
 
 const basename = path.basename(__filename)
-const env = process.env.NODE_ENV || 'development'
-const config = require(path.join(__dirname, '../config/config.json'))[env]
+
+const sequelize = new Sequelize(process.env.DATABASE_URL, {
+  ssl: true,
+  dialect: "postgres",
+  dialectOptions: {
+    ssl: true,
+  },
+  logging: false,
+  pool: {
+    max: 20,
+    min: 1,
+    idle: 20000,
+    acquire: 40000,
+    evict: 20000,
+  },
+})
+
 const db = {}
 
-let sequelize
-if (config.use_env_variable) {
-  sequelize = new Sequelize(process.env[config.use_env_variable], config)
-} else {
-  sequelize = new Sequelize(
-    config.database,
-    config.username,
-    config.password,
-    config,
-  )
-}
+const uppercaseFirstLetter = name => name[0].toUpperCase() + name.slice(1)
 
+// load all models into db
 fs
   .readdirSync(__dirname)
-  .filter(file =>
-    file.indexOf('.') !== 0 && file !== basename && file.slice(-3) === '.js')
-  .forEach((file) => {
+  .filter(
+    file =>
+      file.indexOf(".") !== 0 && file !== basename && file.slice(-3) === ".js"
+  )
+  .forEach(file => {
     const model = sequelize.import(path.join(__dirname, file))
-    db[model.name] = model
+    db[uppercaseFirstLetter(model.name)] = model
   })
 
-Object.keys(db).forEach((modelName) => {
+Object.keys(db).forEach(modelName => {
   if (db[modelName].associate) {
     db[modelName].associate(db)
   }

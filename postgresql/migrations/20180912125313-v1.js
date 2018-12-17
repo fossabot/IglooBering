@@ -382,7 +382,7 @@ module.exports = {
     await queryInterface.dropTable("environments")
     await queryInterface.dropTable("devices")
     await queryInterface.dropTable("permanentTokens")
-    await queryInterface.dropTable("webPushSubscriptions")
+    await queryInterface.dropTable("webPushNotifications")
     await queryInterface.dropTable("notifications")
     await queryInterface.dropTable("floatValues")
     await queryInterface.dropTable("stringValues")

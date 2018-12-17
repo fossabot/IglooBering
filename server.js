@@ -6,7 +6,7 @@ import schema from "./graphql/schema"
 import graphQLServer from "./app"
 import { log } from "./graphql/resolvers/utilities"
 import { socketToDeviceMap } from "./graphql/resolvers/utilities"
-import { Device } from "./postgresql/databaseConnection"
+import { Device } from "./postgresql/models/index"
 import { pubsub } from "./shared"
 
 require("dotenv").config()

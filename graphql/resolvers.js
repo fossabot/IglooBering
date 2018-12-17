@@ -11,7 +11,7 @@ import NotificationResolver from "./resolvers/Notification"
 import ValueResolver from "./resolvers/Value"
 import ValueResolvers from "./resolvers/Values"
 import DateTime from "./resolvers/DateTime"
-import SequelizeConnections from "../postgresql/databaseConnection"
+import SequelizeConnections from "../postgresql/models/index"
 import { pubsub } from "../shared"
 import { logErrorsPromise } from "./resolvers/utilities"
 
@@ -37,7 +37,7 @@ const {
   PlotNode,
   MapValue,
   Notification,
-  WebPushSubscription,
+  WebPushNotification,
   StringPlotNode,
   StringPlotValue,
 } = SequelizeConnections
@@ -52,7 +52,7 @@ const resolvers = {
   Device: DeviceResolver(SequelizeConnections),
   Mutation: MutationResolver(
     SequelizeConnections,
-    WebPushSubscription,
+    WebPushNotification,
     pubsub,
     JWT_SECRET
   ),
