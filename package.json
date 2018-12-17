@@ -12,7 +12,7 @@
     "lint": "prettier **/*.js --write",
     "precommit": "lint-staged",
     "release":
-      "sequelize db:migrate --config ./postgresql/config/config.json --models-path ./postgresql/models --migrations-path ./postgresql/migrations --seeders-path ./postgresql/seeders",
+      "node_modules/.bin/sequelize db:migrate --config ./postgresql/config/config.json --models-path ./postgresql/models --migrations-path ./postgresql/migrations --seeders-path ./postgresql/seeders",
     "bill": "babel-node ./monthlyBilling"
   },
   "lint-staged": {
