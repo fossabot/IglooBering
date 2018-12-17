@@ -27,8 +27,11 @@ module.exports = (queryInterface, Sequelize) => {
   })
 
   Notification.associate = function(models) {
-    Notification.belongsTo(models.User)
-    models.User.hasMany(Notification)
+    models.Device.hasMany(Notification)
+    Notification.belongsTo(models.Device)
+
+    models.Environment.hasMany(Notification)
+    Notification.belongsTo(models.Environment)
   }
   return Notification
 }

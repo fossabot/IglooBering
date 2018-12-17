@@ -326,10 +326,10 @@ const databaseDefinition = sequelize => {
   Environment.hasMany(Notification)
   Notification.belongsTo(Environment)
 
-  PlotValue.hasMany(PlotNode)
+  PlotValue.hasMany(PlotNode, { foreignKey: "plotId" })
   PlotNode.belongsTo(PlotValue, { as: "plot" })
 
-  StringPlotValue.hasMany(StringPlotNode)
+  StringPlotValue.hasMany(StringPlotNode, { foreignKey: "plotId" })
   StringPlotNode.belongsTo(StringPlotValue, { as: "plot" })
 
   const values = [
@@ -349,6 +349,7 @@ const databaseDefinition = sequelize => {
   Environment.belongsTo(User, { as: "owner" })
   User.OwnEnvironments = User.hasMany(Environment, {
     as: "OwnEnvironments",
+    foreignKey: "ownerId",
   })
 
   const associations = []

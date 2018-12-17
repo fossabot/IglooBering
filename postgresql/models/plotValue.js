@@ -1,13 +1,12 @@
 const { ValueModel } = require("../modelUtilities")
 
 module.exports = (queryInterface, Sequelize) => {
-  const FloatValue = queryInterface.define("floatValue", {
+  const PlotValue = queryInterface.define("plotValue", {
     ...ValueModel(Sequelize),
-    value: {
-      type: Sequelize.FLOAT,
-      allowNull: false,
-    },
     precision: {
+      type: Sequelize.FLOAT,
+    },
+    threshold: {
       type: Sequelize.FLOAT,
     },
     boundaries: {
@@ -15,9 +14,9 @@ module.exports = (queryInterface, Sequelize) => {
     },
   })
 
-  FloatValue.associate = function(models) {
-    models.Device.hasMany(FloatValue)
-    models.Environment.hasMany(FloatValue)
+  PlotValue.associate = function(models) {
+    models.Device.hasMany(PlotValue)
+    models.Environment.hasMany(PlotValue)
   }
-  return FloatValue
+  return PlotValue
 }

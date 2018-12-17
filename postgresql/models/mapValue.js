@@ -1,7 +1,7 @@
-const { ValueModel } = require('../modelUtilities')
+const { ValueModel } = require("../modelUtilities")
 
 module.exports = (queryInterface, Sequelize) => {
-  const MapValue = queryInterface.define('mapValue', {
+  const MapValue = queryInterface.define("mapValue", {
     ...ValueModel(Sequelize),
     latitude: {
       type: Sequelize.FLOAT,
@@ -17,18 +17,9 @@ module.exports = (queryInterface, Sequelize) => {
     },
   })
 
-  MapValue.associate = function (models) {
-    MapValue.belongsTo(models.Device)
-    Device.hasMany(MapValue)
-
-    MapValue.belongsTo(models.Board)
-    Board.hasMany(MapValue)
-
-    MapValue.Owner = 'OwnMapValues'
-    MapValue.belongsTo(models.User, { as: 'owner' })
-    models.User.OwnMapValues = User.hasMany(MapValue, {
-      as: 'OwnMapValues',
-    })
+  MapValue.associate = function(models) {
+    models.Device.hasMany(MapValue)
+    models.Environment.hasMany(MapValue)
   }
   return MapValue
 }

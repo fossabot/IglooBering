@@ -34,7 +34,7 @@ module.exports = (queryInterface, Sequelize) => {
     },
   })
   Device.associate = function(models) {
-    // associations can be defined here
+    models.Environment.hasMany(Device)
   }
   return Device
 }

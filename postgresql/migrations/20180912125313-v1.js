@@ -1,16 +1,44 @@
 module.exports = {
   up: async (queryInterface, Sequelize) => {
     const ValuePermission = Sequelize.ENUM("READ_ONLY", "READ_WRITE")
-    const ValueRelevance = Sequelize.ENUM("VISIBLE", "HIDDEN", "INVISIBLE")
+    const ValueVisibility = Sequelize.ENUM("VISIBLE", "HIDDEN", "INVISIBLE")
     const TileSize = Sequelize.ENUM("NORMAL", "WIDE", "TALL", "LARGE")
+    const Role = Sequelize.ENUM("ADMIN", "EDITOR", "SPECTATOR")
     const PaymentPlan = Sequelize.ENUM("FREE", "PAYING")
-
-    await queryInterface.createTable("users", {
+    const selfId = {
       id: {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
         primaryKey: true,
       },
+    }
+    const otherId = (fieldName, model, allowNull = false) => ({
+      [fieldName]: {
+        type: Sequelize.UUID,
+        allowNull,
+        references: {
+          model,
+          key: "id",
+          deferrable: Sequelize.Deferrable.INITIALLY_IMMEDIATE,
+        },
+      },
+    })
+
+    const createdAt = {
+      createdAt: {
+        type: Sequelize.DATE,
+      },
+    }
+    const updatedAt = {
+      updatedAt: {
+        type: Sequelize.DATE,
+      },
+    }
+
+    await queryInterface.createTable("users", {
+      ...selfId,
+      ...createdAt,
+      ...updatedAt,
       email: {
         type: Sequelize.STRING,
         allowNull: false,
@@ -26,6 +54,9 @@ module.exports = {
         type: Sequelize.STRING,
       },
       quietMode: {
+        type: Sequelize.BOOLEAN,
+      },
+      devMode: {
         type: Sequelize.BOOLEAN,
       },
       stripeCustomerId: {
@@ -72,30 +103,17 @@ module.exports = {
       },
     })
 
-    await queryInterface.createTable("boards", {
-      id: {
-        type: Sequelize.UUID,
-        defaultValue: Sequelize.UUIDV4,
-        primaryKey: true,
-      },
-      ownerId: {
-        type: Sequelize.UUID,
-        references: {
-          model: "users", // name of Target model
-          key: "id", // key in Target model that we're referencing
-        },
-        onUpdate: "CASCADE",
-        onDelete: "SET NULL",
-      },
+    await queryInterface.createTable("environments", {
+      ...selfId,
+      ...otherId("ownerId", "users", false),
+      ...createdAt,
+      ...updatedAt,
       name: {
         type: Sequelize.STRING,
         allowNull: false,
       },
       avatar: {
         type: Sequelize.STRING,
-      },
-      favorite: {
-        type: Sequelize.BOOLEAN,
       },
       index: {
         type: Sequelize.INTEGER,
@@ -105,37 +123,48 @@ module.exports = {
       },
     })
 
+    await queryInterface.createTable("permanentTokens", {
+      ...selfId,
+      ...otherId("userId", "users"),
+      ...createdAt,
+      ...updatedAt,
+      name: {
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
+      lastUsed: {
+        type: Sequelize.DATE,
+      },
+    })
+
+    await queryInterface.createTable("webPushNotifications", {
+      ...selfId,
+      ...otherId("userId", "users"),
+      ...createdAt,
+      ...updatedAt,
+      endpoint: {
+        type: Sequelize.STRING(2000),
+      },
+      expirationTime: {
+        type: Sequelize.DATE,
+      },
+      p256dh: {
+        type: Sequelize.STRING,
+      },
+      auth: {
+        type: Sequelize.STRING,
+      },
+    })
+
     await queryInterface.createTable("devices", {
-      id: {
-        type: Sequelize.UUID,
-        defaultValue: Sequelize.UUIDV4,
-        primaryKey: true,
-      },
-      ownerId: {
-        type: Sequelize.UUID,
-        references: {
-          model: "users", // name of Target model
-          key: "id", // key in Target model that we're referencing
-        },
-        onUpdate: "CASCADE",
-        onDelete: "SET NULL",
-      },
-      boardId: {
-        type: Sequelize.UUID,
-        references: {
-          model: "boards", // name of Target model
-          key: "id", // key in Target model that we're referencing
-        },
-        onUpdate: "CASCADE",
-        onDelete: "SET NULL",
-      },
+      ...selfId,
+      ...otherId("environmentId", "environments", false),
+      ...createdAt,
+      ...updatedAt,
       deviceType: {
         type: Sequelize.STRING,
       },
       name: {
-        type: Sequelize.STRING,
-      },
-      icon: {
         type: Sequelize.STRING,
       },
       index: {
@@ -161,83 +190,13 @@ module.exports = {
       },
     })
 
-    await queryInterface.createTable("permanentTokens", {
-      id: {
-        type: Sequelize.UUID,
-        defaultValue: Sequelize.UUIDV4,
-        primaryKey: true,
-      },
-      userId: {
-        type: Sequelize.UUID,
-        references: {
-          model: "users", // name of Target model
-          key: "id", // key in Target model that we're referencing
-        },
-        onUpdate: "CASCADE",
-        onDelete: "SET NULL",
-      },
-      name: {
-        type: Sequelize.STRING,
-        allowNull: false,
-      },
-      lastUsed: {
-        type: Sequelize.DATE,
-      },
-    })
-
-    await queryInterface.createTable("webPushSubscriptions", {
-      id: {
-        type: Sequelize.UUID,
-        defaultValue: Sequelize.UUIDV4,
-        primaryKey: true,
-      },
-      userId: {
-        type: Sequelize.UUID,
-        references: {
-          model: "users", // name of Target model
-          key: "id", // key in Target model that we're referencing
-        },
-        onUpdate: "CASCADE",
-        onDelete: "SET NULL",
-      },
-      endpoint: {
-        type: Sequelize.STRING(2000),
-      },
-      expirationTime: {
-        type: Sequelize.DATE,
-      },
-      p256dh: {
-        type: Sequelize.STRING,
-      },
-      auth: {
-        type: Sequelize.STRING,
-      },
-    })
-
     await queryInterface.createTable("notifications", {
-      id: {
-        type: Sequelize.UUID,
-        defaultValue: Sequelize.UUIDV4,
-        primaryKey: true,
-      },
-      userId: {
-        type: Sequelize.UUID,
-        references: {
-          model: "users", // name of Target model
-          key: "id", // key in Target model that we're referencing
-        },
-        onUpdate: "CASCADE",
-        onDelete: "SET NULL",
-      },
-      deviceId: {
-        type: Sequelize.UUID,
-        references: {
-          model: "devices", // name of Target model
-          key: "id", // key in Target model that we're referencing
-        },
-        onUpdate: "CASCADE",
-        onDelete: "SET NULL",
-      },
+      ...selfId,
+      ...otherId("userId", "users", false),
+      ...otherId("environmentId", "environments", false),
+      ...otherId("deviceId", "devices", false),
+      ...createdAt,
+      ...updatedAt,
       content: {
         type: Sequelize.STRING,
       },
@@ -246,38 +205,29 @@ module.exports = {
         defaultValue: Sequelize.NOW,
       },
       visualized: {
-        type: Sequelize.BOOLEAN,
+        type: Sequelize.ARRAY(Sequelize.UUID),
       },
     })
 
     const Value = {
-      id: {
-        type: Sequelize.UUID,
-        defaultValue: Sequelize.UUIDV4,
-        primaryKey: true,
-      },
-      ownerId: {
-        type: Sequelize.UUID,
-        references: {
-          model: "users", // name of Target model
-          key: "id", // key in Target model that we're referencing
-        },
-        onUpdate: "CASCADE",
-        onDelete: "SET NULL",
-      },
+      ...selfId,
+      ...otherId("environmentId", "environments", false),
+      ...otherId("deviceId", "devices", false),
+      ...createdAt,
+      ...updatedAt,
       valueDetails: {
         type: Sequelize.STRING,
       },
       permission: {
         type: ValuePermission,
       },
-      relevance: {
-        type: ValueRelevance,
+      visibility: {
+        type: ValueVisibility,
       },
       tileSize: {
         type: TileSize,
       },
-      customName: {
+      name: {
         type: Sequelize.STRING,
       },
       index: {
@@ -285,7 +235,7 @@ module.exports = {
       },
     }
 
-    await queryInterface.createTable("boolValues", {
+    await queryInterface.createTable("booleanValues", {
       ...Value,
       value: {
         type: Sequelize.BOOLEAN,
@@ -331,38 +281,12 @@ module.exports = {
       },
     })
     await queryInterface.createTable("plotNodes", {
-      id: {
-        type: Sequelize.UUID,
-        defaultValue: Sequelize.UUIDV4,
-        primaryKey: true,
-      },
-      userId: {
-        type: Sequelize.UUID,
-        references: {
-          model: "users", // name of Target model
-          key: "id", // key in Target model that we're referencing
-        },
-        onUpdate: "CASCADE",
-        onDelete: "SET NULL",
-      },
-      deviceId: {
-        type: Sequelize.UUID,
-        references: {
-          model: "devices", // name of Target model
-          key: "id", // key in Target model that we're referencing
-        },
-        onUpdate: "CASCADE",
-        onDelete: "SET NULL",
-      },
-      plotId: {
-        type: Sequelize.UUID,
-        references: {
-          model: "plotValues", // name of Target model
-          key: "id", // key in Target model that we're referencing
-        },
-        onUpdate: "CASCADE",
-        onDelete: "SET NULL",
-      },
+      ...selfId,
+      ...otherId("userId", "users"),
+      ...otherId("deviceId", "devices"),
+      ...otherId("plotId", "plotValues"),
+      ...createdAt,
+      ...updatedAt,
       value: {
         type: Sequelize.FLOAT,
         allowNull: false,
@@ -379,39 +303,12 @@ module.exports = {
       },
     })
     await queryInterface.createTable("stringPlotNodes", {
-      id: {
-        type: Sequelize.UUID,
-        defaultValue: Sequelize.UUIDV4,
-        primaryKey: true,
-      },
-      userId: {
-        type: Sequelize.UUID,
-        references: {
-          model: "users", // name of Target model
-          key: "id", // key in Target model that we're referencing
-        },
-        onUpdate: "CASCADE",
-        onDelete: "SET NULL",
-      },
-      deviceId: {
-        type: Sequelize.UUID,
-        references: {
-          model: "devices", // name of Target model
-          key: "id", // key in Target model that we're referencing
-        },
-        onUpdate: "CASCADE",
-        onDelete: "SET NULL",
-      },
-      plotId: {
-        type: Sequelize.UUID,
-        references: {
-          model: "stringPlotValues", // name of Target model
-          key: "id", // key in Target model that we're referencing
-        },
-        onUpdate: "CASCADE",
-        onDelete: "SET NULL",
-      },
-
+      ...selfId,
+      ...otherId("userId", "users"),
+      ...otherId("deviceId", "devices"),
+      ...otherId("plotId", "stringPlotValues"),
+      ...createdAt,
+      ...updatedAt,
       value: {
         type: Sequelize.STRING,
         allowNull: false,
@@ -436,31 +333,69 @@ module.exports = {
         type: Sequelize.TEXT,
       },
     })
-    await queryInterface.createTable("colourValues", {
-      ...Value,
-      value: {
-        type: Sequelize.STRING,
+
+    await queryInterface.createTable("pendingEnvironmentShares", {
+      ...selfId,
+      ...otherId("senderId", "users"),
+      ...otherId("receiverId", "users"),
+      ...otherId("environmentId", "environments"),
+      ...createdAt,
+      ...updatedAt,
+      role: {
+        type: Role,
       },
-      allowedValues: {
-        type: Sequelize.ARRAY(Sequelize.STRING),
-      },
+    })
+
+    await queryInterface.createTable("pendingOwnerChanges", {
+      ...selfId,
+      ...otherId("senderId", "users"),
+      ...otherId("receiverId", "users"),
+      ...otherId("environmentId", "environments"),
+      ...createdAt,
+      ...updatedAt,
+    })
+
+    await queryInterface.createTable("EnvironmentAdmins", {
+      ...selfId,
+      ...createdAt,
+      ...updatedAt,
+      ...otherId("environmentId", "environments"),
+      ...otherId("userId", "users"),
+    })
+    await queryInterface.createTable("EnvironmentEditors", {
+      ...selfId,
+      ...createdAt,
+      ...updatedAt,
+      ...otherId("environmentId", "environments"),
+      ...otherId("userId", "users"),
+    })
+    await queryInterface.createTable("EnvironmentSpectators", {
+      ...selfId,
+      ...createdAt,
+      ...updatedAt,
+      ...otherId("environmentId", "environments"),
+      ...otherId("userId", "users"),
     })
   },
   down: async (queryInterface, Sequelize) => {
     await queryInterface.dropTable("users")
-    await queryInterface.dropTable("boards")
+    await queryInterface.dropTable("environments")
     await queryInterface.dropTable("devices")
     await queryInterface.dropTable("permanentTokens")
     await queryInterface.dropTable("webPushSubscriptions")
     await queryInterface.dropTable("notifications")
     await queryInterface.dropTable("floatValues")
     await queryInterface.dropTable("stringValues")
-    await queryInterface.dropTable("boolValues")
-    await queryInterface.dropTable("colourValues")
+    await queryInterface.dropTable("booleanValues")
     await queryInterface.dropTable("mapValues")
     await queryInterface.dropTable("plotValues")
     await queryInterface.dropTable("stringPlotValues")
     await queryInterface.dropTable("plotNodes")
     await queryInterface.dropTable("stringPlotNodes")
+    await queryInterface.dropTable("pendingEnvironmentShares")
+    await queryInterface.dropTable("pendingOwnerChanges")
+    await queryInterface.dropTable("EnvironmentAdmins")
+    await queryInterface.dropTable("EnvironmentEditors")
+    await queryInterface.dropTable("EnvironmentSpectators")
   },
 }

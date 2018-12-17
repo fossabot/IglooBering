@@ -155,6 +155,8 @@ const CreateGenericValue = (
 
       const newValue = await Model.create({
         ...args,
+        environmentId: environmentFound.id,
+        deviceId: deviceFound.id,
         tileSize: args.tileSize || "NORMAL",
         visibility: isNullOrUndefined(args.visibility)
           ? "VISIBLE"
