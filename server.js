@@ -43,6 +43,8 @@ httpServer.listen(GRAPHQL_PORT, () => {
           if (e.message === "Token expired") {
             throw new Error("Token expired")
           } else {
+            log(`JWT parsing error`)
+            log(e.toString())
             throw new Error("Malformed JWT")
           }
         }
