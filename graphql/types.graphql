@@ -380,7 +380,7 @@ type Mutation {
     index: Int
   ): FloatValue
 
-  incrementFloatValue(id: ID!, incrementBy: Float!): FloatValue
+  atomicUpdateFloat(id: ID!, incrementBy: Float!): FloatValue
 
   # changes stringValue's data
   stringValue(

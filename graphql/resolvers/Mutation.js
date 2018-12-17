@@ -1993,7 +1993,7 @@ const MutationResolver = (
       Device,
       Environment
     ),
-    incrementFloatValue: (root, args, context) =>
+    atomicUpdateFloat: (root, args, context) =>
       authorized(
         args.id,
         context,
