@@ -874,8 +874,8 @@ const MutationResolver = (
           await pendingOwnerChangeFound.destroy()
           context.billingUpdater.update(MUTATION_COST)
 
-          pubsub.publish("environmentShareAccepted", {
-            environmentShareAccepted: environmentFound.id,
+          pubsub.publish("ownerChangeAccepted", {
+            ownerChangeAccepted: environmentFound.id,
             userId: userFound.id,
           })
 
@@ -1404,6 +1404,15 @@ const MutationResolver = (
         User,
         2,
         async (resolve, reject, plotValueFound, [_, environmentFound]) => {
+          if (
+            isNotNullNorUndefined(plotValueFound.boundaries) &&
+            (args.value < plotValueFound.boundaries[0] ||
+              args.value > plotValueFound.boundaries[1])
+          ) {
+            reject("Value out of boundaries")
+            return
+          }
+
           const plotNode = await PlotNode.create({
             ...args,
             timestamp: args.timestamp || new Date(),
@@ -1445,6 +1454,14 @@ const MutationResolver = (
         User,
         2,
         async (resolve, reject, plotValueFound, [_, environmentFound]) => {
+          if (
+            isNotNullNorUndefined(plotValueFound.allowedValues) &&
+            plotValueFound.allowedValues.indexOf(args.value)
+          ) {
+            reject("Value not in allowedValues")
+            return
+          }
+
           const plotNode = await StringPlotNode.create({
             ...args,
             timestamp: args.timestamp || new Date(),
@@ -2058,6 +2075,14 @@ const MutationResolver = (
           if (Object.keys(args).length === 1) {
             reject("You cannot make a mutation with only the id field")
             return
+          } else if (
+            isNotNullNorUndefined(plotValueFound.allowedValues) &&
+            isNotNullNorUndefined(args.value) &&
+            (args.value < plotValueFound.allowedValues[0] ||
+              args.value > plotValueFound.allowedValues[1])
+          ) {
+            reject("value outside of boundaries")
+            return
           }
 
           const newNode = await plotNodeFound.update(args)
@@ -2102,6 +2127,13 @@ const MutationResolver = (
         ) => {
           if (Object.keys(args).length === 1) {
             reject("You cannot make a mutation with only the id field")
+            return
+          } else if (
+            isNotNullNorUndefined(plotValueFound.allowedValues) &&
+            args.value !== undefined &&
+            plotValueFound.allowedValues.indexOf(args.value)
+          ) {
+            reject("value not in allowedValues")
             return
           }
           const newNode = await plotNodeFound.update(args)
