@@ -1,6 +1,6 @@
-![Igloo Houston](https://github.com/hellowitlab/iglooHouston/blob/master/iglooHouston.png?raw=true "Igloo Houston")
-# Igloo Houston
-Houston is the back-end service of Igloo.
+![Igloo Bering](https://github.com/hellowitlab/iglooHouston/blob/master/iglooHouston.png?raw=true "Igloo Houston")
+# Igloo Bering
+Bering is the back-end service of Igloo.
 
 This service is still in development, some features may be missing. If your Igloo-based project needs a missing feature in order to work, please open an issue or help us by contributing.
 
@@ -9,13 +9,13 @@ This service is still in development, some features may be missing. If your Iglo
 Start by cloning the repository and downloading the required libraries:
 
 ```bash
-git clone https://github.com/hellowitlab/iglooHouston
+git clone https://github.com/hellowitlab/iglooBering
 yarn
 ```
 or
 
 ```bash
-git clone https://github.com/hellowitlab/iglooHouston
+git clone https://github.com/hellowitlab/iglooBering
 npm install
 ```
 
@@ -47,15 +47,15 @@ TODO: SES setup and S3 setup
 TODO: Stripe setup
 
 #### Database
-To create the database structure needed just run the `setupDatabase` script:
+To create the database structure needed just run the `db:create` sequelize command:
 ```bash
-yarn setupDatabase
+yarn sequelize db:create
 ```
 
 or
 
 ```bash
-npm run setupDatabase
+npm run sequelize db:igloo
 ```
 
 ### Boot up
@@ -84,13 +84,14 @@ npm start
 ```
 
 ## Documentation
-TBD
+### General structure
+Data on Igloo is organized hierarchically: the fundamental unit is the **Device** (e.g. thermometer, people counter, air pollution sensor, ...), every device has multiple **Value**s (e.g. tmeperature, humiildity, CO2 concentration, ...). Multiple devices can be organized in **Environment**s (e.g. marine area, beehives, ...).
 
 ## Contributing
 We are open to any contribution, just send us a pull request. 
 
 ### Testing
-You can run the automated tests using the `test` script
+You can run the automated tests using the `test` script, tests use a mocked database so they can be run offline.
 
 ```bash
 yarn test
@@ -110,4 +111,4 @@ TBD
 
 
 ## License
-See the [LICENSE](https://github.com/hellowitlab/iglooHouston/blob/master/LICENSE) file for license rights and limitations (MIT).
+See the [LICENSE](https://github.com/hellowitlab/iglooHouston/blob/master/LICENSE) file for license rights and limitations.
