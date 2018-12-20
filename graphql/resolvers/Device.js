@@ -16,7 +16,7 @@ const DeviceResolver = ({
   FloatValue,
   StringValue,
   PlotValue,
-  StringPlotValue,
+  CategoryPlotValue,
   MapValue,
   Notification,
   joinTables,
@@ -52,7 +52,7 @@ const DeviceResolver = ({
             FloatValue,
             StringValue,
             PlotValue,
-            StringPlotValue,
+            CategoryPlotValue,
             MapValue,
           },
           {

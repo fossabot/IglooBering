@@ -97,16 +97,16 @@ const PlotValueResolver = (PlotValue, PlotNode, User, Device, Environment) => ({
       valueToParent(Environment)
     ),
 })
-const StringPlotValueResolver = (
-  StringPlotValue,
-  StringPlotNode,
+const CategoryPlotValueResolver = (
+  CategoryPlotValue,
+  CategoryPlotNode,
   User,
   Device,
   Environment
 ) => ({
-  ...GenericResolver(StringPlotValue, User, Device, Environment),
+  ...GenericResolver(CategoryPlotValue, User, Device, Environment),
   ...authorizedScalarPropsResolvers(
-    StringPlotValue,
+    CategoryPlotValue,
     User,
     ["allowedValues"],
     valueToParent(Environment)
@@ -116,11 +116,11 @@ const StringPlotValueResolver = (
     authorized(
       root.id,
       context,
-      StringPlotValue,
+      CategoryPlotValue,
       User,
       1,
       async (resolve, reject, plotFound) => {
-        const nodes = await plotFound.getStringPlotNodes()
+        const nodes = await plotFound.getCategoryPlotNodes()
 
         resolve(nodes)
         context.billingUpdater.update(QUERY_COST * nodes.length)
@@ -213,8 +213,8 @@ export default (
     StringValue,
     PlotValue,
     PlotNode,
-    StringPlotValue,
-    StringPlotNode,
+    CategoryPlotValue,
+    CategoryPlotNode,
   },
   User,
   Device,
@@ -225,16 +225,16 @@ export default (
   StringValue: StringValueResolver(StringValue, User, Device, Environment),
   PlotValue: PlotValueResolver(PlotValue, PlotNode, User, Device, Environment),
   PlotNode: PlotNodeResolver(PlotNode, PlotValue, User, Device, Environment),
-  StringPlotValue: StringPlotValueResolver(
-    StringPlotValue,
-    StringPlotNode,
+  CategoryPlotValue: CategoryPlotValueResolver(
+    CategoryPlotValue,
+    CategoryPlotNode,
     User,
     Device,
     Environment
   ),
-  StringPlotNode: PlotNodeResolver(
-    StringPlotNode,
-    StringPlotValue,
+  CategoryPlotNode: PlotNodeResolver(
+    CategoryPlotNode,
+    CategoryPlotValue,
     User,
     Device,
     Environment

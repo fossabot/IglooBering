@@ -384,7 +384,7 @@ const findAllValues = (
     FloatValue,
     StringValue,
     PlotValue,
-    StringPlotValue,
+    CategoryPlotValue,
     MapValue,
   },
   query
@@ -393,7 +393,7 @@ const findAllValues = (
   const floatValues = FloatValue.findAll(query)
   const stringValues = StringValue.findAll(query)
   const plotValues = PlotValue.findAll(query)
-  const stringPlotValues = StringPlotValue.findAll(query)
+  const categoryPlotValues = CategoryPlotValue.findAll(query)
   const mapValues = MapValue.findAll(query)
 
   return Promise.all([
@@ -401,7 +401,7 @@ const findAllValues = (
     floatValues,
     stringValues,
     plotValues,
-    stringPlotValues,
+    categoryPlotValues,
     mapValues,
   ]).then(
     ([
@@ -409,7 +409,7 @@ const findAllValues = (
       floatValues,
       stringValues,
       plotValues,
-      stringPlotValues,
+      categoryPlotValues,
       mapValues,
     ]) => [
       ...booleanValues.map(value => ({
@@ -436,11 +436,11 @@ const findAllValues = (
         device: { id: value.dataValues.deviceId },
         __resolveType: "PlotValue",
       })),
-      ...stringPlotValues.map(value => ({
+      ...categoryPlotValues.map(value => ({
         ...value.dataValues,
         owner: { id: value.dataValues.ownerId },
         device: { id: value.dataValues.deviceId },
-        __resolveType: "StringPlotValue",
+        __resolveType: "CategoryPlotValue",
       })),
       ...mapValues.map(value => ({
         ...value.dataValues,
@@ -459,7 +459,7 @@ const findValue = (
     FloatValue,
     StringValue,
     PlotValue,
-    StringPlotValue,
+    CategoryPlotValue,
     MapValue,
   },
   Device,
@@ -525,14 +525,14 @@ const findValue = (
         : value
   )
 
-  const stringPlotValue = StringPlotValue.find(query).then(
+  const categoryPlotValue = CategoryPlotValue.find(query).then(
     value =>
       value
         ? {
             ...value.dataValues,
             user: { id: value.dataValues.userId },
             device: { id: value.dataValues.deviceId },
-            __resolveType: "StringPlotValue",
+            __resolveType: "CategoryPlotValue",
           }
         : value
   )
@@ -543,7 +543,7 @@ const findValue = (
     stringValue,
     mapValue,
     plotValue,
-    stringPlotValue,
+    categoryPlotValue,
   ])
     .then(values => values.reduce((acc, val) => val || acc, null))
     .then(async value => {

@@ -55,8 +55,8 @@ const subscriptionResolver = (pubsub, { User, Device, Environment }) => ({
     pubsub
   ),
   plotNodeCreated: subscriptionFilterOwnedOrShared("plotNodeCreated", pubsub),
-  stringPlotNodeCreated: subscriptionFilterOwnedOrShared(
-    "stringPlotNodeCreated",
+  categoryPlotNodeCreated: subscriptionFilterOwnedOrShared(
+    "categoryPlotNodeCreated",
     pubsub
   ),
   notificationCreated: subscriptionFilterOwnedOrShared(
@@ -71,8 +71,8 @@ const subscriptionResolver = (pubsub, { User, Device, Environment }) => ({
   ),
   valueUpdated: subscriptionFilterOwnedOrShared("valueUpdated", pubsub),
   plotNodeUpdated: subscriptionFilterOwnedOrShared("plotNodeUpdated", pubsub),
-  stringPlotNodeUpdated: subscriptionFilterOwnedOrShared(
-    "stringPlotNodeUpdated",
+  categoryPlotNodeUpdated: subscriptionFilterOwnedOrShared(
+    "categoryPlotNodeUpdated",
     pubsub
   ),
   notificationUpdated: subscriptionFilterOwnedOrShared(
@@ -91,8 +91,8 @@ const subscriptionResolver = (pubsub, { User, Device, Environment }) => ({
   ),
   userDeleted: subscriptionFilterOnlyMine("userDeleted", pubsub),
   plotNodeDeleted: subscriptionFilterOwnedOrShared("plotNodeDeleted", pubsub),
-  stringPlotNodeDeleted: subscriptionFilterOwnedOrShared(
-    "stringPlotNodeDeleted",
+  categoryPlotNodeDeleted: subscriptionFilterOwnedOrShared(
+    "categoryPlotNodeDeleted",
     pubsub
   ),
   permanentTokenDeleted: subscriptionFilterOnlyMine(

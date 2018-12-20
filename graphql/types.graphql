@@ -280,7 +280,7 @@ type Mutation {
   ): PlotNode
 
   # Creates a new PlotValue
-  createStringPlotValue(
+  createCategoryPlotValue(
     # device owning the value
     deviceId: ID!
     # whether the value should be READ_ONLY or READ_WRITE in Igloo Aurora
@@ -296,16 +296,16 @@ type Mutation {
     # allowed labels
     allowedValues: [String!]
     index: Int
-  ): StringPlotValue
+  ): CategoryPlotValue
 
   # Creates a new node in a plot
-  createStringPlotNode(
+  createCategoryPlotNode(
     # id of the parent plot
     plotId: ID!
     # default is now
     timestamp: DateTime
     value: String!
-  ): StringPlotNode
+  ): CategoryPlotNode
 
   # Change user's data
   user(
@@ -477,8 +477,8 @@ type Mutation {
     timestamp: DateTime
   ): PlotNode
 
-  # changes StringPlotValue's data
-  stringPlotValue(
+  # changes CategoryPlotValue's data
+  categoryPlotValue(
     # value id
     id: ID!
     # whether the value should be READ_ONLY or READ_WRITE in Igloo Aurora
@@ -496,15 +496,15 @@ type Mutation {
     index: Int
   ): PlotValue
 
-  # change StringPlotNode's data
-  stringPlotNode(
+  # change CategoryPlotNode's data
+  categoryPlotNode(
     # node's id
     id: ID!
     # node's value
     value: String
     # node's timestamp
     timestamp: DateTime
-  ): StringPlotNode
+  ): CategoryPlotNode
 
   # change notification's data
   notification(
@@ -531,7 +531,7 @@ type Mutation {
   # delte plot node
   deletePlotNode(id: ID!): ID
   # delte string plot node
-  deleteStringPlotNode(id: ID!): ID
+  deleteCategoryPlotNode(id: ID!): ID
 }
 
 input DeviceFilter {
@@ -554,8 +554,8 @@ type Query {
   notification(id: ID!): Notification
   # get plotNode's data
   plotNode(id: ID!): PlotNode
-  # get stringPlotNode's data
-  stringPlotNode(id: ID!): StringPlotNode
+  # get categoryPlotNode's data
+  categoryPlotNode(id: ID!): CategoryPlotNode
 }
 
 type Subscription {
@@ -568,7 +568,7 @@ type Subscription {
   # subscribes to plot node creations
   plotNodeCreated: PlotNode
   # subscribes to string plot node creations
-  stringPlotNodeCreated: StringPlotNode
+  categoryPlotNodeCreated: CategoryPlotNode
   #subscribes to token creations
   permanentTokenCreated: PermanentToken
   # subscribes to notification creations
@@ -605,7 +605,7 @@ type Subscription {
   # subscribes to plot node updates
   plotNodeUpdated: PlotNode
   # subscribes to plot node updates
-  stringPlotNodeUpdated: StringPlotNode
+  categoryPlotNodeUpdated: CategoryPlotNode
   # subscribes to notification updates
   notificationUpdated: Notification
   # subscribes to value deleted
@@ -613,7 +613,7 @@ type Subscription {
   # subscribes to plot node deletes
   plotNodeDeleted: ID
   # subscribes to plot node deletes
-  stringPlotNodeDeleted: ID
+  categoryPlotNodeDeleted: ID
   # subscribes to device deletes
   deviceDeleted: ID
   # subscribes to environment deletes
@@ -784,10 +784,10 @@ type PlotNode {
   value: Float!
 }
 
-type StringPlotNode {
+type CategoryPlotNode {
   id: ID!
   device: Device!
-  plot: StringPlotValue!
+  plot: CategoryPlotValue!
   user: User!
   timestamp: DateTime!
   value: String!
@@ -879,7 +879,7 @@ type PlotValue implements Value {
   threshold: Float
 }
 
-type StringPlotValue implements Value {
+type CategoryPlotValue implements Value {
   id: ID!
   createdAt: DateTime!
   updatedAt: DateTime!
@@ -888,7 +888,7 @@ type StringPlotValue implements Value {
   permission: ValuePermission!
   visibility: ValueVisibility!
   valueDetails: String
-  value: [StringPlotNode!]!
+  value: [CategoryPlotNode!]!
   tileSize: TileSize!
   name: String
   index: Int

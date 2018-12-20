@@ -1,5 +1,5 @@
 module.exports = (queryInterface, Sequelize) => {
-  const StringPlotNode = queryInterface.define("stringPlotNode", {
+  const CategoryPlotNode = queryInterface.define("categoryPlotNode", {
     id: {
       type: Sequelize.UUID,
       defaultValue: Sequelize.UUIDV4,
@@ -25,7 +25,7 @@ module.exports = (queryInterface, Sequelize) => {
       type: Sequelize.UUID,
       allowNull: false,
       references: {
-        model: "stringPlotValues",
+        model: "categoryPlotValues",
         key: "id",
       },
     },
@@ -39,9 +39,9 @@ module.exports = (queryInterface, Sequelize) => {
     },
   })
 
-  StringPlotNode.associate = function(models) {
-    StringPlotNode.belongsTo(models.StringPlotValue, { as: "plot" })
-    models.StringPlotValue.hasMany(StringPlotNode, { foreignKey: "plotId" })
+  CategoryPlotNode.associate = function(models) {
+    CategoryPlotNode.belongsTo(models.CategoryPlotValue, { as: "plot" })
+    models.CategoryPlotValue.hasMany(CategoryPlotNode, { foreignKey: "plotId" })
   }
-  return StringPlotNode
+  return CategoryPlotNode
 }

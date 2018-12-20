@@ -57,7 +57,7 @@ const UserResolver = ({
   StringValue,
   BooleanValue,
   PlotValue,
-  StringPlotValue,
+  CategoryPlotValue,
   MapValue,
   Notification,
   PendingEnvironmentShare,
@@ -316,7 +316,7 @@ const UserResolver = ({
           StringValue,
           BooleanValue,
           PlotValue,
-          StringPlotValue,
+          CategoryPlotValue,
           MapValue,
         ]
 
@@ -341,7 +341,7 @@ const UserResolver = ({
                 ...device.stringValues,
                 ...device.booleanValues,
                 ...device.plotValues,
-                ...device.stringPlotValues,
+                ...device.categoryPlotValues,
                 ...device.mapValues,
               ],
               []
@@ -366,7 +366,7 @@ const UserResolver = ({
           StringValue,
           BooleanValue,
           PlotValue,
-          StringPlotValue,
+          CategoryPlotValue,
           MapValue,
         ]
 
@@ -391,7 +391,7 @@ const UserResolver = ({
                 ...device.stringValues,
                 ...device.booleanValues,
                 ...device.plotValues,
-                ...device.stringPlotValues,
+                ...device.categoryPlotValues,
                 ...device.mapValues,
               ],
               []

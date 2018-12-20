@@ -70,8 +70,8 @@ const MutationResolver = (
     MapValue,
     PlotValue,
     PlotNode,
-    StringPlotValue,
-    StringPlotNode,
+    CategoryPlotValue,
+    CategoryPlotNode,
     Notification,
     PendingEnvironmentShare,
     PendingOwnerChange,
@@ -1248,7 +1248,7 @@ const MutationResolver = (
         BooleanValue,
         MapValue,
         PlotValue,
-        StringPlotValue,
+        CategoryPlotValue,
       ],
       pubsub,
       (args, reject) => {
@@ -1281,7 +1281,7 @@ const MutationResolver = (
         BooleanValue,
         MapValue,
         PlotValue,
-        StringPlotValue,
+        CategoryPlotValue,
       ],
       pubsub,
       (args, reject) => {
@@ -1322,7 +1322,7 @@ const MutationResolver = (
         BooleanValue,
         MapValue,
         PlotValue,
-        StringPlotValue,
+        CategoryPlotValue,
       ],
       pubsub
     ),
@@ -1338,7 +1338,7 @@ const MutationResolver = (
         BooleanValue,
         MapValue,
         PlotValue,
-        StringPlotValue,
+        CategoryPlotValue,
       ],
       pubsub
     ),
@@ -1354,7 +1354,7 @@ const MutationResolver = (
         BooleanValue,
         MapValue,
         PlotValue,
-        StringPlotValue,
+        CategoryPlotValue,
       ],
       pubsub,
       (args, reject) => {
@@ -1369,19 +1369,19 @@ const MutationResolver = (
         return true
       }
     ),
-    createStringPlotValue: CreateGenericValue(
+    createCategoryPlotValue: CreateGenericValue(
       User,
       Device,
       Environment,
-      StringPlotValue,
-      "StringPlotValue",
+      CategoryPlotValue,
+      "CategoryPlotValue",
       [
         FloatValue,
         StringValue,
         BooleanValue,
         MapValue,
         PlotValue,
-        StringPlotValue,
+        CategoryPlotValue,
       ],
       pubsub,
       (args, reject) => {
@@ -1446,11 +1446,11 @@ const MutationResolver = (
         valueToParent(Environment)
       )
     },
-    createStringPlotNode(root, args, context) {
+    createCategoryPlotNode(root, args, context) {
       return authorized(
         args.plotId,
         context,
-        StringPlotValue,
+        CategoryPlotValue,
         User,
         2,
         async (resolve, reject, plotValueFound, [_, environmentFound]) => {
@@ -1462,7 +1462,7 @@ const MutationResolver = (
             return
           }
 
-          const plotNode = await StringPlotNode.create({
+          const plotNode = await CategoryPlotNode.create({
             ...args,
             timestamp: args.timestamp || new Date(),
             deviceId: plotValueFound.deviceId,
@@ -1470,7 +1470,7 @@ const MutationResolver = (
           })
 
           plotNode.setPlot(plotValueFound)
-          plotValueFound.addStringPlotNode(plotNode)
+          plotValueFound.addCategoryPlotNode(plotNode)
 
           const resolveObj = {
             ...plotNode.dataValues,
@@ -1483,10 +1483,10 @@ const MutationResolver = (
 
           touch(Environment, environmentFound.id, plotNode.createdAt)
           touch(Device, plotValueFound.deviceId, plotNode.createdAt)
-          touch(StringPlotValue, plotValueFound.id, plotNode.createdAt)
+          touch(CategoryPlotValue, plotValueFound.id, plotNode.createdAt)
 
-          pubsub.publish("stringPlotNodeCreated", {
-            stringPlotNodeCreated: resolveObj,
+          pubsub.publish("categoryPlotNodeCreated", {
+            categoryPlotNodeCreated: resolveObj,
             userIds: await instanceToSharedIds(environmentFound),
           })
           context.billingUpdater.update(MUTATION_COST)
@@ -1815,7 +1815,7 @@ const MutationResolver = (
             StringValue,
             MapValue,
             PlotValue,
-            StringPlotValue,
+            CategoryPlotValue,
             Notification,
           ]
 
@@ -2002,9 +2002,9 @@ const MutationResolver = (
       Device,
       Environment
     ),
-    stringPlotValue: genericValueMutation(
-      StringPlotValue,
-      "StringPlotValue",
+    categoryPlotValue: genericValueMutation(
+      CategoryPlotValue,
+      "CategoryPlotValue",
       pubsub,
       User,
       Device,
@@ -2109,14 +2109,14 @@ const MutationResolver = (
         valueToParent(Environment)
       )
     },
-    stringPlotNode(root, args, context) {
+    categoryPlotNode(root, args, context) {
       return inheritAuthorized(
         args.id,
-        StringPlotNode,
+        CategoryPlotNode,
         User,
         plotNodeFound => plotNodeFound.plotId,
         context,
-        StringPlotValue,
+        CategoryPlotValue,
         2,
         async (
           resolve,
@@ -2148,10 +2148,10 @@ const MutationResolver = (
 
           touch(Environment, environmentFound.id, newNode.updatedAt)
           touch(Device, plotValueFound.deviceId, newNode.updatedAt)
-          touch(StringPlotValue, plotValueFound.id, newNode.updatedAt)
+          touch(CategoryPlotValue, plotValueFound.id, newNode.updatedAt)
 
-          pubsub.publish("stringPlotNodeUpdated", {
-            stringPlotNodeUpdated: resolveObj,
+          pubsub.publish("categoryPlotNodeUpdated", {
+            categoryPlotNodeUpdated: resolveObj,
             userIds: await instanceToSharedIds(environmentFound),
           })
 
@@ -2403,7 +2403,7 @@ const MutationResolver = (
           BooleanValue,
           MapValue,
           PlotValue,
-          StringPlotValue,
+          CategoryPlotValue,
         },
         User,
         3,
@@ -2472,9 +2472,9 @@ const MutationResolver = (
               [BooleanValue, "valueDeleted"],
               [MapValue, "valueDeleted"],
               [PlotValue, "valueDeleted"],
-              [StringPlotValue, "valueDeleted"],
+              [CategoryPlotValue, "valueDeleted"],
               [PlotNode, "plotNodeDeleted"],
-              [StringPlotNode, "stringPlotNodeDeleted"],
+              [CategoryPlotNode, "categoryPlotNodeDeleted"],
               [Notification, "notificationDeleted"],
             ].map(deleteChild)
           )
@@ -2543,9 +2543,9 @@ const MutationResolver = (
                 [BooleanValue, "valueDeleted"],
                 [MapValue, "valueDeleted"],
                 [PlotValue, "valueDeleted"],
-                [StringPlotValue, "valueDeleted"],
+                [CategoryPlotValue, "valueDeleted"],
                 [PlotNode, "plotNodeDeleted"],
-                [StringPlotNode, "stringPlotNodeDeleted"],
+                [CategoryPlotNode, "categoryPlotNodeDeleted"],
                 [Notification, "notificationDeleted"],
               ].map(deleteChild)
             )
@@ -2659,14 +2659,14 @@ const MutationResolver = (
         valueToParent(Environment)
       )
     },
-    deleteStringPlotNode(root, args, context) {
+    deleteCategoryPlotNode(root, args, context) {
       return inheritAuthorized(
         args.id,
-        StringPlotNode,
+        CategoryPlotNode,
         User,
         plotNodeFound => plotNodeFound.plotId,
         context,
-        StringPlotValue,
+        CategoryPlotValue,
         2,
         async (
           resolve,
@@ -2681,7 +2681,7 @@ const MutationResolver = (
 
           touch(Environment, environmentFound.id)
           touch(Device, plotNodeFound.deviceId)
-          touch(StringPlotValue, plotNodeFound.plotId)
+          touch(CategoryPlotValue, plotNodeFound.plotId)
 
           const authorizedUsersIds = await instanceToSharedIds(environmentFound)
           pubsub.publish("valueUpdated", {
@@ -2700,8 +2700,8 @@ const MutationResolver = (
             environmentUpdated: environmentFound.dataValues,
             userIds: authorizedUsersIds,
           })
-          pubsub.publish("stringPlotNodeDeleted", {
-            stringPlotNodeDeleted: args.id,
+          pubsub.publish("categoryPlotNodeDeleted", {
+            categoryPlotNodeDeleted: args.id,
             userIds: authorizedUsersIds,
           })
 
@@ -2752,7 +2752,7 @@ const MutationResolver = (
               await Promise.all(
                 [
                   [PlotNode, "plotNodeDeleted"],
-                  [StringPlotNode, "stringPlotNodeDeleted"],
+                  [CategoryPlotNode, "categoryPlotNodeDeleted"],
                 ].map(deleteChild)
               )
               await Promise.all(
@@ -2762,7 +2762,7 @@ const MutationResolver = (
                   [BooleanValue, "valueDeleted"],
                   [MapValue, "valueDeleted"],
                   [PlotValue, "valueDeleted"],
-                  [StringPlotValue, "valueDeleted"],
+                  [CategoryPlotValue, "valueDeleted"],
                   [Notification, "notificationDeleted"],
                 ].map(deleteChild)
               )

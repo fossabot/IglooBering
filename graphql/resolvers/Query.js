@@ -20,11 +20,11 @@ const QueryResolver = ({
   StringValue,
   BooleanValue,
   PlotValue,
-  StringPlotValue,
+  CategoryPlotValue,
   MapValue,
   Notification,
   PlotNode,
-  StringPlotNode,
+  CategoryPlotNode,
 }) => ({
   user(root, args, context) {
     return authenticated(
@@ -76,7 +76,7 @@ const QueryResolver = ({
           FloatValue,
           StringValue,
           PlotValue,
-          StringPlotValue,
+          CategoryPlotValue,
           MapValue,
         },
         Device,
@@ -120,14 +120,14 @@ const QueryResolver = ({
       valueToParent(Environment)
     )
   },
-  stringPlotNode(root, args, context) {
+  categoryPlotNode(root, args, context) {
     return inheritAuthorized(
       args.id,
-      StringPlotNode,
+      CategoryPlotNode,
       User,
       plotNodeFound => plotNodeFound.plotId,
       context,
-      StringPlotValue,
+      CategoryPlotValue,
       1,
       async (resolve, reject, plotNodeFound) => {
         resolve(plotNodeFound)

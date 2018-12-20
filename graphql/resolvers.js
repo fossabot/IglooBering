@@ -38,8 +38,8 @@ const {
   MapValue,
   Notification,
   WebPushNotification,
-  StringPlotNode,
-  StringPlotValue,
+  CategoryPlotNode,
+  CategoryPlotValue,
 } = SequelizeConnections
 
 const resolvers = {
@@ -63,7 +63,7 @@ const resolvers = {
       FloatValue,
       StringValue,
       PlotValue,
-      StringPlotValue,
+      CategoryPlotValue,
       MapValue,
     },
     User,
@@ -77,8 +77,8 @@ const resolvers = {
       StringValue,
       PlotValue,
       PlotNode,
-      StringPlotValue,
-      StringPlotNode,
+      CategoryPlotValue,
+      CategoryPlotNode,
     },
     User,
     Device,
