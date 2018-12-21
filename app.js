@@ -66,7 +66,7 @@ app.use(
 
         case "TEMPORARY":
         case "PASSWORD_RECOVERY":
-        case "GENERATE_PERMANENT_TOKEN":
+        case "MANAGE_PERMANENT_TOKENS":
         case "DELETE_USER":
         case "CHANGE_PASSWORD":
         case "CHANGE_EMAIL":

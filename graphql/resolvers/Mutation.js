@@ -220,28 +220,32 @@ const MutationResolver = (
             sendTokenCreatedEmail(userFound.email)
           }
         },
-        ["GENERATE_PERMANENT_TOKEN"]
+        ["MANAGE_PERMANENT_TOKENS"]
       )
     },
-    deletePermanentAccesToken(root, args, context) {
-      return authenticated(context, async (resolve, reject) => {
-        const databaseToken = await PermanentToken.find({
-          where: { id: args.id },
-        })
-        if (!databaseToken) {
-          reject("This token doesn't exist")
-        } else if (databaseToken.userId !== context.auth.userId) {
-          reject("This token is not yours")
-        } else {
-          await databaseToken.destroy()
-
-          resolve(args.id)
-          pubsub.publish("permanentTokenDeleted", {
-            permanentTokenDeleted: args.id,
-            userId: context.auth.userId,
+    deletePermanentAccessToken(root, args, context) {
+      return authenticated(
+        context,
+        async (resolve, reject) => {
+          const databaseToken = await PermanentToken.find({
+            where: { id: args.id },
           })
-        }
-      })
+          if (!databaseToken) {
+            reject("This token doesn't exist")
+          } else if (databaseToken.userId !== context.auth.userId) {
+            reject("This token is not yours")
+          } else {
+            await databaseToken.destroy()
+
+            resolve(args.id)
+            pubsub.publish("permanentTokenDeleted", {
+              permanentTokenDeleted: args.id,
+              userId: context.auth.userId,
+            })
+          }
+        },
+        ["MANAGE_PERMANENT_TOKENS"]
+      )
     }, // if not it creates one and returnes an access token // checks if a user with that email already exists
     signUp(root, args, context) {
       return async (resolve, reject) => {
