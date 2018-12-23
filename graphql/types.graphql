@@ -29,6 +29,21 @@ type permanentAccessTokenPayload {
   id: ID!
 }
 
+type acceptPendingEnvironmentSharePayload {
+  id: ID!
+  sender: User!
+  receiver: User!
+  role: Role!
+  environment: Environment!
+}
+
+type acceptPendingOwnerChangePayload {
+  id: ID!
+  sender: User!
+  receiver: User!
+  environment: Environment!
+}
+
 # Data needed to display the QR code when upgrading to 2-Factor Authentication
 # type UpgradeTo2FactorPayload {
 #   # totp secret
@@ -113,7 +128,9 @@ type Mutation {
   revokePendingEnvironmentShare(pendingEnvironmentShareId: ID!): ID
 
   # returns the ID of the accepted environment
-  acceptPendingEnvironmentShare(pendingEnvironmentShareId: ID!): Environment
+  acceptPendingEnvironmentShare(
+    pendingEnvironmentShareId: ID!
+  ): acceptPendingEnvironmentSharePayload
   # returns the ID of the declined environment
   declinePendingEnvironmentShare(pendingEnvironmentShareId: ID!): ID
 
@@ -125,7 +142,9 @@ type Mutation {
   revokePendingOwnerChange(pendingOwnerChangeId: ID!): ID
 
   # returns the ID of the accepted environment
-  acceptPendingOwnerChange(pendingOwnerChangeId: ID!): ID
+  acceptPendingOwnerChange(
+    pendingOwnerChangeId: ID!
+  ): acceptPendingOwnerChangePayload
   # returns the ID of the accepted environment
   declinePendingOwnerChange(pendingOwnerChangeId: ID!): ID
 

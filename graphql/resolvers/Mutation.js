@@ -589,7 +589,13 @@ const MutationResolver = (
             })
           }
 
-          resolve({ id: environmentFound.id })
+          resolve({
+            id: pendingEnvironmentFound.id,
+            environment: { id: pendingEnvironmentFound.environmentId },
+            receiver: { id: pendingEnvironmentFound.receiverId },
+            sender: { id: pendingEnvironmentFound.senderId },
+            role: pendingEnvironmentFound.role,
+          })
 
           touch(Environment, environmentFound.id)
 
@@ -864,7 +870,12 @@ const MutationResolver = (
             environmentId: environmentFound.id,
           })
 
-          resolve(environmentFound.id)
+          resolve({
+            id: pendingOwnerChangeFound.id,
+            environment: { id: pendingOwnerChangeFound.environmentId },
+            receiver: { id: pendingOwnerChangeFound.receiverId },
+            sender: { id: pendingOwnerChangeFound.senderId },
+          })
 
           touch(Environment, environmentFound.id)
 
