@@ -293,17 +293,6 @@ const MutationResolver = (
               settings_timeFormat: "H24",
             })
 
-            const newEnvironment = await Environment.create({
-              name: "Home",
-              ownerId: newUser.id,
-              avatar: randomEnvironmentAvatar(),
-              muted: false,
-              index: 0,
-            })
-
-            // await newUser.addOwnEnvironment(newEnvironment)
-            // await newEnvironment.setOwner(newUser)
-
             // setting context so that the resolvers for user know that the user is authenticated
             context.auth = {
               userId: newUser.id,
@@ -843,29 +832,33 @@ const MutationResolver = (
           // remove old roles
           await runInParallel(
             () =>
-              EnvironmentAdmin.remove({
-                userId: userFound.id,
-                environmentId: environmentFound.id,
+              EnvironmentAdmin.destroy({
+                where: {
+                  userId: userFound.id,
+                  environmentId: environmentFound.id,
+                },
               }),
             () =>
-              EnvironmentEditor.remove({
-                userId: userFound.id,
-                environmentId: environmentFound.id,
+              EnvironmentEditor.destroy({
+                where: {
+                  userId: userFound.id,
+                  environmentId: environmentFound.id,
+                },
               }),
             () =>
-              EnvironmentSpectator.remove({
-                userId: userFound.id,
-                environmentId: environmentFound.id,
+              EnvironmentSpectator.destroy({
+                where: {
+                  userId: userFound.id,
+                  environmentId: environmentFound.id,
+                },
               })
           )
 
-          await environmentFound.setOwner(userFound)
-          await userFound.addOwnEnvironment(environmentFound)
+          await environmentFound.update({ ownerId: userFound.id })
 
           const oldOwnerFound = await User.find({
             where: { id: pendingOwnerChangeFound.senderId },
           })
-          await oldOwnerFound.removeOwnEnvironment(environmentFound)
           await EnvironmentAdmin.create({
             userId: oldOwnerFound.id,
             environmentId: environmentFound.id,
@@ -958,19 +951,25 @@ const MutationResolver = (
             // remove old role
             await runInParallel(
               () =>
-                EnvironmentAdmin.remove({
-                  userId: userFound.id,
-                  environmentId: environmentFound.id,
+                EnvironmentAdmin.destroy({
+                  where: {
+                    userId: userFound.id,
+                    environmentId: environmentFound.id,
+                  },
                 }),
               () =>
-                EnvironmentEditor.remove({
-                  userId: userFound.id,
-                  environmentId: environmentFound.id,
+                EnvironmentEditor.destroy({
+                  where: {
+                    userId: userFound.id,
+                    environmentId: environmentFound.id,
+                  },
                 }),
               () =>
-                EnvironmentSpectator.remove({
-                  userId: userFound.id,
-                  environmentId: environmentFound.id,
+                EnvironmentSpectator.destroy({
+                  where: {
+                    userId: userFound.id,
+                    environmentId: environmentFound.id,
+                  },
                 })
             )
 
@@ -1025,19 +1024,25 @@ const MutationResolver = (
 
           await runInParallel(
             () =>
-              EnvironmentAdmin.remove({
-                userId: userFound.id,
-                environmentId: environmentFound.id,
+              EnvironmentAdmin.destroy({
+                where: {
+                  userId: userFound.id,
+                  environmentId: environmentFound.id,
+                },
               }),
             () =>
-              EnvironmentEditor.remove({
-                userId: userFound.id,
-                environmentId: environmentFound.id,
+              EnvironmentEditor.destroy({
+                where: {
+                  userId: userFound.id,
+                  environmentId: environmentFound.id,
+                },
               }),
             () =>
-              EnvironmentSpectator.remove({
-                userId: userFound.id,
-                environmentId: environmentFound.id,
+              EnvironmentSpectator.destroy({
+                where: {
+                  userId: userFound.id,
+                  environmentId: environmentFound.id,
+                },
               })
           )
           resolve(environmentFound.id)
@@ -1090,19 +1095,25 @@ const MutationResolver = (
           } else {
             await runInParallel(
               () =>
-                EnvironmentAdmin.remove({
-                  userId: userFound.id,
-                  environmentId: environmentFound.id,
+                EnvironmentAdmin.destroy({
+                  where: {
+                    userId: userFound.id,
+                    environmentId: environmentFound.id,
+                  },
                 }),
               () =>
-                EnvironmentEditor.remove({
-                  userId: userFound.id,
-                  environmentId: environmentFound.id,
+                EnvironmentEditor.destroy({
+                  where: {
+                    userId: userFound.id,
+                    environmentId: environmentFound.id,
+                  },
                 }),
               () =>
-                EnvironmentSpectator.remove({
-                  userId: userFound.id,
-                  environmentId: environmentFound.id,
+                EnvironmentSpectator.destroy({
+                  where: {
+                    userId: userFound.id,
+                    environmentId: environmentFound.id,
+                  },
                 })
             )
 
