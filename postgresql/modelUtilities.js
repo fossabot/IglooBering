@@ -1,4 +1,4 @@
-const ValueModel = Sequelize => {
+const ValueModel = (Sequelize, hasPermission = true) => {
   const ValuePermission = Sequelize.ENUM("READ_ONLY", "READ_WRITE")
   const ValueVisibility = Sequelize.ENUM("VISIBLE", "HIDDEN", "INVISIBLE")
   const TileSize = Sequelize.ENUM("NORMAL", "WIDE", "TALL", "LARGE")
@@ -28,9 +28,13 @@ const ValueModel = Sequelize => {
     valueDetails: {
       type: Sequelize.STRING,
     },
-    permission: {
-      type: ValuePermission,
-    },
+    ...(hasPermission
+      ? {
+          permission: {
+            type: ValuePermission,
+          },
+        }
+      : {}),
     visibility: {
       type: ValueVisibility,
     },

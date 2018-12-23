@@ -2,7 +2,7 @@ const { ValueModel } = require("../modelUtilities")
 
 module.exports = (queryInterface, Sequelize) => {
   const PlotValue = queryInterface.define("plotValue", {
-    ...ValueModel(Sequelize),
+    ...ValueModel(Sequelize, false),
     precision: {
       type: Sequelize.FLOAT,
     },

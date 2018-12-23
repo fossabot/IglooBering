@@ -7,9 +7,7 @@ module.exports = {
 
   down: (queryInterface, Sequelize) => {
     return queryInterface.addColumn("users", "settings_timeZone", {
-      settings_timeZone: {
-        type: Sequelize.STRING,
-      },
+      type: Sequelize.STRING,
     })
   },
 }

@@ -270,8 +270,6 @@ type Mutation {
   createPlotValue(
     # device owning the value
     deviceId: ID!
-    # whether the value should be READ_ONLY or READ_WRITE in Igloo Aurora
-    permission: ValuePermission!
     # whether the value should be VISIBLE, HIDDEN or INVISIBLE in Igloo Aurora
     visibility: ValueVisibility
     # additional details about the value
@@ -302,8 +300,6 @@ type Mutation {
   createCategoryPlotValue(
     # device owning the value
     deviceId: ID!
-    # whether the value should be READ_ONLY or READ_WRITE in Igloo Aurora
-    permission: ValuePermission!
     # whether the value should be VISIBLE, HIDDEN or INVISIBLE in Igloo Aurora
     visibility: ValueVisibility
     # additional details about the value
@@ -467,8 +463,6 @@ type Mutation {
   plotValue(
     # value id
     id: ID!
-    # whether the value should be READ_ONLY or READ_WRITE in Igloo Aurora
-    permission: ValuePermission
     # whether the value should be VISIBLE, HIDDEN or INVISIBLE in Igloo Aurora
     visibility: ValueVisibility
     # additional details about the value
@@ -500,8 +494,6 @@ type Mutation {
   categoryPlotValue(
     # value id
     id: ID!
-    # whether the value should be READ_ONLY or READ_WRITE in Igloo Aurora
-    permission: ValuePermission
     # whether the value should be VISIBLE, HIDDEN or INVISIBLE in Igloo Aurora
     visibility: ValueVisibility
     # additional details about the value
@@ -833,7 +825,6 @@ interface Value {
   updatedAt: DateTime!
   device: Device!
   environment: Environment!
-  permission: ValuePermission!
   visibility: ValueVisibility!
   valueDetails: String
   tileSize: TileSize!
@@ -883,7 +874,6 @@ type PlotValue implements Value {
   updatedAt: DateTime!
   device: Device!
   environment: Environment!
-  permission: ValuePermission!
   visibility: ValueVisibility!
   valueDetails: String
   value: [PlotNode!]!
@@ -904,7 +894,6 @@ type CategoryPlotValue implements Value {
   updatedAt: DateTime!
   device: Device!
   environment: Environment!
-  permission: ValuePermission!
   visibility: ValueVisibility!
   valueDetails: String
   value: [CategoryPlotNode!]!

@@ -9,14 +9,19 @@ import {
 
 const QUERY_COST = 1
 
-const GenericResolver = (Model, User, Device, Environment) => ({
+const GenericResolver = (
+  Model,
+  User,
+  Device,
+  Environment,
+  hasPermission = true
+) => ({
   ...authorizedScalarPropsResolvers(
     Model,
     User,
     [
       "createdAt",
       "updatedAt",
-      "permission",
       "visibility",
       "valueDetails",
       "tileSize",
@@ -26,6 +31,14 @@ const GenericResolver = (Model, User, Device, Environment) => ({
     ],
     valueToParent(Environment)
   ),
+  ...(hasPermission
+    ? authorizedScalarPropsResolvers(
+        Model,
+        User,
+        ["permission"],
+        valueToParent(Environment)
+      )
+    : []),
   device: (root, args, context) =>
     authorized(
       root.id,
@@ -74,7 +87,7 @@ const StringValueResolver = (Model, User, Device, Environment) => ({
   ),
 })
 const PlotValueResolver = (PlotValue, PlotNode, User, Device, Environment) => ({
-  ...GenericResolver(PlotValue, User, Device, Environment),
+  ...GenericResolver(PlotValue, User, Device, Environment, false),
   ...authorizedScalarPropsResolvers(
     PlotValue,
     User,
@@ -104,7 +117,7 @@ const CategoryPlotValueResolver = (
   Device,
   Environment
 ) => ({
-  ...GenericResolver(CategoryPlotValue, User, Device, Environment),
+  ...GenericResolver(CategoryPlotValue, User, Device, Environment, false),
   ...authorizedScalarPropsResolvers(
     CategoryPlotValue,
     User,

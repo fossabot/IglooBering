@@ -2,7 +2,7 @@ const { ValueModel } = require("../modelUtilities")
 
 module.exports = (queryInterface, Sequelize) => {
   const CategoryPlotValue = queryInterface.define("categoryPlotValue", {
-    ...ValueModel(Sequelize),
+    ...ValueModel(Sequelize, false),
     allowedValues: {
       type: Sequelize.ARRAY(Sequelize.STRING),
     },
