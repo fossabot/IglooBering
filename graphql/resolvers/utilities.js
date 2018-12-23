@@ -220,6 +220,11 @@ function logErrorsPromise(_, _a, callback) {
     try {
       return await callback(resolve, reject)
     } catch (e) {
+      if (e.parent.routine === "string_to_uuid") {
+        reject("The id passed is not valid")
+        return
+      }
+
       const uniqueErrorCode = uuid() // date in milliseconds
 
       const trace = stackTrace.parse(e)
