@@ -598,7 +598,7 @@ type Subscription {
   environmentSharedReceived: PendingEnvironmentShare
   environmentShareUpdated: PendingEnvironmentShare
   # returns the environment accepted
-  environmentShareAccepted: Environment
+  environmentShareAccepted: acceptPendingEnvironmentSharePayload
   # returns the id of the environment declined
   environmentShareDeclined: ID
   # returns the id of the environment share that was revoked
@@ -606,7 +606,7 @@ type Subscription {
   # subscribes to owner change to you
   ownerChangeReceived: PendingOwnerChange
   # returns the id of the environment accepted
-  ownerChangeAccepted: ID
+  ownerChangeAccepted: acceptPendingOwnerChangePayload
   # returns the id of the environment declined
   ownerChangeDeclined: ID
   # returns the id of the owner change that was revoked

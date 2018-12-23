@@ -589,13 +589,14 @@ const MutationResolver = (
             })
           }
 
-          resolve({
+          const payload = {
             id: pendingEnvironmentFound.id,
             environment: { id: pendingEnvironmentFound.environmentId },
             receiver: { id: pendingEnvironmentFound.receiverId },
             sender: { id: pendingEnvironmentFound.senderId },
             role: pendingEnvironmentFound.role,
-          })
+          }
+          resolve(payload)
 
           touch(Environment, environmentFound.id)
 
@@ -603,7 +604,7 @@ const MutationResolver = (
           context.billingUpdater.update(MUTATION_COST)
 
           pubsub.publish("environmentShareAccepted", {
-            environmentShareAccepted: { id: environmentFound.id },
+            environmentShareAccepted: payload,
             userId: userFound.id,
           })
 
@@ -870,12 +871,13 @@ const MutationResolver = (
             environmentId: environmentFound.id,
           })
 
-          resolve({
+          const payload = {
             id: pendingOwnerChangeFound.id,
             environment: { id: pendingOwnerChangeFound.environmentId },
             receiver: { id: pendingOwnerChangeFound.receiverId },
             sender: { id: pendingOwnerChangeFound.senderId },
-          })
+          }
+          resolve(payload)
 
           touch(Environment, environmentFound.id)
 
@@ -883,7 +885,7 @@ const MutationResolver = (
           context.billingUpdater.update(MUTATION_COST)
 
           pubsub.publish("ownerChangeAccepted", {
-            ownerChangeAccepted: environmentFound.id,
+            ownerChangeAccepted: payload,
             userId: userFound.id,
           })
 
