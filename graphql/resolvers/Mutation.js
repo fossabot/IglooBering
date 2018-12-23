@@ -2618,10 +2618,25 @@ const MutationResolver = (
             )
           }
 
+          async function deleteShareJoinTables() {
+            const joinTables = [
+              EnvironmentAdmin,
+              EnvironmentEditor,
+              EnvironmentSpectator,
+            ]
+
+            await Promise.all(
+              joinTables.map(model =>
+                model.destroy({ where: { environmentId: args.id } })
+              )
+            )
+          }
+
           await Promise.all([
             ...deleteDevicesPromises,
             destroyPendingEnvironmentShare(),
             destroyPendingOwnerChange(),
+            deleteShareJoinTables(),
           ])
 
           await environmentFound.destroy()
@@ -2835,10 +2850,27 @@ const MutationResolver = (
               )
             }
 
+            async function deleteShareJoinTables() {
+              const joinTables = [
+                EnvironmentAdmin,
+                EnvironmentEditor,
+                EnvironmentSpectator,
+              ]
+
+              await Promise.all(
+                joinTables.map(model =>
+                  model.destroy({
+                    where: { environmentId: environmentFound.id },
+                  })
+                )
+              )
+            }
+
             await Promise.all([
               ...deleteDevicesPromises,
               destroyPendingEnvironmentShare(),
               destroyPendingOwnerChange(),
+              deleteShareJoinTables(),
             ])
 
             await environmentFound.destroy()
@@ -2857,9 +2889,67 @@ const MutationResolver = (
             where: { userId: userFound.id },
           })
 
+          const destroyWebPushPromise = WebPushNotification.destroy({
+            where: { userId: userFound.id },
+          })
+
+          const joinTables = [
+            EnvironmentAdmin,
+            EnvironmentEditor,
+            EnvironmentSpectator,
+          ]
+
+          const removeJoinTablePromises = joinTables.map(model =>
+            model.destroy({ where: { userId: userFound.id } })
+          )
+
+          async function destroyPendingEnvironmentShare() {
+            const environmentSharesFound = await PendingEnvironmentShare.findAll(
+              {
+                where: {
+                  $or: [
+                    { receiverId: userFound.id },
+                    { senderId: userFound.id },
+                  ],
+                },
+              }
+            )
+
+            await Promise.all(
+              environmentSharesFound.map(async environmentShare => {
+                pubsub.publish("environmentShareRevoked", {
+                  environmentShareRevoked: environmentShare.id,
+                  userIds: [environmentShare.receiverId],
+                })
+                await environmentShare.destroy()
+              })
+            )
+          }
+          async function destroyPendingOwnerChange() {
+            const ownerChangesFound = await PendingOwnerChange.findAll({
+              where: {
+                $or: [{ receiverId: userFound.id }, { senderId: userFound.id }],
+              },
+            })
+
+            await Promise.all(
+              ownerChangesFound.map(async ownerChange => {
+                pubsub.publish("ownerChangeRevoked", {
+                  ownerChangeRevoked: ownerChange.id,
+                  userId: ownerChange.receiverId,
+                })
+                await ownerChange.destroy()
+              })
+            )
+          }
+
           await Promise.all([
             ...deleteEnvironmentsPromises,
             destroyTokenPromise,
+            destroyWebPushPromise,
+            ...removeJoinTablePromises,
+            destroyPendingEnvironmentShare(),
+            destroyPendingOwnerChange(),
           ])
           await userFound.destroy()
 
