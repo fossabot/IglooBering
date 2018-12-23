@@ -32,7 +32,7 @@ const GRAPHQL_PORT = process.env.PORT || 3000
 /* istanbul ignore next */
 const WEBSOCKET_URL =
   process.env.NODE_ENV === "production"
-    ? "wss://iglooql.herokuapp.com/subscriptions"
+    ? `wss://${process.env.BASE_URL}/subscriptions`
     : `ws://localhost:${GRAPHQL_PORT}/subscriptions`
 const app = express()
 
