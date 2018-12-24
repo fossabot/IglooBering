@@ -1,6 +1,6 @@
 {
   "development": {
-    "use_env_variable": "CONNECTION_STRING",
+    "use_env_variable": "DATABASE_URL",
     "dialect": "postgres",
     "ssl": true,
     "dialectOptions": {
@@ -8,7 +8,7 @@
     }
   },
   "test": {
-    "use_env_variable": "CONNECTION_STRING",
+    "use_env_variable": "DATABASE_URL",
     "dialect": "postgres",
     "ssl": true,
     "dialectOptions": {
@@ -16,7 +16,7 @@
     }
   },
   "production": {
-    "use_env_variable": "CONNECTION_STRING",
+    "use_env_variable": "DATABASE_URL",
     "dialect": "postgres",
     "ssl": true,
     "dialectOptions": {

@@ -34,7 +34,7 @@ You will need to create a file `.env` or inject the variables in the environment
 JWT_SECRET=
 PUBLIC_VAPID_KEY=
 PRIVATE_VAPID_KEY=
-CONNECTION_STRING=
+DATABASE_URL=
 BUCKET_NAME=
 AWS_ACCESS_KEY_ID=
 AWS_SECRET_ACCESS_KEY=
@@ -58,11 +58,13 @@ We use Amazon RDS for PostgreSQL, but you can use any service or even host your 
 
 ##### Amazon RDS setup
 
+If you host your server on heroku be sure to create the database in the US N. Virginia region, otherwise heroku won't be able to connect to it.
+
 - open the RDS page in the AWS console
 - click create database and follow the guided procedure - choose PostgreSQL as engine - if you host the server outside of AWS se the public accessibility to Yes
 - at the end of the guided project go to the db instance
 - wait for the database to be available (you see the status in the top summary)
-- add in the env variable the CONNECTION_STRING formatted like this: `postgres://username:password@endpoint:port/database` (you find the endpoint in the connectivity tab)
+- add in the env variable the DATABASE_URL formatted like this: `postgres://username:password@endpoint:port/database` (you find the endpoint in the connectivity tab)
 
 ##### Setup the database structure
 
