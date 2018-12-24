@@ -17,7 +17,8 @@ const {
   MockedNotification,
   mockNotificationData,
   MockedPendingEnvironmentShare,
-  mockPendingEnvironmentShareData
+  mockPendingEnvironmentShareData,
+  mockContext
 } = MocksGenerator();
 
 const UserResolver = UserResolverFactory({
@@ -36,7 +37,7 @@ describe("User", () => {
   const testNotAuthorized = notAuthorizedShouldFail(
     UserResolver,
     { id: "mockUserId" },
-    { auth: { userId: "mockUserId4", tokenType: "TEMPORARY" } }
+    { auth: { userId: "mockUserId4", tokenType: "TEMPORARY" }, ...mockContext }
   );
 
   let privateScalarProps = [
@@ -60,7 +61,7 @@ describe("User", () => {
         {},
         {
           auth: { userId: "mockUserId", tokenType: "TEMPORARY" },
-          billingUpdater: { update: () => {} }
+          ...mockContext
         }
       )(resolve, reject);
     });
@@ -83,7 +84,7 @@ describe("User", () => {
         {},
         {
           auth: { userId: "mockUserId", tokenType: "TEMPORARY" },
-          billingUpdater: { update: () => {} }
+          ...mockContext
         }
       )(resolve, reject);
     });
@@ -128,7 +129,7 @@ describe("User", () => {
         {},
         {
           auth: { userId: "mockUserId", tokenType: "TEMPORARY" },
-          billingUpdater: { update: () => {} }
+          ...mockContext
         }
       )(resolve, reject);
     });
@@ -142,7 +143,7 @@ describe("User", () => {
         {},
         {
           auth: { userId: "mockUserId2", tokenType: "TEMPORARY" },
-          billingUpdater: { update: () => {} }
+          ...mockContext
         }
       )(resolve, reject);
     });
@@ -162,7 +163,7 @@ describe("User", () => {
         {},
         {
           auth: { userId: "mockUserId", tokenType: "TEMPORARY" },
-          billingUpdater: { update: () => {} }
+          ...mockContext
         }
       )(resolve, reject);
     });
@@ -176,7 +177,7 @@ describe("User", () => {
         {},
         {
           auth: { userId: "mockUserId2", tokenType: "TEMPORARY" },
-          billingUpdater: { update: () => {} }
+          ...mockContext
         }
       )(resolve, reject);
     });

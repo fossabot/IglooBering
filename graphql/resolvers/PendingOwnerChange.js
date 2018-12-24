@@ -15,7 +15,8 @@ const PendingOwnerChangeResolver = ({
         Environment.find({
           where: { id: pendingOwnerChange.environmentId },
         })
-      const findUser = () => User.find({ where: { id: context.auth.userId } })
+      const findUser = () =>
+        context.dataLoaders.userLoaderById.load(context.auth.userId)
 
       if (!pendingOwnerChange) {
         reject("The requested resource does not exist")
@@ -42,7 +43,8 @@ const PendingOwnerChangeResolver = ({
         Environment.find({
           where: { id: pendingOwnerChange.environmentId },
         })
-      const findUser = () => User.find({ where: { id: context.auth.userId } })
+      const findUser = () =>
+        context.dataLoaders.userLoaderById.load(context.auth.userId)
 
       if (!pendingOwnerChange) {
         reject("The requested resource does not exist")
@@ -69,7 +71,8 @@ const PendingOwnerChangeResolver = ({
         Environment.find({
           where: { id: pendingOwnerChange.environmentId },
         })
-      const findUser = () => User.find({ where: { id: context.auth.userId } })
+      const findUser = () =>
+        context.dataLoaders.userLoaderById.load(context.auth.userId)
 
       if (!pendingOwnerChange) {
         reject("The requested resource does not exist")
@@ -96,7 +99,8 @@ const PendingOwnerChangeResolver = ({
         Environment.find({
           where: { id: pendingOwnerChange.environmentId },
         })
-      const findUser = () => User.find({ where: { id: context.auth.userId } })
+      const findUser = () =>
+        context.dataLoaders.userLoaderById.load(context.auth.userId)
 
       if (!pendingOwnerChange) {
         reject("The requested resource does not exist")

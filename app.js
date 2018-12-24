@@ -3,6 +3,8 @@ require("dotenv").config()
 if (!process.env.JWT_SECRET) {
   throw new Error("Could not load .env")
 }
+import DataLoader from "dataloader"
+import { loadUsersByIds, loadEnvironmentsByIds } from "./dataloaders/index"
 import express from "express"
 import { graphqlExpress, graphiqlExpress } from "apollo-server-express"
 import bodyParser from "body-parser"
@@ -134,15 +136,22 @@ app.use("/graphql", async (req, res, next) => {
 
 app.use(
   "/graphql",
-  graphqlExpress(req => ({
-    schema,
-    context: {
-      auth: req.user,
-      billingUpdater: req.user
-        ? GenerateUserBillingBatcher(User, req.user)
-        : undefined,
-    },
-  }))
+  graphqlExpress(req => {
+    const dataLoaders = {
+      userLoaderById: new DataLoader(loadUsersByIds),
+      environmentLoaderById: new DataLoader(loadEnvironmentsByIds),
+    }
+    return {
+      schema,
+      context: {
+        auth: req.user,
+        billingUpdater: req.user
+          ? GenerateUserBillingBatcher(dataLoaders, req.user)
+          : undefined,
+        dataLoaders,
+      },
+    }
+  })
 )
 /* istanbul ignore next */
 app.get("/graphiql", (req, res, next) => {

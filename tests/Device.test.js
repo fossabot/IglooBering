@@ -15,7 +15,8 @@ const {
   mockUserData,
   mockDeviceData,
   MockedNotification,
-  mockNotificationData
+  mockNotificationData,
+  mockContext
 } = MocksGenerator();
 
 const DeviceResolver = DeviceResolverFactory({
@@ -37,12 +38,12 @@ describe("Device", () => {
   const testNotAuthorized = notAuthorizedShouldFail(
     DeviceResolver,
     { id: "mockDeviceId" },
-    { auth: { userId: "mockUserId4", tokenType: "TEMPORARY" } }
+    { auth: { userId: "mockUserId4", tokenType: "TEMPORARY" }, ...mockContext }
   );
   const testWrongId = wrongIdShouldFail(
     DeviceResolver,
     { id: "wrongDeviceId" },
-    { auth: { userId: "mockUserId", tokenType: "TEMPORARY" } }
+    { auth: { userId: "mockUserId", tokenType: "TEMPORARY" }, ...mockContext }
   );
 
   // not using a for loop because this syntax integrates better with the IDE
@@ -66,7 +67,7 @@ describe("Device", () => {
       DeviceResolver.muted(
         { id: "mockDeviceId" },
         {},
-        { auth: { userId: "mockUserId", tokenType: "TEMPORARY" } }
+        { auth: { userId: "mockUserId", tokenType: "TEMPORARY" }, ...mockContext }
       )(resolve, reject);
     });
 
@@ -81,7 +82,7 @@ describe("Device", () => {
       DeviceResolver.environment(
         { id: "mockDeviceId" },
         {},
-        { auth: { userId: "mockUserId", tokenType: "TEMPORARY" } }
+        { auth: { userId: "mockUserId", tokenType: "TEMPORARY" }, ...mockContext }
       )(resolve, reject);
     });
 
@@ -94,7 +95,7 @@ describe("Device", () => {
       DeviceResolver.values(
         { id: "mockDeviceId" },
         {},
-        { auth: { userId: "mockUserId", tokenType: "TEMPORARY" } }
+        { auth: { userId: "mockUserId", tokenType: "TEMPORARY" }, ...mockContext }
       )(resolve, reject);
     });
 
@@ -109,7 +110,7 @@ describe("Device", () => {
         {},
         {
           auth: { userId: "mockUserId", tokenType: "TEMPORARY" },
-          billingUpdater: { update: () => {} }
+          ...mockContext
         }
       )(resolve, reject);
     });
@@ -126,7 +127,7 @@ describe("Device", () => {
         {},
         {
           auth: { userId: "mockUserId", tokenType: "TEMPORARY" },
-          billingUpdater: { update: () => {} }
+          ...mockContext
         }
       )(resolve, reject);
     });

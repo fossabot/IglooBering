@@ -221,7 +221,7 @@ module.exports = () => {
     update: mockUpdate(mockData)
   });
 
-  return {
+  const mocks = {
     MockedEnvironment: MockedModel(mockEnvironmentData),
     mockEnvironmentData,
     MockedUser: MockedModel(mockUserData),
@@ -233,4 +233,18 @@ module.exports = () => {
     MockedPendingEnvironmentShare: MockedModel(mockPendingEnvironmentShareData),
     mockPendingEnvironmentShareData
   };
+
+  const mockDataLoader = MockedModel => ({
+    load: id => MockedModel.find({ where: { id } })
+  });
+
+  const mockContext = {
+    dataLoaders: {
+      userLoaderById: mockDataLoader(mocks.MockedUser),
+      environmentLoaderById: mockDataLoader(mocks.MockedEnvironment)
+    },
+    billingUpdater: { update: () => {} }
+  };
+
+  return { ...mocks, mockContext };
 };

@@ -15,7 +15,8 @@ const PendingEnvironmentShareResolver = ({
         Environment.find({
           where: { id: pendingEnvironmentFound.environmentId },
         })
-      const findUser = () => User.find({ where: { id: context.auth.userId } })
+      const findUser = () =>
+        context.dataLoaders.userLoaderById.load(context.auth.userId)
 
       if (!pendingEnvironmentFound) {
         reject("The requested resource does not exist")
@@ -43,7 +44,8 @@ const PendingEnvironmentShareResolver = ({
         Environment.find({
           where: { id: pendingEnvironmentFound.environmentId },
         })
-      const findUser = () => User.find({ where: { id: context.auth.userId } })
+      const findUser = () =>
+        context.dataLoaders.userLoaderById.load(context.auth.userId)
 
       if (!pendingEnvironmentFound) {
         reject("The requested resource does not exist")
@@ -71,7 +73,9 @@ const PendingEnvironmentShareResolver = ({
         Environment.find({
           where: { id: pendingEnvironmentFound.environmentId },
         })
-      const findUser = () => User.find({ where: { id: context.auth.userId } })
+
+      const findUser = () =>
+        context.dataLoaders.userLoaderById.load(context.auth.userId)
 
       if (!pendingEnvironmentFound) {
         reject("The requested resource does not exist")
@@ -99,7 +103,8 @@ const PendingEnvironmentShareResolver = ({
         Environment.find({
           where: { id: pendingEnvironmentFound.environmentId },
         })
-      const findUser = () => User.find({ where: { id: context.auth.userId } })
+      const findUser = () =>
+        context.dataLoaders.userLoaderById.load(context.auth.userId)
 
       if (!pendingEnvironmentFound) {
         reject("The requested resource does not exist")
@@ -127,7 +132,8 @@ const PendingEnvironmentShareResolver = ({
         Environment.find({
           where: { id: pendingEnvironmentFound.environmentId },
         })
-      const findUser = () => User.find({ where: { id: context.auth.userId } })
+      const findUser = () =>
+        context.dataLoaders.userLoaderById.load(context.auth.userId)
 
       if (!pendingEnvironmentFound) {
         reject("The requested resource does not exist")

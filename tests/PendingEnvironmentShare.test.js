@@ -13,7 +13,8 @@ const {
   MockedPendingEnvironmentShare,
   mockEnvironmentData,
   mockUserData,
-  mockPendingEnvironmentShareData
+  mockPendingEnvironmentShareData,
+  mockContext
 } = MocksGenerator();
 
 const PendingEnvironmentShareResolver = PendingEnvironmentShareResolverFactory({
@@ -34,12 +35,12 @@ describe("PendingEnvironmentShare", () => {
   const testNotAuthorized = notAuthorizedShouldFail(
     PendingEnvironmentShareResolver,
     { id: "mockPendingEnvironmentShareId" },
-    { auth: { userId: "mockUserId4", tokenType: "TEMPORARY" } }
+    { auth: { userId: "mockUserId4", tokenType: "TEMPORARY" }, ...mockContext }
   );
   const testWrongId = wrongIdShouldFail(
     PendingEnvironmentShareResolver,
     { id: "wrongPendingEnvironmentShareId" },
-    { auth: { userId: "mockUserId", tokenType: "TEMPORARY" } }
+    { auth: { userId: "mockUserId", tokenType: "TEMPORARY" }, ...mockContext }
   );
 
   // not using a for loop because this syntax integrates better with the IDE
@@ -53,7 +54,7 @@ describe("PendingEnvironmentShare", () => {
         PendingEnvironmentShareResolver.receiver(
           { id: "mockPendingEnvironmentShareId" },
           {},
-          { auth: { userId, tokenType: "TEMPORARY" } }
+          { auth: { userId, tokenType: "TEMPORARY" }, ...mockContext }
         )(resolve, reject);
       });
 
@@ -69,7 +70,7 @@ describe("PendingEnvironmentShare", () => {
         PendingEnvironmentShareResolver.sender(
           { id: "mockPendingEnvironmentShareId" },
           {},
-          { auth: { userId: "mockUserId", tokenType: "TEMPORARY" } }
+          { auth: { userId: "mockUserId", tokenType: "TEMPORARY" }, ...mockContext }
         )(resolve, reject);
       });
 
@@ -85,7 +86,7 @@ describe("PendingEnvironmentShare", () => {
         PendingEnvironmentShareResolver.environment(
           { id: "mockPendingEnvironmentShareId" },
           {},
-          { auth: { userId: "mockUserId", tokenType: "TEMPORARY" } }
+          { auth: { userId: "mockUserId", tokenType: "TEMPORARY" }, ...mockContext }
         )(resolve, reject);
       });
 

@@ -14,7 +14,7 @@ const sequelize = new Sequelize(process.env.CONNECTION_STRING, {
   },
   logging: false,
   pool: {
-    max: 5,
+    max: 50,
     min: 1,
     idle: 20000,
     acquire: 40000,

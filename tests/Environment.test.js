@@ -15,7 +15,8 @@ const {
   mockDeviceData,
   MockedDevice,
   MockedNotification,
-  mockNotificationData
+  mockNotificationData,
+  mockContext
 } = MocksGenerator();
 
 const EnvironmentResolver = EnvironmentResolverFactory({
@@ -37,12 +38,12 @@ describe("Environment", () => {
   const testNotAuthorized = notAuthorizedShouldFail(
     EnvironmentResolver,
     { id: "mockEnvironmentId" },
-    { auth: { userId: "mockUserId4", tokenType: "TEMPORARY" } }
+    { auth: { userId: "mockUserId4", tokenType: "TEMPORARY" }, ...mockContext }
   );
   const testWrongId = wrongIdShouldFail(
     EnvironmentResolver,
     { id: "wrongEnvironmentId" },
-    { auth: { userId: "mockUserId", tokenType: "TEMPORARY" } }
+    { auth: { userId: "mockUserId", tokenType: "TEMPORARY" }, ...mockContext }
   );
 
   let scalarProps = ["name", "avatar", "index", "createdAt", "updatedAt"];
@@ -58,7 +59,7 @@ describe("Environment", () => {
         {},
         {
           auth: { userId: "mockUserId", tokenType: "TEMPORARY" },
-          billingUpdater: { update: () => {} }
+          ...mockContext
         }
       )(resolve, reject);
     });
@@ -76,7 +77,7 @@ describe("Environment", () => {
         {},
         {
           auth: { userId: "mockUserId", tokenType: "TEMPORARY" },
-          billingUpdater: { update: () => {} }
+          ...mockContext
         }
       )(resolve, reject);
     });
@@ -94,7 +95,7 @@ describe("Environment", () => {
         {},
         {
           auth: { userId: "mockUserId", tokenType: "TEMPORARY" },
-          billingUpdater: { update: () => {} }
+          ...mockContext
         }
       )(resolve, reject);
     });
@@ -110,7 +111,7 @@ describe("Environment", () => {
         {},
         {
           auth: { userId: "mockUserId", tokenType: "TEMPORARY" },
-          billingUpdater: { update: () => {} }
+          ...mockContext
         }
       )(resolve, reject);
     });

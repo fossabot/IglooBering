@@ -67,9 +67,9 @@ const QueryResolver = ({
   },
   value(root, args, context) {
     return authenticated(context, async (resolve, reject) => {
-      const userFound = await User.find({
-        where: { id: context.auth.userId },
-      })
+      const userFound = await context.dataLoaders.userLoaderById.load(
+        context.auth.userId
+      )
       const valueFound = await findValue(
         {
           BooleanValue,

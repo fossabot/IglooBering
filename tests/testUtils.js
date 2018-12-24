@@ -1,3 +1,7 @@
+import MocksGenerator from "./mockUtils";
+
+const { mockContext } = MocksGenerator();
+
 const testScalarProp = (Resolver, root, mockData) => prop => async () => {
   const propFound = await new Promise((resolve, reject) => {
     Resolver[prop](
@@ -5,7 +9,7 @@ const testScalarProp = (Resolver, root, mockData) => prop => async () => {
       {},
       {
         auth: { userId: "mockUserId", tokenType: "TEMPORARY" },
-        billingUpdater: { update: () => {} }
+        ...mockContext
       }
     )(resolve, reject);
   });
@@ -15,7 +19,7 @@ const testScalarProp = (Resolver, root, mockData) => prop => async () => {
 
 const unauthenticatedShouldFail = (Resolver, root) => prop => async () => {
   const promise = new Promise((resolve, reject) => {
-    Resolver[prop](root, {}, {})(resolve, reject);
+    Resolver[prop](root, {}, mockContext)(resolve, reject);
   });
 
   await expect(promise).rejects.toMatch("You are not authenticated");

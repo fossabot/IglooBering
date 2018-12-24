@@ -106,7 +106,7 @@ const MutationResolver = (
             tokenType: "TEMPORARY",
           }
           context.billingUpdater = GenerateUserBillingBatcher(
-            User,
+            context.dataLoaders,
             context.auth
           )
 
@@ -125,7 +125,7 @@ const MutationResolver = (
             tokenType: "TEMPORARY",
           }
           context.billingUpdater = GenerateUserBillingBatcher(
-            User,
+            context.dataLoaders,
             context.auth
           )
 
@@ -143,9 +143,9 @@ const MutationResolver = (
     },
     createToken(root, args, context) {
       return authenticated(context, async (resolve, reject) => {
-        const userFound = await User.find({
-          where: { id: context.auth.userId },
-        })
+        const userFound = await context.dataLoaders.userLoaderById.load(
+          context.auth.userId
+        )
         if (!bcrypt.compareSync(args.password, userFound.dataValues.password)) {
           reject("Wrong password")
         } else {
@@ -213,9 +213,9 @@ const MutationResolver = (
               userId: context.auth.userId,
             })
 
-            const userFound = await User.find({
-              where: { id: context.auth.userId },
-            })
+            const userFound = await context.dataLoaders.userLoaderById.load(
+              context.auth.userId
+            )
 
             sendTokenCreatedEmail(userFound.email)
           }
@@ -300,7 +300,7 @@ const MutationResolver = (
               tokenType: "TEMPORARY",
             }
             context.billingUpdater = GenerateUserBillingBatcher(
-              User,
+              context.dataLoaders,
               context.auth
             )
 
@@ -327,9 +327,7 @@ const MutationResolver = (
     } /* 
     UpgradeTo2FactorAuthentication(root, args, context) {
       return authenticated(context, async (resolve, reject) => {
-          const userFound = await User.find({
-            where: { id: context.auth.userId },
-          })
+          const userFound = await Ucontext.dataLoaders.userLoaderById.load(context.auth.userId)
           // istanbul ignore if - should ever happen 
           if (!userFound) {
             reject("User doesn't exist. Use `` to create one")
@@ -357,9 +355,9 @@ const MutationResolver = (
       return authenticated(
         context,
         async (resolve, reject) => {
-          const userFound = await User.find({
-            where: { id: context.auth.userId },
-          })
+          const userFound = await context.dataLoaders.userLoaderById.load(
+            context.auth.userId
+          )
           if (!userFound) {
             reject("User doesn't exist. Use `` to create one")
           } else {
@@ -400,9 +398,9 @@ const MutationResolver = (
     },
     resendVerificationEmail(root, args, context) {
       return authenticated(context, async (resolve, reject) => {
-        const userFound = await User.find({
-          where: { id: context.auth.userId },
-        })
+        const userFound = await context.dataLoaders.userLoaderById.load(
+          context.auth.userId
+        )
         if (!userFound) {
           reject("User doesn't exist. Use `` to create one")
         } else if (userFound.emailIsVerified) {
@@ -567,9 +565,9 @@ const MutationResolver = (
           const environmentFound = await Environment.find({
             where: { id: pendingEnvironmentFound.environmentId },
           })
-          const userFound = await User.find({
-            where: { id: context.auth.userId },
-          })
+          const userFound = await context.dataLoaders.userLoaderById.load(
+            context.auth.userId
+          )
 
           // await userFound[`add${Environment[parsedRole]}`](environmentFound)
           if (pendingEnvironmentFound.role === "ADMIN") {
@@ -667,9 +665,9 @@ const MutationResolver = (
           const environmentFound = await Environment.find({
             where: { id: pendingEnvironmentFound.environmentId },
           })
-          const userFound = await User.find({
-            where: { id: context.auth.userId },
-          })
+          const userFound = await context.dataLoaders.userLoaderById.load(
+            context.auth.userId
+          )
 
           if ((await authorizationLevel(environmentFound, userFound)) < 3) {
             reject("You are not authorized to perform this operation")
@@ -832,9 +830,9 @@ const MutationResolver = (
           const environmentFound = await Environment.find({
             where: { id: pendingOwnerChangeFound.environmentId },
           })
-          const userFound = await User.find({
-            where: { id: pendingOwnerChangeFound.receiverId },
-          })
+          const userFound = await context.dataLoaders.userLoaderById.load(
+            pendingOwnerChangeFound.receiverId
+          )
 
           // remove old roles
           await runInParallel(
@@ -863,9 +861,10 @@ const MutationResolver = (
 
           await environmentFound.update({ ownerId: userFound.id })
 
-          const oldOwnerFound = await User.find({
-            where: { id: pendingOwnerChangeFound.senderId },
-          })
+          const oldOwnerFound = await await context.dataLoaders.userLoaderById.load(
+            pendingOwnerChangeFound.senderId
+          )
+
           await EnvironmentAdmin.create({
             userId: oldOwnerFound.id,
             environmentId: environmentFound.id,
@@ -1159,9 +1158,9 @@ const MutationResolver = (
           return
         }
 
-        const userFound = await User.find({
-          where: { id: context.auth.userId },
-        })
+        const userFound = await context.dataLoaders.userLoaderById.load(
+          context.auth.userId
+        )
 
         const newEnvironment = await Environment.create({
           ...args,
@@ -1543,9 +1542,9 @@ const MutationResolver = (
         authenticated(
           context,
           async (resolve, reject) => {
-            const userFound = await User.find({
-              where: { id: context.auth.userId },
-            })
+            const userFound = await context.dataLoaders.userLoaderById.load(
+              context.auth.userId
+            )
 
             if (!userFound) {
               reject("User doesn't exist. Use `signUp` to create one")
@@ -1572,9 +1571,9 @@ const MutationResolver = (
       return authenticated(
         context,
         async (resolve, reject) => {
-          const userFound = await User.find({
-            where: { id: context.auth.userId },
-          })
+          const userFound = await context.dataLoaders.userLoaderById.load(
+            context.auth.userId
+          )
 
           const sameEmailUserFound = await User.find({
             where: { email: args.newEmail },
@@ -1614,9 +1613,9 @@ const MutationResolver = (
     },
     settings(root, args, context) {
       return authenticated(context, async (resolve, reject) => {
-        const userFound = await User.find({
-          where: { id: context.auth.userId },
-        })
+        const userFound = await context.dataLoaders.userLoaderById.load(
+          context.auth.userId
+        )
         if (!userFound) {
           reject("User doesn't exist. Use `` to create one")
         } else if (
@@ -1663,9 +1662,9 @@ const MutationResolver = (
     },
     updatePaymentInfo(root, args, context) {
       return authenticated(context, async (resolve, reject) => {
-        const userFound = await User.find({
-          where: { id: context.auth.userId },
-        })
+        const userFound = await context.dataLoaders.userLoaderById.load(
+          context.auth.userId
+        )
         if (!userFound) {
           reject("User doesn't exist. Use `` to create one")
         } else if (userFound.stripeCustomerId) {
@@ -2757,9 +2756,9 @@ const MutationResolver = (
       authenticated(
         context,
         async (resolve, reject) => {
-          const userFound = await User.find({
-            where: { id: context.auth.userId },
-          })
+          const userFound = await context.dataLoaders.userLoaderById.load(
+            context.auth.userId
+          )
 
           const environmentsFound = await Environment.findAll({
             where: { ownerId: userFound.id },

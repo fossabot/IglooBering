@@ -220,7 +220,7 @@ function logErrorsPromise(_, _a, callback) {
     try {
       return await callback(resolve, reject)
     } catch (e) {
-      if (e.parent.routine === "string_to_uuid") {
+      if (e.parent && e.parent.routine === "string_to_uuid") {
         reject("The id passed is not valid")
         return
       }
@@ -764,9 +764,9 @@ function authorized(
         reject("The requested resource does not exist")
       } else {
         const parent = await childToParent(found)
-        const userFound = await User.find({
-          where: { id: context.auth.userId },
-        })
+        const userFound = await context.dataLoaders.userLoaderById.load(
+          context.auth.userId
+        )
 
         if (
           (await authorizationLevel(parent, userFound)) < authorizationRequired
@@ -851,7 +851,9 @@ const authorizedValue = (
     const NOT_EXIST = "The requested resource does not exist"
     const models = Object.values(Values)
 
-    const userFound = await User.find({ where: { id: context.auth.userId } })
+    const userFound = await context.dataLoaders.userLoaderById.load(
+      context.auth.userId
+    )
 
     const findPromises = models.map(async Model => {
       const resourceFound = await Model.find({
@@ -1084,8 +1086,8 @@ const randomEnvironmentAvatar = () =>
 
 const randomUserIconColor = () => randomChoice(["blue", "red", "green"])
 
-const updateUserBilling = (User, auth) => async bill => {
-  const userFound = await User.find({ where: { id: auth.userId } })
+const updateUserBilling = (dataLoaders, auth) => async bill => {
+  const userFound = await dataLoaders.userLoaderById.load(auth.userId)
 
   // TODO: handle this failure gracefully
   if (!userFound) {
@@ -1096,8 +1098,8 @@ const updateUserBilling = (User, auth) => async bill => {
   }
 }
 
-const GenerateUserBillingBatcher = (User, auth) =>
-  new UpdateBatcher(updateUserBilling(User, auth))
+const GenerateUserBillingBatcher = (dataLoaders, auth) =>
+  new UpdateBatcher(updateUserBilling(dataLoaders, auth))
 
 // an environment is it's own parent
 const environmentToParent = x => x

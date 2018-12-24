@@ -29,9 +29,9 @@ const ValueResolver = (Values, User, Device, Environment) => ({
             if (!resourceFound) {
               rejectInner(NOT_EXIST)
             } else {
-              const userFound = await User.find({
-                where: { id: context.auth.userId },
-              })
+              const userFound = await context.dataLoaders.userLoaderById.load(
+                context.auth.userId
+              )
               const environmentFound = await Environment.find({
                 where: { id: resourceFound.environmentId },
               })

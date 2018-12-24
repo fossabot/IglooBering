@@ -10,7 +10,8 @@ const {
   mockEnvironmentData,
   mockUserData,
   mockDeviceData,
-  mockNotificationData
+  mockNotificationData,
+  mockContext
 } = MocksGenerator();
 
 const NotificationResolver = NotificationResolverFactory({
@@ -32,7 +33,7 @@ describe("Notification", () => {
   const testWrongId = wrongIdShouldFail(
     NotificationResolver,
     { id: "wrongNotificationId" },
-    { auth: { userId: "mockUserId", tokenType: "TEMPORARY" } }
+    { auth: { userId: "mockUserId", tokenType: "TEMPORARY" }, ...mockContext }
   );
 
   // not using a for loop because this syntax integrates better with the IDE
@@ -44,7 +45,7 @@ describe("Notification", () => {
       NotificationResolver.user(
         { id: "mockNotificationId" },
         {},
-        { auth: { userId: "mockUserId", tokenType: "TEMPORARY" } }
+        { auth: { userId: "mockUserId", tokenType: "TEMPORARY" }, ...mockContext }
       )(resolve, reject);
     });
 
@@ -57,7 +58,7 @@ describe("Notification", () => {
       NotificationResolver.device(
         { id: "mockNotificationId" },
         {},
-        { auth: { userId: "mockUserId", tokenType: "TEMPORARY" } }
+        { auth: { userId: "mockUserId", tokenType: "TEMPORARY" }, ...mockContext }
       )(resolve, reject);
     });
 
@@ -70,7 +71,7 @@ describe("Notification", () => {
       NotificationResolver.environment(
         { id: "mockNotificationId" },
         {},
-        { auth: { userId: "mockUserId", tokenType: "TEMPORARY" } }
+        { auth: { userId: "mockUserId", tokenType: "TEMPORARY" }, ...mockContext }
       )(resolve, reject);
     });
 

@@ -139,9 +139,9 @@ const EnvironmentResolver = ({
       User,
       1,
       async (resolve, reject, environmentFound) => {
-        const userFound = await User.find({
-          where: { id: context.auth.userId },
-        })
+        const userFound = await context.dataLoaders.userLoaderById.load(
+          context.auth.userId
+        )
 
         /*
             users without admin authorization don't have access to pendingEnvironmentShares,
@@ -180,9 +180,9 @@ const EnvironmentResolver = ({
       User,
       1,
       async (resolve, reject, environmentFound) => {
-        const userFound = await User.find({
-          where: { id: context.auth.userId },
-        })
+        const userFound = await context.dataLoaders.userLoaderById.load(
+          context.auth.userId
+        )
 
         /*
             users without admin authorization don't have access to pendingEnvironmentShares,
@@ -220,9 +220,9 @@ const EnvironmentResolver = ({
       User,
       1,
       async (resolve, reject, environmentFound) => {
-        const userFound = await User.find({
-          where: { id: context.auth.userId },
-        })
+        const userFound = await context.dataLoaders.userLoaderById.load(
+          context.auth.userId
+        )
 
         /*
             users without admin authorization don't have access to pendingOwnerShare,
@@ -259,9 +259,9 @@ const EnvironmentResolver = ({
       User,
       1,
       async (resolve, reject, environmentFound) => {
-        const userFound = await User.find({
-          where: { id: context.auth.userId },
-        })
+        const userFound = await context.dataLoaders.userLoaderById.load(
+          context.auth.userId
+        )
 
         /*
             users without admin authorization don't have access to pendingOwnerShare,

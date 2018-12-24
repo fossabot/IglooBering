@@ -13,7 +13,7 @@ const retrieveUserScalarProp = (User, prop, acceptedTokens) => (
       if (context.auth.userId !== root.id) {
         reject("You are not allowed to perform this operation")
       } else {
-        const userFound = await User.find({ where: { id: root.id } })
+        const userFound = await context.dataLoaders.userLoaderById.load(root.id)
         if (!userFound) {
           reject("User doesn't exist. Use `` to create one")
         } else {
@@ -38,7 +38,7 @@ const retrievePublicUserScalarProp = (User, prop, acceptedTokens) => (
   authenticated(
     context,
     async (resolve, reject) => {
-      const userFound = await User.find({ where: { id: root.id } })
+      const userFound = await context.dataLoaders.userLoaderById.load(root.id)
       if (!userFound) {
         reject("User doesn't exist. Use `` to create one")
       } else {
@@ -99,7 +99,7 @@ const UserResolver = ({
       if (context.auth.userId !== root.id) {
         reject("You are not allowed to perform this operation")
       } else {
-        const userFound = await User.find({ where: { id: root.id } })
+        const userFound = await context.dataLoaders.userLoaderById.load(root.id)
 
         resolve({
           language: userFound.settings_language,
