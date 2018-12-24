@@ -6,7 +6,7 @@ const { JWT_SECRET } = process.env
 
 const basename = path.basename(__filename)
 
-const sequelize = new Sequelize(process.env.DATABASE_URL, {
+const sequelize = new Sequelize(process.env.CONNECTION_STRING, {
   ssl: true,
   dialect: "postgres",
   dialectOptions: {
