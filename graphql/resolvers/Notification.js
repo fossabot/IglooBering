@@ -10,21 +10,21 @@ const notificationToParent = notificationFound => notificationFound.deviceId
 
 const UserResolver = ({ Notification, User, Device, Environment }) => ({
   ...inheritAuthorizedScalarPropsResolvers(
-    Notification,
+    "notificationLoaderById",
     User,
     ["content", "date"],
     notificationToParent,
-    Device,
+    "deviceLoaderById",
     deviceToParent(Environment)
   ),
   user(root, args, context) {
     return inheritAuthorized(
       root.id,
-      Notification,
+      context.dataLoaders.notificationLoaderById,
       User,
       notificationToParent,
       context,
-      Device,
+      context.dataLoaders.deviceLoaderById,
       1,
       async (resolve, reject, notificationFound) => {
         resolve({ id: notificationFound.userId })
@@ -36,11 +36,11 @@ const UserResolver = ({ Notification, User, Device, Environment }) => ({
   device(root, args, context) {
     return inheritAuthorized(
       root.id,
-      Notification,
+      context.dataLoaders.notificationLoaderById,
       User,
       notificationToParent,
       context,
-      Device,
+      context.dataLoaders.deviceLoaderById,
       1,
       async (resolve, reject, notificationFound) => {
         resolve({ id: notificationFound.deviceId })
@@ -52,11 +52,11 @@ const UserResolver = ({ Notification, User, Device, Environment }) => ({
   environment(root, args, context) {
     return inheritAuthorized(
       root.id,
-      Notification,
+      context.dataLoaders.notificationLoaderById,
       User,
       notificationToParent,
       context,
-      Device,
+      context.dataLoaders.deviceLoaderById,
       1,
       async (resolve, reject, notificationFound) => {
         resolve({ id: notificationFound.environmentId })
@@ -68,11 +68,11 @@ const UserResolver = ({ Notification, User, Device, Environment }) => ({
   visualized(root, args, context) {
     return inheritAuthorized(
       root.id,
-      Notification,
+      context.dataLoaders.notificationLoaderById,
       User,
       notificationToParent,
       context,
-      Device,
+      context.dataLoaders.deviceLoaderById,
       1,
       async (resolve, reject, notificationFound) => {
         resolve(

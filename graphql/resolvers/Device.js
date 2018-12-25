@@ -22,8 +22,7 @@ const DeviceResolver = ({
   joinTables,
 }) => ({
   ...authorizedScalarPropsResolvers(
-    Device,
-    User,
+    "deviceLoaderById",
     [
       "createdAt",
       "updatedAt",
@@ -42,7 +41,7 @@ const DeviceResolver = ({
     return authorized(
       root.id,
       context,
-      Device,
+      context.dataLoaders.deviceLoaderById,
       User,
       1,
       async (resolve, reject, deviceFound) => {
@@ -71,7 +70,7 @@ const DeviceResolver = ({
     return authorized(
       root.id,
       context,
-      Device,
+      context.dataLoaders.deviceLoaderById,
       User,
       1,
       async (
@@ -96,7 +95,7 @@ const DeviceResolver = ({
     return authorized(
       root.id,
       context,
-      Device,
+      context.dataLoaders.deviceLoaderById,
       User,
       1,
       async (resolve, reject, deviceFound) => {
@@ -113,7 +112,7 @@ const DeviceResolver = ({
     return authorized(
       root.id,
       context,
-      Device,
+      context.dataLoaders.deviceLoaderById,
       User,
       1,
       async (resolve, reject, deviceFound) => {
@@ -135,7 +134,7 @@ const DeviceResolver = ({
     return authorized(
       root.id,
       context,
-      Device,
+      context.dataLoaders.deviceLoaderById,
       User,
       1,
       async (resolve, reject, deviceFound) => {

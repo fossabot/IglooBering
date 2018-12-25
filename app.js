@@ -4,7 +4,27 @@ if (!process.env.JWT_SECRET) {
   throw new Error("Could not load .env")
 }
 import DataLoader from "dataloader"
-import { loadUsersByIds, loadEnvironmentsByIds } from "./dataloaders/index"
+import {
+  loadUsersByIds,
+  loadEnvironmentsByIds,
+  loadDevicesByIds,
+  loadCategoryPlotValuesByIds,
+  loadEnvironmentAdminsByIds,
+  loadEnvironmentEditorsByIds,
+  loadEnvironmentSpectatorsByIds,
+  loadFloatValuesByIds,
+  loadMapValuesByIds,
+  loadNotificationsByIds,
+  loadPendingEnvironmentSharesByIds,
+  loadBooleanValuesByIds,
+  loadPendingOwnerChangesByIds,
+  loadPermanentTokensByIds,
+  loadPlotNodesByIds,
+  loadPlotValuesByIds,
+  loadStringPlotNodesByIds,
+  loadStringValuesByIds,
+  loadWebPushSubscriptionsByIds,
+} from "./dataloaders/index"
 import express from "express"
 import { graphqlExpress, graphiqlExpress } from "apollo-server-express"
 import bodyParser from "body-parser"
@@ -140,6 +160,31 @@ app.use(
     const dataLoaders = {
       userLoaderById: new DataLoader(loadUsersByIds),
       environmentLoaderById: new DataLoader(loadEnvironmentsByIds),
+      deviceLoaderById: new DataLoader(loadDevicesByIds),
+      booleanValueLoaderById: new DataLoader(loadBooleanValuesByIds),
+      categoryPlotValueLoaderById: new DataLoader(loadCategoryPlotValuesByIds),
+      environmentAdminLoaderById: new DataLoader(loadEnvironmentAdminsByIds),
+      environmentEditorLoaderById: new DataLoader(loadEnvironmentEditorsByIds),
+      environmentSpectatorLoaderById: new DataLoader(
+        loadEnvironmentSpectatorsByIds
+      ),
+      floatValueLoaderById: new DataLoader(loadFloatValuesByIds),
+      mapValueLoaderById: new DataLoader(loadMapValuesByIds),
+      notificationLoaderById: new DataLoader(loadNotificationsByIds),
+      pendingEnvironmentShareLoaderById: new DataLoader(
+        loadPendingEnvironmentSharesByIds
+      ),
+      pendingOwnerChangeLoaderById: new DataLoader(
+        loadPendingOwnerChangesByIds
+      ),
+      permanentTokenLoaderById: new DataLoader(loadPermanentTokensByIds),
+      plotNodeLoaderById: new DataLoader(loadPlotNodesByIds),
+      plotValueLoaderById: new DataLoader(loadPlotValuesByIds),
+      stringPlotNodeLoaderById: new DataLoader(loadStringPlotNodesByIds),
+      stringValueLoaderById: new DataLoader(loadStringValuesByIds),
+      webPushSubscriptionLoaderById: new DataLoader(
+        loadWebPushSubscriptionsByIds
+      ),
     }
     return {
       schema,

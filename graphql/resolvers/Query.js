@@ -40,7 +40,7 @@ const QueryResolver = ({
     return authorized(
       args.id,
       context,
-      Device,
+      context.dataLoaders.deviceLoaderById,
       User,
       1,
       async (resolve, reject, deviceFound) => {
@@ -55,7 +55,7 @@ const QueryResolver = ({
     return authorized(
       args.id,
       context,
-      Environment,
+      context.dataLoaders.environmentLoaderById,
       User,
       1,
       async (resolve, reject, environmentFound) => {
@@ -92,11 +92,11 @@ const QueryResolver = ({
   notification(root, args, context) {
     return inheritAuthorized(
       args.id,
-      Notification,
+      context.dataLoaders.notificationLoaderById,
       User,
       notificationFound => notificationFound.deviceId,
       context,
-      Device,
+      context.dataLoaders.deviceLoaderById,
       1,
       async (resolve, reject, notificationFound) => {
         resolve(notificationFound)
@@ -108,11 +108,11 @@ const QueryResolver = ({
   plotNode(root, args, context) {
     return inheritAuthorized(
       args.id,
-      PlotNode,
+      context.dataLoaders.plotNodeLoaderById,
       User,
       plotNodeFound => plotNodeFound.plotId,
       context,
-      PlotValue,
+      context.dataLoaders.plotValueLoaderById,
       1,
       async (resolve, reject, plotNodeFound) => {
         resolve(plotNodeFound)
@@ -123,11 +123,11 @@ const QueryResolver = ({
   categoryPlotNode(root, args, context) {
     return inheritAuthorized(
       args.id,
-      CategoryPlotNode,
+      context.dataLoaders.categoryPlotNodeLoaderById,
       User,
       plotNodeFound => plotNodeFound.plotId,
       context,
-      CategoryPlotValue,
+      context.dataLoaders.categoryPlotValueLoaderById,
       1,
       async (resolve, reject, plotNodeFound) => {
         resolve(plotNodeFound)

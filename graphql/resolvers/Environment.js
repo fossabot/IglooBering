@@ -14,7 +14,7 @@ const rolesResolver = (roleName, Environment, User) => (root, args, context) =>
   authorized(
     root.id,
     context,
-    Environment,
+    context.dataLoaders.environmentLoaderById,
     User,
     1,
     async (resolve, reject, found) => {
@@ -58,8 +58,7 @@ const EnvironmentResolver = ({
   PendingOwnerChange,
 }) => ({
   ...authorizedScalarPropsResolvers(
-    Environment,
-    User,
+    "environmentLoaderById",
     ["avatar", "createdAt", "updatedAt", "index"],
     environmentToParent
   ),
@@ -68,7 +67,7 @@ const EnvironmentResolver = ({
     return authorized(
       root.id,
       context,
-      Environment,
+      context.dataLoaders.environmentLoaderById,
       User,
       1,
       async (resolve, reject, environmentFound, _, userFound) => {
@@ -81,7 +80,7 @@ const EnvironmentResolver = ({
     return authorized(
       root.id,
       context,
-      Environment,
+      context.dataLoaders.environmentLoaderById,
       User,
       1,
       async (resolve, reject, environmentFound) => {
@@ -101,7 +100,7 @@ const EnvironmentResolver = ({
     return authorized(
       root.id,
       context,
-      Environment,
+      context.dataLoaders.environmentLoaderById,
       User,
       1,
       async (resolve, reject, environmentFound) => {
@@ -120,7 +119,7 @@ const EnvironmentResolver = ({
     return authorized(
       root.id,
       context,
-      Environment,
+      context.dataLoaders.environmentLoaderById,
       User,
       1,
       async (resolve, reject, environmentFound) => {
@@ -137,7 +136,7 @@ const EnvironmentResolver = ({
     return authorized(
       root.id,
       context,
-      Environment,
+      context.dataLoaders.environmentLoaderById,
       User,
       1,
       async (resolve, reject, environmentFound) => {
@@ -178,7 +177,7 @@ const EnvironmentResolver = ({
     return authorized(
       root.id,
       context,
-      Environment,
+      context.dataLoaders.environmentLoaderById,
       User,
       1,
       async (resolve, reject, environmentFound) => {
@@ -218,7 +217,7 @@ const EnvironmentResolver = ({
     return authorized(
       root.id,
       context,
-      Environment,
+      context.dataLoaders.environmentLoaderById,
       User,
       1,
       async (resolve, reject, environmentFound) => {
@@ -257,7 +256,7 @@ const EnvironmentResolver = ({
     return authorized(
       root.id,
       context,
-      Environment,
+      context.dataLoaders.environmentLoaderById,
       User,
       1,
       async (resolve, reject, environmentFound) => {
@@ -295,7 +294,7 @@ const EnvironmentResolver = ({
     return authorized(
       root.id,
       context,
-      Environment,
+      context.dataLoaders.environmentLoaderById,
       User,
       1,
       async (resolve, reject, environmentFound) => {
@@ -329,7 +328,7 @@ const EnvironmentResolver = ({
     return authorized(
       root.id,
       context,
-      Environment,
+      context.dataLoaders.environmentLoaderById,
       User,
       1,
       async (

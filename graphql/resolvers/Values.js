@@ -10,15 +10,14 @@ import {
 const QUERY_COST = 1
 
 const GenericResolver = (
-  Model,
+  loaderName,
   User,
   Device,
   Environment,
   hasPermission = true
 ) => ({
   ...authorizedScalarPropsResolvers(
-    Model,
-    User,
+    loaderName,
     [
       "createdAt",
       "updatedAt",
@@ -33,8 +32,7 @@ const GenericResolver = (
   ),
   ...(hasPermission
     ? authorizedScalarPropsResolvers(
-        Model,
-        User,
+        loaderName,
         ["permission"],
         valueToParent(Environment)
       )
@@ -43,7 +41,7 @@ const GenericResolver = (
     authorized(
       root.id,
       context,
-      Model,
+      context.dataLoaders[loaderName],
       User,
       1,
       async (resolve, reject, valueFound) => {
@@ -56,7 +54,7 @@ const GenericResolver = (
     authorized(
       root.id,
       context,
-      Model,
+      context.dataLoaders[loaderName],
       User,
       1,
       async (resolve, reject, valueFound) => {
@@ -68,30 +66,27 @@ const GenericResolver = (
 })
 
 const BooleanValueResolver = GenericResolver
-const FloatValueResolver = (Model, User, Device, Environment) => ({
-  ...GenericResolver(Model, User, Device, Environment),
+const FloatValueResolver = (loaderName, User, Device, Environment) => ({
+  ...GenericResolver(loaderName, User, Device, Environment),
   ...authorizedScalarPropsResolvers(
-    Model,
-    User,
-    ["precision", "boundaries"],
+    loaderName,
+    [("precision", "boundaries")],
     valueToParent(Environment)
   ),
 })
-const StringValueResolver = (Model, User, Device, Environment) => ({
-  ...GenericResolver(Model, User, Device, Environment),
+const StringValueResolver = (loaderName, User, Device, Environment) => ({
+  ...GenericResolver(loaderName, User, Device, Environment),
   ...authorizedScalarPropsResolvers(
-    Model,
-    User,
+    loaderName,
     ["maxChars", "allowedValues"],
     valueToParent(Environment)
   ),
 })
-const PlotValueResolver = (PlotValue, PlotNode, User, Device, Environment) => ({
-  ...GenericResolver(PlotValue, User, Device, Environment, false),
+const PlotValueResolver = (loaderName, User, Device, Environment) => ({
+  ...GenericResolver(loaderName, User, Device, Environment, false),
   ...authorizedScalarPropsResolvers(
-    PlotValue,
-    User,
-    ["precision", "boundaries", "threshold"],
+    loaderName,
+    [("precision", "boundaries", "threshold")],
     valueToParent(Environment)
   ),
   // overriding GenericResolver's value
@@ -99,7 +94,7 @@ const PlotValueResolver = (PlotValue, PlotNode, User, Device, Environment) => ({
     authorized(
       root.id,
       context,
-      PlotValue,
+      context.dataLoaders.plotValueLoaderById,
       User,
       1,
       async (resolve, reject, plotFound) => {
@@ -110,17 +105,10 @@ const PlotValueResolver = (PlotValue, PlotNode, User, Device, Environment) => ({
       valueToParent(Environment)
     ),
 })
-const CategoryPlotValueResolver = (
-  CategoryPlotValue,
-  CategoryPlotNode,
-  User,
-  Device,
-  Environment
-) => ({
-  ...GenericResolver(CategoryPlotValue, User, Device, Environment, false),
+const CategoryPlotValueResolver = (loaderName, User, Device, Environment) => ({
+  ...GenericResolver(loaderName, User, Device, Environment, false),
   ...authorizedScalarPropsResolvers(
-    CategoryPlotValue,
-    User,
+    loaderName,
     ["allowedValues"],
     valueToParent(Environment)
   ),
@@ -129,7 +117,7 @@ const CategoryPlotValueResolver = (
     authorized(
       root.id,
       context,
-      CategoryPlotValue,
+      context.dataLoaders.categoryPlotValueLoaderById,
       User,
       1,
       async (resolve, reject, plotFound) => {
@@ -142,23 +130,29 @@ const CategoryPlotValueResolver = (
     ),
 })
 
-const PlotNodeResolver = (PlotNode, PlotValue, User, Device, Environment) => ({
+const PlotNodeResolver = (
+  nodeLoader,
+  valueLoader,
+  User,
+  Device,
+  Environment
+) => ({
   ...inheritAuthorizedScalarPropsResolvers(
-    PlotNode,
+    nodeLoader,
     User,
     ["timestamp", "value"],
     plotNodeFound => plotNodeFound.plotId,
-    PlotValue,
+    valueLoader,
     valueToParent(Environment)
   ),
   user(root, args, context) {
     return inheritAuthorized(
       root.id,
-      PlotNode,
+      context.dataLoaders[nodeLoader],
       User,
       plotNodeFound => plotNodeFound.plotId,
       context,
-      PlotValue,
+      context.dataLoaders[valueLoader],
       1,
       async (
         resolve,
@@ -176,11 +170,11 @@ const PlotNodeResolver = (PlotNode, PlotValue, User, Device, Environment) => ({
   device(root, args, context) {
     return inheritAuthorized(
       root.id,
-      PlotNode,
+      context.dataLoaders[nodeLoader],
       User,
       plotNodeFound => plotNodeFound.plotId,
       context,
-      PlotValue,
+      context.dataLoaders[valueLoader],
       1,
       async (
         resolve,
@@ -198,11 +192,11 @@ const PlotNodeResolver = (PlotNode, PlotValue, User, Device, Environment) => ({
   plot(root, args, context) {
     return inheritAuthorized(
       root.id,
-      PlotNode,
+      context.dataLoaders[nodeLoader],
       User,
       plotNodeFound => plotNodeFound.plotId,
       context,
-      PlotValue,
+      context.dataLoaders[valueLoader],
       1,
       async (
         resolve,
@@ -233,21 +227,46 @@ export default (
   Device,
   Environment
 ) => ({
-  BooleanValue: BooleanValueResolver(BooleanValue, User, Device, Environment),
-  FloatValue: FloatValueResolver(FloatValue, User, Device, Environment),
-  StringValue: StringValueResolver(StringValue, User, Device, Environment),
-  PlotValue: PlotValueResolver(PlotValue, PlotNode, User, Device, Environment),
-  PlotNode: PlotNodeResolver(PlotNode, PlotValue, User, Device, Environment),
+  BooleanValue: BooleanValueResolver(
+    "booleanValueLoaderById",
+    User,
+    Device,
+    Environment
+  ),
+  FloatValue: FloatValueResolver(
+    "floatValueLoaderById",
+    User,
+    Device,
+    Environment
+  ),
+  StringValue: StringValueResolver(
+    "stringValueLoaderById",
+    User,
+    Device,
+    Environment
+  ),
+  PlotValue: PlotValueResolver(
+    "plotValueLoaderById",
+    User,
+    Device,
+    Environment
+  ),
+  PlotNode: PlotNodeResolver(
+    "plotNodeLoaderById",
+    "plotValueLoaderById",
+    User,
+    Device,
+    Environment
+  ),
   CategoryPlotValue: CategoryPlotValueResolver(
-    CategoryPlotValue,
-    CategoryPlotNode,
+    "categoryPlotValueLoaderById",
     User,
     Device,
     Environment
   ),
   CategoryPlotNode: PlotNodeResolver(
-    CategoryPlotNode,
-    CategoryPlotValue,
+    "categoryPlotNodeLoaderById",
+    "categoryPlotValueLoaderById",
     User,
     Device,
     Environment

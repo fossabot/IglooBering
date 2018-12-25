@@ -7,6 +7,8 @@ import {
   logErrorsPromise,
   instanceToSharedIds,
 } from "./utilities"
+import { loadDevicesByIds } from "../../dataloaders/index.js"
+import DataLoader from "dataloader"
 
 const subscriptionResolver = (pubsub, { User, Device, Environment }) => ({
   environmentShareReceived: subscriptionFilterOnlyMine(
@@ -107,7 +109,7 @@ const subscriptionResolver = (pubsub, { User, Device, Environment }) => ({
         authorized(
           args.deviceId,
           context,
-          Device,
+          new DataLoader(loadDevicesByIds),
           User,
           2,
           async (resolve, reject, deviceFound, [_, environmentFound]) => {

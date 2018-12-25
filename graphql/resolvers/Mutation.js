@@ -415,7 +415,7 @@ const MutationResolver = (
       authorized(
         args.environmentId,
         context,
-        Environment,
+        context.dataLoaders.environmentLoaderById,
         User,
         3,
         async (resolve, reject, environmentFound, _, senderFound) => {
@@ -507,11 +507,11 @@ const MutationResolver = (
     pendingEnvironmentShare: (root, args, context) =>
       inheritAuthorized(
         args.id,
-        PendingEnvironmentShare,
+        context.dataLoaders.pendingEnvironmentShareLoaderById,
         User,
         pendingEnvironmentShare => pendingEnvironmentShare.environmentId,
         context,
-        Environment,
+        context.dataLoaders.environmentLoaderById,
         3,
         async (
           resolve,
@@ -699,7 +699,7 @@ const MutationResolver = (
       authorized(
         args.environmentId,
         context,
-        Environment,
+        context.dataLoaders.environmentLoaderById,
         User,
         4,
         async (resolve, reject, environmentFound, _, senderFound) => {
@@ -784,11 +784,11 @@ const MutationResolver = (
     revokePendingOwnerChange: (root, args, context) =>
       inheritAuthorized(
         args.pendingOwnerChangeId,
-        PendingOwnerChange,
+        context.dataLoaders.pendingOwnerChangeLoaderById,
         User,
         pendingEnvironmentShare => pendingEnvironmentShare.environmentId,
         context,
-        Environment,
+        context.dataLoaders.environmenLoaderById,
         3,
         async (resolve, reject, pendingOwnerChangeFound, environmentFound) => {
           const targetUserId = pendingOwnerChangeFound.receiverId
@@ -939,7 +939,7 @@ const MutationResolver = (
       return authorized(
         args.environmentId,
         context,
-        Environment,
+        context.dataLoaders.environmentLoaderById,
         User,
         3,
         async (resolve, reject, environmentFound, _, userFound) => {
@@ -1025,7 +1025,7 @@ const MutationResolver = (
       return authorized(
         args.environmentId,
         context,
-        Environment,
+        context.dataLoaders.environmentLoaderById,
         User,
         1,
         async (resolve, reject, environmentFound, _, userFound) => {
@@ -1080,7 +1080,7 @@ const MutationResolver = (
       authorized(
         args.environmentId,
         context,
-        Environment,
+        context.dataLoaders.environmentLoaderById,
         User,
         3,
         async (resolve, reject, environmentFound) => {
@@ -1200,7 +1200,7 @@ const MutationResolver = (
         return authorized(
           args.environmentId,
           context,
-          Environment,
+          context.dataLoaders.environmentLoaderById,
           User,
           2,
           async (resolve, reject, environmentFound, _, userFound) => {
@@ -1238,7 +1238,6 @@ const MutationResolver = (
               environmentId: args.environmentId,
               index,
             })
-            console.log(newDevice.id)
 
             const resolveValue = {
               ...newDevice.dataValues,
@@ -1427,7 +1426,7 @@ const MutationResolver = (
       return authorized(
         args.plotId,
         context,
-        PlotValue,
+        context.dataLoaders.plotValueLoaderById,
         User,
         2,
         async (resolve, reject, plotValueFound, [_, environmentFound]) => {
@@ -1477,7 +1476,7 @@ const MutationResolver = (
       return authorized(
         args.plotId,
         context,
-        CategoryPlotValue,
+        context.dataLoaders.categoryPlotValueLoaderById,
         User,
         2,
         async (resolve, reject, plotValueFound, [_, environmentFound]) => {
@@ -1694,7 +1693,7 @@ const MutationResolver = (
       return authorized(
         args.id,
         context,
-        Environment,
+        context.dataLoaders.environmentLoaderById,
         User,
         2,
         async (resolve, reject, environmentFound, _, userFound) => {
@@ -1728,7 +1727,7 @@ const MutationResolver = (
       return authorized(
         args.id,
         context,
-        Device,
+        context.dataLoaders.deviceLoaderById,
         User,
         2,
         async (
@@ -1805,7 +1804,7 @@ const MutationResolver = (
       return authorized(
         args.deviceId,
         context,
-        Device,
+        context.dataLoaders.deviceLoaderById,
         User,
         4,
         async (
@@ -1876,7 +1875,7 @@ const MutationResolver = (
       return authorized(
         args.deviceId,
         context,
-        Device,
+        context.dataLoaders.deviceLoaderById,
         User,
         2,
         async (resolve, reject, deviceFound, [_, environmentFound]) => {
@@ -1895,7 +1894,7 @@ const MutationResolver = (
       )
     },
     floatValue: genericValueMutation(
-      FloatValue,
+      "floatValueLoaderById",
       "FloatValue",
       pubsub,
       User,
@@ -1940,7 +1939,7 @@ const MutationResolver = (
       }
     ),
     stringValue: genericValueMutation(
-      StringValue,
+      "stringValueLoaderById",
       "StringValue",
       pubsub,
       User,
@@ -2006,7 +2005,7 @@ const MutationResolver = (
       }
     ),
     booleanValue: genericValueMutation(
-      BooleanValue,
+      "booleanValueLoaderById",
       "BooleanValue",
       pubsub,
       User,
@@ -2014,7 +2013,7 @@ const MutationResolver = (
       Environment
     ),
     mapValue: genericValueMutation(
-      MapValue,
+      "mapValueLoaderById",
       "MapValue",
       pubsub,
       User,
@@ -2022,7 +2021,7 @@ const MutationResolver = (
       Environment
     ),
     plotValue: genericValueMutation(
-      PlotValue,
+      "plotValueLoaderById",
       "PlotValue",
       pubsub,
       User,
@@ -2030,7 +2029,7 @@ const MutationResolver = (
       Environment
     ),
     categoryPlotValue: genericValueMutation(
-      CategoryPlotValue,
+      "categoryPlotValueLoaderById",
       "CategoryPlotValue",
       pubsub,
       User,
@@ -2041,7 +2040,7 @@ const MutationResolver = (
       authorized(
         args.id,
         context,
-        FloatValue,
+        context.dataLoaders.floatValueLoaderById,
         User,
         2,
         async (resolve, reject, valueFound, [_, environmentFound]) => {
@@ -2086,11 +2085,11 @@ const MutationResolver = (
     plotNode(root, args, context) {
       return inheritAuthorized(
         args.id,
-        PlotNode,
+        context.dataLoaders.plotNodeLoaderById,
         User,
         plotNodeFound => plotNodeFound.plotId,
         context,
-        PlotValue,
+        context.dataLoaders.plotValueLoaderById,
         2,
         async (
           resolve,
@@ -2139,11 +2138,11 @@ const MutationResolver = (
     categoryPlotNode(root, args, context) {
       return inheritAuthorized(
         args.id,
-        CategoryPlotNode,
+        context.dataLoaders.categoryPlotNodeLoaderById,
         User,
         plotNodeFound => plotNodeFound.plotId,
         context,
-        CategoryPlotValue,
+        context.dataLoaders.categoryPlotValueLoaderById,
         2,
         async (
           resolve,
@@ -2191,7 +2190,7 @@ const MutationResolver = (
       return authorized(
         args.deviceId,
         context,
-        Device,
+        context.dataLoaders.deviceLoaderById,
         User,
         2,
         async (
@@ -2306,11 +2305,11 @@ const MutationResolver = (
     notification(root, args, context) {
       return inheritAuthorized(
         args.id,
-        Notification,
+        context.dataLoaders.notificationLoaderById,
         User,
         notificationFound => notificationFound.deviceId,
         context,
-        Device,
+        context.dataLoaders.deviceLoaderById,
         2,
         async (
           resolve,
@@ -2377,11 +2376,11 @@ const MutationResolver = (
     deleteNotification(root, args, context) {
       return inheritAuthorized(
         args.id,
-        Notification,
+        context.dataLoaders.notificationLoaderById,
         User,
         notificationFound => notificationFound.deviceId,
         context,
-        Device,
+        context.dataLoaders.deviceLoaderById,
         2,
         async (
           resolve,
@@ -2468,7 +2467,7 @@ const MutationResolver = (
       authorized(
         args.id,
         context,
-        Device,
+        context.dataLoaders.deviceLoaderById,
         User,
         3,
         async (resolve, reject, deviceFound, [_, environmentFound]) => {
@@ -2528,7 +2527,7 @@ const MutationResolver = (
       authorized(
         args.id,
         context,
-        Environment,
+        context.dataLoaders.environmentLoaderById,
         User,
         3,
         async (
@@ -2653,11 +2652,11 @@ const MutationResolver = (
     deletePlotNode(root, args, context) {
       return inheritAuthorized(
         args.id,
-        PlotNode,
+        context.dataLoaders.plotNodeLoaderById,
         User,
         plotNodeFound => plotNodeFound.plotId,
         context,
-        PlotValue,
+        context.dataLoaders.plotValueLoaderById,
         2,
         async (
           resolve,
@@ -2704,11 +2703,11 @@ const MutationResolver = (
     deleteCategoryPlotNode(root, args, context) {
       return inheritAuthorized(
         args.id,
-        CategoryPlotNode,
+        plotValueLoaderById.categoryPlotNodeLoaderById,
         User,
         plotNodeFound => plotNodeFound.plotId,
         context,
-        CategoryPlotValue,
+        context.dataLoaders.categoryPlotValueLoaderById,
         2,
         async (
           resolve,

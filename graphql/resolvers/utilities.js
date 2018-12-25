@@ -118,7 +118,7 @@ const CreateGenericValue = (
   authorized(
     args.deviceId,
     context,
-    Device,
+    context.dataLoaders.deviceLoaderById,
     User,
     2,
     async (resolve, reject, deviceFound, [_, environmentFound], userFound) => {
@@ -250,7 +250,7 @@ function logErrorsPromise(_, _a, callback) {
 }
 
 const genericValueMutation = (
-  childModel,
+  childLoaderName,
   __resolveType,
   pubsub,
   User,
@@ -261,7 +261,7 @@ const genericValueMutation = (
   authorized(
     args.id,
     context,
-    childModel,
+    context.dataLoaders[childLoaderName],
     User,
     2,
     async (resolve, reject, valueFound, [_, environmentFound]) => {
@@ -748,7 +748,7 @@ async function authorizationLevel(instance, userFound) {
 function authorized(
   id,
   context,
-  Model,
+  loader,
   User,
   authorizationRequired,
   callback,
@@ -758,7 +758,7 @@ function authorized(
   return authenticated(
     context,
     async (resolve, reject) => {
-      const found = await Model.find({ where: { id } })
+      const found = await loader.load(id)
 
       if (!found) {
         reject("The requested resource does not exist")
@@ -783,8 +783,7 @@ function authorized(
 }
 
 const authorizedRetrieveScalarProp = (
-  Model,
-  User,
+  loaderName,
   prop,
   childToParent,
   acceptedTokenTypes
@@ -792,8 +791,8 @@ const authorizedRetrieveScalarProp = (
   authorized(
     root.id,
     context,
-    Model,
-    User,
+    context.dataLoaders[loaderName],
+    null,
     1,
     async (resolve, reject, resourceFound) => {
       resolve(resourceFound[prop])
@@ -803,16 +802,14 @@ const authorizedRetrieveScalarProp = (
   )
 
 const authorizedScalarPropsResolvers = (
-  Model,
-  User,
+  loaderName,
   props,
   childToParent,
   acceptedTokenTypes
 ) =>
   props.reduce((acc, prop) => {
     acc[prop] = authorizedRetrieveScalarProp(
-      Model,
-      User,
+      loaderName,
       prop,
       childToParent,
       acceptedTokenTypes
@@ -933,19 +930,17 @@ const instanceToSharedIds = async instance => {
 
 const inheritAuthorized = (
   ownId,
-  ownModel,
+  ownLoader,
   User,
   ownIstanceToParentId,
   context,
-  parentModel,
+  parentLoader,
   authorizationRequired,
   callback,
   childToParent,
   acceptedTokenTypes
 ) => async (resolve, reject) => {
-  const entityFound = await ownModel.find({
-    where: { id: ownId },
-  })
+  const entityFound = await ownLoader.load(ownId)
 
   if (!entityFound) {
     reject("The requested resource does not exist")
@@ -953,7 +948,7 @@ const inheritAuthorized = (
     return authorized(
       ownIstanceToParentId(entityFound),
       context,
-      parentModel,
+      parentLoader,
       User,
       authorizationRequired,
       (resolve, reject, parentFound, allParents) =>
@@ -965,21 +960,21 @@ const inheritAuthorized = (
 }
 
 const inheritAuthorizedRetrieveScalarProp = (
-  Model,
+  ownLoaderName,
   User,
   prop,
   ownIstanceToParentId,
-  parentModel,
+  parentLoaderName,
   childToParent,
   acceptedTokenTypes
 ) => (root, args, context) =>
   inheritAuthorized(
     root.id,
-    Model,
+    context.dataLoaders[ownLoaderName],
     User,
     ownIstanceToParentId,
     context,
-    parentModel,
+    context.dataLoaders[parentLoaderName],
     1,
     (resolve, reject, resourceFound) => resolve(resourceFound[prop]),
     childToParent,
@@ -987,21 +982,21 @@ const inheritAuthorizedRetrieveScalarProp = (
   )
 
 const inheritAuthorizedScalarPropsResolvers = (
-  Model,
+  ownLoaderName,
   User,
   props,
   ownIstanceToParentId,
-  parentModel,
+  parentLoaderName,
   childToParent,
   acceptedTokenTypes
 ) =>
   props.reduce((acc, prop) => {
     acc[prop] = inheritAuthorizedRetrieveScalarProp(
-      Model,
+      ownLoaderName,
       User,
       prop,
       ownIstanceToParentId,
-      parentModel,
+      parentLoaderName,
       childToParent,
       acceptedTokenTypes
     )
