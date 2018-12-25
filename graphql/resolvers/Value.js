@@ -32,9 +32,9 @@ const ValueResolver = (Values, User, Device, Environment) => ({
               const userFound = await context.dataLoaders.userLoaderById.load(
                 context.auth.userId
               )
-              const environmentFound = await Environment.find({
-                where: { id: resourceFound.environmentId },
-              })
+              const environmentFound = await context.dataLoaders.environmentLoaderById.load(
+                resourceFound.environmentId
+              )
 
               if ((await authorizationLevel(environmentFound, userFound)) < 1) {
                 /* istanbul ignore next */

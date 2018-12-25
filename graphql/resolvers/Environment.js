@@ -38,7 +38,9 @@ const retrievePublicEnvironmentScalarProp = (Environment, prop) => (
   context
 ) =>
   authenticated(context, async (resolve, reject) => {
-    const environmentFound = await Environment.find({ where: { id: root.id } })
+    const environmentFound = await context.dataLoaders.environmentLoaderById.load(
+      root.id
+    )
     if (!environmentFound) {
       reject("The requested resource does not exist")
     } else {

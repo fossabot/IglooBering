@@ -12,9 +12,9 @@ const PendingOwnerChangeResolver = ({
       })
 
       const findSharedEnvironment = () =>
-        Environment.find({
-          where: { id: pendingOwnerChange.environmentId },
-        })
+        context.dataLoaders.environmentLoaderById.load(
+          pendingOwnerChange.environmentId
+        )
       const findUser = () =>
         context.dataLoaders.userLoaderById.load(context.auth.userId)
 
@@ -40,9 +40,9 @@ const PendingOwnerChangeResolver = ({
       })
 
       const findSharedEnvironment = () =>
-        Environment.find({
-          where: { id: pendingOwnerChange.environmentId },
-        })
+        context.dataLoaders.environmentLoaderById.load(
+          pendingOwnerChange.environmentId
+        )
       const findUser = () =>
         context.dataLoaders.userLoaderById.load(context.auth.userId)
 
@@ -68,9 +68,9 @@ const PendingOwnerChangeResolver = ({
       })
 
       const findSharedEnvironment = () =>
-        Environment.find({
-          where: { id: pendingOwnerChange.environmentId },
-        })
+        context.dataLoaders.environmentLoaderById.load(
+          pendingOwnerChange.environmentId
+        )
       const findUser = () =>
         context.dataLoaders.userLoaderById.load(context.auth.userId)
 
@@ -96,9 +96,9 @@ const PendingOwnerChangeResolver = ({
       })
 
       const findSharedEnvironment = () =>
-        Environment.find({
-          where: { id: pendingOwnerChange.environmentId },
-        })
+        context.dataLoaders.environmentLoaderById.load(
+          pendingOwnerChange.environmentId
+        )
       const findUser = () =>
         context.dataLoaders.userLoaderById.load(context.auth.userId)
 

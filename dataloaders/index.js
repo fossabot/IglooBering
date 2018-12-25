@@ -1,4 +1,4 @@
-import { User, Environment } from "../postgresql/models"
+import { User, Environment, Device } from "../postgresql/models"
 import { Op } from "sequelize"
 
 const genericLoadById = Model => async keys => {
@@ -22,4 +22,5 @@ const genericLoadById = Model => async keys => {
 module.exports = {
   loadUsersByIds: genericLoadById(User),
   loadEnvironmentsByIds: genericLoadById(Environment),
+  loadDevicesByIds: genericLoadById(Device),
 }

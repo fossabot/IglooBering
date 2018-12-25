@@ -562,9 +562,9 @@ const MutationResolver = (
           // add new role
           const parsedRole = `${pendingEnvironmentFound.role[0] +
             pendingEnvironmentFound.role.slice(1).toLowerCase()}s`
-          const environmentFound = await Environment.find({
-            where: { id: pendingEnvironmentFound.environmentId },
-          })
+          const environmentFound = await context.dataLoaders.environmentLoaderById.load(
+            pendingEnvironmentFound.environmentId
+          )
           const userFound = await context.dataLoaders.userLoaderById.load(
             context.auth.userId
           )
@@ -628,9 +628,9 @@ const MutationResolver = (
           reject("You are not the receiver of this environment share")
         } else {
           const pendingEnvironmentFoundId = pendingEnvironmentFound.id
-          const environmentFound = await Environment.find({
-            where: { id: pendingEnvironmentFound.environmentId },
-          })
+          const environmentFound = await context.dataLoaders.environmentLoaderById.load(
+            pendingEnvironmentFound.environmentId
+          )
 
           await pendingEnvironmentFound.destroy()
 
@@ -662,9 +662,9 @@ const MutationResolver = (
         if (!pendingEnvironmentFound) {
           reject("The requested resource does not exist")
         } else {
-          const environmentFound = await Environment.find({
-            where: { id: pendingEnvironmentFound.environmentId },
-          })
+          const environmentFound = await context.dataLoaders.environmentLoaderById.load(
+            pendingEnvironmentFound.environmentId
+          )
           const userFound = await context.dataLoaders.userLoaderById.load(
             context.auth.userId
           )
@@ -827,9 +827,9 @@ const MutationResolver = (
         } else if (context.auth.userId !== pendingOwnerChangeFound.receiverId) {
           reject("You are not the receiver of this owner change")
         } else {
-          const environmentFound = await Environment.find({
-            where: { id: pendingOwnerChangeFound.environmentId },
-          })
+          const environmentFound = await context.dataLoaders.environmentLoaderById.load(
+            pendingOwnerChangeFound.environmentId
+          )
           const userFound = await context.dataLoaders.userLoaderById.load(
             pendingOwnerChangeFound.receiverId
           )
@@ -914,9 +914,9 @@ const MutationResolver = (
 
           resolve(args.pendingOwnerChangeId)
 
-          const environmentFound = await Environment.find({
-            where: { id: pendingOwnerChangeFound.environmentId },
-          })
+          const environmentFound = await context.dataLoaders.environmentLoaderById.load(
+            pendingOwnerChangeFound.environmentId
+          )
           touch(Environment, args.environmentId)
 
           context.billingUpdater.update(MUTATION_COST)
@@ -1820,9 +1820,9 @@ const MutationResolver = (
             return
           }
 
-          const targetEnvironment = await Environment.find({
-            where: { id: args.newEnvironmentId },
-          })
+          const targetEnvironment = await context.dataLoaders.environmentLoaderById.load(
+            args.newEnvironmentId
+          )
 
           const isOwnerOfTargetEnvironment =
             (await instanceToRole(targetEnvironment, userFound)) === "OWNER"

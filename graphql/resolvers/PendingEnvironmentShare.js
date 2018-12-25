@@ -12,9 +12,9 @@ const PendingEnvironmentShareResolver = ({
       })
 
       const findSharedEnvironment = () =>
-        Environment.find({
-          where: { id: pendingEnvironmentFound.environmentId },
-        })
+        context.dataLoaders.environmentLoaderById.load(
+          pendingEnvironmentFound.environmentId
+        )
       const findUser = () =>
         context.dataLoaders.userLoaderById.load(context.auth.userId)
 
@@ -41,9 +41,9 @@ const PendingEnvironmentShareResolver = ({
       })
 
       const findSharedEnvironment = () =>
-        Environment.find({
-          where: { id: pendingEnvironmentFound.environmentId },
-        })
+        context.dataLoaders.environmentLoaderById.load(
+          pendingEnvironmentFound.environmentId
+        )
       const findUser = () =>
         context.dataLoaders.userLoaderById.load(context.auth.userId)
 
@@ -70,9 +70,9 @@ const PendingEnvironmentShareResolver = ({
       })
 
       const findSharedEnvironment = () =>
-        Environment.find({
-          where: { id: pendingEnvironmentFound.environmentId },
-        })
+        context.dataLoaders.environmentLoaderById.load(
+          pendingEnvironmentFound.environmentId
+        )
 
       const findUser = () =>
         context.dataLoaders.userLoaderById.load(context.auth.userId)
@@ -100,9 +100,9 @@ const PendingEnvironmentShareResolver = ({
       })
 
       const findSharedEnvironment = () =>
-        Environment.find({
-          where: { id: pendingEnvironmentFound.environmentId },
-        })
+        context.dataLoaders.environmentLoaderById.load(
+          pendingEnvironmentFound.environmentId
+        )
       const findUser = () =>
         context.dataLoaders.userLoaderById.load(context.auth.userId)
 
@@ -129,9 +129,9 @@ const PendingEnvironmentShareResolver = ({
       })
 
       const findSharedEnvironment = () =>
-        Environment.find({
-          where: { id: pendingEnvironmentFound.environmentId },
-        })
+        context.dataLoaders.environmentLoaderById.load(
+          pendingEnvironmentFound.environmentId
+        )
       const findUser = () =>
         context.dataLoaders.userLoaderById.load(context.auth.userId)
 
