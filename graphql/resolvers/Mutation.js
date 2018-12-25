@@ -482,8 +482,8 @@ const MutationResolver = (
 
             touch(Environment, args.environmentId, newPendingShare.updatedAt)
 
-            pubsub.publish("environmentSharedReceived", {
-              environmentSharedReceived: newPendingShare,
+            pubsub.publish("environmentShareReceived", {
+              environmentShareReceived: newPendingShare,
               userId: receiverFound.id,
             })
             sendEnvironmentSharedEmail(

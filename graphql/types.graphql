@@ -587,7 +587,7 @@ type Subscription {
   # subscribes to device creations
   deviceMoved: Device
   # subscribes to environment shares to you
-  environmentSharedReceived: PendingEnvironmentShare
+  environmentShareReceived: PendingEnvironmentShare
   environmentShareUpdated: PendingEnvironmentShare
   # returns the environment accepted
   environmentShareAccepted: acceptPendingEnvironmentSharePayload

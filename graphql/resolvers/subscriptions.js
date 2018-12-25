@@ -9,8 +9,8 @@ import {
 } from "./utilities"
 
 const subscriptionResolver = (pubsub, { User, Device, Environment }) => ({
-  environmentSharedReceived: subscriptionFilterOnlyMine(
-    "environmentSharedReceived",
+  environmentShareReceived: subscriptionFilterOnlyMine(
+    "environmentShareReceived",
     pubsub
   ),
   environmentShareUpdated: subscriptionFilterOnlyMine(

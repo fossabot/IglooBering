@@ -221,7 +221,7 @@ function logErrorsPromise(_, _a, callback) {
       return await callback(resolve, reject)
     } catch (e) {
       if (e.parent && e.parent.routine === "string_to_uuid") {
-        reject("The id passed is not valid")
+        reject("This id is not valid")
         return
       }
 
