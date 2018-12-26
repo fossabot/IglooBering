@@ -1,5 +1,6 @@
 import {
   authenticated,
+  instanceToRole,
   authorized,
   authorizedScalarPropsResolvers,
   valueToParent,
@@ -60,6 +61,20 @@ const GenericResolver = (
       async (resolve, reject, valueFound) => {
         resolve({ id: valueFound.environmentId })
         context.billingUpdater.update(QUERY_COST)
+      },
+      valueToParent(Environment)
+    ),
+  myRole: (root, args, context) =>
+    authorized(
+      root.id,
+      context,
+      context.dataLoaders[loaderName],
+      User,
+      1,
+      async (resolve, reject, valueFound, [_, environmentFound], userFound) => {
+        const myRole = await instanceToRole(environmentFound, userFound)
+
+        resolve(myRole)
       },
       valueToParent(Environment)
     ),

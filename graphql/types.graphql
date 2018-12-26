@@ -742,6 +742,7 @@ type Device {
   index: Int!
   createdAt: DateTime!
   updatedAt: DateTime!
+  myRole: RoleExtended!
   # Product name, for example Igloo Thermostat
   deviceType: String
   # Custom name gave by the end-user to the device
@@ -823,6 +824,7 @@ interface Value {
   id: ID!
   createdAt: DateTime!
   updatedAt: DateTime!
+  myRole: RoleExtended!
   device: Device!
   environment: Environment!
   visibility: ValueVisibility!
@@ -836,6 +838,7 @@ type FloatValue implements Value {
   id: ID!
   createdAt: DateTime!
   updatedAt: DateTime!
+  myRole: RoleExtended!
   device: Device!
   environment: Environment!
   permission: ValuePermission!
@@ -855,6 +858,7 @@ type StringValue implements Value {
   id: ID!
   createdAt: DateTime!
   updatedAt: DateTime!
+  myRole: RoleExtended!
   device: Device!
   environment: Environment!
   permission: ValuePermission!
@@ -872,6 +876,7 @@ type PlotValue implements Value {
   id: ID!
   createdAt: DateTime!
   updatedAt: DateTime!
+  myRole: RoleExtended!
   device: Device!
   environment: Environment!
   visibility: ValueVisibility!
@@ -892,6 +897,7 @@ type CategoryPlotValue implements Value {
   id: ID!
   createdAt: DateTime!
   updatedAt: DateTime!
+  myRole: RoleExtended!
   device: Device!
   environment: Environment!
   visibility: ValueVisibility!
@@ -907,6 +913,7 @@ type BooleanValue implements Value {
   id: ID!
   createdAt: DateTime!
   updatedAt: DateTime!
+  myRole: RoleExtended!
   device: Device!
   environment: Environment!
   permission: ValuePermission!
@@ -922,6 +929,7 @@ type MapValue implements Value {
   id: ID!
   createdAt: DateTime!
   updatedAt: DateTime!
+  myRole: RoleExtended!
   device: Device!
   environment: Environment!
   permission: ValuePermission!

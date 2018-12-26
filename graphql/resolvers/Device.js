@@ -3,6 +3,7 @@ import {
   findAllValues,
   authorizedScalarPropsResolvers,
   deviceToParent,
+  instanceToRole,
 } from "./utilities"
 import { Op } from "sequelize"
 
@@ -148,6 +149,27 @@ const DeviceResolver = ({
         })
 
         resolve(count)
+      },
+      deviceToParent(Environment)
+    )
+  },
+  myRole(root, args, context) {
+    return authorized(
+      root.id,
+      context,
+      context.dataLoaders.deviceLoaderById,
+      User,
+      1,
+      async (
+        resolve,
+        reject,
+        deviceFound,
+        [_, environmentFound],
+        userFound
+      ) => {
+        const myRole = await instanceToRole(environmentFound, userFound)
+
+        resolve(myRole)
       },
       deviceToParent(Environment)
     )

@@ -12,7 +12,7 @@ const sequelize = new Sequelize(process.env.CONNECTION_STRING, {
   dialectOptions: {
     ssl: true,
   },
-  logging: true,
+  logging: false,
   pool: {
     max: 50,
     min: 1,
