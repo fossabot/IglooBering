@@ -24,6 +24,12 @@ import {
   loadStringPlotNodesByIds,
   loadStringValuesByIds,
   loadWebPushSubscriptionsByIds,
+  loadAllEnvironmentAdminsByEnvironmentId,
+  loadAllEnvironmentEditorsByEnvironmentId,
+  loadAllEnvironmentSpectatorsByEnvironmentId,
+  loadEnvironmentAdminByEnvironmentAndUserId,
+  loadEnvironmentEditorByEnvironmentAndUserId,
+  loadEnvironmentSpectatorByEnvironmentAndUserId,
 } from "./dataloaders/index"
 import express from "express"
 import { graphqlExpress, graphiqlExpress } from "apollo-server-express"
@@ -184,6 +190,26 @@ app.use(
       stringValueLoaderById: new DataLoader(loadStringValuesByIds),
       webPushSubscriptionLoaderById: new DataLoader(
         loadWebPushSubscriptionsByIds
+      ),
+
+      allEnvironmentAdminsLoaderByEnvironmentId: new DataLoader(
+        loadAllEnvironmentAdminsByEnvironmentId
+      ),
+      allEnvironmentEditorsLoaderByEnvironmentId: new DataLoader(
+        loadAllEnvironmentEditorsByEnvironmentId
+      ),
+      allEnvironmentSpectatorsLoaderByEnvironmentId: new DataLoader(
+        loadAllEnvironmentSpectatorsByEnvironmentId
+      ),
+
+      environmentAdminLoaderByEnvironmentAndUserId: new DataLoader(
+        loadEnvironmentAdminByEnvironmentAndUserId
+      ),
+      editorAdminLoaderByEnvironmentAndUserId: new DataLoader(
+        loadEnvironmentEditorByEnvironmentAndUserId
+      ),
+      spectatorAdminLoaderByEnvironmentAndUserId: new DataLoader(
+        loadEnvironmentSpectatorByEnvironmentAndUserId
       ),
     }
     return {

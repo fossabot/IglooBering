@@ -114,7 +114,7 @@ const subscriptionResolver = (pubsub, { User, Device, Environment }) => ({
           2,
           async (resolve, reject, deviceFound, [_, environmentFound]) => {
             const newDevice = await deviceFound.update({ online: true })
-            const userIds = await instanceToSharedIds(environmentFound)
+            const userIds = await instanceToSharedIds(environmentFound, context)
 
             pubsub.publish("deviceUpdated", {
               deviceUpdated: newDevice.dataValues,

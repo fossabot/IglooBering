@@ -36,7 +36,13 @@ const ValueResolver = (Values, User, Device, Environment) => ({
                 resourceFound.environmentId
               )
 
-              if ((await authorizationLevel(environmentFound, userFound)) < 1) {
+              if (
+                (await authorizationLevel(
+                  environmentFound,
+                  userFound,
+                  context
+                )) < 1
+              ) {
                 /* istanbul ignore next */
                 rejectInner(NOT_ALLOWED)
               } else {

@@ -428,7 +428,11 @@ const MutationResolver = (
           } else if (receiverFound.id === context.auth.userId) {
             reject("You can't share a resource with yourself")
           } else {
-            const role = await instanceToRole(environmentFound, receiverFound)
+            const role = await instanceToRole(
+              environmentFound,
+              receiverFound,
+              context
+            )
             if (role !== null) {
               reject("This user already has a role on this environment")
               return
@@ -493,7 +497,8 @@ const MutationResolver = (
             )
 
             const usersWithAccessIds = (await instanceToSharedIds(
-              environmentFound
+              environmentFound,
+              context
             )).filter(id => id !== receiverFound.id)
 
             pubsub.publish("environmentUpdated", {
@@ -538,7 +543,8 @@ const MutationResolver = (
           })
 
           const usersWithAccessIds = (await instanceToSharedIds(
-            environmentFound
+            environmentFound,
+            context
           )).filter(id => id !== newPendingEnvironmentShare.receiverId)
 
           pubsub.publish("environmentUpdated", {
@@ -607,7 +613,8 @@ const MutationResolver = (
           })
 
           const usersWithAccessIds = (await instanceToSharedIds(
-            environmentFound
+            environmentFound,
+            context
           )).filter(id => id !== context.auth.userId)
 
           pubsub.publish("environmentUpdated", {
@@ -645,7 +652,10 @@ const MutationResolver = (
             userId: context.auth.userId,
           })
 
-          const usersWithAccessIds = await instanceToSharedIds(environmentFound)
+          const usersWithAccessIds = await instanceToSharedIds(
+            environmentFound,
+            context
+          )
 
           pubsub.publish("environmentUpdated", {
             environmentUpdated: environmentFound,
@@ -669,7 +679,9 @@ const MutationResolver = (
             context.auth.userId
           )
 
-          if ((await authorizationLevel(environmentFound, userFound)) < 3) {
+          if (
+            (await authorizationLevel(environmentFound, userFound, context)) < 3
+          ) {
             reject("You are not authorized to perform this operation")
           } else {
             const revokedId = pendingEnvironmentFound.id
@@ -681,7 +693,8 @@ const MutationResolver = (
             touch(Environment, environmentFound.id)
 
             const usersWithAccessIds = await instanceToSharedIds(
-              environmentFound
+              environmentFound,
+              context
             )
 
             pubsub.publish("environmentShareRevoked", {
@@ -770,7 +783,8 @@ const MutationResolver = (
             )
 
             const usersWithAccessIds = (await instanceToSharedIds(
-              environmentFound
+              environmentFound,
+              context
             )).filter(id => id !== receiverFound.id)
 
             pubsub.publish("environmentUpdated", {
@@ -806,7 +820,8 @@ const MutationResolver = (
           })
 
           const usersWithAccessIds = (await instanceToSharedIds(
-            environmentFound
+            environmentFound,
+            context
           )).filter(id => id !== targetUserId)
 
           pubsub.publish("environmentUpdated", {
@@ -889,7 +904,8 @@ const MutationResolver = (
           })
 
           const usersWithAccessIds = (await instanceToSharedIds(
-            environmentFound
+            environmentFound,
+            context
           )).filter(id => id !== context.auth.userId)
 
           pubsub.publish("environmentUpdated", {
@@ -928,7 +944,10 @@ const MutationResolver = (
 
           // sending environmentUpdated subscription also to the target user
           // for ease of handling on the client side
-          const usersWithAccessIds = await instanceToSharedIds(environmentFound)
+          const usersWithAccessIds = await instanceToSharedIds(
+            environmentFound,
+            context
+          )
           pubsub.publish("environmentUpdated", {
             environmentUpdated: environmentFound,
             userIds: usersWithAccessIds,
@@ -948,7 +967,8 @@ const MutationResolver = (
           })
           const currentRole = await instanceToRole(
             environmentFound,
-            targetUserFound
+            targetUserFound,
+            context
           )
 
           if (!targetUserFound) {
@@ -1012,7 +1032,7 @@ const MutationResolver = (
 
             pubsub.publish("environmentUpdated", {
               environmentUpdated: environmentFound,
-              userIds: await instanceToSharedIds(environmentFound),
+              userIds: await instanceToSharedIds(environmentFound, context),
             })
 
             context.billingUpdater.update(MUTATION_COST)
@@ -1029,7 +1049,10 @@ const MutationResolver = (
         User,
         1,
         async (resolve, reject, environmentFound, _, userFound) => {
-          if ((await instanceToRole(environmentFound, userFound)) === "OWNER") {
+          if (
+            (await instanceToRole(environmentFound, userFound, context)) ===
+            "OWNER"
+          ) {
             reject("You cannot leave an environment that you own")
             return
           }
@@ -1068,7 +1091,7 @@ const MutationResolver = (
 
           pubsub.publish("environmentUpdated", {
             environmentUpdated: environmentFound,
-            userIds: await instanceToSharedIds(environmentFound),
+            userIds: await instanceToSharedIds(environmentFound, context),
           })
 
           context.billingUpdater.update(MUTATION_COST)
@@ -1092,7 +1115,11 @@ const MutationResolver = (
             return
           }
 
-          const role = await instanceToRole(environmentFound, userFound)
+          const role = await instanceToRole(
+            environmentFound,
+            userFound,
+            context
+          )
 
           if (!userFound) {
             reject("This account doesn't exist, check the email passed")
@@ -1140,7 +1167,8 @@ const MutationResolver = (
             })
 
             const usersWithAccessIds = await instanceToSharedIds(
-              environmentFound
+              environmentFound,
+              context
             )
 
             pubsub.publish("environmentUpdated", {
@@ -1250,7 +1278,7 @@ const MutationResolver = (
 
             pubsub.publish("deviceCreated", {
               deviceCreated: resolveValue,
-              userIds: await instanceToSharedIds(environmentFound),
+              userIds: await instanceToSharedIds(environmentFound, context),
             })
 
             resolve(resolveValue)
@@ -1464,7 +1492,7 @@ const MutationResolver = (
 
           pubsub.publish("plotNodeCreated", {
             plotNodeCreated: resolveObj,
-            userIds: await instanceToSharedIds(environmentFound),
+            userIds: await instanceToSharedIds(environmentFound, context),
           })
 
           context.billingUpdater.update(MUTATION_COST)
@@ -1513,7 +1541,7 @@ const MutationResolver = (
 
           pubsub.publish("categoryPlotNodeCreated", {
             categoryPlotNodeCreated: resolveObj,
-            userIds: await instanceToSharedIds(environmentFound),
+            userIds: await instanceToSharedIds(environmentFound, context),
           })
           context.billingUpdater.update(MUTATION_COST)
         },
@@ -1715,7 +1743,7 @@ const MutationResolver = (
           resolve(newEnvironment.dataValues)
           pubsub.publish("environmentUpdated", {
             environmentUpdated: newEnvironment.dataValues,
-            userIds: await instanceToSharedIds(environmentFound),
+            userIds: await instanceToSharedIds(environmentFound, context),
           })
 
           context.billingUpdater.update(MUTATION_COST)
@@ -1793,7 +1821,7 @@ const MutationResolver = (
 
           pubsub.publish("deviceUpdated", {
             deviceUpdated: newDevice.dataValues,
-            userIds: await instanceToSharedIds(environmentFound),
+            userIds: await instanceToSharedIds(environmentFound, context),
           })
           context.billingUpdater.update(MUTATION_COST)
         },
@@ -1824,7 +1852,8 @@ const MutationResolver = (
           )
 
           const isOwnerOfTargetEnvironment =
-            (await instanceToRole(targetEnvironment, userFound)) === "OWNER"
+            (await instanceToRole(targetEnvironment, userFound, context)) ===
+            "OWNER"
 
           if (!isOwnerOfTargetEnvironment) {
             reject("You can only move devices to environments you own")
@@ -1862,8 +1891,8 @@ const MutationResolver = (
           pubsub.publish("deviceMoved", {
             deviceMoved: newDevice.dataValues,
             userIds: [
-              ...(await instanceToSharedIds(environmentFound)),
-              ...(await instanceToSharedIds(targetEnvironment)),
+              ...(await instanceToSharedIds(environmentFound, context)),
+              ...(await instanceToSharedIds(targetEnvironment, context)),
             ],
           })
           context.billingUpdater.update(MUTATION_COST)
@@ -1886,7 +1915,7 @@ const MutationResolver = (
 
           pubsub.publish("deviceUpdated", {
             deviceUpdated: newDevice.dataValues,
-            userIds: await instanceToSharedIds(environmentFound),
+            userIds: await instanceToSharedIds(environmentFound, context),
           })
           context.billingUpdater.update(MUTATION_COST)
         },
@@ -2076,7 +2105,7 @@ const MutationResolver = (
 
           pubsub.publish("valueUpdated", {
             valueUpdated: { ...resolveObj, __resolveType: "FloatValue" },
-            userIds: await instanceToSharedIds(environmentFound),
+            userIds: await instanceToSharedIds(environmentFound, context),
           })
           context.billingUpdater.update(MUTATION_COST)
         },
@@ -2127,7 +2156,7 @@ const MutationResolver = (
 
           pubsub.publish("plotNodeUpdated", {
             plotNodeUpdated: resolveObj,
-            userIds: await instanceToSharedIds(environmentFound),
+            userIds: await instanceToSharedIds(environmentFound, context),
           })
 
           context.billingUpdater.update(MUTATION_COST)
@@ -2178,7 +2207,7 @@ const MutationResolver = (
 
           pubsub.publish("categoryPlotNodeUpdated", {
             categoryPlotNodeUpdated: resolveObj,
-            userIds: await instanceToSharedIds(environmentFound),
+            userIds: await instanceToSharedIds(environmentFound, context),
           })
 
           context.billingUpdater.update(MUTATION_COST)
@@ -2245,7 +2274,10 @@ const MutationResolver = (
           touch(Environment, environmentFound.id, newNotification.updatedAt)
           touch(Device, newNotification.deviceId, newNotification.updatedAt)
 
-          const deviceSharedIds = await instanceToSharedIds(environmentFound)
+          const deviceSharedIds = await instanceToSharedIds(
+            environmentFound,
+            context
+          )
           pubsub.publish("notificationCreated", {
             notificationCreated: resolveValue,
             userIds: deviceSharedIds,
@@ -2362,7 +2394,10 @@ const MutationResolver = (
           touch(Environment, environmentFound.id, updatedAt)
           touch(Device, deviceId, updatedAt)
 
-          const deviceSharedIds = await instanceToSharedIds(environmentFound)
+          const deviceSharedIds = await instanceToSharedIds(
+            environmentFound,
+            context
+          )
           pubsub.publish("notificationUpdated", {
             notificationUpdated: resolveValue,
             userIds: deviceSharedIds,
@@ -2393,7 +2428,10 @@ const MutationResolver = (
 
           resolve(args.id)
 
-          const deviceSharedIds = await instanceToSharedIds(environmentFound)
+          const deviceSharedIds = await instanceToSharedIds(
+            environmentFound,
+            context
+          )
           pubsub.publish("notificationDeleted", {
             notificationDeleted: args.id,
             userIds: deviceSharedIds,
@@ -2412,7 +2450,7 @@ const MutationResolver = (
           })
           pubsub.publish("environmentUpdated", {
             environmentUpdated: environmentFound.dataValues,
-            userIds: await instanceToSharedIds(environmentFound),
+            userIds: await instanceToSharedIds(environmentFound, context),
           })
           context.billingUpdater.update(MUTATION_COST)
         },
@@ -2434,7 +2472,10 @@ const MutationResolver = (
         User,
         3,
         async (resolve, reject, valueFound, [_, environmentFound]) => {
-          const authorizedUsersIds = await instanceToSharedIds(environmentFound)
+          const authorizedUsersIds = await instanceToSharedIds(
+            environmentFound,
+            context
+          )
 
           // TODO: if value is plot remove nodes
           await valueFound.destroy()
@@ -2471,7 +2512,10 @@ const MutationResolver = (
         User,
         3,
         async (resolve, reject, deviceFound, [_, environmentFound]) => {
-          const authorizedUsersIds = await instanceToSharedIds(environmentFound)
+          const authorizedUsersIds = await instanceToSharedIds(
+            environmentFound,
+            context
+          )
 
           const deleteChild = async ([Model, subscription]) => {
             const childrenFound = await Model.findAll({
@@ -2537,7 +2581,10 @@ const MutationResolver = (
           environmentAndParents,
           userFound
         ) => {
-          const authorizedUsersIds = await instanceToSharedIds(environmentFound)
+          const authorizedUsersIds = await instanceToSharedIds(
+            environmentFound,
+            context
+          )
           const devices = await Device.findAll({
             where: { environmentId: environmentFound.id },
           })
@@ -2673,7 +2720,10 @@ const MutationResolver = (
           touch(Device, plotNodeFound.deviceId)
           touch(PlotValue, plotNodeFound.plotId)
 
-          const authorizedUsersIds = await instanceToSharedIds(environmentFound)
+          const authorizedUsersIds = await instanceToSharedIds(
+            environmentFound,
+            context
+          )
           pubsub.publish("valueUpdated", {
             valueUpdated: {
               id: plotNodeFound.plotId,
@@ -2724,7 +2774,10 @@ const MutationResolver = (
           touch(Device, plotNodeFound.deviceId)
           touch(CategoryPlotValue, plotNodeFound.plotId)
 
-          const authorizedUsersIds = await instanceToSharedIds(environmentFound)
+          const authorizedUsersIds = await instanceToSharedIds(
+            environmentFound,
+            context
+          )
           pubsub.publish("valueUpdated", {
             valueUpdated: {
               id: plotNodeFound.plotId,
@@ -2765,7 +2818,8 @@ const MutationResolver = (
 
           async function deleteEnvironment(environmentFound) {
             const authorizedUsersIds = await instanceToSharedIds(
-              environmentFound
+              environmentFound,
+              context
             )
             const devices = await Device.findAll({
               where: { environmentId: environmentFound.id },

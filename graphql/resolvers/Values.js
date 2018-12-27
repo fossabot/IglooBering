@@ -72,7 +72,11 @@ const GenericResolver = (
       User,
       1,
       async (resolve, reject, valueFound, [_, environmentFound], userFound) => {
-        const myRole = await instanceToRole(environmentFound, userFound)
+        const myRole = await instanceToRole(
+          environmentFound,
+          userFound,
+          context
+        )
 
         resolve(myRole)
       },

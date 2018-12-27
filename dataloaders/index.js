@@ -39,6 +39,49 @@ const genericLoadById = Model => async keys => {
   return keys.map(findInstanceWithId)
 }
 
+const genericLoadAllByField = (Model, field) => async keys => {
+  const instancesFound = await Model.findAll({
+    where: { [field]: { [Op.in]: keys } },
+  })
+
+  const findInstanceWithField = key => {
+    let found = []
+    for (let instance of instancesFound) {
+      if (instance.dataValues[field] === key) {
+        found.push(instance)
+      }
+    }
+
+    return found
+  }
+
+  return keys.map(findInstanceWithField)
+}
+
+const genericRoleLoadByEnvironmentAndUserId = Model => async keys => {
+  const instancesFound = await Model.findAll({
+    where: {
+      environmentId: { [Op.in]: keys.map(key => key.environmentId) },
+      userId: { [Op.in]: keys.map(key => key.userId) },
+    },
+  })
+
+  const findInstanceWithField = key => {
+    for (let instance of instancesFound) {
+      if (
+        instance.dataValues.userId === key.userId &&
+        instance.dataValues.environmentId === key.environmentId
+      ) {
+        return instance
+      }
+    }
+
+    return null
+  }
+
+  return keys.map(findInstanceWithField)
+}
+
 module.exports = {
   loadUsersByIds: genericLoadById(User),
   loadEnvironmentsByIds: genericLoadById(Environment),
@@ -59,4 +102,27 @@ module.exports = {
   loadStringPlotNodesByIds: genericLoadById(StringPlotNode),
   loadStringValuesByIds: genericLoadById(StringValue),
   loadWebPushSubscriptionsByIds: genericLoadById(WebPushSubscription),
+
+  loadAllEnvironmentAdminsByEnvironmentId: genericLoadAllByField(
+    EnvironmentAdmin,
+    "environmentId"
+  ),
+  loadAllEnvironmentEditorsByEnvironmentId: genericLoadAllByField(
+    EnvironmentEditor,
+    "environmentId"
+  ),
+  loadAllEnvironmentSpectatorsByEnvironmentId: genericLoadAllByField(
+    EnvironmentSpectator,
+    "environmentId"
+  ),
+
+  loadEnvironmentAdminByEnvironmentAndUserId: genericRoleLoadByEnvironmentAndUserId(
+    EnvironmentAdmin
+  ),
+  loadEnvironmentEditorByEnvironmentAndUserId: genericRoleLoadByEnvironmentAndUserId(
+    EnvironmentEditor
+  ),
+  loadEnvironmentSpectatorByEnvironmentAndUserId: genericRoleLoadByEnvironmentAndUserId(
+    EnvironmentSpectator
+  ),
 }

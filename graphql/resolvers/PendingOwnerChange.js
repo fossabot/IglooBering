@@ -24,7 +24,8 @@ const PendingOwnerChangeResolver = ({
         context.auth.userId !== pendingOwnerChange.receiverId &&
         (await authorizationLevel(
           await findSharedEnvironment(),
-          await findUser()
+          await findUser(),
+          context
         )) < 3
       ) {
         reject("You are not allowed to perform this operation")
@@ -52,7 +53,8 @@ const PendingOwnerChangeResolver = ({
         context.auth.userId !== pendingOwnerChange.receiverId &&
         (await authorizationLevel(
           await findSharedEnvironment(),
-          await findUser()
+          await findUser(),
+          context
         )) < 3
       ) {
         reject("You are not allowed to perform this operation")
@@ -80,7 +82,8 @@ const PendingOwnerChangeResolver = ({
         context.auth.userId !== pendingOwnerChange.receiverId &&
         (await authorizationLevel(
           await findSharedEnvironment(),
-          await findUser()
+          await findUser(),
+          context
         )) < 3
       ) {
         reject("You are not allowed to perform this operation")
@@ -108,7 +111,8 @@ const PendingOwnerChangeResolver = ({
         context.auth.userId !== pendingOwnerChange.receiverId &&
         (await authorizationLevel(
           await findSharedEnvironment(),
-          await findUser()
+          await findUser(),
+          context
         )) < 3
       ) {
         reject("You are not allowed to perform this operation")

@@ -25,7 +25,8 @@ const PendingEnvironmentShareResolver = ({
         context.auth.userId !== pendingEnvironmentFound.senderId &&
         (await instanceToRole(
           await findSharedEnvironment(),
-          await findUser()
+          await findUser(),
+          context
         )) === null
       ) {
         reject("You are not allowed to perform this operation")
@@ -54,7 +55,8 @@ const PendingEnvironmentShareResolver = ({
         context.auth.userId !== pendingEnvironmentFound.senderId &&
         (await instanceToRole(
           await findSharedEnvironment(),
-          await findUser()
+          await findUser(),
+          context
         )) === null
       ) {
         reject("You are not allowed to perform this operation")
@@ -84,7 +86,8 @@ const PendingEnvironmentShareResolver = ({
         context.auth.userId !== pendingEnvironmentFound.senderId &&
         (await instanceToRole(
           await findSharedEnvironment(),
-          await findUser()
+          await findUser(),
+          context
         )) === null
       ) {
         reject("You are not allowed to perform this operation")
@@ -113,7 +116,8 @@ const PendingEnvironmentShareResolver = ({
         context.auth.userId !== pendingEnvironmentFound.senderId &&
         (await instanceToRole(
           await findSharedEnvironment(),
-          await findUser()
+          await findUser(),
+          context
         )) === null
       ) {
         reject("You are not allowed to perform this operation")
@@ -142,7 +146,8 @@ const PendingEnvironmentShareResolver = ({
         context.auth.userId !== pendingEnvironmentFound.senderId &&
         (await instanceToRole(
           await findSharedEnvironment(),
-          await findUser()
+          await findUser(),
+          context
         )) === null
       ) {
         reject("You are not allowed to perform this operation")

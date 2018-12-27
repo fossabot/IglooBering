@@ -167,7 +167,11 @@ const DeviceResolver = ({
         [_, environmentFound],
         userFound
       ) => {
-        const myRole = await instanceToRole(environmentFound, userFound)
+        const myRole = await instanceToRole(
+          environmentFound,
+          userFound,
+          context
+        )
 
         resolve(myRole)
       },

@@ -156,7 +156,9 @@ const EnvironmentResolver = ({
             }
             also for users that don't have admin access to all of their environments
           */
-        if ((await authorizationLevel(environmentFound, userFound)) < 3) {
+        if (
+          (await authorizationLevel(environmentFound, userFound, context)) < 3
+        ) {
           resolve(null)
           return
         }
@@ -197,7 +199,9 @@ const EnvironmentResolver = ({
             }
             also for users that don't have admin access to all of their environments
           */
-        if ((await authorizationLevel(environmentFound, userFound)) < 3) {
+        if (
+          (await authorizationLevel(environmentFound, userFound, context)) < 3
+        ) {
           resolve(null)
           return
         }
@@ -237,7 +241,9 @@ const EnvironmentResolver = ({
             }
             also for users that don't have admin access to all of their environments
           */
-        if ((await authorizationLevel(environmentFound, userFound)) < 3) {
+        if (
+          (await authorizationLevel(environmentFound, userFound, context)) < 3
+        ) {
           resolve(null)
           return
         }
@@ -276,7 +282,9 @@ const EnvironmentResolver = ({
             }
             also for users that don't have admin access to all of their environments
           */
-        if ((await authorizationLevel(environmentFound, userFound)) < 3) {
+        if (
+          (await authorizationLevel(environmentFound, userFound, context)) < 3
+        ) {
           resolve(null)
           return
         }
@@ -338,7 +346,11 @@ const EnvironmentResolver = ({
         environmentAndParents,
         userFound
       ) => {
-        const myRole = await instanceToRole(environmentFound, userFound)
+        const myRole = await instanceToRole(
+          environmentFound,
+          userFound,
+          context
+        )
 
         resolve(myRole)
       },

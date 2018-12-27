@@ -189,7 +189,7 @@ const CreateGenericValue = (
 
       pubsub.publish("valueCreated", {
         valueCreated: resolveObj,
-        userIds: await instanceToSharedIds(environmentFound),
+        userIds: await instanceToSharedIds(environmentFound, context),
       })
       context.billingUpdater.update(MUTATION_COST)
     },
@@ -303,7 +303,7 @@ const genericValueMutation = (
 
       pubsub.publish("valueUpdated", {
         valueUpdated: { ...resolveObj, __resolveType },
-        userIds: await instanceToSharedIds(environmentFound),
+        userIds: await instanceToSharedIds(environmentFound, context),
       })
       context.billingUpdater.update(MUTATION_COST)
     },
@@ -732,11 +732,30 @@ const sendEnvironmentSharedEmail = (email, userName, environmentName) => {
   )
 }
 
-async function authorizationLevel(instance, userFound) {
-  const isOwner = await userFound.hasOwnEnvironment(instance)
-  const isAdmin = await userFound.hasAdminEnvironment(instance)
-  const isEditor = await userFound.hasEditorEnvironment(instance)
-  const isSpectator = await userFound.hasSpectatorEnvironment(instance)
+async function authorizationLevel(
+  instance,
+  userFound,
+  {
+    dataLoaders: {
+      environmentAdminLoaderByEnvironmentAndUserId,
+      editorAdminLoaderByEnvironmentAndUserId,
+      spectatorAdminLoaderByEnvironmentAndUserId,
+    },
+  }
+) {
+  const isOwner = userFound.id === instance.ownerId
+  const isAdmin = await environmentAdminLoaderByEnvironmentAndUserId.load({
+    environmentId: instance.id,
+    userId: userFound.id,
+  })
+  const isEditor = await editorAdminLoaderByEnvironmentAndUserId.load({
+    environmentId: instance.id,
+    userId: userFound.id,
+  })
+  const isSpectator = await spectatorAdminLoaderByEnvironmentAndUserId.load({
+    environmentId: instance.id,
+    userId: userFound.id,
+  })
 
   if (isOwner) return 4
   else if (isAdmin) return 3
@@ -769,7 +788,8 @@ function authorized(
         )
 
         if (
-          (await authorizationLevel(parent, userFound)) < authorizationRequired
+          (await authorizationLevel(parent, userFound, context)) <
+          authorizationRequired
         ) {
           /* istanbul ignore next */
           reject("You are not allowed to perform this operation")
@@ -865,7 +885,7 @@ const authorizedValue = (
         })
 
         if (
-          (await authorizationLevel(environmentFound, userFound)) <
+          (await authorizationLevel(environmentFound, userFound, context)) <
           authorizationRequired
         ) {
           throw new Error(NOT_ALLOWED)
@@ -902,8 +922,8 @@ const authorizedValue = (
     )
   })
 
-const instanceToRole = async (instance, userFound) => {
-  const roleLevel = await authorizationLevel(instance, userFound)
+const instanceToRole = async (instance, userFound, context) => {
+  const roleLevel = await authorizationLevel(instance, userFound, context)
 
   switch (roleLevel) {
     case 4:
@@ -919,13 +939,28 @@ const instanceToRole = async (instance, userFound) => {
   }
 }
 
-const instanceToSharedIds = async instance => {
-  const owner = await instance.getOwner()
-  const admins = await instance.getAdmin()
-  const editors = await instance.getEditor()
-  const spectators = await instance.getSpectator()
+const instanceToSharedIds = async (
+  instance,
+  {
+    dataLoaders: {
+      allEnvironmentAdminsLoaderByEnvironmentId,
+      allEnvironmentEditorsLoaderByEnvironmentId,
+      allEnvironmentSpectatorsLoaderByEnvironmentId,
+    },
+  }
+) => {
+  const owner = instance.ownerId
+  const admins = (await allEnvironmentAdminsLoaderByEnvironmentId.load(
+    instance.id
+  )).map(user => user.id)
+  const editors = (await allEnvironmentEditorsLoaderByEnvironmentId.load(
+    instance.id
+  )).map(user => user.id)
+  const spectators = (await allEnvironmentSpectatorsLoaderByEnvironmentId.load(
+    instance.id
+  )).map(user => user.id)
 
-  return [owner, ...admins, ...editors, ...spectators].map(user => user.id)
+  return [owner, ...admins, ...editors, ...spectators]
 }
 
 const inheritAuthorized = (
