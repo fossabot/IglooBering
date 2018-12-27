@@ -193,7 +193,7 @@ const CreateGenericValue = (
       })
       context.billingUpdater.update(MUTATION_COST)
     },
-    deviceToParent(Environment)
+    deviceToParent
   )
 
 // logs messages colorized by priority, both to console and to `logs` file
@@ -307,7 +307,7 @@ const genericValueMutation = (
       })
       context.billingUpdater.update(MUTATION_COST)
     },
-    valueToParent(Environment)
+    valueToParent
   )
 
 const create2FSecret = user => {
@@ -744,18 +744,16 @@ async function authorizationLevel(
   }
 ) {
   const isOwner = userFound.id === instance.ownerId
-  const isAdmin = await environmentAdminLoaderByEnvironmentAndUserId.load({
-    environmentId: instance.id,
-    userId: userFound.id,
-  })
-  const isEditor = await editorAdminLoaderByEnvironmentAndUserId.load({
-    environmentId: instance.id,
-    userId: userFound.id,
-  })
-  const isSpectator = await spectatorAdminLoaderByEnvironmentAndUserId.load({
-    environmentId: instance.id,
-    userId: userFound.id,
-  })
+  const userEnvironmentTuple = userFound.id + "|" + instance.id
+  const isAdmin = await environmentAdminLoaderByEnvironmentAndUserId.load(
+    userEnvironmentTuple
+  )
+  const isEditor = await editorAdminLoaderByEnvironmentAndUserId.load(
+    userEnvironmentTuple
+  )
+  const isSpectator = await spectatorAdminLoaderByEnvironmentAndUserId.load(
+    userEnvironmentTuple
+  )
 
   if (isOwner) return 4
   else if (isAdmin) return 3
@@ -782,7 +780,7 @@ function authorized(
       if (!found) {
         reject("The requested resource does not exist")
       } else {
-        const parent = await childToParent(found)
+        const parent = await childToParent(context)(found)
         const userFound = await context.dataLoaders.userLoaderById.load(
           context.auth.userId
         )
@@ -837,18 +835,22 @@ const authorizedScalarPropsResolvers = (
     return acc
   }, {})
 
-const deviceToParent = Environment => async deviceFound => {
-  const environmentFound = await Environment.find({
-    where: { id: deviceFound.environmentId },
-  })
+const deviceToParent = ({
+  dataLoaders: { environmentLoaderById },
+}) => async deviceFound => {
+  const environmentFound = await environmentLoaderById.load(
+    deviceFound.environmentId
+  )
 
   return environmentFound
 }
 
-const valueToParent = Environment => async valueFound => {
-  const environmentFound = await Environment.find({
-    where: { id: valueFound.environmentId },
-  })
+const valueToParent = ({
+  dataLoaders: { environmentLoaderById },
+}) => async valueFound => {
+  const environmentFound = await environmentLoaderById.load(
+    valueFound.environmentId
+  )
 
   return environmentFound
 }
@@ -1132,7 +1134,7 @@ const GenerateUserBillingBatcher = (dataLoaders, auth) =>
   new UpdateBatcher(updateUserBilling(dataLoaders, auth))
 
 // an environment is it's own parent
-const environmentToParent = x => x
+const environmentToParent = context => x => x
 
 const runInParallel = async (...funcs) => await Promise.all(funcs.map(f => f()))
 

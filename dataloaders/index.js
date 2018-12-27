@@ -58,19 +58,23 @@ const genericLoadAllByField = (Model, field) => async keys => {
   return keys.map(findInstanceWithField)
 }
 
+// keys should be an array of strings formatted like userId|environmentId
+// this way deep equality check isn't needed and caching works
 const genericRoleLoadByEnvironmentAndUserId = Model => async keys => {
+  const parsedKeys = keys.map(key => key.split("|"))
+
   const instancesFound = await Model.findAll({
     where: {
-      environmentId: { [Op.in]: keys.map(key => key.environmentId) },
-      userId: { [Op.in]: keys.map(key => key.userId) },
+      userId: { [Op.in]: parsedKeys.map(key => key[0]) },
+      environmentId: { [Op.in]: parsedKeys.map(key => key[1]) },
     },
   })
 
   const findInstanceWithField = key => {
     for (let instance of instancesFound) {
       if (
-        instance.dataValues.userId === key.userId &&
-        instance.dataValues.environmentId === key.environmentId
+        instance.dataValues.userId === key[0] &&
+        instance.dataValues.environmentId === key[1]
       ) {
         return instance
       }
@@ -79,7 +83,7 @@ const genericRoleLoadByEnvironmentAndUserId = Model => async keys => {
     return null
   }
 
-  return keys.map(findInstanceWithField)
+  return parsedKeys.map(findInstanceWithField)
 }
 
 module.exports = {

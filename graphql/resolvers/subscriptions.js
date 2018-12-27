@@ -128,7 +128,7 @@ const subscriptionResolver = (pubsub, { User, Device, Environment }) => ({
 
             resolve(pubsub.asyncIterator("bogusIterator")) // this iterator will never send any data
           },
-          deviceToParent(Environment)
+          deviceToParent
         )
       ),
   },

@@ -36,7 +36,7 @@ const DeviceResolver = ({
       "batteryCharging",
       "firmware",
     ],
-    deviceToParent(Environment)
+    deviceToParent
   ),
   values(root, args, context) {
     return authorized(
@@ -64,7 +64,7 @@ const DeviceResolver = ({
 
         context.billingUpdater.update(QUERY_COST * valuesFound.length)
       },
-      deviceToParent(Environment)
+      deviceToParent
     )
   },
   muted(root, args, context) {
@@ -89,7 +89,7 @@ const DeviceResolver = ({
 
         context.billingUpdater.update(QUERY_COST)
       },
-      deviceToParent(Environment)
+      deviceToParent
     )
   },
   environment(root, args, context) {
@@ -106,7 +106,7 @@ const DeviceResolver = ({
 
         context.billingUpdater.update(QUERY_COST)
       },
-      deviceToParent(Environment)
+      deviceToParent
     )
   },
   notifications(root, args, context) {
@@ -128,7 +128,7 @@ const DeviceResolver = ({
         resolve(notifications.sort(compareDates))
         context.billingUpdater.update(QUERY_COST * notifications.length)
       },
-      deviceToParent(Environment)
+      deviceToParent
     )
   },
   notificationCount(root, args, context) {
@@ -150,7 +150,7 @@ const DeviceResolver = ({
 
         resolve(count)
       },
-      deviceToParent(Environment)
+      deviceToParent
     )
   },
   myRole(root, args, context) {
@@ -175,7 +175,7 @@ const DeviceResolver = ({
 
         resolve(myRole)
       },
-      deviceToParent(Environment)
+      deviceToParent
     )
   },
 })

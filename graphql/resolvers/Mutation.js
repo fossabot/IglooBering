@@ -1497,7 +1497,7 @@ const MutationResolver = (
 
           context.billingUpdater.update(MUTATION_COST)
         },
-        valueToParent(Environment)
+        valueToParent
       )
     },
     createCategoryPlotNode(root, args, context) {
@@ -1545,7 +1545,7 @@ const MutationResolver = (
           })
           context.billingUpdater.update(MUTATION_COST)
         },
-        valueToParent(Environment)
+        valueToParent
       )
     },
     user(root, args, context) {
@@ -1825,7 +1825,7 @@ const MutationResolver = (
           })
           context.billingUpdater.update(MUTATION_COST)
         },
-        deviceToParent(Environment)
+        deviceToParent
       )
     },
     moveDevice(root, args, context) {
@@ -1897,7 +1897,7 @@ const MutationResolver = (
           })
           context.billingUpdater.update(MUTATION_COST)
         },
-        deviceToParent(Environment)
+        deviceToParent
       )
     },
     resetOnlineState(root, args, context) {
@@ -1919,7 +1919,7 @@ const MutationResolver = (
           })
           context.billingUpdater.update(MUTATION_COST)
         },
-        deviceToParent(Environment)
+        deviceToParent
       )
     },
     floatValue: genericValueMutation(
@@ -2109,7 +2109,7 @@ const MutationResolver = (
           })
           context.billingUpdater.update(MUTATION_COST)
         },
-        valueToParent(Environment)
+        valueToParent
       ),
     plotNode(root, args, context) {
       return inheritAuthorized(
@@ -2161,7 +2161,7 @@ const MutationResolver = (
 
           context.billingUpdater.update(MUTATION_COST)
         },
-        valueToParent(Environment)
+        valueToParent
       )
     },
     categoryPlotNode(root, args, context) {
@@ -2212,7 +2212,7 @@ const MutationResolver = (
 
           context.billingUpdater.update(MUTATION_COST)
         },
-        valueToParent(Environment)
+        valueToParent
       )
     },
     createNotification(root, args, context) {
@@ -2331,7 +2331,7 @@ const MutationResolver = (
             )
           }
         },
-        deviceToParent(Environment)
+        deviceToParent
       )
     },
     notification(root, args, context) {
@@ -2405,7 +2405,7 @@ const MutationResolver = (
 
           context.billingUpdater.update(MUTATION_COST)
         },
-        deviceToParent(Environment)
+        deviceToParent
       )
     },
     deleteNotification(root, args, context) {
@@ -2454,7 +2454,7 @@ const MutationResolver = (
           })
           context.billingUpdater.update(MUTATION_COST)
         },
-        deviceToParent(Environment)
+        deviceToParent
       )
     },
     deleteValue: (root, args, context) =>
@@ -2565,7 +2565,7 @@ const MutationResolver = (
           })
           context.billingUpdater.update(MUTATION_COST)
         },
-        deviceToParent(Environment)
+        deviceToParent
       ),
     deleteEnvironment: (root, args, context) =>
       authorized(
@@ -2747,7 +2747,7 @@ const MutationResolver = (
 
           context.billingUpdater.update(MUTATION_COST)
         },
-        valueToParent(Environment)
+        valueToParent
       )
     },
     deleteCategoryPlotNode(root, args, context) {
@@ -2801,7 +2801,7 @@ const MutationResolver = (
 
           context.billingUpdater.update(MUTATION_COST)
         },
-        valueToParent(Environment)
+        valueToParent
       )
     },
     deleteUser: (root, args, context) =>

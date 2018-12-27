@@ -48,7 +48,7 @@ const QueryResolver = ({
 
         context.billingUpdater.update(QUERY_COST)
       },
-      deviceToParent(Environment)
+      deviceToParent
     )
   },
   environment(root, args, context) {
@@ -102,7 +102,7 @@ const QueryResolver = ({
         resolve(notificationFound)
         context.billingUpdater.update(QUERY_COST)
       },
-      deviceToParent(Environment)
+      deviceToParent
     )
   },
   plotNode(root, args, context) {
@@ -117,7 +117,7 @@ const QueryResolver = ({
       async (resolve, reject, plotNodeFound) => {
         resolve(plotNodeFound)
       },
-      valueToParent(Environment)
+      valueToParent
     )
   },
   categoryPlotNode(root, args, context) {
@@ -132,7 +132,7 @@ const QueryResolver = ({
       async (resolve, reject, plotNodeFound) => {
         resolve(plotNodeFound)
       },
-      valueToParent(Environment)
+      valueToParent
     )
   },
 })

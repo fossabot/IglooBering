@@ -15,7 +15,7 @@ const UserResolver = ({ Notification, User, Device, Environment }) => ({
     ["content", "date"],
     notificationToParent,
     "deviceLoaderById",
-    deviceToParent(Environment)
+    deviceToParent
   ),
   user(root, args, context) {
     return inheritAuthorized(
@@ -30,7 +30,7 @@ const UserResolver = ({ Notification, User, Device, Environment }) => ({
         resolve({ id: notificationFound.userId })
         context.billingUpdater.update(QUERY_COST)
       },
-      deviceToParent(Environment)
+      deviceToParent
     )
   },
   device(root, args, context) {
@@ -46,7 +46,7 @@ const UserResolver = ({ Notification, User, Device, Environment }) => ({
         resolve({ id: notificationFound.deviceId })
         context.billingUpdater.update(QUERY_COST)
       },
-      deviceToParent(Environment)
+      deviceToParent
     )
   },
   environment(root, args, context) {
@@ -62,7 +62,7 @@ const UserResolver = ({ Notification, User, Device, Environment }) => ({
         resolve({ id: notificationFound.environmentId })
         context.billingUpdater.update(QUERY_COST)
       },
-      deviceToParent(Environment)
+      deviceToParent
     )
   },
   visualized(root, args, context) {
@@ -80,7 +80,7 @@ const UserResolver = ({ Notification, User, Device, Environment }) => ({
         )
         context.billingUpdater.update(QUERY_COST)
       },
-      deviceToParent(Environment)
+      deviceToParent
     )
   },
 })

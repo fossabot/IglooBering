@@ -29,14 +29,10 @@ const GenericResolver = (
       "value",
       "index",
     ],
-    valueToParent(Environment)
+    valueToParent
   ),
   ...(hasPermission
-    ? authorizedScalarPropsResolvers(
-        loaderName,
-        ["permission"],
-        valueToParent(Environment)
-      )
+    ? authorizedScalarPropsResolvers(loaderName, ["permission"], valueToParent)
     : []),
   device: (root, args, context) =>
     authorized(
@@ -49,7 +45,7 @@ const GenericResolver = (
         resolve({ id: valueFound.deviceId })
         context.billingUpdater.update(QUERY_COST)
       },
-      valueToParent(Environment)
+      valueToParent
     ),
   environment: (root, args, context) =>
     authorized(
@@ -62,7 +58,7 @@ const GenericResolver = (
         resolve({ id: valueFound.environmentId })
         context.billingUpdater.update(QUERY_COST)
       },
-      valueToParent(Environment)
+      valueToParent
     ),
   myRole: (root, args, context) =>
     authorized(
@@ -80,7 +76,7 @@ const GenericResolver = (
 
         resolve(myRole)
       },
-      valueToParent(Environment)
+      valueToParent
     ),
 })
 
@@ -90,7 +86,7 @@ const FloatValueResolver = (loaderName, User, Device, Environment) => ({
   ...authorizedScalarPropsResolvers(
     loaderName,
     [("precision", "boundaries")],
-    valueToParent(Environment)
+    valueToParent
   ),
 })
 const StringValueResolver = (loaderName, User, Device, Environment) => ({
@@ -98,7 +94,7 @@ const StringValueResolver = (loaderName, User, Device, Environment) => ({
   ...authorizedScalarPropsResolvers(
     loaderName,
     ["maxChars", "allowedValues"],
-    valueToParent(Environment)
+    valueToParent
   ),
 })
 const PlotValueResolver = (loaderName, User, Device, Environment) => ({
@@ -106,7 +102,7 @@ const PlotValueResolver = (loaderName, User, Device, Environment) => ({
   ...authorizedScalarPropsResolvers(
     loaderName,
     [("precision", "boundaries", "threshold")],
-    valueToParent(Environment)
+    valueToParent
   ),
   // overriding GenericResolver's value
   value: (root, args, context) =>
@@ -121,7 +117,7 @@ const PlotValueResolver = (loaderName, User, Device, Environment) => ({
         resolve(nodes)
         context.billingUpdater.update(QUERY_COST * nodes.length)
       },
-      valueToParent(Environment)
+      valueToParent
     ),
 })
 const CategoryPlotValueResolver = (loaderName, User, Device, Environment) => ({
@@ -129,7 +125,7 @@ const CategoryPlotValueResolver = (loaderName, User, Device, Environment) => ({
   ...authorizedScalarPropsResolvers(
     loaderName,
     ["allowedValues"],
-    valueToParent(Environment)
+    valueToParent
   ),
   // overriding GenericResolver's value
   value: (root, args, context) =>
@@ -145,7 +141,7 @@ const CategoryPlotValueResolver = (loaderName, User, Device, Environment) => ({
         resolve(nodes)
         context.billingUpdater.update(QUERY_COST * nodes.length)
       },
-      valueToParent(Environment)
+      valueToParent
     ),
 })
 
@@ -162,7 +158,7 @@ const PlotNodeResolver = (
     ["timestamp", "value"],
     plotNodeFound => plotNodeFound.plotId,
     valueLoader,
-    valueToParent(Environment)
+    valueToParent
   ),
   user(root, args, context) {
     return inheritAuthorized(
@@ -183,7 +179,7 @@ const PlotNodeResolver = (
         resolve({ id: plotNodeFound.userId })
         context.billingUpdater.update(QUERY_COST)
       },
-      valueToParent(Environment)
+      valueToParent
     )
   },
   device(root, args, context) {
@@ -205,7 +201,7 @@ const PlotNodeResolver = (
         resolve({ id: plotNodeFound.deviceId })
         context.billingUpdater.update(QUERY_COST)
       },
-      valueToParent(Environment)
+      valueToParent
     )
   },
   plot(root, args, context) {
@@ -227,7 +223,7 @@ const PlotNodeResolver = (
         resolve(plotValueFound.dataValues)
         context.billingUpdater.update(QUERY_COST)
       },
-      valueToParent(Environment)
+      valueToParent
     )
   },
 })
