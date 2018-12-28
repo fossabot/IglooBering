@@ -988,8 +988,15 @@ const inheritAuthorized = (
       parentLoader,
       User,
       authorizationRequired,
-      (resolve, reject, parentFound, allParents) =>
-        callback(resolve, reject, entityFound, parentFound, allParents),
+      (resolve, reject, parentFound, allParents, userFound) =>
+        callback(
+          resolve,
+          reject,
+          entityFound,
+          parentFound,
+          allParents,
+          userFound
+        ),
       childToParent,
       acceptedTokenTypes
     )(resolve, reject)

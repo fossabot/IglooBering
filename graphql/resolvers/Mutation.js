@@ -34,6 +34,7 @@ import moment from "moment"
 import jwt from "jwt-simple"
 import { Op } from "sequelize"
 import zxcvbn from "zxcvbn"
+import { isNullOrUndefined } from "util"
 
 require("dotenv").config()
 /* istanbul ignore if */
@@ -2342,19 +2343,28 @@ const MutationResolver = (
         notificationFound => notificationFound.deviceId,
         context,
         context.dataLoaders.deviceLoaderById,
-        2,
+        1,
         async (
           resolve,
           reject,
           notificationFound,
           deviceFound,
-          [_, environmentFound]
+          [_, environmentFound],
+          userFound
         ) => {
           if (args.content === "" || args.content === null) {
             reject("content cannot be null or an empty string")
             return
           } else if (Object.keys(args).length === 1) {
             reject("You cannot make a mutation with only the id field")
+            return
+          } else if (
+            (await instanceToRole(environmentFound, userFound, context)) ===
+              "SPECTATOR" &&
+            (Object.keys(args).length > 2 ||
+              !isNotNullNorUndefined(args.visualized))
+          ) {
+            reject("You are not allowed to mutate fields other than visualized")
             return
           }
           const updateQuery = args

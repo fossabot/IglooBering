@@ -12,13 +12,13 @@ const sequelize = new Sequelize(process.env.CONNECTION_STRING, {
   dialectOptions: {
     ssl: true,
   },
-  logging: true,
+  logging: false,
   pool: {
     max: 50,
-    min: 1,
-    idle: 20000,
-    acquire: 40000,
-    evict: 20000,
+    min: 50,
+    idle: 200000,
+    acquire: 400000,
+    evict: 200000,
   },
 })
 
