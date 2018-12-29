@@ -368,7 +368,7 @@ app.get("/verifyEmail/:verificationToken", async (req, res) => {
       } else {
         foundUser.update({ emailIsVerified: true })
 
-        res.redirect("http://igloo.ooo")
+        res.redirect("https://aurora.igloo.ooo")
       }
     }
   } catch (e) {

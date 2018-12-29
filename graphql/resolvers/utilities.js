@@ -620,7 +620,7 @@ const sendPasswordRecoveryEmail = (email, userId) => {
   )
 
   // TODO: update this with the real link
-  const emailRecoverylink = `https://igloo.ooo/recovery?token=${recoveryToken}`
+  const emailRecoverylink = `https://aurora.igloo.ooo/recovery?token=${recoveryToken}`
 
   // TODO: create a template for the email verification
   ses.sendEmail(
@@ -715,11 +715,11 @@ const sendEnvironmentSharedEmail = (email, userName, environmentName) => {
         Body: {
           Html: {
             Charset: "UTF-8",
-            Data: `${userName} has shared the environment ${environmentName} with you. <a href="igloo.ooo">Check it out now</a>`,
+            Data: `${userName} has shared the environment ${environmentName} with you. <a href="https://aurora.igloo.ooo">Check it out now</a>`,
           },
           Text: {
             Charset: "UTF-8",
-            Data: `${userName} has shared the environment ${environmentName} with you. Check it out on igloo.ooo`,
+            Data: `${userName} has shared the environment ${environmentName} with you. Check it out on aurora.igloo.ooo`,
           },
         },
         Subject: {
