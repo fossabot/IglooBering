@@ -26,6 +26,10 @@ npm install
 
 ### Set Up
 
+Create a new AWS ElasticBeanstalk application and follow the guided process, no need to upload the code right away, use the default demo application.
+
+Once created go to configuration and click modify in the software tab, set the node command to `npm start`. In that safe configuration page you can set the environment variables (see below).
+
 #### Environment variables
 
 You will need to create a file `.env` or inject the variables in the environment yourself, the `.env` file should bee like this:

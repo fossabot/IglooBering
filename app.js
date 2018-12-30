@@ -376,4 +376,10 @@ app.get("/verifyEmail/:verificationToken", async (req, res) => {
   }
 })
 
+app.get("/", (req, res) => {
+  res.send(
+    "This is the backend for the igloo service, maybe you were looking for aurora.igloo.ooo"
+  )
+})
+
 export default app

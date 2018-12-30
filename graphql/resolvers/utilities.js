@@ -613,13 +613,11 @@ const sendVerificationEmail = (email, userId) => {
 }
 
 const sendPasswordRecoveryEmail = (email, userId) => {
-  // TODO: use different jwt secrets?
   const recoveryToken = generatePasswordRecoveryToken(
     userId,
     process.env.JWT_SECRET
   )
 
-  // TODO: update this with the real link
   const emailRecoverylink = `https://aurora.igloo.ooo/recovery?token=${recoveryToken}`
 
   // TODO: create a template for the email verification
