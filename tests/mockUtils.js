@@ -2,7 +2,7 @@ module.exports = () => {
   const mockEnvironmentData = [
     {
       id: "mockEnvironmentId",
-      userId: "mockUserId",
+      ownerId: "mockUserId",
       name: "fake name",
       avatar: "fake avatar",
       index: 0,
@@ -110,6 +110,12 @@ module.exports = () => {
       hasSpectatorEnvironment: () => false
     }
   ];
+
+  const mockEnvironmentAdminData = [
+    { userId: "mockUserId3", environmentId: "mockEnvironmentId", id: "mockEnvironmentAdminId" }
+  ];
+  const mockEnvironmentEditorData = [];
+  const mockEnvironmentSpectatorData = [];
 
   const mockDeviceData = [
     {
@@ -224,6 +230,12 @@ module.exports = () => {
   const mocks = {
     MockedEnvironment: MockedModel(mockEnvironmentData),
     mockEnvironmentData,
+    MockedEnvironmentAdmin: MockedModel(mockEnvironmentAdminData),
+    mockEnvironmentAdminData,
+    MockedEnvironmentEditor: MockedModel(mockEnvironmentEditorData),
+    mockEnvironmentEditorData,
+    MockedEnvironmentSpectator: MockedModel(mockEnvironmentSpectatorData),
+    mockEnvironmentSpectatorData,
     MockedUser: MockedModel(mockUserData),
     mockUserData,
     MockedDevice: MockedModel(mockDeviceData),
@@ -235,13 +247,33 @@ module.exports = () => {
   };
 
   const mockDataLoader = MockedModel => ({
-    load: id => MockedModel.find({ where: { id } })
+    load: id =>
+      MockedModel.find({
+        where: { id }
+      })
+  });
+
+  const mockRolesDataLoader = MockedModel => ({
+    load: tuple =>
+      MockedModel.find({
+        where: { userId: tuple.split("|")[0], environmentId: tuple.split("|")[1] }
+      })
   });
 
   const mockContext = {
     dataLoaders: {
       userLoaderById: mockDataLoader(mocks.MockedUser),
-      environmentLoaderById: mockDataLoader(mocks.MockedEnvironment)
+      environmentLoaderById: mockDataLoader(mocks.MockedEnvironment),
+      deviceLoaderById: mockDataLoader(mocks.MockedDevice),
+      notificationLoaderById: mockDataLoader(mocks.MockedNotification),
+      pendingEnvironmentShareLoaderById: mockDataLoader(mocks.MockedPendingEnvironmentShare),
+      environmentAdminLoaderByEnvironmentAndUserId: mockRolesDataLoader(
+        mocks.MockedEnvironmentAdmin
+      ),
+      editorAdminLoaderByEnvironmentAndUserId: mockRolesDataLoader(mocks.MockedEnvironmentEditor),
+      spectatorAdminLoaderByEnvironmentAndUserId: mockRolesDataLoader(
+        mocks.MockedEnvironmentSpectator
+      )
     },
     billingUpdater: { update: () => {} }
   };
