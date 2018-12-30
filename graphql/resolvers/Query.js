@@ -70,20 +70,7 @@ const QueryResolver = ({
       const userFound = await context.dataLoaders.userLoaderById.load(
         context.auth.userId
       )
-      const valueFound = await findValue(
-        {
-          BooleanValue,
-          FloatValue,
-          StringValue,
-          PlotValue,
-          CategoryPlotValue,
-          MapValue,
-        },
-        Device,
-        Environment,
-        { where: { id: args.id } },
-        userFound
-      ).catch(e => reject(e))
+      const valueFound = await findValue(context, args.id, userFound)
 
       resolve(valueFound)
       context.billingUpdater.update(QUERY_COST)

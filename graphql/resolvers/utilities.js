@@ -458,85 +458,69 @@ const findAllValues = (
 }
 
 // try refactoring this with firstResolve
-const findValue = (
-  {
-    BooleanValue,
-    FloatValue,
-    StringValue,
-    PlotValue,
-    CategoryPlotValue,
-    MapValue,
-  },
-  Device,
-  Environment,
-  query,
-  userFound
-) => {
-  const booleanValue = BooleanValue.find(query).then(
+const findValue = (context, id, userFound) => {
+  const {
+    booleanValueLoaderById,
+    floatValueLoaderById,
+    stringValueLoaderById,
+    plotValueLoaderById,
+    categoryPlotValueLoaderById,
+    mapValueLoaderById,
+    environmentLoaderById,
+  } = context.dataLoaders
+  const booleanValue = booleanValueLoaderById.load(id).then(
     value =>
       value
         ? {
             ...value.dataValues,
-            user: { id: value.dataValues.userId },
-            device: { id: value.dataValues.deviceId },
             __resolveType: "BooleanValue",
           }
         : value
   )
-  const floatValue = FloatValue.find(query).then(
+  const floatValue = floatValueLoaderById.load(id).then(
     value =>
       value
         ? {
             ...value.dataValues,
-            user: { id: value.dataValues.userId },
-            device: { id: value.dataValues.deviceId },
             __resolveType: "FloatValue",
           }
         : value
   )
-  const stringValue = StringValue.find(query).then(
+  const stringValue = stringValueLoaderById.load(id).then(
     value =>
       value
         ? {
             ...value.dataValues,
-            user: { id: value.dataValues.userId },
-            device: { id: value.dataValues.deviceId },
             __resolveType: "StringValue",
           }
         : value
   )
 
-  const mapValue = MapValue.find(query).then(
+  const mapValue = mapValueLoaderById.load(id).then(
     value =>
       value
         ? {
             ...value.dataValues,
-            user: { id: value.dataValues.userId },
-            device: { id: value.dataValues.deviceId },
             __resolveType: "MapValue",
           }
         : value
   )
 
-  const plotValue = PlotValue.find(query).then(
+  const plotValue = plotValueLoaderById.load(id).then(
     value =>
       value
         ? {
             ...value.dataValues,
-            user: { id: value.dataValues.userId },
-            device: { id: value.dataValues.deviceId },
             __resolveType: "PlotValue",
           }
         : value
   )
 
-  const categoryPlotValue = CategoryPlotValue.find(query).then(
+  const categoryPlotValue = categoryPlotValueLoaderById.load(id).then(
     value =>
       value
         ? {
             ...value.dataValues,
-            user: { id: value.dataValues.userId },
-            device: { id: value.dataValues.deviceId },
             __resolveType: "CategoryPlotValue",
           }
         : value
@@ -554,11 +538,13 @@ const findValue = (
     .then(async value => {
       if (!value) throw new Error("The requested resource does not exist")
       else {
-        const environmentFound = await Environment.find({
-          where: { id: value.environmentId },
-        })
+        const environmentFound = await environmentLoaderById.load(
+          value.environmentId
+        )
 
-        if ((await authorizationLevel(environmentFound, userFound)) < 1) {
+        if (
+          (await authorizationLevel(environmentFound, userFound, context)) < 1
+        ) {
           throw new Error("You are not allowed to perform this operation")
         } else return value
       }
