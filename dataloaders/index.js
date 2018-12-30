@@ -19,6 +19,7 @@ import {
   StringValue,
   WebPushSubscription,
 } from "../postgresql/models"
+import DataLoader from "dataloader"
 import { Op } from "sequelize"
 
 const genericLoadById = Model => async keys => {
@@ -86,47 +87,93 @@ const genericRoleLoadByEnvironmentAndUserId = Model => async keys => {
   return parsedKeys.map(findInstanceWithField)
 }
 
-module.exports = {
-  loadUsersByIds: genericLoadById(User),
-  loadEnvironmentsByIds: genericLoadById(Environment),
-  loadDevicesByIds: genericLoadById(Device),
-  loadBooleanValuesByIds: genericLoadById(BooleanValue),
-  loadCategoryPlotValuesByIds: genericLoadById(CategoryPlotValue),
-  loadEnvironmentAdminsByIds: genericLoadById(EnvironmentAdmin),
-  loadEnvironmentEditorsByIds: genericLoadById(EnvironmentEditor),
-  loadEnvironmentSpectatorsByIds: genericLoadById(EnvironmentSpectator),
-  loadFloatValuesByIds: genericLoadById(FloatValue),
-  loadMapValuesByIds: genericLoadById(MapValue),
-  loadNotificationsByIds: genericLoadById(Notification),
-  loadPendingEnvironmentSharesByIds: genericLoadById(PendingEnvironmentShare),
-  loadPendingOwnerChangesByIds: genericLoadById(PendingOwnerChange),
-  loadPermanentTokensByIds: genericLoadById(PermanentToken),
-  loadPlotNodesByIds: genericLoadById(PlotNode),
-  loadPlotValuesByIds: genericLoadById(PlotValue),
-  loadStringPlotNodesByIds: genericLoadById(StringPlotNode),
-  loadStringValuesByIds: genericLoadById(StringValue),
-  loadWebPushSubscriptionsByIds: genericLoadById(WebPushSubscription),
+const loadUsersByIds = genericLoadById(User)
+const loadEnvironmentsByIds = genericLoadById(Environment)
+const loadDevicesByIds = genericLoadById(Device)
+const loadBooleanValuesByIds = genericLoadById(BooleanValue)
+const loadCategoryPlotValuesByIds = genericLoadById(CategoryPlotValue)
+const loadEnvironmentAdminsByIds = genericLoadById(EnvironmentAdmin)
+const loadEnvironmentEditorsByIds = genericLoadById(EnvironmentEditor)
+const loadEnvironmentSpectatorsByIds = genericLoadById(EnvironmentSpectator)
+const loadFloatValuesByIds = genericLoadById(FloatValue)
+const loadMapValuesByIds = genericLoadById(MapValue)
+const loadNotificationsByIds = genericLoadById(Notification)
+const loadPendingEnvironmentSharesByIds = genericLoadById(
+  PendingEnvironmentShare
+)
+const loadPendingOwnerChangesByIds = genericLoadById(PendingOwnerChange)
+const loadPermanentTokensByIds = genericLoadById(PermanentToken)
+const loadPlotNodesByIds = genericLoadById(PlotNode)
+const loadPlotValuesByIds = genericLoadById(PlotValue)
+const loadStringPlotNodesByIds = genericLoadById(StringPlotNode)
+const loadStringValuesByIds = genericLoadById(StringValue)
+const loadWebPushSubscriptionsByIds = genericLoadById(WebPushSubscription)
 
-  loadAllEnvironmentAdminsByEnvironmentId: genericLoadAllByField(
-    EnvironmentAdmin,
-    "environmentId"
+const loadAllEnvironmentAdminsByEnvironmentId = genericLoadAllByField(
+  EnvironmentAdmin,
+  "environmentId"
+)
+const loadAllEnvironmentEditorsByEnvironmentId = genericLoadAllByField(
+  EnvironmentEditor,
+  "environmentId"
+)
+const loadAllEnvironmentSpectatorsByEnvironmentId = genericLoadAllByField(
+  EnvironmentSpectator,
+  "environmentId"
+)
+
+const loadEnvironmentAdminByEnvironmentAndUserId = genericRoleLoadByEnvironmentAndUserId(
+  EnvironmentAdmin
+)
+const loadEnvironmentEditorByEnvironmentAndUserId = genericRoleLoadByEnvironmentAndUserId(
+  EnvironmentEditor
+)
+const loadEnvironmentSpectatorByEnvironmentAndUserId = genericRoleLoadByEnvironmentAndUserId(
+  EnvironmentSpectator
+)
+
+module.exports = () => ({
+  userLoaderById: new DataLoader(loadUsersByIds),
+  environmentLoaderById: new DataLoader(loadEnvironmentsByIds),
+  deviceLoaderById: new DataLoader(loadDevicesByIds),
+  booleanValueLoaderById: new DataLoader(loadBooleanValuesByIds),
+  categoryPlotValueLoaderById: new DataLoader(loadCategoryPlotValuesByIds),
+  environmentAdminLoaderById: new DataLoader(loadEnvironmentAdminsByIds),
+  environmentEditorLoaderById: new DataLoader(loadEnvironmentEditorsByIds),
+  environmentSpectatorLoaderById: new DataLoader(
+    loadEnvironmentSpectatorsByIds
   ),
-  loadAllEnvironmentEditorsByEnvironmentId: genericLoadAllByField(
-    EnvironmentEditor,
-    "environmentId"
+  floatValueLoaderById: new DataLoader(loadFloatValuesByIds),
+  mapValueLoaderById: new DataLoader(loadMapValuesByIds),
+  notificationLoaderById: new DataLoader(loadNotificationsByIds),
+  pendingEnvironmentShareLoaderById: new DataLoader(
+    loadPendingEnvironmentSharesByIds
   ),
-  loadAllEnvironmentSpectatorsByEnvironmentId: genericLoadAllByField(
-    EnvironmentSpectator,
-    "environmentId"
+  pendingOwnerChangeLoaderById: new DataLoader(loadPendingOwnerChangesByIds),
+  permanentTokenLoaderById: new DataLoader(loadPermanentTokensByIds),
+  plotNodeLoaderById: new DataLoader(loadPlotNodesByIds),
+  plotValueLoaderById: new DataLoader(loadPlotValuesByIds),
+  stringPlotNodeLoaderById: new DataLoader(loadStringPlotNodesByIds),
+  stringValueLoaderById: new DataLoader(loadStringValuesByIds),
+  webPushSubscriptionLoaderById: new DataLoader(loadWebPushSubscriptionsByIds),
+
+  allEnvironmentAdminsLoaderByEnvironmentId: new DataLoader(
+    loadAllEnvironmentAdminsByEnvironmentId
+  ),
+  allEnvironmentEditorsLoaderByEnvironmentId: new DataLoader(
+    loadAllEnvironmentEditorsByEnvironmentId
+  ),
+  allEnvironmentSpectatorsLoaderByEnvironmentId: new DataLoader(
+    loadAllEnvironmentSpectatorsByEnvironmentId
   ),
 
-  loadEnvironmentAdminByEnvironmentAndUserId: genericRoleLoadByEnvironmentAndUserId(
-    EnvironmentAdmin
+  environmentAdminLoaderByEnvironmentAndUserId: new DataLoader(
+    loadEnvironmentAdminByEnvironmentAndUserId
   ),
-  loadEnvironmentEditorByEnvironmentAndUserId: genericRoleLoadByEnvironmentAndUserId(
-    EnvironmentEditor
+  editorAdminLoaderByEnvironmentAndUserId: new DataLoader(
+    loadEnvironmentEditorByEnvironmentAndUserId
   ),
-  loadEnvironmentSpectatorByEnvironmentAndUserId: genericRoleLoadByEnvironmentAndUserId(
-    EnvironmentSpectator
+  spectatorAdminLoaderByEnvironmentAndUserId: new DataLoader(
+    loadEnvironmentSpectatorByEnvironmentAndUserId
   ),
-}
+})

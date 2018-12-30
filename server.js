@@ -8,6 +8,8 @@ import { log } from "./graphql/resolvers/utilities"
 import { socketToDeviceMap } from "./graphql/resolvers/utilities"
 import { Device } from "./postgresql/models/index"
 import { pubsub } from "./shared"
+import { GenerateUserBillingBatcher } from "./graphql/resolvers/utilities"
+import createDataLoaders from "./dataloaders/index"
 
 require("dotenv").config()
 /* istanbul ignore if */
@@ -38,7 +40,16 @@ httpServer.listen(GRAPHQL_PORT, () => {
             connectionParams.Authorization.substring(7),
             process.env.JWT_SECRET
           )
-          return { auth: decodedJwt, websocket }
+
+          const dataLoaders = createDataLoaders()
+          return {
+            auth: decodedJwt,
+            websocket,
+            billingUpdater: decodedJwt
+              ? GenerateUserBillingBatcher(dataLoaders, decodedJwt)
+              : undefined,
+            dataLoaders,
+          }
         } catch (e) /* istanbul ignore next */ {
           if (e.message === "Token expired") {
             throw new Error("Token expired")
