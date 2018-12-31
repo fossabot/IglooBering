@@ -468,63 +468,12 @@ const findValue = (context, id, userFound) => {
     mapValueLoaderById,
     environmentLoaderById,
   } = context.dataLoaders
-  const booleanValue = booleanValueLoaderById.load(id).then(
-    value =>
-      value
-        ? {
-            ...value.dataValues,
-            __resolveType: "BooleanValue",
-          }
-        : value
-  )
-  const floatValue = floatValueLoaderById.load(id).then(
-    value =>
-      value
-        ? {
-            ...value.dataValues,
-            __resolveType: "FloatValue",
-          }
-        : value
-  )
-  const stringValue = stringValueLoaderById.load(id).then(
-    value =>
-      value
-        ? {
-            ...value.dataValues,
-            __resolveType: "StringValue",
-          }
-        : value
-  )
-
-  const mapValue = mapValueLoaderById.load(id).then(
-    value =>
-      value
-        ? {
-            ...value.dataValues,
-            __resolveType: "MapValue",
-          }
-        : value
-  )
-
-  const plotValue = plotValueLoaderById.load(id).then(
-    value =>
-      value
-        ? {
-            ...value.dataValues,
-            __resolveType: "PlotValue",
-          }
-        : value
-  )
-
-  const categoryPlotValue = categoryPlotValueLoaderById.load(id).then(
-    value =>
-      value
-        ? {
-            ...value.dataValues,
-            __resolveType: "CategoryPlotValue",
-          }
-        : value
-  )
+  const booleanValue = booleanValueLoaderById.load(id)
+  const floatValue = floatValueLoaderById.load(id)
+  const stringValue = stringValueLoaderById.load(id)
+  const mapValue = mapValueLoaderById.load(id)
+  const plotValue = plotValueLoaderById.load(id)
+  const categoryPlotValue = categoryPlotValueLoaderById.load(id)
 
   return Promise.all([
     booleanValue,

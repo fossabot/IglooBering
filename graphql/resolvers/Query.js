@@ -7,6 +7,7 @@ import {
   inheritAuthorized,
   environmentToParent,
   valueToParent,
+  authorizationLevel,
 } from "./utilities"
 import bcrypt from "bcryptjs"
 
@@ -71,9 +72,16 @@ const QueryResolver = ({
         context.auth.userId
       )
       const valueFound = await findValue(context, args.id, userFound)
+      const environmentFound = await valueToParent(context)(valueFound)
 
-      resolve(valueFound)
-      context.billingUpdater.update(QUERY_COST)
+      if (
+        (await authorizationLevel(environmentFound, userFound, context)) > 0
+      ) {
+        resolve(valueFound)
+        context.billingUpdater.update(QUERY_COST)
+      } else {
+        reject("You are not authorized to perform this operation")
+      }
     })
   },
   notification(root, args, context) {

@@ -369,6 +369,15 @@ type Mutation {
     muted: Boolean
   ): Device
 
+  value(
+    id: ID!
+    visibility: ValueVisibility
+    valueDetails: String
+    tileSize: TileSize
+    name: String
+    index: Int
+  ): Value
+
   moveDevice(deviceId: ID!, newEnvironmentId: ID!): Device
 
   resetOnlineState(deviceId: ID!): Device

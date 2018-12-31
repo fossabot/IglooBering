@@ -27,6 +27,7 @@ import {
   environmentToParent,
   sendEnvironmentSharedEmail,
   runInParallel,
+  findValue,
 } from "./utilities"
 import webpush from "web-push"
 import Stripe from "stripe"
@@ -34,7 +35,6 @@ import moment from "moment"
 import jwt from "jwt-simple"
 import { Op } from "sequelize"
 import zxcvbn from "zxcvbn"
-import { isNullOrUndefined } from "util"
 
 require("dotenv").config()
 /* istanbul ignore if */
@@ -1922,6 +1922,50 @@ const MutationResolver = (
         },
         deviceToParent
       )
+    },
+    value(root, args, context) {
+      return authenticated(context, async (resolve, reject) => {
+        if (args.name === null || args.name === "") {
+          reject("name cannot be null or an empty string")
+          return
+        } else if (Object.keys(args).length === 1) {
+          reject("You cannot make a mutation with only the id field")
+          return
+        } else if (args.valueDetails === "") {
+          reject("valueDetails cannot be an empty string, pass null instead")
+          return
+        }
+
+        const userFound = await context.dataLoaders.userLoaderById.load(
+          context.auth.userId
+        )
+        const valueFound = await findValue(context, args.id, userFound)
+        const environmentFound = await valueToParent(context)(valueFound)
+
+        if (
+          (await authorizationLevel(environmentFound, userFound, context)) > 0
+        ) {
+          const newValue = await valueFound.update(args)
+          resolve(newValue)
+
+          Environment.update(
+            { updatedAt: newValue.updatedAt },
+            { where: { id: environmentFound.id } }
+          )
+          Device.update(
+            { updatedAt: newValue.updatedAt },
+            { where: { id: valueFound.deviceId } }
+          )
+
+          pubsub.publish("valueUpdated", {
+            valueUpdated: newValue,
+            userIds: await instanceToSharedIds(environmentFound, context),
+          })
+          context.billingUpdater.update(MUTATION_COST)
+        } else {
+          reject("You are not authorized to perform this operation")
+        }
+      })
     },
     floatValue: genericValueMutation(
       "floatValueLoaderById",
