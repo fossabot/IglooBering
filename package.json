@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "nodemon ./server.js --exec babel-node --inspect -e js,graphql,env",
     "start":
-      "npm run build && npm sequelize db:migrate && node ./build/server.js",
+      "npm run build && npm run sequelize db:migrate && node ./build/server.js",
     "build":
       "babel server.js app.js s3helpers.js shared.js -d build --source-maps && babel postgresql -d build/postgresql --source-maps && babel graphql -d build/graphql --source-maps && babel dataloaders -d build/dataloaders --source-maps",
     "test": "jest --c=jest.config.json",
@@ -30,7 +30,7 @@
   "bugs": {
     "url": "https://github.com/IglooCloud/IglooBering/issues"
   },
-  "homepage": "https://github.com/IglooCloud/IglooBering/iglooQL",
+  "homepage": "https://github.com/IglooCloud/IglooBering",
   "dependencies": {
     "apollo-server-express": "^1.0.2",
     "aws-sdk": "^2.229.1",

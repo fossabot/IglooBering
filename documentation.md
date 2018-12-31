@@ -4,7 +4,7 @@ We use GraphQL syntax to handle requests, if you are not familiar with it yet we
 
 ## Sending requests
 
-The GraphQL endpoint is `https://iglooql.herokuapp.com/graphql`, to send a request you need to send a **POST** request to the endpoint and the body should contain a valid GraphQL query, like this one:
+The GraphQL endpoint is `https://bering.igloo.ooo/graphql`, to send a request you need to send a **POST** request to the endpoint and the body should contain a valid GraphQL query, like this one:
 
 ```graphql
 mutation {
@@ -24,7 +24,7 @@ The only unauthenticated methods are `signUp` and `logIn`
 
 ## GraphQL API
 
-You can interactively explore our api using the [graphiql docs tool](https://iglooql.herokuapp.com/graphiql) or you can read [our graphql schema](https://github.com/hellowitlab/iglooHouston/blob/master/graphql/types.graphql) (it's full of comments 😉)
+You can interactively explore our api using the [graphiql docs tool](https://bering.igloo.ooo/graphiql) or you can read [our graphql schema](https://github.com/hellowitlab/iglooHouston/blob/master/graphql/types.graphql) (it's full of comments 😉)
 
 ## Database structure
 
