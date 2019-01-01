@@ -10,6 +10,8 @@ import { withFilter } from "graphql-subscriptions"
 import winston from "winston"
 import AWS from "aws-sdk"
 import UpdateBatcher from "update-batcher"
+import webpush from "web-push"
+import { Op } from "sequelize"
 import { isNullOrUndefined } from "util"
 
 require("dotenv").config()
@@ -18,6 +20,12 @@ require("dotenv").config()
 if (!process.env.JWT_SECRET) {
   throw new Error("Could not load .env")
 }
+
+webpush.setVapidDetails(
+  "http://igloo.witlab.io/",
+  process.env.PUBLIC_VAPID_KEY,
+  process.env.PRIVATE_VAPID_KEY
+)
 
 const ses = new AWS.SES({ region: "eu-west-1" })
 
@@ -1078,6 +1086,33 @@ const environmentToParent = context => x => x
 
 const runInParallel = async (...funcs) => await Promise.all(funcs.map(f => f()))
 
+const sendPushNotification = async (userIds, payload, WebPushNotification) => {
+  const notificationSubscriptions = await WebPushNotification.findAll({
+    where: {
+      userId: {
+        [Op.in]: userIds,
+      },
+    },
+  })
+
+  notificationSubscriptions.map(notificationSubscription =>
+    webpush
+      .sendNotification(
+        {
+          endpoint: notificationSubscription.endpoint,
+          expirationTime: notificationSubscription.expirationTime,
+          keys: {
+            p256dh: notificationSubscription.p256dh,
+            auth: notificationSubscription.auth,
+          },
+        },
+        JSON.stringify(payload)
+      )
+      .then(a => console.log("THEN: " + JSON.stringify(a)))
+      .catch(b => console.log("ERR: " + b))
+  )
+}
+
 module.exports = {
   authenticated,
   generateAuthenticationToken,
@@ -1119,4 +1154,5 @@ module.exports = {
   GenerateUserBillingBatcher,
   environmentToParent,
   runInParallel,
+  sendPushNotification,
 }

@@ -28,12 +28,11 @@ import {
   sendEnvironmentSharedEmail,
   runInParallel,
   findValue,
+  sendPushNotification,
 } from "./utilities"
-import webpush from "web-push"
 import Stripe from "stripe"
 import moment from "moment"
 import jwt from "jwt-simple"
-import { Op } from "sequelize"
 import zxcvbn from "zxcvbn"
 
 require("dotenv").config()
@@ -42,11 +41,6 @@ if (!process.env.JWT_SECRET) {
   throw new Error("Could not load .env")
 }
 
-webpush.setVapidDetails(
-  "http://igloo.witlab.io/",
-  process.env.PUBLIC_VAPID_KEY,
-  process.env.PRIVATE_VAPID_KEY
-)
 const SALT_ROUNDS = 10
 const MUTATION_COST = 2
 
@@ -496,6 +490,21 @@ const MutationResolver = (
               senderFound.name,
               environmentFound.name
             )
+            if (!receiverFound.quietMode && !environmentFound.muted) {
+              sendPushNotification(
+                [receiverFound.id],
+                {
+                  content: `The user ${
+                    senderFound.name
+                  } wants to share the environment "${
+                    environmentFound.name
+                  }" with you`,
+                  date: new Date(),
+                  type: "SHARE_RECEIVED_NOTIFICATION",
+                },
+                WebPushNotification
+              )
+            }
 
             const usersWithAccessIds = (await instanceToSharedIds(
               environmentFound,
@@ -605,7 +614,6 @@ const MutationResolver = (
 
           touch(Environment, environmentFound.id)
 
-          await pendingEnvironmentFound.destroy()
           context.billingUpdater.update(MUTATION_COST)
 
           pubsub.publish("environmentShareAccepted", {
@@ -613,6 +621,22 @@ const MutationResolver = (
             userId: userFound.id,
           })
 
+          const senderFound = await context.dataLoaders.userLoaderById.load(
+            pendingEnvironmentFound.senderId
+          )
+          if (!senderFound.quietMode && !environmentFound.muted) {
+            sendPushNotification(
+              [senderFound.id],
+              {
+                content: `The user ${
+                  userFound.name
+                } accepted the environment "${environmentFound.name}"`,
+                date: new Date(),
+                type: "SHARE_ACCEPTED_NOTIFICATION",
+              },
+              WebPushNotification
+            )
+          }
           const usersWithAccessIds = (await instanceToSharedIds(
             environmentFound,
             context
@@ -622,6 +646,8 @@ const MutationResolver = (
             environmentUpdated: environmentFound,
             userIds: usersWithAccessIds,
           })
+
+          await pendingEnvironmentFound.destroy()
         }
       }),
     declinePendingEnvironmentShare: (root, args, context) =>
@@ -782,6 +808,21 @@ const MutationResolver = (
               senderFound.name,
               environmentFound.name
             )
+            if (!receiverFound.quietMode && !environmentFound.muted) {
+              sendPushNotification(
+                [receiverFound.id],
+                {
+                  content: `The user ${
+                    senderFound.name
+                  } wants to make you the new owner of the environment "${
+                    environmentFound.name
+                  }"`,
+                  date: new Date(),
+                  type: "CHANGE_OWNER_RECEIVED_NOTIFICATION",
+                },
+                WebPushNotification
+              )
+            }
 
             const usersWithAccessIds = (await instanceToSharedIds(
               environmentFound,
@@ -903,6 +944,23 @@ const MutationResolver = (
             ownerChangeAccepted: payload,
             userId: userFound.id,
           })
+
+          const senderFound = await context.dataLoaders.userLoaderById.load(
+            pendingOwnerChangeFound.senderId
+          )
+          if (!senderFound.quietMode && !environmentFound.muted) {
+            sendPushNotification(
+              [senderFound.id],
+              {
+                content: `The user ${
+                  userFound.name
+                } accepted the environment "${environmentFound.name}"`,
+                date: new Date(),
+                type: "OWNER_CHANGE_ACCEPTED_NOTIFICATION",
+              },
+              WebPushNotification
+            )
+          }
 
           const usersWithAccessIds = (await instanceToSharedIds(
             environmentFound,
@@ -2347,32 +2405,15 @@ const MutationResolver = (
             !environmentFound.muted &&
             !deviceFound.muted
           ) {
-            const notificationSubscriptions = await WebPushNotification.findAll(
+            sendPushNotification(
+              deviceSharedIds,
               {
-                where: {
-                  userId: {
-                    [Op.in]: deviceSharedIds,
-                  },
-                },
-              }
-            )
-
-            notificationSubscriptions.map(notificationSubscription =>
-              webpush.sendNotification(
-                {
-                  endpoint: notificationSubscription.endpoint,
-                  expirationTime: notificationSubscription.expirationTime,
-                  keys: {
-                    p256dh: notificationSubscription.p256dh,
-                    auth: notificationSubscription.auth,
-                  },
-                },
-                JSON.stringify({
-                  content,
-                  date,
-                  device: deviceFound,
-                })
-              )
+                content,
+                date,
+                device: deviceFound,
+                type: "DEVICE_NOTIFICATION",
+              },
+              WebPushNotification
             )
           }
         },
