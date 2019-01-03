@@ -57,19 +57,7 @@ const resolvers = {
     JWT_SECRET
   ),
   Query: QueryResolver(SequelizeConnections),
-  Value: ValueResolver(
-    {
-      BooleanValue,
-      FloatValue,
-      StringValue,
-      PlotValue,
-      CategoryPlotValue,
-      MapValue,
-    },
-    User,
-    Device,
-    Environment
-  ),
+  Value: ValueResolver,
   ...ValueResolvers(
     {
       BooleanValue,

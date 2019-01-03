@@ -2,28 +2,29 @@ import { authenticated, authorizationLevel, firstResolve } from "./utilities"
 
 const QUERY_COST = 1
 
-const ValueResolver = (Values, User, Device, Environment) => ({
+const ValueResolver = {
   __resolveType: (root, context) =>
     authenticated(context, async (resolve, reject) => {
       const NOT_ALLOWED = "You are not allowed to perform this operation"
       const NOT_EXIST = "The requested resource does not exist"
-      const models = Object.values(Values)
 
-      // TODO: resolve this stuff
-      function indexToType(idx) {
-        const modelName = Object.keys(Values)[idx]
-
-        return modelName
+      const dataLoaderMap = {
+        BooleanValue: context.dataLoaders.booleanValueLoaderById,
+        CategoryPlotValue: context.dataLoaders.categoryPlotValueLoaderById,
+        FloatValue: context.dataLoaders.floatValueLoaderById,
+        MapValue: context.dataLoaders.mapValueLoaderById,
+        PlotValue: context.dataLoaders.plotValueLoaderById,
+        StringValue: context.dataLoaders.stringValueLoaderById,
       }
+      const dataLoaders = Object.values(dataLoaderMap)
+      const __resolveTypes = Object.keys(dataLoaderMap)
 
       // race all the models to find the looked for id, if a value is found
       // it is returned otherwise the correct error is returned
-      const modelFetches = models.map(
-        (Model, idx) =>
+      const instancesLoaded = dataLoaders.map(
+        (dataLoader, idx) =>
           new Promise(async (resolveInner, rejectInner) => {
-            const resourceFound = await Model.find({
-              where: { id: root.id },
-            })
+            const resourceFound = await dataLoader.load(root.id)
 
             /* istanbul ignore next */
             if (!resourceFound) {
@@ -46,13 +47,13 @@ const ValueResolver = (Values, User, Device, Environment) => ({
                 /* istanbul ignore next */
                 rejectInner(NOT_ALLOWED)
               } else {
-                resolveInner(indexToType(idx))
+                resolveInner(__resolveTypes[idx])
               }
             }
           })
       )
 
-      firstResolve(modelFetches)
+      firstResolve(instancesLoaded)
         .then(typeFound => resolve(typeFound))
         /* istanbul ignore next */
         .catch(e => {
@@ -70,6 +71,6 @@ const ValueResolver = (Values, User, Device, Environment) => ({
           )
         })
     }),
-})
+}
 
 export default ValueResolver
