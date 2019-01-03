@@ -596,14 +596,14 @@ type Subscription {
   # subscribes to device creations
   deviceMoved: Device
   # subscribes to environment shares to you
-  environmentShareReceived: PendingEnvironmentShare
-  environmentShareUpdated: PendingEnvironmentShare
+  pendingEnvironmentShareReceived: PendingEnvironmentShare
+  pendingEnvironmentShareUpdated: PendingEnvironmentShare
   # returns the environment accepted
-  environmentShareAccepted: acceptPendingEnvironmentSharePayload
+  pendingEnvironmentShareAccepted: acceptPendingEnvironmentSharePayload
   # returns the id of the environment declined
-  environmentShareDeclined: ID
+  pendingEnvironmentShareDeclined: ID
   # returns the id of the environment share that was revoked
-  environmentShareRevoked: ID
+  pendingEnvironmentShareRevoked: ID
   # subscribes to owner change to you
   ownerChangeReceived: PendingOwnerChange
   # returns the id of the environment accepted

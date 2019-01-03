@@ -9,28 +9,28 @@ import {
 } from "./utilities"
 
 const subscriptionResolver = (pubsub, { User, Device, Environment }) => ({
-  environmentShareReceived: subscriptionFilterOnlyMine(
-    "environmentShareReceived",
+  pendingEnvironmentShareReceived: subscriptionFilterOnlyMine(
+    "pendingEnvironmentShareReceived",
     pubsub
   ),
-  environmentShareUpdated: subscriptionFilterOnlyMine(
-    "environmentShareUpdated",
+  pendingEnvironmentShareUpdated: subscriptionFilterOnlyMine(
+    "pendingEnvironmentShareUpdated",
     pubsub
   ),
   environmentStoppedSharingWithYou: subscriptionFilterOnlyMine(
     "environmentStoppedSharingWithYou",
     pubsub
   ),
-  environmentShareAccepted: subscriptionFilterOnlyMine(
-    "environmentShareAccepted",
+  pendingEnvironmentShareAccepted: subscriptionFilterOnlyMine(
+    "pendingEnvironmentShareAccepted",
     pubsub
   ),
-  environmentShareDeclined: subscriptionFilterOnlyMine(
-    "environmentShareDeclined",
+  pendingEnvironmentShareDeclined: subscriptionFilterOnlyMine(
+    "pendingEnvironmentShareDeclined",
     pubsub
   ),
-  environmentShareRevoked: subscriptionFilterOwnedOrShared(
-    "environmentShareRevoked",
+  pendingEnvironmentShareRevoked: subscriptionFilterOwnedOrShared(
+    "pendingEnvironmentShareRevoked",
     pubsub
   ),
   ownerChangeReceived: subscriptionFilterOnlyMine(

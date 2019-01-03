@@ -481,8 +481,8 @@ const MutationResolver = (
 
             touch(Environment, args.environmentId, newPendingShare.updatedAt)
 
-            pubsub.publish("environmentShareReceived", {
-              environmentShareReceived: newPendingShare,
+            pubsub.publish("pendingEnvironmentShareReceived", {
+              pendingEnvironmentShareReceived: newPendingShare,
               userId: receiverFound.id,
             })
             sendEnvironmentSharedEmail(
@@ -547,8 +547,8 @@ const MutationResolver = (
             newPendingEnvironmentShare.updatedAt
           )
 
-          pubsub.publish("environmentShareUpdated", {
-            environmentShareUpdated: newPendingEnvironmentShare,
+          pubsub.publish("pendingEnvironmentShareUpdated", {
+            pendingEnvironmentShareUpdated: newPendingEnvironmentShare,
             userId: newPendingEnvironmentShare.receiverId,
           })
 
@@ -616,8 +616,8 @@ const MutationResolver = (
 
           context.billingUpdater.update(MUTATION_COST)
 
-          pubsub.publish("environmentShareAccepted", {
-            environmentShareAccepted: payload,
+          pubsub.publish("pendingEnvironmentShareAccepted", {
+            pendingEnvironmentShareAccepted: payload,
             userId: userFound.id,
           })
 
@@ -674,8 +674,8 @@ const MutationResolver = (
 
           context.billingUpdater.update(MUTATION_COST)
 
-          pubsub.publish("environmentShareDeclined", {
-            environmentShareDeclined: pendingEnvironmentFoundId,
+          pubsub.publish("pendingEnvironmentShareDeclined", {
+            pendingEnvironmentShareDeclined: pendingEnvironmentFoundId,
             userId: context.auth.userId,
           })
 
@@ -724,8 +724,8 @@ const MutationResolver = (
               context
             )
 
-            pubsub.publish("environmentShareRevoked", {
-              environmentShareRevoked: revokedId,
+            pubsub.publish("pendingEnvironmentShareRevoked", {
+              pendingEnvironmentShareRevoked: revokedId,
               userIds: [receiverId],
             })
             pubsub.publish("environmentUpdated", {
@@ -771,8 +771,8 @@ const MutationResolver = (
             if (otherPendingShare) {
               await otherPendingShare.destroy()
 
-              pubsub.publish("environmentShareRevoked", {
-                environmentShareRevoked: otherPendingShare.id,
+              pubsub.publish("pendingEnvironmentShareRevoked", {
+                pendingEnvironmentShareRevoked: otherPendingShare.id,
                 userIds: [receiverFound.id],
               })
             }
@@ -2726,20 +2726,22 @@ const MutationResolver = (
           })
 
           async function destroyPendingEnvironmentShare() {
-            const environmentSharesFound = await PendingEnvironmentShare.findAll(
+            const pendingEnvironmentSharesFound = await PendingEnvironmentShare.findAll(
               {
                 where: { environmentId: environmentFound.id },
               }
             )
 
             await Promise.all(
-              environmentSharesFound.map(async environmentShare => {
-                pubsub.publish("environmentShareRevoked", {
-                  environmentShareRevoked: environmentShare.id,
-                  userIds: [environmentShare.receiverId],
-                })
-                await environmentShare.destroy()
-              })
+              pendingEnvironmentSharesFound.map(
+                async pendingEnvironmentShare => {
+                  pubsub.publish("pendingEnvironmentShareRevoked", {
+                    pendingEnvironmentShareRevoked: pendingEnvironmentShare.id,
+                    userIds: [pendingEnvironmentShare.receiverId],
+                  })
+                  await pendingEnvironmentShare.destroy()
+                }
+              )
             )
           }
           async function destroyPendingOwnerChange() {
@@ -2965,20 +2967,23 @@ const MutationResolver = (
             })
 
             async function destroyPendingEnvironmentShare() {
-              const environmentSharesFound = await PendingEnvironmentShare.findAll(
+              const pendingEnvironmentSharesFound = await PendingEnvironmentShare.findAll(
                 {
                   where: { environmentId: environmentFound.id },
                 }
               )
 
               await Promise.all(
-                environmentSharesFound.map(async environmentShare => {
-                  pubsub.publish("environmentShareRevoked", {
-                    environmentShareRevoked: environmentShare.id,
-                    userIds: [environmentShare.receiverId],
-                  })
-                  await environmentShare.destroy()
-                })
+                pendingEnvironmentSharesFound.map(
+                  async pendingEnvironmentShare => {
+                    pubsub.publish("pendingEnvironmentShareRevoked", {
+                      pendingEnvironmentShareRevoked:
+                        pendingEnvironmentShare.id,
+                      userIds: [pendingEnvironmentShare.receiverId],
+                    })
+                    await pendingEnvironmentShare.destroy()
+                  }
+                )
               )
             }
             async function destroyPendingOwnerChange() {
@@ -3051,7 +3056,7 @@ const MutationResolver = (
           )
 
           async function destroyPendingEnvironmentShare() {
-            const environmentSharesFound = await PendingEnvironmentShare.findAll(
+            const pendingEnvironmentSharesFound = await PendingEnvironmentShare.findAll(
               {
                 where: {
                   $or: [
@@ -3063,13 +3068,15 @@ const MutationResolver = (
             )
 
             await Promise.all(
-              environmentSharesFound.map(async environmentShare => {
-                pubsub.publish("environmentShareRevoked", {
-                  environmentShareRevoked: environmentShare.id,
-                  userIds: [environmentShare.receiverId],
-                })
-                await environmentShare.destroy()
-              })
+              pendingEnvironmentSharesFound.map(
+                async pendingEnvironmentShare => {
+                  pubsub.publish("pendingEnvironmentShareRevoked", {
+                    pendingEnvironmentShareRevoked: pendingEnvironmentShare.id,
+                    userIds: [pendingEnvironmentShare.receiverId],
+                  })
+                  await pendingEnvironmentShare.destroy()
+                }
+              )
             )
           }
           async function destroyPendingOwnerChange() {
