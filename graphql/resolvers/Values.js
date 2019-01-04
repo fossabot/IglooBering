@@ -23,7 +23,7 @@ const GenericResolver = (
       "createdAt",
       "updatedAt",
       "visibility",
-      "valueDetails",
+      "unitOfMeasurement",
       "tileSize",
       "name",
       "value",

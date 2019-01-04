@@ -191,7 +191,7 @@ type Mutation {
     # whether the value should be VISIBLE, HIDDEN or INVISIBLE in Igloo Aurora
     visibility: ValueVisibility
     # additional details about the value
-    valueDetails: String
+    unitOfMeasurement: String
     value: Float!
     # used when displaying or changing the value in Igloo Aurora
     precision: Float
@@ -213,7 +213,7 @@ type Mutation {
     # whether the value should be VISIBLE, HIDDEN or INVISIBLE in Igloo Aurora
     visibility: ValueVisibility
     # additional details about the value
-    valueDetails: String
+    unitOfMeasurement: String
     value: String!
     # max length of the string
     maxChars: Int
@@ -235,7 +235,7 @@ type Mutation {
     # whether the value should be VISIBLE, HIDDEN or INVISIBLE in Igloo Aurora
     visibility: ValueVisibility
     # additional details about the value
-    valueDetails: String
+    unitOfMeasurement: String
     value: Boolean!
     # name of the value, displayed in Igloo Aurora
     name: String!
@@ -253,7 +253,7 @@ type Mutation {
     # whether the value should be VISIBLE, HIDDEN or INVISIBLE in Igloo Aurora
     visibility: ValueVisibility
     # additional details about the value
-    valueDetails: String
+    unitOfMeasurement: String
     # name of the value, displayed in Igloo Aurora
     name: String!
     # tile size in Igloo Aurora
@@ -273,7 +273,7 @@ type Mutation {
     # whether the value should be VISIBLE, HIDDEN or INVISIBLE in Igloo Aurora
     visibility: ValueVisibility
     # additional details about the value
-    valueDetails: String
+    unitOfMeasurement: String
     # used when the end-user reads or modifies the value
     precision: Float
     # [min, max]
@@ -303,7 +303,7 @@ type Mutation {
     # whether the value should be VISIBLE, HIDDEN or INVISIBLE in Igloo Aurora
     visibility: ValueVisibility
     # additional details about the value
-    valueDetails: String
+    unitOfMeasurement: String
     # name of the value, displayed in Igloo Aurora
     name: String!
     # tile size in Igloo Aurora
@@ -372,7 +372,7 @@ type Mutation {
   value(
     id: ID!
     visibility: ValueVisibility
-    valueDetails: String
+    unitOfMeasurement: String
     tileSize: TileSize
     name: String
     index: Int
@@ -391,7 +391,7 @@ type Mutation {
     # whether the value should be VISIBLE, HIDDEN or INVISIBLE in Igloo Aurora
     visibility: ValueVisibility
     # additional details about the value
-    valueDetails: String
+    unitOfMeasurement: String
     value: Float
     # used when displaying or changing the value in Igloo Aurora
     precision: Float
@@ -415,7 +415,7 @@ type Mutation {
     # whether the value should be VISIBLE, HIDDEN or INVISIBLE in Igloo Aurora
     visibility: ValueVisibility
     # additional details about the value
-    valueDetails: String
+    unitOfMeasurement: String
     value: String
     # max length of the string
     maxChars: Int
@@ -437,7 +437,7 @@ type Mutation {
     # whether the value should be VISIBLE, HIDDEN or INVISIBLE in Igloo Aurora
     visibility: ValueVisibility
     # additional details about the value
-    valueDetails: String
+    unitOfMeasurement: String
     value: Boolean
     # name of the value, displayed in Igloo Aurora
     name: String
@@ -455,7 +455,7 @@ type Mutation {
     # whether the value should be VISIBLE, HIDDEN or INVISIBLE in Igloo Aurora
     visibility: ValueVisibility
     # additional details about the value
-    valueDetails: String
+    unitOfMeasurement: String
     # name of the value, displayed in Igloo Aurora
     name: String
     # tile size in Igloo Aurora
@@ -475,7 +475,7 @@ type Mutation {
     # whether the value should be VISIBLE, HIDDEN or INVISIBLE in Igloo Aurora
     visibility: ValueVisibility
     # additional details about the value
-    valueDetails: String
+    unitOfMeasurement: String
     # used when the end-user reads or modifies the value
     precision: Float
     # [min, max]
@@ -506,7 +506,7 @@ type Mutation {
     # whether the value should be VISIBLE, HIDDEN or INVISIBLE in Igloo Aurora
     visibility: ValueVisibility
     # additional details about the value
-    valueDetails: String
+    unitOfMeasurement: String
     # name of the value, displayed in Igloo Aurora
     name: String
     # tile size in Igloo Aurora
@@ -837,7 +837,7 @@ interface Value {
   device: Device!
   environment: Environment!
   visibility: ValueVisibility!
-  valueDetails: String
+  unitOfMeasurement: String
   tileSize: TileSize!
   name: String
   index: Int
@@ -852,7 +852,7 @@ type FloatValue implements Value {
   environment: Environment!
   permission: ValuePermission!
   visibility: ValueVisibility!
-  valueDetails: String
+  unitOfMeasurement: String
   value: Float!
   # used when the end-user reads or modifies the value
   precision: Float
@@ -872,7 +872,7 @@ type StringValue implements Value {
   environment: Environment!
   permission: ValuePermission!
   visibility: ValueVisibility!
-  valueDetails: String
+  unitOfMeasurement: String
   value: String!
   maxChars: Int
   tileSize: TileSize!
@@ -889,7 +889,7 @@ type PlotValue implements Value {
   device: Device!
   environment: Environment!
   visibility: ValueVisibility!
-  valueDetails: String
+  unitOfMeasurement: String
   value: [PlotNode!]!
   # used when the end-user reads or modifies the value
   precision: Float
@@ -910,7 +910,7 @@ type CategoryPlotValue implements Value {
   device: Device!
   environment: Environment!
   visibility: ValueVisibility!
-  valueDetails: String
+  unitOfMeasurement: String
   value: [CategoryPlotNode!]!
   tileSize: TileSize!
   name: String
@@ -927,7 +927,7 @@ type BooleanValue implements Value {
   environment: Environment!
   permission: ValuePermission!
   visibility: ValueVisibility!
-  valueDetails: String
+  unitOfMeasurement: String
   value: Boolean!
   tileSize: TileSize!
   name: String
@@ -943,7 +943,7 @@ type MapValue implements Value {
   environment: Environment!
   permission: ValuePermission!
   visibility: ValueVisibility!
-  valueDetails: String
+  unitOfMeasurement: String
   value: String
   latitude: Float
   longitude: Float

@@ -137,8 +137,8 @@ const CreateGenericValue = (
       if (args.name === "") {
         reject("name cannot be an empty string")
         return
-      } else if (args.valueDetails === "") {
-        reject("valueDetails cannot be an empty string, pass null instead")
+      } else if (args.unitOfMeasurement === "") {
+        reject("unitOfMeasurement cannot be an empty string, pass null instead")
         return
       }
 
@@ -283,8 +283,8 @@ const genericValueMutation = (
       } else if (Object.keys(args).length === 1) {
         reject("You cannot make a mutation with only the id field")
         return
-      } else if (args.valueDetails === "") {
-        reject("valueDetails cannot be an empty string, pass null instead")
+      } else if (args.unitOfMeasurement === "") {
+        reject("unitOfMeasurement cannot be an empty string, pass null instead")
         return
       }
 
