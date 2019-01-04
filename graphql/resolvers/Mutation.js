@@ -34,6 +34,7 @@ import Stripe from "stripe"
 import moment from "moment"
 import jwt from "jwt-simple"
 import zxcvbn from "zxcvbn"
+import { isNullOrUndefined } from "util"
 
 require("dotenv").config()
 /* istanbul ignore if */
@@ -1378,6 +1379,12 @@ const MutationResolver = (
         ) {
           reject("Value is out of boundaries")
           return false
+        } else if (
+          isNullOrUndefined(args.boundaries) &&
+          args.tileSize === "LARGE"
+        ) {
+          reject("Unbounded float cannot have tileSize set to LARGE")
+          return false
         }
         return true
       }
@@ -2059,7 +2066,7 @@ const MutationResolver = (
           return false
         } else if (
           expectedNewValue.boundaries === null &&
-          (expectedNewValue.tileSize === "WIDE" ||
+          (expectedNewValue.tileSize === "LARGE" ||
             expectedNewValue.tileSize === "TALL")
         ) {
           reject(
