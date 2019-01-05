@@ -71,7 +71,17 @@ const QueryResolver = ({
       const userFound = await context.dataLoaders.userLoaderById.load(
         context.auth.userId
       )
-      const valueFound = await findValue(context, args.id, userFound)
+      let valueFound
+      try {
+        valueFound = await findValue(context, args.id, userFound)
+      } catch (e) {
+        if (e.message === "The requested resource does not exist") {
+          reject(e)
+          return
+        }
+
+        throw e
+      }
       const environmentFound = await valueToParent(context)(valueFound)
 
       if (

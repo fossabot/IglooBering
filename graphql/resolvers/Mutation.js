@@ -2006,8 +2006,36 @@ const MutationResolver = (
         const userFound = await context.dataLoaders.userLoaderById.load(
           context.auth.userId
         )
-        const valueFound = await findValue(context, args.id, userFound)
+
+        let valueFound
+        try {
+          valueFound = await findValue(context, args.id, userFound)
+        } catch (e) {
+          if (e.message === "The requested resource does not exist") {
+            reject(e)
+            return
+          }
+
+          throw e
+        }
         const environmentFound = await valueToParent(context)(valueFound)
+
+        const valueType = valueFound._modelOptions.name.singular
+        const expectedNewValue = {
+          ...valueFound,
+          ...args,
+        }
+        if (
+          valueType === "floatValue" &&
+          valueFound.boundaries === null &&
+          (expectedNewValue.tileSize === "LARGE" ||
+            expectedNewValue.tileSize === "TALL")
+        ) {
+          reject(
+            "FloatValue with no boundaries cannot have tileSize set to WIDE or TALL"
+          )
+          return false
+        }
 
         if (
           (await authorizationLevel(environmentFound, userFound, context)) > 0
