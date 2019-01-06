@@ -142,9 +142,7 @@ const DeviceResolver = ({
         const count = await Notification.count({
           where: {
             deviceId: root.id,
-            [Op.not]: {
-              visualized: { [Op.contains]: [context.auth.userId] },
-            },
+            notVisualized: { [Op.contains]: [context.auth.userId] },
           },
         })
 

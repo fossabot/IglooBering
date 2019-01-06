@@ -1,3 +1,7 @@
+import { Op } from "sequelize";
+
+const arrayContains = (a, b) => a.filter(x => b.indexOf(x) !== -1).length !== 0;
+
 module.exports = () => {
   const mockEnvironmentData = [
     {
@@ -141,7 +145,7 @@ module.exports = () => {
       environmentId: "mockEnvironmentId",
       content: "mockContent",
       date: "2018-11-27T22:09:44.183Z",
-      visualized: []
+      notVisualized: ["mockUserId"]
     },
     {
       id: "mockNotificationId2",
@@ -150,7 +154,7 @@ module.exports = () => {
       environmentId: "mockEnvironmentId",
       content: "mockContent2",
       date: "2018-11-27T22:09:44.183Z",
-      visualized: []
+      notVisualized: ["mockUserId"]
     }
   ];
 
@@ -167,7 +171,15 @@ module.exports = () => {
   const queryAndItemMatch = whereQuery => item => {
     let isMatching = true;
     for (const key in whereQuery) {
-      if (whereQuery[key] !== item[key]) {
+      if (
+        whereQuery[key] === item[key] ||
+        (whereQuery[key][Op.in] !== undefined &&
+          whereQuery[key][Op.in].indexOf(item[key]) !== -1) ||
+        (whereQuery[key][Op.contains] !== undefined &&
+          arrayContains(item[key], whereQuery[key][Op.contains]))
+      ) {
+        continue;
+      } else {
         isMatching = false;
         break;
       }

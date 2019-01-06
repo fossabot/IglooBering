@@ -316,9 +316,7 @@ const EnvironmentResolver = ({
           Notification.count({
             where: {
               deviceId: device.id,
-              [Op.not]: {
-                visualized: { [Op.contains]: [context.auth.userId] },
-              },
+              notVisualized: { [Op.contains]: [context.auth.userId] },
             },
           })
         )

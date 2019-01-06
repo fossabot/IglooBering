@@ -76,7 +76,7 @@ const UserResolver = ({ Notification, User, Device, Environment }) => ({
       1,
       async (resolve, reject, notificationFound) => {
         resolve(
-          notificationFound.visualized.indexOf(context.auth.userId) !== -1
+          notificationFound.notVisualized.indexOf(context.auth.userId) === -1
         )
         context.billingUpdater.update(QUERY_COST)
       },

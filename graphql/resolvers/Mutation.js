@@ -2400,11 +2400,15 @@ const MutationResolver = (
             reject("content cannot be null or an empty string")
             return
           }
+          const deviceSharedIds = await instanceToSharedIds(
+            environmentFound,
+            context
+          )
 
           const newNotification = await Notification.create({
             ...args,
             environmentId: environmentFound.id,
-            visualized: [],
+            notVisualized: deviceSharedIds,
             userId: context.auth.userId,
             date: args.date || new Date(),
           })
@@ -2416,44 +2420,20 @@ const MutationResolver = (
           environmentFound.addNotification(newNotification)
           newNotification.setEnvironment(environmentFound)
 
-          const {
-            visualized,
-            content,
-            date,
-            userId,
-            deviceId,
-            environmentId,
-            id,
-          } = newNotification.dataValues
-
-          const resolveValue = {
-            id,
-            visualized,
-            content,
-            date,
-            user: { id: userId },
-            device: { id: deviceId },
-            environment: { id: environmentId },
-          }
-
-          resolve(resolveValue)
+          resolve(newNotification)
 
           touch(Environment, environmentFound.id, newNotification.updatedAt)
           touch(Device, newNotification.deviceId, newNotification.updatedAt)
 
-          const deviceSharedIds = await instanceToSharedIds(
-            environmentFound,
-            context
-          )
           pubsub.publish("notificationCreated", {
-            notificationCreated: resolveValue,
+            notificationCreated: newNotification,
             userIds: deviceSharedIds,
           })
 
           // the notificationCount props are updated so send the device and environment subscriptions
           pubsub.publish("deviceUpdated", {
             deviceUpdated: {
-              id: deviceId,
+              id: newNotification.deviceId,
             },
             userIds: deviceSharedIds,
           })
@@ -2472,8 +2452,8 @@ const MutationResolver = (
             sendPushNotification(
               deviceSharedIds,
               {
-                content,
-                date,
+                content: newNotification.content,
+                date: newNotification.date,
                 device: deviceFound,
                 type: "DEVICE_NOTIFICATION",
               },
@@ -2519,46 +2499,30 @@ const MutationResolver = (
           const updateQuery = args
 
           if (updateQuery.visualized === true) {
-            updateQuery.visualized =
-              notificationFound.visualized.indexOf(context.auth.userId) === -1
-                ? [...notificationFound.visualized, context.auth.userId]
-                : notificationFound.visualized
-          } else if (updateQuery.visualized === false) {
-            updateQuery.visualized = notificationFound.visualized.filter(
+            updateQuery.notVisualized = notificationFound.notVisualized.filter(
               id => id !== context.auth.userId
             )
+          } else if (updateQuery.visualized === false) {
+            updateQuery.notVisualized =
+              notificationFound.notVisualized.indexOf(context.auth.userId) ===
+              -1
+                ? [...notificationFound.notVisualized, context.auth.userId]
+                : notificationFound.notVisualized
           }
 
-          const {
-            date,
-            updatedAt,
-            visualized,
-            content,
-            id,
-            userId,
-            deviceId,
-          } = (await notificationFound.update(updateQuery)).dataValues
+          const newNotification = await notificationFound.update(updateQuery)
 
-          const resolveValue = {
-            date,
-            visualized,
-            content,
-            id,
-            user: { id: userId },
-            device: { id: deviceId },
-          }
+          resolve(newNotification)
 
-          resolve(resolveValue)
-
-          touch(Environment, environmentFound.id, updatedAt)
-          touch(Device, deviceId, updatedAt)
+          touch(Environment, environmentFound.id, newNotification.updatedAt)
+          touch(Device, newNotification.deviceId, newNotification.updatedAt)
 
           const deviceSharedIds = await instanceToSharedIds(
             environmentFound,
             context
           )
           pubsub.publish("notificationUpdated", {
-            notificationUpdated: resolveValue,
+            notificationUpdated: newNotification,
             userIds: deviceSharedIds,
           })
 
