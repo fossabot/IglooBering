@@ -29,6 +29,7 @@ import {
   runInParallel,
   findValue,
   sendPushNotification,
+  sendOwnerChangeEmail,
 } from "./utilities"
 import Stripe from "stripe"
 import moment from "moment"
@@ -830,7 +831,7 @@ const MutationResolver = (
               ownerChangeReceived: newOwnerChange,
               userId: receiverFound.id,
             })
-            sendEnvironmentSharedEmail(
+            sendOwnerChangeEmail(
               receiverFound.email,
               senderFound.name,
               environmentFound.name

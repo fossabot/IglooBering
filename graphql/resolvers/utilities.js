@@ -672,6 +672,32 @@ const sendEnvironmentSharedEmail = (email, userName, environmentName) => {
     console.log
   )
 }
+const sendOwnerChangeEmail = (email, userName, environmentName) => {
+  // TODO: create a template for the email verification
+  ses.sendEmail(
+    {
+      Source: "'Igloo Cloud' <noreply@igloo.ooo>",
+      Destination: { ToAddresses: [email] },
+      Message: {
+        Body: {
+          Html: {
+            Charset: "UTF-8",
+            Data: `The user ${userName} wants to make you the new owner of the environment "${environmentName}". <a href="https://aurora.igloo.ooo">Check it out now</a>`,
+          },
+          Text: {
+            Charset: "UTF-8",
+            Data: `The user ${userName} wants to make you the new owner of the environment "${environmentName}". Check it out on aurora.igloo.ooo`,
+          },
+        },
+        Subject: {
+          Charset: "UTF-8",
+          Data: "A environment was shared with you",
+        },
+      },
+    },
+    console.log
+  )
+}
 
 async function authorizationLevel(
   instance,
@@ -1134,6 +1160,7 @@ module.exports = {
   sendPasswordUpdatedEmail,
   sendTokenCreatedEmail,
   sendEnvironmentSharedEmail,
+  sendOwnerChangeEmail,
   authorizationLevel,
   authorized,
   authorizedScalarPropsResolvers,
