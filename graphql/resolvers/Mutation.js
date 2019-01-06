@@ -219,13 +219,39 @@ const MutationResolver = (
         ["MANAGE_PERMANENT_TOKENS"]
       )
     },
+    regeneratePermanentAccessToken(root, args, context) {
+      return authenticated(
+        context,
+        async (resolve, reject) => {
+          const databaseToken = await context.dataLoaders.permanentTokenLoaderById.load(
+            args.id
+          )
+
+          if (!databaseToken) {
+            reject("This token doesn't exist")
+          } else if (databaseToken.userId !== context.auth.userId) {
+            reject("This token is not yours")
+          } else {
+            const regeneratedToken = generatePermanentAuthenticationToken(
+              context.auth.userId,
+              databaseToken.id,
+              "DEVICE",
+              JWT_SECRET
+            )
+            resolve(regeneratedToken)
+          }
+        },
+        ["MANAGE_PERMANENT_TOKENS"]
+      )
+    },
     deletePermanentAccessToken(root, args, context) {
       return authenticated(
         context,
         async (resolve, reject) => {
-          const databaseToken = await PermanentToken.find({
-            where: { id: args.id },
-          })
+          const databaseToken = await context.dataLoaders.permanentTokenLoaderById.load(
+            args.id
+          )
+
           if (!databaseToken) {
             reject("This token doesn't exist")
           } else if (databaseToken.userId !== context.auth.userId) {
@@ -242,7 +268,7 @@ const MutationResolver = (
         },
         ["MANAGE_PERMANENT_TOKENS"]
       )
-    }, // if not it creates one and returnes an access token // checks if a user with that email already exists
+    },
     signUp(root, args, context) {
       return async (resolve, reject) => {
         // check password strength

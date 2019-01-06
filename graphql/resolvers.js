@@ -10,6 +10,7 @@ import SubscriptionsResolver from "./resolvers/subscriptions"
 import NotificationResolver from "./resolvers/Notification"
 import ValueResolver from "./resolvers/Value"
 import ValueResolvers from "./resolvers/Values"
+import PermanentAccessTokenResolver from "./resolvers/PermanentAccessToken"
 import DateTime from "./resolvers/DateTime"
 import SequelizeConnections from "../postgresql/models/index"
 import { pubsub } from "../shared"
@@ -73,6 +74,7 @@ const resolvers = {
     Environment
   ),
   Notification: NotificationResolver(SequelizeConnections),
+  PermanentToken: PermanentAccessTokenResolver,
 }
 
 const wrappedResolvers = {

@@ -101,6 +101,7 @@ type Mutation {
     name: String! # name of the token
   ): permanentAccessTokenPayload
 
+  regeneratePermanentAccessToken(id: ID!): String
   # removes a permanent access token
   deletePermanentAccessToken(id: ID!): ID
 

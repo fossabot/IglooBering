@@ -47,15 +47,13 @@ app.use(
       switch (payload.tokenType) {
         case "PERMANENT":
           try {
-            const DatabaseToken = await PermanentToken.find({
+            const tokenFound = await PermanentToken.find({
               where: { id: payload.tokenId },
             })
 
-            if (DatabaseToken && DatabaseToken.userId === payload.userId) {
+            if (tokenFound && tokenFound.userId === payload.userId) {
+              tokenFound.update({ lastUsed: new Date() })
               done(null, false)
-
-              // TODO: handle eventual error
-              DatabaseToken.update({ lastUsed: new Date() })
             } else {
               done(null, true)
             }
