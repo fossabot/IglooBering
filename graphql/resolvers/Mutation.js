@@ -49,8 +49,11 @@ const MUTATION_COST = 2
 const stripe = Stripe("sk_test_pku6xMd2Tjlv5EU4GkZHw7aS")
 
 const isNotNullNorUndefined = value => value !== undefined && value !== null
-const isOutOfBoundaries = (boundaries, value) =>
-  value < boundaries[0] || value > boundaries[1]
+const isOutOfBoundaries = (min, max, value) => {
+  if (isNotNullNorUndefined(min) && value < min) return true
+  if (isNotNullNorUndefined(max) && value > max) return true
+  return false
+}
 
 const touch = async (Model, id, updatedAt = new Date()) =>
   await Model.update({ updatedAt }, { where: { id } }) // FIXME: updated at is always set to current date by sequelize
@@ -1322,13 +1325,13 @@ const MutationResolver = (
             // checks that batteryStatus and signalStatus are within boundaries [0,100]
             if (
               isNotNullNorUndefined(args.batteryStatus) &&
-              isOutOfBoundaries([0, 100], args.batteryStatus)
+              isOutOfBoundaries(0, 100, args.batteryStatus)
             ) {
               reject("batteryStatus is out of boundaries [0,100]")
               return
             } else if (
               isNotNullNorUndefined(args.signalStatus) &&
-              isOutOfBoundaries([0, 100], args.signalStatus)
+              isOutOfBoundaries(0, 100, args.signalStatus)
             ) {
               reject("signalStatus is out of boundaries [0,100]")
               return
@@ -1394,23 +1397,17 @@ const MutationResolver = (
       pubsub,
       (args, reject) => {
         if (
-          isNotNullNorUndefined(args.boundaries) &&
-          (args.boundaries.length !== 2 ||
-            args.boundaries[0] >= args.boundaries[1])
+          isNotNullNorUndefined(args.min) &&
+          isNotNullNorUndefined(args.max) &&
+          args.min >= args.max
         ) {
-          reject("Boundaries should be a [min, max] array")
+          reject("The min value should be less than the max value")
           return false
-        } else if (
-          isNotNullNorUndefined(args.boundaries) &&
-          isOutOfBoundaries(args.boundaries, args.value)
-        ) {
-          reject("Value is out of boundaries")
+        } else if (isOutOfBoundaries(args.min, args.max, args.value)) {
+          reject("Value is out of boundaries (min and max)")
           return false
-        } else if (
-          isNullOrUndefined(args.boundaries) &&
-          args.tileSize === "LARGE"
-        ) {
-          reject("Unbounded float cannot have tileSize set to LARGE")
+        } else if (args.tileSize === "LARGE") {
+          reject("float cannot have tileSize set to LARGE")
           return false
         }
         return true
@@ -1506,11 +1503,11 @@ const MutationResolver = (
       pubsub,
       (args, reject) => {
         if (
-          isNotNullNorUndefined(args.boundaries) &&
-          (args.boundaries.length !== 2 ||
-            args.boundaries[0] >= args.boundaries[1])
+          isNotNullNorUndefined(args.min) &&
+          isNotNullNorUndefined(args.max) &&
+          args.min >= args.max
         ) {
-          reject("boundaries should be an array with 2 values [min, max]")
+          reject("The min value should be less than the max value")
           return false
         }
         return true
@@ -1552,9 +1549,11 @@ const MutationResolver = (
         2,
         async (resolve, reject, plotValueFound, [_, environmentFound]) => {
           if (
-            isNotNullNorUndefined(plotValueFound.boundaries) &&
-            (args.value < plotValueFound.boundaries[0] ||
-              args.value > plotValueFound.boundaries[1])
+            isOutOfBoundaries(
+              plotValueFound.min,
+              plotValueFound.max,
+              args.value
+            )
           ) {
             reject("Value out of boundaries")
             return
@@ -1861,13 +1860,13 @@ const MutationResolver = (
           // runs sanity checks on the args
           if (
             isNotNullNorUndefined(args.batteryStatus) &&
-            isOutOfBoundaries([0, 100], args.batteryStatus)
+            isOutOfBoundaries(0, 100, args.batteryStatus)
           ) {
             reject("batteryStatus is out of boundaries [0,100]")
             return
           } else if (
             isNotNullNorUndefined(args.signalStatus) &&
-            isOutOfBoundaries([0, 100], args.signalStatus)
+            isOutOfBoundaries(0, 100, args.signalStatus)
           ) {
             reject("signalStatus is out of boundaries [0,100]")
             return
@@ -2054,13 +2053,10 @@ const MutationResolver = (
         }
         if (
           valueType === "floatValue" &&
-          valueFound.boundaries === null &&
           (expectedNewValue.tileSize === "LARGE" ||
             expectedNewValue.tileSize === "TALL")
         ) {
-          reject(
-            "FloatValue with no boundaries cannot have tileSize set to WIDE or TALL"
-          )
+          reject("FloatValue cannot have tileSize set to LARGE or TALL")
           return false
         }
 
@@ -2099,36 +2095,22 @@ const MutationResolver = (
       (args, valueFound, reject) => {
         const expectedNewValue = { ...valueFound.dataValues, ...args }
 
-        if (
-          isNotNullNorUndefined(args.boundaries) &&
-          args.boundaries.length !== 2
-        ) {
-          reject(
-            "Boundaries should be an array containing min and max ([min, max])"
-          )
-          return false
+        if (expectedNewValue.min >= expectedNewValue.max) {
+          reject("The min value should be less than the max value")
         } else if (
-          isNotNullNorUndefined(args.boundaries) &&
-          args.boundaries[0] >= args.boundaries[1]
-        ) {
-          reject(
-            "The min value should be less than the max value, boundaries should be an array [min, max]"
+          isOutOfBoundaries(
+            expectedNewValue.min,
+            expectedNewValue.max,
+            expectedNewValue.value
           )
-        } else if (
-          isNotNullNorUndefined(expectedNewValue.value) &&
-          isNotNullNorUndefined(expectedNewValue.boundaries) &&
-          isOutOfBoundaries(expectedNewValue.boundaries, expectedNewValue.value)
         ) {
           reject("value is out of boundaries")
           return false
         } else if (
-          expectedNewValue.boundaries === null &&
-          (expectedNewValue.tileSize === "LARGE" ||
-            expectedNewValue.tileSize === "TALL")
+          expectedNewValue.tileSize === "LARGE" ||
+          expectedNewValue.tileSize === "TALL"
         ) {
-          reject(
-            "FloatValue with no boundaries cannot have tileSize set to WIDE or TALL"
-          )
+          reject("FloatValue cannot have tileSize set to WIDE or TALL")
           return false
         }
         return true
@@ -2241,9 +2223,9 @@ const MutationResolver = (
         2,
         async (resolve, reject, valueFound, [_, environmentFound]) => {
           if (
-            isNotNullNorUndefined(valueFound.boundaries) &&
             isOutOfBoundaries(
-              valueFound.boundaries,
+              valueFound.min,
+              valueFound.max,
               valueFound.value + args.incrementBy
             )
           ) {
@@ -2298,12 +2280,13 @@ const MutationResolver = (
             reject("You cannot make a mutation with only the id field")
             return
           } else if (
-            isNotNullNorUndefined(plotValueFound.allowedValues) &&
-            isNotNullNorUndefined(args.value) &&
-            (args.value < plotValueFound.allowedValues[0] ||
-              args.value > plotValueFound.allowedValues[1])
+            isOutOfBoundaries(
+              plotValueFound.min,
+              plotValueFound.max,
+              args.value
+            )
           ) {
-            reject("value outside of boundaries")
+            reject("value out of boundaries")
             return
           }
 
