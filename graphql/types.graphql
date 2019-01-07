@@ -196,8 +196,8 @@ type Mutation {
     value: Float!
     # used when displaying or changing the value in Igloo Aurora
     precision: Float
-    # [min, max]
-    boundaries: [Float!]
+    min: Float
+    max: Float
     # name of the value, displayed in Igloo Aurora
     name: String!
     # tile size in Igloo Aurora
@@ -278,7 +278,8 @@ type Mutation {
     # used when the end-user reads or modifies the value
     precision: Float
     # [min, max]
-    boundaries: [Float!]
+    min: Float
+    max: Float
     # name of the value, displayed in Igloo Aurora
     name: String!
     # tile size in Igloo Aurora
@@ -396,8 +397,8 @@ type Mutation {
     value: Float
     # used when displaying or changing the value in Igloo Aurora
     precision: Float
-    # [min, max]
-    boundaries: [Float!]
+    min: Float
+    max: Float
     # name of the value, displayed in Igloo Aurora
     name: String
     # tile size in Igloo Aurora
@@ -479,8 +480,8 @@ type Mutation {
     unitOfMeasurement: String
     # used when the end-user reads or modifies the value
     precision: Float
-    # [min, max]
-    boundaries: [Float!]
+    min: Float
+    max: Float
     # name of the value, displayed in Igloo Aurora
     name: String
     # tile size in Igloo Aurora
@@ -857,8 +858,8 @@ type FloatValue implements Value {
   value: Float!
   # used when the end-user reads or modifies the value
   precision: Float
-  # [min, max]
-  boundaries: [Float!]
+  min: Float
+  max: Float
   tileSize: TileSize!
   index: Int
   name: String
@@ -894,8 +895,8 @@ type PlotValue implements Value {
   value: [PlotNode!]!
   # used when the end-user reads or modifies the value
   precision: Float
-  # [min, max]
-  boundaries: [Float!]
+  min: Float
+  max: Float
   tileSize: TileSize!
   name: String
   index: Int

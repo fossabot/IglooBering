@@ -85,7 +85,7 @@ const FloatValueResolver = (loaderName, User, Device, Environment) => ({
   ...GenericResolver(loaderName, User, Device, Environment),
   ...authorizedScalarPropsResolvers(
     loaderName,
-    [("precision", "boundaries")],
+    [("precision", "min", "max")],
     valueToParent
   ),
 })
@@ -101,7 +101,7 @@ const PlotValueResolver = (loaderName, User, Device, Environment) => ({
   ...GenericResolver(loaderName, User, Device, Environment, false),
   ...authorizedScalarPropsResolvers(
     loaderName,
-    [("precision", "boundaries", "threshold")],
+    [("precision", "min", "max", "threshold")],
     valueToParent
   ),
   // overriding GenericResolver's value
