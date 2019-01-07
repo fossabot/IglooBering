@@ -9,8 +9,11 @@ module.exports = (queryInterface, Sequelize) => {
     threshold: {
       type: Sequelize.FLOAT,
     },
-    boundaries: {
-      type: Sequelize.ARRAY(Sequelize.FLOAT),
+    min: {
+      type: Sequelize.FLOAT,
+    },
+    max: {
+      type: Sequelize.FLOAT,
     },
   })
 
