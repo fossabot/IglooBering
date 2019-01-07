@@ -5,6 +5,9 @@ module.exports = {
     await queryInterface.addColumn("notifications", "notVisualized", {
       type: Sequelize.ARRAY(Sequelize.UUID),
     })
+    await queryInterface.sequelize.query(
+      `UPDATE public."notifications" SET "notVisualized" = '{}'`
+    )
     await queryInterface.removeColumn("notifications", "visualized")
   },
 
