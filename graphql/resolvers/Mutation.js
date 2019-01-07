@@ -1025,7 +1025,7 @@ const MutationResolver = (
           context.billingUpdater.update(MUTATION_COST)
 
           pubsub.publish("ownerChangeDeclined", {
-            ownerChangeRevoked: args.pendingOwnerChangeId,
+            ownerChangeDeclined: args.pendingOwnerChangeId,
             userId: targetUserId,
           })
 
