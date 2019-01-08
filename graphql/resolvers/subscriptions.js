@@ -33,19 +33,22 @@ const subscriptionResolver = (pubsub, { User, Device, Environment }) => ({
     "pendingEnvironmentShareRevoked",
     pubsub
   ),
-  ownerChangeReceived: subscriptionFilterOnlyMine(
-    "ownerChangeReceived",
+  pendingOwnerChangeReceived: subscriptionFilterOnlyMine(
+    "pendingOwnerChangeReceived",
     pubsub
   ),
-  ownerChangeAccepted: subscriptionFilterOnlyMine(
-    "ownerChangeAccepted",
+  pendingOwnerChangeAccepted: subscriptionFilterOnlyMine(
+    "pendingOwnerChangeAccepted",
     pubsub
   ),
-  ownerChangeDeclined: subscriptionFilterOnlyMine(
-    "ownerChangeDeclined",
+  pendingOwnerChangeDeclined: subscriptionFilterOnlyMine(
+    "pendingOwnerChangeDeclined",
     pubsub
   ),
-  ownerChangeRevoked: subscriptionFilterOnlyMine("ownerChangeRevoked", pubsub),
+  pendingOwnerChangeRevoked: subscriptionFilterOnlyMine(
+    "pendingOwnerChangeRevoked",
+    pubsub
+  ),
   environmentCreated: subscriptionFilterOnlyMine("environmentCreated", pubsub),
   deviceCreated: subscriptionFilterOwnedOrShared("deviceCreated", pubsub),
   deviceMoved: subscriptionFilterOwnedOrShared("deviceMoved", pubsub),

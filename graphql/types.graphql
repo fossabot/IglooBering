@@ -607,13 +607,13 @@ type Subscription {
   # returns the id of the environment share that was revoked
   pendingEnvironmentShareRevoked: ID
   # subscribes to owner change to you
-  ownerChangeReceived: PendingOwnerChange
+  pendingOwnerChangeReceived: PendingOwnerChange
   # returns the id of the environment accepted
-  ownerChangeAccepted: acceptPendingOwnerChangePayload
+  pendingOwnerChangeAccepted: acceptPendingOwnerChangePayload
   # returns the id of the environment declined
-  ownerChangeDeclined: ID
+  pendingOwnerChangeDeclined: ID
   # returns the id of the owner change that was revoked
-  ownerChangeRevoked: ID
+  pendingOwnerChangeRevoked: ID
   # subscribes to environment unshares from you or you leave an environment
   environmentStoppedSharingWithYou: ID
   # subscribes to value updates

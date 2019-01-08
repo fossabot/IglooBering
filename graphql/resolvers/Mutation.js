@@ -830,8 +830,8 @@ const MutationResolver = (
 
             touch(Environment, args.environmentId, newOwnerChange.updatedAt)
 
-            pubsub.publish("ownerChangeReceived", {
-              ownerChangeReceived: newOwnerChange,
+            pubsub.publish("pendingOwnerChangeReceived", {
+              pendingOwnerChangeReceived: newOwnerChange,
               userId: receiverFound.id,
             })
             sendOwnerChangeEmail(
@@ -887,8 +887,8 @@ const MutationResolver = (
 
           context.billingUpdater.update(MUTATION_COST)
 
-          pubsub.publish("ownerChangeRevoked", {
-            ownerChangeRevoked: args.pendingOwnerChangeId,
+          pubsub.publish("pendingOwnerChangeRevoked", {
+            pendingOwnerChangeRevoked: args.pendingOwnerChangeId,
             userId: targetUserId,
           })
 
@@ -971,8 +971,8 @@ const MutationResolver = (
           await pendingOwnerChangeFound.destroy()
           context.billingUpdater.update(MUTATION_COST)
 
-          pubsub.publish("ownerChangeAccepted", {
-            ownerChangeAccepted: payload,
+          pubsub.publish("pendingOwnerChangeAccepted", {
+            pendingOwnerChangeAccepted: payload,
             userId: userFound.id,
           })
 
@@ -1027,8 +1027,8 @@ const MutationResolver = (
 
           context.billingUpdater.update(MUTATION_COST)
 
-          pubsub.publish("ownerChangeDeclined", {
-            ownerChangeDeclined: args.pendingOwnerChangeId,
+          pubsub.publish("pendingOwnerChangeDeclined", {
+            pendingOwnerChangeDeclined: args.pendingOwnerChangeId,
             userId: targetUserId,
           })
 
@@ -2762,8 +2762,8 @@ const MutationResolver = (
 
             await Promise.all(
               ownerChangesFound.map(async ownerChange => {
-                pubsub.publish("ownerChangeRevoked", {
-                  ownerChangeRevoked: ownerChange.id,
+                pubsub.publish("pendingOwnerChangeRevoked", {
+                  pendingOwnerChangeRevoked: ownerChange.id,
                   userId: ownerChange.receiverId,
                 })
                 await ownerChange.destroy()
@@ -3004,8 +3004,8 @@ const MutationResolver = (
 
               await Promise.all(
                 ownerChangesFound.map(async ownerChange => {
-                  pubsub.publish("ownerChangeRevoked", {
-                    ownerChangeRevoked: ownerChange.id,
+                  pubsub.publish("pendingOwnerChangeRevoked", {
+                    pendingOwnerChangeRevoked: ownerChange.id,
                     userId: ownerChange.receiverId,
                   })
                   await ownerChange.destroy()
@@ -3099,8 +3099,8 @@ const MutationResolver = (
 
             await Promise.all(
               ownerChangesFound.map(async ownerChange => {
-                pubsub.publish("ownerChangeRevoked", {
-                  ownerChangeRevoked: ownerChange.id,
+                pubsub.publish("pendingOwnerChangeRevoked", {
+                  pendingOwnerChangeRevoked: ownerChange.id,
                   userId: ownerChange.receiverId,
                 })
                 await ownerChange.destroy()
