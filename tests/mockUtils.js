@@ -8,7 +8,7 @@ module.exports = () => {
       id: "mockEnvironmentId",
       ownerId: "mockUserId",
       name: "fake name",
-      avatar: "fake avatar",
+      picture: "fake picture",
       index: 0,
       muted: false,
       createdAt: "2018-11-19T17:42:05.045Z",

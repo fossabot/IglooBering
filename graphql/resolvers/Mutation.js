@@ -19,7 +19,7 @@ import {
   instanceToSharedIds,
   inheritAuthorized,
   valueToParent,
-  randomEnvironmentAvatar,
+  randomEnvironmentPicture,
   randomUserIconColor,
   instanceToRole,
   authorizationLevel,
@@ -1283,7 +1283,7 @@ const MutationResolver = (
         const newEnvironment = await Environment.create({
           ...args,
           ownerId: userFound.id,
-          avatar: args.avatar || randomEnvironmentAvatar(),
+          picture: args.picture || randomEnvironmentPicture(),
           // if muted is not passed then set it to false
           muted: !!args.muted,
           index:

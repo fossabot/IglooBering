@@ -154,7 +154,7 @@ type Mutation {
   # Creates a Environment
   createEnvironment(
     name: String!
-    avatar: EnvironmentPicture
+    picture: EnvironmentPicture
     index: Int
     muted: Boolean
   ): Environment
@@ -349,7 +349,7 @@ type Mutation {
   environment(
     id: ID!
     name: String
-    avatar: EnvironmentPicture
+    picture: EnvironmentPicture
     index: Int
     muted: Boolean
   ): Environment
@@ -716,7 +716,7 @@ type Environment {
   # returns null only if you don't have admin rights
   pendingOwnerChanges: [PendingOwnerChange!]
   name: String!
-  avatar: EnvironmentPicture!
+  picture: EnvironmentPicture!
   deviceCount: Int
   devices: [Device!]!
   notificationCount: Int!

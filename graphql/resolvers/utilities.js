@@ -1087,7 +1087,7 @@ const randomChoice = (...args) => {
   return chooseAmong[randomIndex]
 }
 
-const randomEnvironmentAvatar = () =>
+const randomEnvironmentPicture = () =>
   randomChoice(["NORTHERN_LIGHTS", "DENALI", "FOX", "PUFFIN", "TREETOPS"])
 
 const randomUserIconColor = () => randomChoice(["blue", "red", "green"])
@@ -1175,7 +1175,7 @@ module.exports = {
   inheritAuthorizedScalarPropsResolvers,
   getAll,
   randomChoice,
-  randomEnvironmentAvatar,
+  randomEnvironmentPicture,
   randomUserIconColor,
   updateUserBilling,
   GenerateUserBillingBatcher,

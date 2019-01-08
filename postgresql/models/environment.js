@@ -17,7 +17,7 @@ module.exports = (queryInterface, Sequelize) => {
       type: Sequelize.STRING,
       allowNull: false,
     },
-    avatar: {
+    picture: {
       type: Sequelize.STRING,
     },
     index: {

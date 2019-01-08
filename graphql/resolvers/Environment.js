@@ -59,7 +59,7 @@ const EnvironmentResolver = ({
 }) => ({
   ...authorizedScalarPropsResolvers(
     "environmentLoaderById",
-    ["avatar", "createdAt", "updatedAt", "index"],
+    ["picture", "createdAt", "updatedAt", "index"],
     environmentToParent
   ),
   name: retrievePublicEnvironmentScalarProp(Environment, "name"),

@@ -46,7 +46,7 @@ describe("Environment", () => {
     { auth: { userId: "mockUserId", tokenType: "TEMPORARY" }, ...mockContext }
   );
 
-  let scalarProps = ["name", "avatar", "index", "createdAt", "updatedAt"];
+  let scalarProps = ["name", "picture", "index", "createdAt", "updatedAt"];
 
   for (let prop of scalarProps) {
     test(`${prop} is resolved correctly`, testEnvironmentScalarProp(prop));
@@ -121,7 +121,7 @@ describe("Environment", () => {
   });
 
   let authorizedProps = [
-    "avatar",
+    "picture",
     "index",
     "createdAt",
     "updatedAt",
