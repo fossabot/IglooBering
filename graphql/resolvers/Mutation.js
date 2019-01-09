@@ -180,7 +180,7 @@ const MutationResolver = (
         }
       }
     },
-    createPermanentAccessToken(root, args, context) {
+    createPermanentToken(root, args, context) {
       return authenticated(
         context,
         async (resolve, reject) => {
@@ -223,7 +223,7 @@ const MutationResolver = (
         ["MANAGE_PERMANENT_TOKENS"]
       )
     },
-    regeneratePermanentAccessToken(root, args, context) {
+    regeneratePermanentToken(root, args, context) {
       return authenticated(
         context,
         async (resolve, reject) => {
@@ -248,7 +248,7 @@ const MutationResolver = (
         ["MANAGE_PERMANENT_TOKENS"]
       )
     },
-    deletePermanentAccessToken(root, args, context) {
+    deletePermanentToken(root, args, context) {
       return authenticated(
         context,
         async (resolve, reject) => {

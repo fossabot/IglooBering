@@ -24,7 +24,7 @@ type authenticationPayload {
   user: User!
 }
 
-type permanentAccessTokenPayload {
+type permanentTokenPayload {
   token: String!
   id: ID!
 }
@@ -97,13 +97,13 @@ type Mutation {
   createToken(password: String!, tokenType: TokenType!): String
 
   # Generates a permanent access token
-  createPermanentAccessToken(
+  createPermanentToken(
     name: String! # name of the token
-  ): permanentAccessTokenPayload
+  ): permanentTokenPayload
 
-  regeneratePermanentAccessToken(id: ID!): String
+  regeneratePermanentToken(id: ID!): String
   # removes a permanent access token
-  deletePermanentAccessToken(id: ID!): ID
+  deletePermanentToken(id: ID!): ID
 
   # Creates a new account
   signUp(email: String!, password: String!, name: String!): signUpPayload

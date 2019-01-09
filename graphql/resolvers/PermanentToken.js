@@ -2,7 +2,7 @@ import { authenticated, authorizationLevel, firstResolve } from "./utilities"
 
 const QUERY_COST = 1
 
-const PermanentAccessTokenResolver = {
+const PermanentTokenResolver = {
   user(root, args, context) {
     return authenticated(context, async (resolve, reject) => {
       const databaseToken = await context.dataLoaders.permanentTokenLoaderById.load(
@@ -49,4 +49,4 @@ const PermanentAccessTokenResolver = {
   },
 }
 
-export default PermanentAccessTokenResolver
+export default PermanentTokenResolver
