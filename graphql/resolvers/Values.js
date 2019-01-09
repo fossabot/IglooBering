@@ -24,7 +24,7 @@ const GenericResolver = (
       "updatedAt",
       "visibility",
       "unitOfMeasurement",
-      "tileSize",
+      "cardSize",
       "name",
       "value",
       "index",

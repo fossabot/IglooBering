@@ -1406,8 +1406,8 @@ const MutationResolver = (
         } else if (isOutOfBoundaries(args.min, args.max, args.value)) {
           reject("Value is out of boundaries (min and max)")
           return false
-        } else if (args.tileSize === "LARGE") {
-          reject("float cannot have tileSize set to LARGE")
+        } else if (args.cardSize === "LARGE") {
+          reject("float cannot have cardSize set to LARGE")
           return false
         }
         return true
@@ -2053,10 +2053,10 @@ const MutationResolver = (
         }
         if (
           valueType === "floatValue" &&
-          (expectedNewValue.tileSize === "LARGE" ||
-            expectedNewValue.tileSize === "TALL")
+          (expectedNewValue.cardSize === "LARGE" ||
+            expectedNewValue.cardSize === "TALL")
         ) {
-          reject("FloatValue cannot have tileSize set to LARGE or TALL")
+          reject("FloatValue cannot have cardSize set to LARGE or TALL")
           return false
         }
 
@@ -2107,10 +2107,10 @@ const MutationResolver = (
           reject("value is out of boundaries")
           return false
         } else if (
-          expectedNewValue.tileSize === "LARGE" ||
-          expectedNewValue.tileSize === "TALL"
+          expectedNewValue.cardSize === "LARGE" ||
+          expectedNewValue.cardSize === "TALL"
         ) {
-          reject("FloatValue cannot have tileSize set to WIDE or TALL")
+          reject("FloatValue cannot have cardSize set to WIDE or TALL")
           return false
         }
         return true

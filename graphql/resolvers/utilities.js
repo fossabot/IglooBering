@@ -165,7 +165,7 @@ const CreateGenericValue = (
         ...args,
         environmentId: environmentFound.id,
         deviceId: deviceFound.id,
-        tileSize: args.tileSize || "NORMAL",
+        cardSize: args.cardSize || "NORMAL",
         visibility: isNullOrUndefined(args.visibility)
           ? "VISIBLE"
           : args.visibility,

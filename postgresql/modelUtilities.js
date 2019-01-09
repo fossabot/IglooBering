@@ -1,7 +1,7 @@
 const ValueModel = (Sequelize, hasPermission = true) => {
   const ValuePermission = Sequelize.ENUM("READ_ONLY", "READ_WRITE")
   const ValueVisibility = Sequelize.ENUM("VISIBLE", "HIDDEN", "INVISIBLE")
-  const TileSize = Sequelize.ENUM("NORMAL", "WIDE", "TALL", "LARGE")
+  const cardSize = Sequelize.ENUM("NORMAL", "WIDE", "TALL", "LARGE")
 
   return {
     id: {
@@ -38,8 +38,8 @@ const ValueModel = (Sequelize, hasPermission = true) => {
     visibility: {
       type: ValueVisibility,
     },
-    tileSize: {
-      type: TileSize,
+    cardSize: {
+      type: cardSize,
     },
     name: {
       type: Sequelize.STRING,

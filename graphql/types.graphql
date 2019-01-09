@@ -201,7 +201,7 @@ type Mutation {
     # name of the value, displayed in Igloo Aurora
     name: String!
     # tile size in Igloo Aurora
-    tileSize: TileSize
+    cardSize: cardSize
     index: Int
   ): FloatValue
 
@@ -221,7 +221,7 @@ type Mutation {
     # name of the value, displayed in Igloo Aurora
     name: String!
     # tile size in Igloo Aurora
-    tileSize: TileSize
+    cardSize: cardSize
     # allowed values for the string
     allowedValues: [String!]
     index: Int
@@ -241,7 +241,7 @@ type Mutation {
     # name of the value, displayed in Igloo Aurora
     name: String!
     # tile size in Igloo Aurora
-    tileSize: TileSize
+    cardSize: cardSize
     index: Int
   ): BooleanValue
 
@@ -258,7 +258,7 @@ type Mutation {
     # name of the value, displayed in Igloo Aurora
     name: String!
     # tile size in Igloo Aurora
-    tileSize: TileSize
+    cardSize: cardSize
     # GEOJson string
     value: String
     latitude: Float
@@ -283,7 +283,7 @@ type Mutation {
     # name of the value, displayed in Igloo Aurora
     name: String!
     # tile size in Igloo Aurora
-    tileSize: TileSize
+    cardSize: cardSize
     # alert threshold, values above the threshold will be displayed in red in Igloo Aurora
     threshold: Float
     index: Int
@@ -309,7 +309,7 @@ type Mutation {
     # name of the value, displayed in Igloo Aurora
     name: String!
     # tile size in Igloo Aurora
-    tileSize: TileSize
+    cardSize: cardSize
     # allowed labels
     allowedValues: [String!]
     index: Int
@@ -375,7 +375,7 @@ type Mutation {
     id: ID!
     visibility: ValueVisibility
     unitOfMeasurement: String
-    tileSize: TileSize
+    cardSize: cardSize
     name: String
     index: Int
   ): Value
@@ -402,7 +402,7 @@ type Mutation {
     # name of the value, displayed in Igloo Aurora
     name: String
     # tile size in Igloo Aurora
-    tileSize: TileSize
+    cardSize: cardSize
     index: Int
   ): FloatValue
 
@@ -424,7 +424,7 @@ type Mutation {
     # name of the value, displayed in Igloo Aurora
     name: String
     # tile size in Igloo Aurora
-    tileSize: TileSize
+    cardSize: cardSize
     # allowed values for the string
     allowedValues: [String!]
     index: Int
@@ -444,7 +444,7 @@ type Mutation {
     # name of the value, displayed in Igloo Aurora
     name: String
     # tile size in Igloo Aurora
-    tileSize: TileSize
+    cardSize: cardSize
     index: Int
   ): BooleanValue
 
@@ -461,7 +461,7 @@ type Mutation {
     # name of the value, displayed in Igloo Aurora
     name: String
     # tile size in Igloo Aurora
-    tileSize: TileSize
+    cardSize: cardSize
     # GEOJson string
     value: String
     latitude: Float
@@ -485,7 +485,7 @@ type Mutation {
     # name of the value, displayed in Igloo Aurora
     name: String
     # tile size in Igloo Aurora
-    tileSize: TileSize
+    cardSize: cardSize
     # alert threshold, values above the threshold will be displayed in red in Igloo Aurora
     threshold: Float
     index: Int
@@ -512,7 +512,7 @@ type Mutation {
     # name of the value, displayed in Igloo Aurora
     name: String
     # tile size in Igloo Aurora
-    tileSize: TileSize
+    cardSize: cardSize
     # allowed labels
     allowedValues: [String!]
     index: Int
@@ -781,7 +781,7 @@ enum ValueVisibility {
   INVISIBLE
 }
 
-enum TileSize {
+enum cardSize {
   NORMAL
   WIDE
   TALL
@@ -840,7 +840,7 @@ interface Value {
   environment: Environment!
   visibility: ValueVisibility!
   unitOfMeasurement: String
-  tileSize: TileSize!
+  cardSize: cardSize!
   name: String
   index: Int
 }
@@ -860,7 +860,7 @@ type FloatValue implements Value {
   precision: Float
   min: Float
   max: Float
-  tileSize: TileSize!
+  cardSize: cardSize!
   index: Int
   name: String
 }
@@ -877,7 +877,7 @@ type StringValue implements Value {
   unitOfMeasurement: String
   value: String!
   maxChars: Int
-  tileSize: TileSize!
+  cardSize: cardSize!
   index: Int
   name: String
   allowedValues: [String!]
@@ -897,7 +897,7 @@ type PlotValue implements Value {
   precision: Float
   min: Float
   max: Float
-  tileSize: TileSize!
+  cardSize: cardSize!
   name: String
   index: Int
 
@@ -914,7 +914,7 @@ type CategoryPlotValue implements Value {
   visibility: ValueVisibility!
   unitOfMeasurement: String
   value: [CategoryPlotNode!]!
-  tileSize: TileSize!
+  cardSize: cardSize!
   name: String
   index: Int
   allowedValues: [String!]
@@ -931,7 +931,7 @@ type BooleanValue implements Value {
   visibility: ValueVisibility!
   unitOfMeasurement: String
   value: Boolean!
-  tileSize: TileSize!
+  cardSize: cardSize!
   name: String
   index: Int
 }
@@ -950,7 +950,7 @@ type MapValue implements Value {
   latitude: Float
   longitude: Float
   height: Float
-  tileSize: TileSize!
+  cardSize: cardSize!
   name: String
   index: Int
 }
