@@ -1122,20 +1122,17 @@ const sendPushNotification = async (userIds, payload, WebPushNotification) => {
   })
 
   notificationSubscriptions.map(notificationSubscription =>
-    webpush
-      .sendNotification(
-        {
-          endpoint: notificationSubscription.endpoint,
-          expirationTime: notificationSubscription.expirationTime,
-          keys: {
-            p256dh: notificationSubscription.p256dh,
-            auth: notificationSubscription.auth,
-          },
+    webpush.sendNotification(
+      {
+        endpoint: notificationSubscription.endpoint,
+        expirationTime: notificationSubscription.expirationTime,
+        keys: {
+          p256dh: notificationSubscription.p256dh,
+          auth: notificationSubscription.auth,
         },
-        JSON.stringify(payload)
-      )
-      .then(a => console.log("THEN: " + JSON.stringify(a)))
-      .catch(b => console.log("ERR: " + b))
+      },
+      JSON.stringify(payload)
+    )
   )
 }
 
