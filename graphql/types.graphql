@@ -784,7 +784,6 @@ enum ValueVisibility {
 enum cardSize {
   NORMAL
   WIDE
-  TALL
   LARGE
 }
 

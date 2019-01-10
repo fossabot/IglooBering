@@ -1450,6 +1450,9 @@ const MutationResolver = (
         ) {
           reject("Value is not among the allowedValues")
           return false
+        } else if (args.cardSize === "LARGE") {
+          reject("stringValue cannot have cardSize set to LARGE")
+          return false
         }
         return true
       }
@@ -1468,7 +1471,15 @@ const MutationResolver = (
         PlotValue,
         CategoryPlotValue,
       ],
-      pubsub
+      pubsub,
+      (args, reject) => {
+        if (args.cardSize !== "NORMAL") {
+          reject("booleanValue can have cardSize set only to NORMAL")
+          return false
+        }
+
+        return true
+      }
     ),
     createMapValue: CreateGenericValue(
       User,
@@ -2053,10 +2064,9 @@ const MutationResolver = (
         }
         if (
           valueType === "floatValue" &&
-          (expectedNewValue.cardSize === "LARGE" ||
-            expectedNewValue.cardSize === "TALL")
+          expectedNewValue.cardSize === "LARGE"
         ) {
-          reject("FloatValue cannot have cardSize set to LARGE or TALL")
+          reject("FloatValue cannot have cardSize set to LARGE")
           return false
         }
 
@@ -2111,11 +2121,8 @@ const MutationResolver = (
         ) {
           reject("value is out of boundaries")
           return false
-        } else if (
-          expectedNewValue.cardSize === "LARGE" ||
-          expectedNewValue.cardSize === "TALL"
-        ) {
-          reject("FloatValue cannot have cardSize set to WIDE or TALL")
+        } else if (expectedNewValue.cardSize === "LARGE") {
+          reject("FloatValue cannot have cardSize set to LARGE")
           return false
         }
         return true
@@ -2141,6 +2148,9 @@ const MutationResolver = (
           args.value.length > expectedNewValue.maxChars
         ) {
           reject("The value provided exceeds the maxChars")
+          return false
+        } else if (args.cardSize === "LARGE") {
+          reject("stringValue cannot have cardSize set to LARGE")
           return false
         } else if (
           isNotNullNorUndefined(args.value) &&
@@ -2193,7 +2203,15 @@ const MutationResolver = (
       pubsub,
       User,
       Device,
-      Environment
+      Environment,
+      (args, reject) => {
+        if (args.cardSize !== "NORMAL") {
+          reject("booleanValue can have cardSize set only to NORMAL")
+          return false
+        }
+
+        return true
+      }
     ),
     mapValue: genericValueMutation(
       "mapValueLoaderById",

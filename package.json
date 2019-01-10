@@ -66,6 +66,7 @@
     "pg-hstore": "^2.3.2",
     "sequelize": "^4.22.8",
     "sequelize-cli": "^5.4.0",
+    "sequelize-replace-enum-postgres": "^1.5.0",
     "stripe": "^6.2.1",
     "subscriptions-transport-ws": "^0.9.4",
     "update-batcher": "^1.0.0",
