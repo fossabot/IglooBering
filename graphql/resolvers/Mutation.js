@@ -2095,8 +2095,13 @@ const MutationResolver = (
       (args, valueFound, reject) => {
         const expectedNewValue = { ...valueFound.dataValues, ...args }
 
-        if (expectedNewValue.min >= expectedNewValue.max) {
+        if (
+          isNotNullNorUndefined(expectedNewValue.min) &&
+          isNotNullNorUndefined(expectedNewValue.max) &&
+          expectedNewValue.min >= expectedNewValue.max
+        ) {
           reject("The min value should be less than the max value")
+          return false
         } else if (
           isOutOfBoundaries(
             expectedNewValue.min,
