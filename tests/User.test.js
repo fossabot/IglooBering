@@ -18,6 +18,8 @@ const {
   mockNotificationData,
   MockedPendingEnvironmentShare,
   mockPendingEnvironmentShareData,
+  MockedPendingOwnerChange,
+  mockedPendingOwnerChangeData,
   mockContext
 } = MocksGenerator();
 
@@ -26,7 +28,8 @@ const UserResolver = UserResolverFactory({
   Environment: MockedEnvironment,
   Device: MockedDevice,
   Notification: MockedNotification,
-  PendingEnvironmentShare: MockedPendingEnvironmentShare
+  PendingEnvironmentShare: MockedPendingEnvironmentShare,
+  PendingOwnerChange: MockedPendingOwnerChange
 });
 
 describe("User", () => {
@@ -76,24 +79,6 @@ describe("User", () => {
 
     done();
   });
-  test.skip("devices is resolved correctly", async done => {
-    //TODO: need implementation of includes in the mock search
-    const devicesFound = await new Promise((resolve, reject) => {
-      UserResolver.devices(
-        { id: "mockUserId" },
-        {},
-        {
-          auth: { userId: "mockUserId", tokenType: "TEMPORARY" },
-          ...mockContext
-        }
-      )(resolve, reject);
-    });
-
-    expect(devicesFound.length).toBe(1);
-    expect(devicesFound[0]).toMatchObject({ id: "mockDeviceId" });
-
-    done();
-  });
   test.skip("deviceCount is resolved correctly", async done => {
     //TODO: need implementation of includes in the mock search
   });
@@ -103,19 +88,10 @@ describe("User", () => {
   test.skip("environmentCount is resolved correctly", async done => {
     //TODO: need implementation of includes in the mock search
   });
-  test.skip("notifications is resolved correctly", async done => {
-    //TODO: need implementation of includes in the mock search
-  });
   test.skip("notificationCount is resolved correctly", async done => {
     //TODO: need implementation of includes in the mock search
   });
-  test.skip("values is resolved correctly", async done => {
-    //TODO: need implementation of includes in the mock search
-  });
   test.skip("valueCount is resolved correctly", async done => {
-    //TODO: need implementation of includes in the mock search
-  });
-  test.skip("values is resolved correctly", async done => {
     //TODO: need implementation of includes in the mock search
   });
   test.skip("valueCount is resolved correctly", async done => {
@@ -186,11 +162,68 @@ describe("User", () => {
 
     done();
   });
-  test.skip("pendingOwnerChanges is resolved correctly", async done => {
-    //TODO: need mocks of PendingOwnerChange
+  test("pendingOwnerChanges is resolved correctly", async done => {
+    // receiver user should see the pendingEnvironmentShare in the user prop
+    const pendingOwnerChangesFound = await new Promise((resolve, reject) => {
+      UserResolver.pendingOwnerChanges(
+        { id: "mockUserId" },
+        {},
+        {
+          auth: { userId: "mockUserId", tokenType: "TEMPORARY" },
+          ...mockContext
+        }
+      )(resolve, reject);
+    });
+
+    expect(pendingOwnerChangesFound.length).toBe(1);
+    expect(pendingOwnerChangesFound[0]).toMatchObject({
+      id: "mockPendingOwnerChangeId"
+    });
+
+    // sender user shouldn't see the pendingEnvironmentShares in the user prop
+    const pendingOwnerChangesFound2 = await new Promise((resolve, reject) => {
+      UserResolver.pendingOwnerChanges(
+        { id: "mockUserId2" },
+        {},
+        {
+          auth: { userId: "mockUserId2", tokenType: "TEMPORARY" },
+          ...mockContext
+        }
+      )(resolve, reject);
+    });
+
+    expect(pendingOwnerChangesFound2.length).toBe(0);
+
+    done();
   });
-  test.skip("pendingOwnerChangeCount is resolved correctly", async done => {
-    //TODO: need mocks of PendingOwnerChange
+  test("pendingOwnerChangeCount is resolved correctly", async done => {
+    const pendingOwnerChangesFound = await new Promise((resolve, reject) => {
+      UserResolver.pendingOwnerChangeCount(
+        { id: "mockUserId" },
+        {},
+        {
+          auth: { userId: "mockUserId", tokenType: "TEMPORARY" },
+          ...mockContext
+        }
+      )(resolve, reject);
+    });
+
+    expect(pendingOwnerChangesFound).toBe(1);
+
+    const pendingOwnerChangesFound2 = await new Promise((resolve, reject) => {
+      UserResolver.pendingOwnerChangeCount(
+        { id: "mockUserId2" },
+        {},
+        {
+          auth: { userId: "mockUserId2", tokenType: "TEMPORARY" },
+          ...mockContext
+        }
+      )(resolve, reject);
+    });
+
+    expect(pendingOwnerChangesFound2).toBe(0);
+
+    done();
   });
   test.skip("permanentTokens is resolved correctly", async done => {
     //TODO: need mocks of PendingOwnerChange
@@ -202,7 +235,6 @@ describe("User", () => {
   const authorizedProps = [
     ...privateScalarProps,
     "settings",
-    "devices",
     "deviceCount",
     "pendingEnvironmentShares",
     "pendingEnvironmentShareCount",
@@ -211,8 +243,6 @@ describe("User", () => {
     "environmentCount",
     "environments",
     "notificationCount",
-    "notifications",
-    "values",
     "valueCount",
     "permanentTokens",
     "permanentTokenCount"

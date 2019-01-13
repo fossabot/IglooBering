@@ -13,6 +13,16 @@ module.exports = () => {
       muted: false,
       createdAt: "2018-11-19T17:42:05.045Z",
       updateAt: "2018-11-19T17:42:05.045Z"
+    },
+    {
+      id: "mockEnvironmentId2",
+      ownerId: "mockUserId2",
+      name: "fake name",
+      picture: "fake picture",
+      index: 0,
+      muted: false,
+      createdAt: "2018-11-19T17:42:05.045Z",
+      updateAt: "2018-11-19T17:42:05.045Z"
     }
   ];
 
@@ -168,6 +178,15 @@ module.exports = () => {
     }
   ];
 
+  const mockPendingOwnerChangeData = [
+    {
+      id: "mockPendingOwnerChangeId",
+      senderId: "mockUserId2",
+      receiverId: "mockUserId",
+      environmentId: "mockEnvironmentId"
+    }
+  ];
+
   const queryAndItemMatch = whereQuery => item => {
     let isMatching = true;
     for (const key in whereQuery) {
@@ -255,7 +274,9 @@ module.exports = () => {
     MockedNotification: MockedModel(mockNotificationData),
     mockNotificationData,
     MockedPendingEnvironmentShare: MockedModel(mockPendingEnvironmentShareData),
-    mockPendingEnvironmentShareData
+    mockPendingEnvironmentShareData,
+    MockedPendingOwnerChange: MockedModel(mockPendingOwnerChangeData),
+    mockPendingOwnerChangeData
   };
 
   const mockDataLoader = MockedModel => ({
@@ -279,6 +300,7 @@ module.exports = () => {
       deviceLoaderById: mockDataLoader(mocks.MockedDevice),
       notificationLoaderById: mockDataLoader(mocks.MockedNotification),
       pendingEnvironmentShareLoaderById: mockDataLoader(mocks.MockedPendingEnvironmentShare),
+      pendingOwnerChangeLoaderById: mockDataLoader(mocks.MockedPendingOwnerChange),
       environmentAdminLoaderByEnvironmentAndUserId: mockRolesDataLoader(
         mocks.MockedEnvironmentAdmin
       ),
