@@ -1075,36 +1075,32 @@ const MutationResolver = (
               () =>
                 EnvironmentAdmin.destroy({
                   where: {
-                    userId: userFound.id,
+                    userId: targetUserFound.id,
                     environmentId: environmentFound.id,
                   },
                 }),
               () =>
                 EnvironmentEditor.destroy({
                   where: {
-                    userId: userFound.id,
+                    userId: targetUserFound.id,
                     environmentId: environmentFound.id,
                   },
                 }),
               () =>
                 EnvironmentSpectator.destroy({
                   where: {
-                    userId: userFound.id,
+                    userId: targetUserFound.id,
                     environmentId: environmentFound.id,
                   },
                 })
             )
 
-            // add new role
-            const parsedRole = `${args.newRole[0] +
-              args.newRole.slice(1).toLowerCase()}s`
-
-            if (pendingEnvironmentFound.role === "ADMIN") {
+            if (args.newRole === "ADMIN") {
               await EnvironmentAdmin.create({
                 userId: targetUserFound.id,
                 environmentId: environmentFound.id,
               })
-            } else if (pendingEnvironmentFound.role === "EDITOR") {
+            } else if (args.newRole === "EDITOR") {
               await EnvironmentEditor.create({
                 userId: targetUserFound.id,
                 environmentId: environmentFound.id,
