@@ -57,6 +57,9 @@ const DeviceResolver = ({
           },
           {
             where: { deviceId: deviceFound.id },
+            limit: args.eachTypeLimit,
+            offset: args.eachTypeOffset,
+            order: [["id", "DESC"]],
           }
         )
 
@@ -119,6 +122,9 @@ const DeviceResolver = ({
       async (resolve, reject, deviceFound) => {
         const notifications = await Notification.findAll({
           where: { deviceId: deviceFound.id },
+          limit: args.limit,
+          offset: args.offset,
+          order: [["id", "DESC"]],
         })
 
         // the database returns ISO-format dates, so sorting the strings without casting is fine

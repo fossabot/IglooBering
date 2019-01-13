@@ -97,7 +97,13 @@ const StringValueResolver = (loaderName, User, Device, Environment) => ({
     valueToParent
   ),
 })
-const PlotValueResolver = (loaderName, User, Device, Environment) => ({
+const PlotValueResolver = (
+  loaderName,
+  User,
+  Device,
+  Environment,
+  PlotNode
+) => ({
   ...GenericResolver(loaderName, User, Device, Environment, false),
   ...authorizedScalarPropsResolvers(
     loaderName,
@@ -113,14 +119,25 @@ const PlotValueResolver = (loaderName, User, Device, Environment) => ({
       User,
       1,
       async (resolve, reject, plotFound) => {
-        const nodes = await plotFound.getPlotNodes()
+        const nodes = await PlotNode.findAll({
+          where: { plotId: plotFound.id },
+          limit: args.limit,
+          offset: args.offset,
+          order: [["id", "DESC"]],
+        })
         resolve(nodes)
         context.billingUpdater.update(QUERY_COST * nodes.length)
       },
       valueToParent
     ),
 })
-const CategoryPlotValueResolver = (loaderName, User, Device, Environment) => ({
+const CategoryPlotValueResolver = (
+  loaderName,
+  User,
+  Device,
+  Environment,
+  CategoryPlotNode
+) => ({
   ...GenericResolver(loaderName, User, Device, Environment, false),
   ...authorizedScalarPropsResolvers(
     loaderName,
@@ -136,7 +153,12 @@ const CategoryPlotValueResolver = (loaderName, User, Device, Environment) => ({
       User,
       1,
       async (resolve, reject, plotFound) => {
-        const nodes = await plotFound.getCategoryPlotNodes()
+        const nodes = await CategoryPlotNode.findAll({
+          where: { plotId: plotFound.id },
+          limit: args.limit,
+          offset: args.offset,
+          order: [["id", "DESC"]],
+        })
 
         resolve(nodes)
         context.billingUpdater.update(QUERY_COST * nodes.length)
@@ -264,7 +286,8 @@ export default (
     "plotValueLoaderById",
     User,
     Device,
-    Environment
+    Environment,
+    PlotNode
   ),
   PlotNode: PlotNodeResolver(
     "plotNodeLoaderById",
@@ -277,7 +300,8 @@ export default (
     "categoryPlotValueLoaderById",
     User,
     Device,
-    Environment
+    Environment,
+    CategoryPlotNode
   ),
   CategoryPlotNode: PlotNodeResolver(
     "categoryPlotNodeLoaderById",

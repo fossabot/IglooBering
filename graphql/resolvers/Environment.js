@@ -106,6 +106,9 @@ const EnvironmentResolver = ({
       async (resolve, reject, environmentFound) => {
         const devices = await Device.findAll({
           where: { environmentId: root.id },
+          limit: args.limit,
+          offset: args.offset,
+          order: [["id", "DESC"]],
         })
 
         resolve(devices)

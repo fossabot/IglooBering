@@ -671,15 +671,12 @@ type User {
   pendingOwnerChangeCount: Int!
   pendingOwnerChanges: [PendingOwnerChange!]!
   environmentCount: Int!
-  environments: [Environment!]!
+  environments(limit: Int, offset: Int): [Environment!]!
   deviceCount: Int
-  devices: [Device!]!
   valueCount: Int!
-  values: [Value!]!
-  notifications: [Notification!]!
   notificationCount: Int!
   permanentTokenCount: Int!
-  permanentTokens: [PermanentToken!]!
+  permanentTokens(limit: Int, offset: Int): [PermanentToken!]!
   quietMode: Boolean
   monthUsage: Int
   paymentPlan: PaymentPlan
@@ -718,7 +715,7 @@ type Environment {
   name: String!
   picture: EnvironmentPicture!
   deviceCount: Int
-  devices: [Device!]!
+  devices(limit: Int, offset: Int): [Device!]!
   notificationCount: Int!
   index: Int!
   muted: Boolean!
@@ -758,9 +755,9 @@ type Device {
   deviceType: String
   # Custom name gave by the end-user to the device
   name: String
-  values: [Value!]!
+  values(eachTypeLimit: Int, eachTypeOffset: Int): [Value!]!
   environment: Environment!
-  notifications: [Notification!]!
+  notifications(limit: Int, offset: Int): [Notification!]!
   notificationCount: Int!
   online: Boolean
   signalStatus: Float
@@ -891,7 +888,7 @@ type PlotValue implements Value {
   environment: Environment!
   visibility: ValueVisibility!
   unitOfMeasurement: String
-  value: [PlotNode!]!
+  value(limit: Int, offset: Int): [PlotNode!]!
   # used when the end-user reads or modifies the value
   precision: Float
   min: Float
@@ -912,7 +909,7 @@ type CategoryPlotValue implements Value {
   environment: Environment!
   visibility: ValueVisibility!
   unitOfMeasurement: String
-  value: [CategoryPlotNode!]!
+  value(limit: Int, offset: Int): [CategoryPlotNode!]!
   cardSize: cardSize!
   name: String
   index: Int

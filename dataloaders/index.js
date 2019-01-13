@@ -15,7 +15,7 @@ import {
   PermanentToken,
   PlotNode,
   PlotValue,
-  StringPlotNode,
+  CategoryPlotNode,
   StringValue,
   WebPushSubscription,
 } from "../postgresql/models"
@@ -105,7 +105,7 @@ const loadPendingOwnerChangesByIds = genericLoadById(PendingOwnerChange)
 const loadPermanentTokensByIds = genericLoadById(PermanentToken)
 const loadPlotNodesByIds = genericLoadById(PlotNode)
 const loadPlotValuesByIds = genericLoadById(PlotValue)
-const loadStringPlotNodesByIds = genericLoadById(StringPlotNode)
+const loadcategoryPlotNodesByIds = genericLoadById(CategoryPlotNode)
 const loadStringValuesByIds = genericLoadById(StringValue)
 const loadWebPushSubscriptionsByIds = genericLoadById(WebPushSubscription)
 
@@ -153,7 +153,7 @@ module.exports = () => ({
   permanentTokenLoaderById: new DataLoader(loadPermanentTokensByIds),
   plotNodeLoaderById: new DataLoader(loadPlotNodesByIds),
   plotValueLoaderById: new DataLoader(loadPlotValuesByIds),
-  stringPlotNodeLoaderById: new DataLoader(loadStringPlotNodesByIds),
+  categoryPlotNodeLoaderById: new DataLoader(loadcategoryPlotNodesByIds),
   stringValueLoaderById: new DataLoader(loadStringValuesByIds),
   webPushSubscriptionLoaderById: new DataLoader(loadWebPushSubscriptionsByIds),
 

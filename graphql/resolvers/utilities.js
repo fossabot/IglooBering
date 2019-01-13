@@ -1014,7 +1014,7 @@ const inheritAuthorizedScalarPropsResolvers = (
     return acc
   }, {})
 
-async function getAll(Model, User, userId, includesList = []) {
+async function getAll(Model, User, userId, includesList = [], limit, offset) {
   // for some reason sequelize needs the includes to be different instances,
   // so we clone every include object
   function deepCloneIncludes(includes) {
@@ -1037,7 +1037,7 @@ async function getAll(Model, User, userId, includesList = []) {
     return clonedList
   }
 
-  const allAccessibles = await User.find({
+  const allAccessibles = await User.findAll({
     where: { id: userId },
     attributes: ["id"],
     include: [
@@ -1066,13 +1066,17 @@ async function getAll(Model, User, userId, includesList = []) {
         include: deepCloneIncludes(includesList),
       },
     ],
+    limit,
+    offset,
+    subQuery: false,
+    order: [["id", "DESC"]],
   })
 
   const allFlattened = [
-    ...allAccessibles[Model.Owner],
-    ...allAccessibles[Model.Admins],
-    ...allAccessibles[Model.Editors],
-    ...allAccessibles[Model.Spectators],
+    ...allAccessibles[0][Model.Owner],
+    ...allAccessibles[0][Model.Admins],
+    ...allAccessibles[0][Model.Editors],
+    ...allAccessibles[0][Model.Spectators],
   ]
 
   return allFlattened

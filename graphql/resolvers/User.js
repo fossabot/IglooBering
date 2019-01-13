@@ -112,28 +112,6 @@ const UserResolver = ({
       }
     })
   },
-  devices(root, args, context) {
-    return authenticated(context, async (resolve, reject) => {
-      if (context.auth.userId !== root.id) {
-        reject("You are not allowed to perform this operation")
-      } else {
-        const devicesInheritedByEnvironments = await getAll(
-          Environment,
-          User,
-          root.id,
-          [{ model: Device }]
-        )
-
-        const devices = devicesInheritedByEnvironments.reduce(
-          (acc, curr) => [...acc, ...curr.devices],
-          []
-        )
-
-        resolve(devices)
-        context.billingUpdater.update(QUERY_COST * devices.length)
-      }
-    })
-  },
   deviceCount(root, args, context) {
     return authenticated(context, async (resolve, reject) => {
       if (context.auth.userId !== root.id) {
@@ -231,7 +209,14 @@ const UserResolver = ({
       if (context.auth.userId !== root.id) {
         reject("You are not allowed to perform this operation")
       } else {
-        const environments = await getAll(Environment, User, root.id)
+        const environments = await getAll(
+          Environment,
+          User,
+          root.id,
+          [],
+          args.limit,
+          args.offset
+        )
 
         resolve(environments)
         context.billingUpdater.update(QUERY_COST * environments.length)
@@ -269,89 +254,6 @@ const UserResolver = ({
         ).length
 
         resolve(totalCount)
-      }
-    })
-  },
-  notifications(root, args, context) {
-    return authenticated(context, async (resolve, reject) => {
-      if (context.auth.userId !== root.id) {
-        reject("You are not allowed to perform this operation")
-      } else {
-        const devicesInheritedByEnvironments = await getAll(
-          Environment,
-          User,
-          root.id,
-          [{ model: Device, include: [{ model: Notification }] }]
-        )
-
-        // flattens the notifications
-        const allNotifications = devicesInheritedByEnvironments.reduce(
-          (acc, environment) => [
-            ...acc,
-            ...environment.devices.reduce(
-              (acc, device) => [...acc, ...device.notifications],
-              []
-            ),
-          ],
-          []
-        )
-
-        // the database returns ISO-format dates, so sorting the strings without casting is fine
-        const compareDates = (a, b) =>
-          a.date > b.date ? -1 : a.date === b.date ? 0 : 1
-
-        resolve(allNotifications.sort(compareDates))
-        context.billingUpdater.update(QUERY_COST * allNotifications.length)
-      }
-    })
-  },
-  values(root, args, context) {
-    return authenticated(context, async (resolve, reject) => {
-      if (context.auth.userId !== root.id) {
-        reject("You are not allowed to perform this operation")
-      } else {
-        // TODO: tag the values with the right __resolveType
-        const valueModels = [
-          FloatValue,
-          StringValue,
-          BooleanValue,
-          PlotValue,
-          CategoryPlotValue,
-          MapValue,
-        ]
-
-        const valuesInheritedFromEnvironments = await getAll(
-          Environment,
-          User,
-          root.id,
-          [
-            {
-              model: Device,
-              include: valueModels.map(Model => ({ model: Model })),
-            },
-          ]
-        )
-        const flattenedAllValues = valuesInheritedFromEnvironments.reduce(
-          (acc, curr) => [
-            ...acc,
-            ...curr.devices.reduce(
-              (acc, device) => [
-                ...acc,
-                ...device.floatValues,
-                ...device.stringValues,
-                ...device.booleanValues,
-                ...device.plotValues,
-                ...device.categoryPlotValues,
-                ...device.mapValues,
-              ],
-              []
-            ),
-          ],
-          []
-        )
-
-        resolve(flattenedAllValues)
-        context.billingUpdater.update(QUERY_COST * flattenedAllValues.length)
       }
     })
   },
@@ -411,6 +313,9 @@ const UserResolver = ({
       } else {
         const tokens = await PermanentToken.findAll({
           where: { userId: root.id },
+          limit: args.limit,
+          offset: args.offset,
+          order: [["id", "DESC"]],
         })
 
         resolve(tokens)
