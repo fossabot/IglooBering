@@ -104,8 +104,26 @@ const EnvironmentResolver = ({
       User,
       1,
       async (resolve, reject, environmentFound) => {
+        const parseStringFilter = filter => {
+          const parsedFilter = {}
+          if (filter.equals) parsedFilter[Op.eq] = filter.equals
+          else if (filter.matchesRegex)
+            parsedFilter[Op.regexp] = filter.matchesRegex
+          else if (filter.like) parsedFilter[Op.like] = filter.like
+
+          return parsedFilter
+        }
+        const parseDeviceFilter = filter => {
+          const parsedFilter = filter
+          if (filter.name) parsedFilter.name = parseStringFilter(filter.name)
+          if (filter.firmware)
+            parsedFilter.firmware = parseStringFilter(filter.firmware)
+
+          return parsedFilter
+        }
+
         const devices = await Device.findAll({
-          where: { environmentId: root.id },
+          where: { environmentId: root.id, ...parseDeviceFilter(args.filter) },
           limit: args.limit,
           offset: args.offset,
           order: [["id", "DESC"]],

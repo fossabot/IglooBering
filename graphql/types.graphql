@@ -556,11 +556,28 @@ type Mutation {
   deleteCategoryPlotNode(id: ID!): ID
 }
 
-input DeviceFilter {
-  OR: [DeviceFilter!]
-  AND: [DeviceFilter!]
+input EnvironmentFilter {
+  # OR: [EnvironmentFilter!]
+  # AND: [EnvironmentFilter!]
   name: String
-  deviceType: String
+}
+
+input StringFilter {
+  matchesRegex: String
+  like: String
+  equals: String
+}
+
+input DeviceFilter {
+  # OR: [DeviceFilter!]
+  # AND: [DeviceFilter!]
+  name: StringFilter
+  online: Boolean
+  # signalStatus: Float
+  # batteryStatus: Float
+  batteryCharging: Boolean
+  firmware: StringFilter
+  muted: Boolean
 }
 
 type Query {
@@ -671,7 +688,11 @@ type User {
   pendingOwnerChangeCount: Int!
   pendingOwnerChanges: [PendingOwnerChange!]!
   environmentCount: Int!
-  environments(limit: Int, offset: Int): [Environment!]!
+  environments(
+    limit: Int
+    offset: Int
+    filter: EnvironmentFilter
+  ): [Environment!]!
   deviceCount: Int
   valueCount: Int!
   notificationCount: Int!
@@ -715,7 +736,7 @@ type Environment {
   name: String!
   picture: EnvironmentPicture!
   deviceCount: Int
-  devices(limit: Int, offset: Int): [Device!]!
+  devices(limit: Int, offset: Int, filter: DeviceFilter): [Device!]!
   notificationCount: Int!
   index: Int!
   muted: Boolean!
