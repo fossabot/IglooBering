@@ -568,13 +568,21 @@ input StringFilter {
   equals: String
 }
 
+input FloatFilter {
+  equals: Float
+  greaterThan: Float
+  greaterOrEqualTo: Float
+  lessThan: Float
+  lessOrEqualTo: Float
+}
+
 input DeviceFilter {
   # OR: [DeviceFilter!]
   # AND: [DeviceFilter!]
   name: StringFilter
   online: Boolean
-  # signalStatus: Float
-  # batteryStatus: Float
+  signalStatus: FloatFilter
+  batteryStatus: FloatFilter
   batteryCharging: Boolean
   firmware: StringFilter
   muted: Boolean

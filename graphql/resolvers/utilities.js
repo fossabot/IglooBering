@@ -1140,6 +1140,29 @@ const sendPushNotification = async (userIds, payload, WebPushNotification) => {
   )
 }
 
+const parseStringFilter = filter => {
+  const parsedFilter = {}
+
+  if (filter.equals) parsedFilter[Op.eq] = filter.equals
+  else if (filter.matchesRegex) parsedFilter[Op.regexp] = filter.matchesRegex
+  else if (filter.like) parsedFilter[Op.like] = filter.like
+
+  return parsedFilter
+}
+
+const parseFloatFilter = filter => {
+  const parsedFilter = {}
+
+  if (filter.equals) parsedFilter[Op.eq] = filter.equals
+  else if (filter.greaterThan) parsedFilter[Op.gt] = filter.greaterThan
+  else if (filter.greaterOrEqualTo)
+    parsedFilter[Op.gte] = filter.greaterOrEqualTo
+  else if (filter.lessThan) parsedFilter[Op.lt] = filter.lessThan
+  else if (filter.lessOrEqualTo) parsedFilter[Op.lte] = filter.lessOrEqualTo
+
+  return parsedFilter
+}
+
 module.exports = {
   authenticated,
   generateAuthenticationToken,
@@ -1183,4 +1206,6 @@ module.exports = {
   environmentToParent,
   runInParallel,
   sendPushNotification,
+  parseStringFilter,
+  parseFloatFilter,
 }

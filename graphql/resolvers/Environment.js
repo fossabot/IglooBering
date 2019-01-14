@@ -5,6 +5,8 @@ import {
   environmentToParent,
   authenticated,
   authorizationLevel,
+  parseStringFilter,
+  parseFloatFilter,
 } from "./utilities"
 import { Op } from "sequelize"
 
@@ -104,20 +106,17 @@ const EnvironmentResolver = ({
       User,
       1,
       async (resolve, reject, environmentFound) => {
-        const parseStringFilter = filter => {
-          const parsedFilter = {}
-          if (filter.equals) parsedFilter[Op.eq] = filter.equals
-          else if (filter.matchesRegex)
-            parsedFilter[Op.regexp] = filter.matchesRegex
-          else if (filter.like) parsedFilter[Op.like] = filter.like
-
-          return parsedFilter
-        }
         const parseDeviceFilter = filter => {
+          if (!filter) return {}
+
           const parsedFilter = filter
           if (filter.name) parsedFilter.name = parseStringFilter(filter.name)
           if (filter.firmware)
             parsedFilter.firmware = parseStringFilter(filter.firmware)
+          if (filter.batteryStatus)
+            parsedFilter.batteryStatus = parseFloatFilter(filter.batteryStatus)
+          if (filter.signalStatus)
+            parsedFilter.signalStatus = parseFloatFilter(filter.signalStatus)
 
           return parsedFilter
         }
