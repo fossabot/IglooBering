@@ -109,7 +109,10 @@ const EnvironmentResolver = ({
         const parseDeviceFilter = filter => {
           if (!filter) return {}
 
-          const parsedFilter = filter
+          const parsedFilter = {}
+          if (filter.AND)
+            parsedFilter[Op.and] = filter.AND.map(parseDeviceFilter)
+          if (filter.OR) parsedFilter[Op.or] = filter.OR.map(parseDeviceFilter)
           if (filter.name) parsedFilter.name = parseStringFilter(filter.name)
           if (filter.firmware)
             parsedFilter.firmware = parseStringFilter(filter.firmware)
@@ -117,6 +120,8 @@ const EnvironmentResolver = ({
             parsedFilter.batteryStatus = parseFloatFilter(filter.batteryStatus)
           if (filter.signalStatus)
             parsedFilter.signalStatus = parseFloatFilter(filter.signalStatus)
+          if (filter.online) parsedFilter.online = filter.online
+          if (filter.muted) parsedFilter.muted = filter.muted
 
           return parsedFilter
         }

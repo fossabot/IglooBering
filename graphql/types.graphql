@@ -577,8 +577,8 @@ input FloatFilter {
 }
 
 input DeviceFilter {
-  # OR: [DeviceFilter!]
-  # AND: [DeviceFilter!]
+  OR: [DeviceFilter!]
+  AND: [DeviceFilter!]
   name: StringFilter
   online: Boolean
   signalStatus: FloatFilter
