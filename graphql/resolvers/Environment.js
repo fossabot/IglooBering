@@ -109,19 +109,24 @@ const EnvironmentResolver = ({
         const parseDeviceFilter = filter => {
           if (!filter) return {}
 
+          filter.hasOwnProperty = Object.prototype.hasOwnProperty
+
           const parsedFilter = {}
-          if (filter.AND)
+          if (filter.hasOwnProperty("AND"))
             parsedFilter[Op.and] = filter.AND.map(parseDeviceFilter)
-          if (filter.OR) parsedFilter[Op.or] = filter.OR.map(parseDeviceFilter)
-          if (filter.name) parsedFilter.name = parseStringFilter(filter.name)
-          if (filter.firmware)
+          if (filter.hasOwnProperty("OR"))
+            parsedFilter[Op.or] = filter.OR.map(parseDeviceFilter)
+          if (filter.hasOwnProperty("name"))
+            parsedFilter.name = parseStringFilter(filter.name)
+          if (filter.hasOwnProperty("firmware"))
             parsedFilter.firmware = parseStringFilter(filter.firmware)
-          if (filter.batteryStatus)
+          if (filter.hasOwnProperty("batteryStatus"))
             parsedFilter.batteryStatus = parseFloatFilter(filter.batteryStatus)
-          if (filter.signalStatus)
+          if (filter.hasOwnProperty("signalStatus"))
             parsedFilter.signalStatus = parseFloatFilter(filter.signalStatus)
-          if (filter.online) parsedFilter.online = filter.online
-          if (filter.muted) parsedFilter.muted = filter.muted
+          if (filter.hasOwnProperty("online"))
+            parsedFilter.online = filter.online
+          if (filter.hasOwnProperty("muted")) parsedFilter.muted = filter.muted
 
           return parsedFilter
         }

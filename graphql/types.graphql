@@ -557,9 +557,11 @@ type Mutation {
 }
 
 input EnvironmentFilter {
-  # OR: [EnvironmentFilter!]
-  # AND: [EnvironmentFilter!]
-  name: String
+  OR: [EnvironmentFilter!]
+  AND: [EnvironmentFilter!]
+  name: StringFilter
+  muted: Boolean
+  myRole: RoleExtended
 }
 
 input StringFilter {

@@ -1,4 +1,9 @@
-import { authenticated, findAllValues, getAll } from "./utilities"
+import {
+  authenticated,
+  findAllValues,
+  getAll,
+  parseStringFilter,
+} from "./utilities"
 
 const QUERY_COST = 1
 
@@ -209,13 +214,32 @@ const UserResolver = ({
       if (context.auth.userId !== root.id) {
         reject("You are not allowed to perform this operation")
       } else {
+        const parseEnvironmentFilter = filter => {
+          if (!filter) return {}
+          filter.hasOwnProperty = Object.prototype.hasOwnProperty
+
+          const parsedFilter = {}
+          if (filter.hasOwnProperty("AND"))
+            parsedFilter[Op.and] = filter.AND.map(parseEnvironmentFilter)
+          if (filter.hasOwnProperty("OR"))
+            parsedFilter[Op.or] = filter.OR.map(parseEnvironmentFilter)
+          if (filter.hasOwnProperty("name"))
+            parsedFilter.name = parseStringFilter(filter.name)
+          if (filter.hasOwnProperty("muted")) parsedFilter.muted = filter.muted
+          if (filter.hasOwnProperty("myRole"))
+            parsedFilter.myRole = filter.myRole
+
+          return parsedFilter
+        }
+
         const environments = await getAll(
           Environment,
           User,
           root.id,
           [],
           args.limit,
-          args.offset
+          args.offset,
+          parseEnvironmentFilter(args.filter)
         )
 
         resolve(environments)
