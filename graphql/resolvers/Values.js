@@ -130,6 +130,23 @@ const PlotValueResolver = (
       },
       valueToParent
     ),
+  lastNode: (root, args, context) =>
+    authorized(
+      root.id,
+      context,
+      context.dataLoaders.plotValueLoaderById,
+      User,
+      1,
+      async (resolve, reject, plotFound) => {
+        const nodes = await PlotNode.find({
+          where: { plotId: plotFound.id },
+          order: [["timestamp", "DESC"]],
+        })
+        resolve(node)
+        context.billingUpdater.update(QUERY_COST)
+      },
+      valueToParent
+    ),
 })
 const CategoryPlotValueResolver = (
   loaderName,
@@ -162,6 +179,25 @@ const CategoryPlotValueResolver = (
 
         resolve(nodes)
         context.billingUpdater.update(QUERY_COST * nodes.length)
+      },
+      valueToParent
+    ),
+  // overriding GenericResolver's value
+  lastNode: (root, args, context) =>
+    authorized(
+      root.id,
+      context,
+      context.dataLoaders.categoryPlotValueLoaderById,
+      User,
+      1,
+      async (resolve, reject, plotFound) => {
+        const node = await CategoryPlotNode.find({
+          where: { plotId: plotFound.id },
+          order: [["timestamp", "DESC"]],
+        })
+
+        resolve(node)
+        context.billingUpdater.update(QUERY_COST)
       },
       valueToParent
     ),
