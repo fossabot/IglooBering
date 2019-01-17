@@ -921,13 +921,13 @@ const instanceToSharedIds = async (
   const owner = instance.ownerId
   const admins = (await allEnvironmentAdminsLoaderByEnvironmentId.load(
     instance.id
-  )).map(user => user.id)
+  )).map(joinTable => joinTable.userId)
   const editors = (await allEnvironmentEditorsLoaderByEnvironmentId.load(
     instance.id
-  )).map(user => user.id)
+  )).map(joinTable => joinTable.userId)
   const spectators = (await allEnvironmentSpectatorsLoaderByEnvironmentId.load(
     instance.id
-  )).map(user => user.id)
+  )).map(joinTable => joinTable.userId)
 
   return [owner, ...admins, ...editors, ...spectators]
 }

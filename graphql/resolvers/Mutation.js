@@ -2709,6 +2709,8 @@ const MutationResolver = (
             environmentFound,
             context
           )
+          console.log(authorizedUsersIds)
+
           const devices = await Device.findAll({
             where: { environmentId: environmentFound.id },
           })
@@ -2735,14 +2737,19 @@ const MutationResolver = (
 
             await Promise.all(
               [
+                [PlotNode, "plotNodeDeleted"],
+                [CategoryPlotNode, "categoryPlotNodeDeleted"],
+              ].map(deleteChild)
+            )
+
+            await Promise.all(
+              [
                 [FloatValue, "valueDeleted"],
                 [StringValue, "valueDeleted"],
                 [BooleanValue, "valueDeleted"],
                 [MapValue, "valueDeleted"],
                 [PlotValue, "valueDeleted"],
                 [CategoryPlotValue, "valueDeleted"],
-                [PlotNode, "plotNodeDeleted"],
-                [CategoryPlotNode, "categoryPlotNodeDeleted"],
                 [Notification, "notificationDeleted"],
               ].map(deleteChild)
             )
