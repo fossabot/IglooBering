@@ -184,7 +184,6 @@ const MutationResolver = (
       return authenticated(
         context,
         async (resolve, reject) => {
-          console.log("test")
           if (args.name === "") {
             reject("Empty name is not allowed")
           } else {

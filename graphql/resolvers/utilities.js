@@ -1084,8 +1084,6 @@ async function getAll(
     order: [["id", "DESC"]],
   })
 
-  console.log(allAccessibles, filter)
-
   const allFlattened = [
     ...allAccessibles[0][Model.Owner],
     ...allAccessibles[0][Model.Admins],
