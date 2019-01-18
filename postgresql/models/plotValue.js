@@ -15,6 +15,9 @@ module.exports = (queryInterface, Sequelize) => {
     max: {
       type: Sequelize.FLOAT,
     },
+    unitOfMeasurement: {
+      type: Sequelize.STRING,
+    },
   })
 
   PlotValue.associate = function(models) {

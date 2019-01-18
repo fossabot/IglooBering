@@ -23,7 +23,6 @@ const GenericResolver = (
       "createdAt",
       "updatedAt",
       "visibility",
-      "unitOfMeasurement",
       "cardSize",
       "name",
       "value",
@@ -85,7 +84,7 @@ const FloatValueResolver = (loaderName, User, Device, Environment) => ({
   ...GenericResolver(loaderName, User, Device, Environment),
   ...authorizedScalarPropsResolvers(
     loaderName,
-    [("precision", "min", "max")],
+    ["unitOfMeasurement", "precision", "min", "max"],
     valueToParent
   ),
 })
@@ -107,7 +106,7 @@ const PlotValueResolver = (
   ...GenericResolver(loaderName, User, Device, Environment, false),
   ...authorizedScalarPropsResolvers(
     loaderName,
-    [("precision", "min", "max", "threshold")],
+    ["unitOfMeasurement", "precision", "min", "max", "threshold"],
     valueToParent
   ),
   // overriding GenericResolver's value

@@ -213,8 +213,6 @@ type Mutation {
     permission: ValuePermission!
     # whether the value should be VISIBLE, HIDDEN or INVISIBLE in Igloo Aurora
     visibility: ValueVisibility
-    # additional details about the value
-    unitOfMeasurement: String
     value: String!
     # max length of the string
     maxChars: Int
@@ -235,8 +233,6 @@ type Mutation {
     permission: ValuePermission!
     # whether the value should be VISIBLE, HIDDEN or INVISIBLE in Igloo Aurora
     visibility: ValueVisibility
-    # additional details about the value
-    unitOfMeasurement: String
     value: Boolean!
     # name of the value, displayed in Igloo Aurora
     name: String!
@@ -253,8 +249,6 @@ type Mutation {
     permission: ValuePermission!
     # whether the value should be VISIBLE, HIDDEN or INVISIBLE in Igloo Aurora
     visibility: ValueVisibility
-    # additional details about the value
-    unitOfMeasurement: String
     # name of the value, displayed in Igloo Aurora
     name: String!
     # tile size in Igloo Aurora
@@ -304,8 +298,6 @@ type Mutation {
     deviceId: ID!
     # whether the value should be VISIBLE, HIDDEN or INVISIBLE in Igloo Aurora
     visibility: ValueVisibility
-    # additional details about the value
-    unitOfMeasurement: String
     # name of the value, displayed in Igloo Aurora
     name: String!
     # tile size in Igloo Aurora
@@ -374,7 +366,6 @@ type Mutation {
   value(
     id: ID!
     visibility: ValueVisibility
-    unitOfMeasurement: String
     cardSize: CardSize
     name: String
     index: Int
@@ -416,8 +407,6 @@ type Mutation {
     permission: ValuePermission
     # whether the value should be VISIBLE, HIDDEN or INVISIBLE in Igloo Aurora
     visibility: ValueVisibility
-    # additional details about the value
-    unitOfMeasurement: String
     value: String
     # max length of the string
     maxChars: Int
@@ -438,8 +427,6 @@ type Mutation {
     permission: ValuePermission
     # whether the value should be VISIBLE, HIDDEN or INVISIBLE in Igloo Aurora
     visibility: ValueVisibility
-    # additional details about the value
-    unitOfMeasurement: String
     value: Boolean
     # name of the value, displayed in Igloo Aurora
     name: String
@@ -456,8 +443,6 @@ type Mutation {
     permission: ValuePermission
     # whether the value should be VISIBLE, HIDDEN or INVISIBLE in Igloo Aurora
     visibility: ValueVisibility
-    # additional details about the value
-    unitOfMeasurement: String
     # name of the value, displayed in Igloo Aurora
     name: String
     # tile size in Igloo Aurora
@@ -507,8 +492,6 @@ type Mutation {
     id: ID!
     # whether the value should be VISIBLE, HIDDEN or INVISIBLE in Igloo Aurora
     visibility: ValueVisibility
-    # additional details about the value
-    unitOfMeasurement: String
     # name of the value, displayed in Igloo Aurora
     name: String
     # tile size in Igloo Aurora
@@ -866,7 +849,6 @@ interface Value {
   device: Device!
   environment: Environment!
   visibility: ValueVisibility!
-  unitOfMeasurement: String
   cardSize: CardSize!
   name: String
   index: Int
@@ -901,7 +883,6 @@ type StringValue implements Value {
   environment: Environment!
   permission: ValuePermission!
   visibility: ValueVisibility!
-  unitOfMeasurement: String
   value: String!
   maxChars: Int
   cardSize: CardSize!
@@ -940,7 +921,6 @@ type CategoryPlotValue implements Value {
   device: Device!
   environment: Environment!
   visibility: ValueVisibility!
-  unitOfMeasurement: String
   value(limit: Int, offset: Int): [CategoryPlotNode!]!
   lastNode: CategoryPlotNode
   cardSize: CardSize!
@@ -958,7 +938,6 @@ type BooleanValue implements Value {
   environment: Environment!
   permission: ValuePermission!
   visibility: ValueVisibility!
-  unitOfMeasurement: String
   value: Boolean!
   cardSize: CardSize!
   name: String
@@ -974,7 +953,6 @@ type MapValue implements Value {
   environment: Environment!
   permission: ValuePermission!
   visibility: ValueVisibility!
-  unitOfMeasurement: String
   value: String
   latitude: Float
   longitude: Float

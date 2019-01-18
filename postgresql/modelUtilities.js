@@ -25,9 +25,6 @@ const ValueModel = (Sequelize, hasPermission = true) => {
         key: "id",
       },
     },
-    unitOfMeasurement: {
-      type: Sequelize.STRING,
-    },
     ...(hasPermission
       ? {
           permission: {

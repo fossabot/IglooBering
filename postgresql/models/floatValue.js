@@ -16,6 +16,9 @@ module.exports = (queryInterface, Sequelize) => {
     max: {
       type: Sequelize.FLOAT,
     },
+    unitOfMeasurement: {
+      type: Sequelize.STRING,
+    },
   })
 
   FloatValue.associate = function(models) {

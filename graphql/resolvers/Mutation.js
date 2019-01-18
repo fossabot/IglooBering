@@ -1404,6 +1404,11 @@ const MutationResolver = (
         } else if (args.cardSize === "LARGE") {
           reject("float cannot have cardSize set to LARGE")
           return false
+        } else if (args.unitOfMeasurement === "") {
+          reject(
+            "unitOfMeasurement cannot be an empty string, pass null instead"
+          )
+          return false
         }
         return true
       }
@@ -1514,6 +1519,11 @@ const MutationResolver = (
           args.min >= args.max
         ) {
           reject("The min value should be less than the max value")
+          return false
+        } else if (args.unitOfMeasurement === "") {
+          reject(
+            "unitOfMeasurement cannot be an empty string, pass null instead"
+          )
           return false
         }
         return true
@@ -2119,6 +2129,11 @@ const MutationResolver = (
         } else if (expectedNewValue.cardSize === "LARGE") {
           reject("FloatValue cannot have cardSize set to LARGE")
           return false
+        } else if (args.unitOfMeasurement === "") {
+          reject(
+            "unitOfMeasurement cannot be an empty string, pass null instead"
+          )
+          return false
         }
         return true
       }
@@ -2222,7 +2237,17 @@ const MutationResolver = (
       pubsub,
       User,
       Device,
-      Environment
+      Environment,
+      (args, reject) => {
+        if (args.unitOfMeasurement === "") {
+          reject(
+            "unitOfMeasurement cannot be an empty string, pass null instead"
+          )
+          return false
+        }
+
+        return true
+      }
     ),
     categoryPlotValue: genericValueMutation(
       "categoryPlotValueLoaderById",
