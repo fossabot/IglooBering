@@ -37,7 +37,7 @@ module.exports = (queryInterface, Sequelize) => {
       type: Sequelize.DATE,
       defaultValue: Sequelize.NOW,
     },
-    notVisualized: {
+    notRead: {
       type: Sequelize.ARRAY(Sequelize.UUID),
     },
   })

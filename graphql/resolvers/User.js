@@ -271,10 +271,10 @@ const UserResolver = ({
           []
         )
 
-        // count not visualized notifications
+        // count not read notifications
         const totalCount = allNotifications.filter(
           notification =>
-            notification.notVisualized.indexOf(context.auth.userId) !== -1
+            notification.notRead.indexOf(context.auth.userId) !== -1
         ).length
 
         resolve(totalCount)

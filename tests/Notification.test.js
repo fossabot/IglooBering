@@ -25,7 +25,7 @@ describe("Notification", () => {
   const testNotificationScalarProp = testScalarProp(
     NotificationResolver,
     { id: "mockNotificationId" },
-    { ...mockNotificationData[0], visualized: false }
+    { ...mockNotificationData[0], read: false }
   );
   const testUnauthenticated = unauthenticatedShouldFail(NotificationResolver, {
     id: "mockNotificationId"
@@ -39,7 +39,7 @@ describe("Notification", () => {
   // not using a for loop because this syntax integrates better with the IDE
   test("content is resolved correctly", testNotificationScalarProp("content"));
   test("date is resolved correctly", testNotificationScalarProp("date"));
-  test("visualized is resolved correctly", testNotificationScalarProp("visualized"));
+  test("read is resolved correctly", testNotificationScalarProp("read"));
   test("user is resolved correctly", async done => {
     const userFound = await new Promise((resolve, reject) => {
       NotificationResolver.user(
@@ -82,14 +82,14 @@ describe("Notification", () => {
 
   test("content fails if unauthenticated", testWrongId("content"));
   test("date fails if unauthenticated", testWrongId("date"));
-  test("visualized fails if unauthenticated", testWrongId("visualized"));
+  test("read fails if unauthenticated", testWrongId("read"));
   test("user fails if unauthenticated", testWrongId("user"));
   test("environment fails if unauthenticated", testWrongId("environment"));
   test("device fails if unauthenticated", testWrongId("device"));
 
   test("content fails if unauthenticated", testUnauthenticated("content"));
   test("date fails if unauthenticated", testUnauthenticated("date"));
-  test("visualized fails if unauthenticated", testUnauthenticated("visualized"));
+  test("read fails if unauthenticated", testUnauthenticated("read"));
   test("user fails if unauthenticated", testUnauthenticated("user"));
   test("environment fails if unauthenticated", testUnauthenticated("environment"));
   test("device fails if unauthenticated", testUnauthenticated("device"));

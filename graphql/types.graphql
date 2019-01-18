@@ -536,8 +536,8 @@ type Mutation {
     content: String
     # notification's date
     date: DateTime
-    # whether the notification has already been visualized
-    visualized: Boolean
+    # whether the notification has already been read
+    read: Boolean
   ): Notification
 
   # delete notification
@@ -822,7 +822,7 @@ type Notification {
   user: User!
   content: String!
   date: DateTime!
-  visualized: Boolean!
+  read: Boolean!
 }
 
 type PlotNode {

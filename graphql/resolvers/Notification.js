@@ -65,7 +65,7 @@ const UserResolver = ({ Notification, User, Device, Environment }) => ({
       deviceToParent
     )
   },
-  visualized(root, args, context) {
+  read(root, args, context) {
     return inheritAuthorized(
       root.id,
       context.dataLoaders.notificationLoaderById,
@@ -75,9 +75,7 @@ const UserResolver = ({ Notification, User, Device, Environment }) => ({
       context.dataLoaders.deviceLoaderById,
       1,
       async (resolve, reject, notificationFound) => {
-        resolve(
-          notificationFound.notVisualized.indexOf(context.auth.userId) === -1
-        )
+        resolve(notificationFound.notRead.indexOf(context.auth.userId) === -1)
         context.billingUpdater.update(QUERY_COST)
       },
       deviceToParent

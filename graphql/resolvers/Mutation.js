@@ -2409,7 +2409,7 @@ const MutationResolver = (
           const newNotification = await Notification.create({
             ...args,
             environmentId: environmentFound.id,
-            notVisualized: deviceSharedIds,
+            notRead: deviceSharedIds,
             userId: context.auth.userId,
             date: args.date || new Date(),
           })
@@ -2491,24 +2491,22 @@ const MutationResolver = (
           } else if (
             (await instanceToRole(environmentFound, userFound, context)) ===
               "SPECTATOR" &&
-            (Object.keys(args).length > 2 ||
-              !isNotNullNorUndefined(args.visualized))
+            (Object.keys(args).length > 2 || !isNotNullNorUndefined(args.read))
           ) {
-            reject("You are not allowed to mutate fields other than visualized")
+            reject("You are not allowed to mutate fields other than read")
             return
           }
           const updateQuery = args
 
-          if (updateQuery.visualized === true) {
-            updateQuery.notVisualized = notificationFound.notVisualized.filter(
+          if (updateQuery.read === true) {
+            updateQuery.notRead = notificationFound.notRead.filter(
               id => id !== context.auth.userId
             )
-          } else if (updateQuery.visualized === false) {
-            updateQuery.notVisualized =
-              notificationFound.notVisualized.indexOf(context.auth.userId) ===
-              -1
-                ? [...notificationFound.notVisualized, context.auth.userId]
-                : notificationFound.notVisualized
+          } else if (updateQuery.read === false) {
+            updateQuery.notRead =
+              notificationFound.notRead.indexOf(context.auth.userId) === -1
+                ? [...notificationFound.notRead, context.auth.userId]
+                : notificationFound.notRead
           }
 
           const newNotification = await notificationFound.update(updateQuery)

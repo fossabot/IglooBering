@@ -155,7 +155,7 @@ module.exports = () => {
       environmentId: "mockEnvironmentId",
       content: "mockContent",
       date: "2018-11-27T22:09:44.183Z",
-      notVisualized: ["mockUserId"]
+      notRead: ["mockUserId"]
     },
     {
       id: "mockNotificationId2",
@@ -164,7 +164,7 @@ module.exports = () => {
       environmentId: "mockEnvironmentId",
       content: "mockContent2",
       date: "2018-11-27T22:09:44.183Z",
-      notVisualized: ["mockUserId"]
+      notRead: ["mockUserId"]
     }
   ];
 
