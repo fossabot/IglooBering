@@ -131,11 +131,15 @@ const EnvironmentResolver = ({
           return parsedFilter
         }
 
+        const sortDirection = args.sortDirection || "DESC"
+
         const devices = await Device.findAll({
           where: { environmentId: root.id, ...parseDeviceFilter(args.filter) },
           limit: args.limit,
           offset: args.offset,
-          order: [["id", "DESC"]],
+          order: args.sortBy
+            ? [[args.sortBy, sortDirection]]
+            : [["index", sortDirection]],
         })
 
         resolve(devices)

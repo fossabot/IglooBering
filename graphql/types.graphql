@@ -709,6 +709,18 @@ enum RoleExtended {
   SPECTATOR
 }
 
+enum DEVICE_SORT {
+  index
+  name
+  deviceType
+  firmware
+}
+
+enum SORT_DIRECTION {
+  ASC
+  DESC
+}
+
 type Environment {
   id: ID!
   createdAt: DateTime!
@@ -729,7 +741,13 @@ type Environment {
   name: String!
   picture: EnvironmentPicture!
   deviceCount: Int
-  devices(limit: Int, offset: Int, filter: DeviceFilter): [Device!]!
+  devices(
+    limit: Int
+    offset: Int
+    filter: DeviceFilter
+    sortBy: DEVICE_SORT
+    sortDirection: SORT_DIRECTION
+  ): [Device!]!
   notificationCount: Int!
   index: Int!
   muted: Boolean!
