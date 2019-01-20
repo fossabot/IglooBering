@@ -36,6 +36,7 @@ import moment from "moment"
 import jwt from "jwt-simple"
 import zxcvbn from "zxcvbn"
 import { isNullOrUndefined } from "util"
+import { Op } from "sequelize"
 
 require("dotenv").config()
 /* istanbul ignore if */
@@ -579,7 +580,7 @@ const MutationResolver = (
 
           pubsub.publish("pendingEnvironmentShareUpdated", {
             pendingEnvironmentShareUpdated: newPendingEnvironmentShare,
-            userId: newPendingEnvironmentShare.receiverId,
+            userIds: [newPendingEnvironmentShare.receiverId],
           })
 
           const usersWithAccessIds = (await instanceToSharedIds(
@@ -1687,14 +1688,56 @@ const MutationResolver = (
               const newUser = await userFound.update(args)
               resolve(newUser.dataValues)
 
+              // if the token used for the mutation is not a usageCap update or paymentPlan update bill it
+              if (permissionRequired === undefined) {
+                context.billingUpdater.update(MUTATION_COST)
+              }
               pubsub.publish("userUpdated", {
                 userUpdated: newUser.dataValues,
                 userId: context.auth.userId,
               })
 
-              // if the token used for the mutation is not a usageCap update or paymentPlan update bill it
-              if (permissionRequired === undefined) {
-                context.billingUpdater.update(MUTATION_COST)
+              if (
+                args.hasOwnProperty("name") ||
+                args.hasOwnProperty("profileIcon") ||
+                args.hasOwnProperty("profileIconColor")
+              ) {
+                const ownerChanges = await PendingOwnerChange.findAll({
+                  where: {
+                    [Op.or]: [
+                      { senderId: userFound.id },
+                      { receiverId: userFound.id },
+                    ],
+                  },
+                })
+
+                ownerChanges.map(ownerChange => {
+                  pubsub.publish("pendingOwnerChangeUpdated", {
+                    pendingOwnerChangeUpdated: ownerChange,
+                    userIds: [ownerChange.senderId, ownerChange.receiverId],
+                  })
+                })
+
+                const environmentShares = await PendingEnvironmentShare.findAll(
+                  {
+                    where: {
+                      [Op.or]: [
+                        { senderId: userFound.id },
+                        { receiverId: userFound.id },
+                      ],
+                    },
+                  }
+                )
+
+                environmentShares.map(environmentShare => {
+                  pubsub.publish("pendingEnvironmentShareUpdated", {
+                    pendingEnvironmentShareUpdated: environmentShare,
+                    userIds: [
+                      environmentShare.senderId,
+                      environmentShare.receiverId,
+                    ],
+                  })
+                })
               }
             }
           },

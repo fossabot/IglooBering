@@ -13,7 +13,7 @@ const subscriptionResolver = (pubsub, { User, Device, Environment }) => ({
     "pendingEnvironmentShareReceived",
     pubsub
   ),
-  pendingEnvironmentShareUpdated: subscriptionFilterOnlyMine(
+  pendingEnvironmentShareUpdated: subscriptionFilterOwnedOrShared(
     "pendingEnvironmentShareUpdated",
     pubsub
   ),
@@ -35,6 +35,10 @@ const subscriptionResolver = (pubsub, { User, Device, Environment }) => ({
   ),
   pendingOwnerChangeReceived: subscriptionFilterOnlyMine(
     "pendingOwnerChangeReceived",
+    pubsub
+  ),
+  pendingOwnerChangeUpdated: subscriptionFilterOwnedOrShared(
+    "pendingOwnerChangeUpdated",
     pubsub
   ),
   pendingOwnerChangeAccepted: subscriptionFilterOnlyMine(

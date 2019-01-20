@@ -618,6 +618,8 @@ type Subscription {
   pendingEnvironmentShareRevoked: ID
   # subscribes to owner change to you
   pendingOwnerChangeReceived: PendingOwnerChange
+  # subscribes to ownerChange updates
+  pendingOwnerChangeUpdated: PendingOwnerChange
   # returns the id of the environment accepted
   pendingOwnerChangeAccepted: acceptPendingOwnerChangePayload
   # returns the id of the environment declined

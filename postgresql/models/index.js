@@ -1,7 +1,7 @@
 const fs = require("fs")
 const path = require("path")
 const Sequelize = require("sequelize")
-require("dotenv").load({ path: "../../.env" })
+require("dotenv").load({ path: ".env" })
 const { JWT_SECRET } = process.env
 
 const basename = path.basename(__filename)

@@ -1,3 +1,10 @@
+require("dotenv").config()
+
+/* istanbul ignore if */
+if (!process.env.JWT_SECRET) {
+  throw new Error("Could not load .env")
+}
+
 import jwt from "jwt-simple"
 import moment from "moment"
 import chalk from "chalk"
@@ -13,13 +20,7 @@ import UpdateBatcher from "update-batcher"
 import webpush from "web-push"
 import { Op } from "sequelize"
 import { isNullOrUndefined } from "util"
-
-require("dotenv").config()
-
-/* istanbul ignore if */
-if (!process.env.JWT_SECRET) {
-  throw new Error("Could not load .env")
-}
+import createDataLoaders from "../../dataloaders/index"
 
 webpush.setVapidDetails(
   "http://igloo.witlab.io/",
@@ -338,7 +339,11 @@ const subscriptionFilterOnlyMine = (subscriptionName, pubsub) => ({
       const myUserId = context.auth.userId
       return withFilter(
         () => pubsub.asyncIterator(subscriptionName),
-        payload => payload.userId === myUserId
+        payload => {
+          context.dataLoaders = createDataLoaders()
+
+          return payload.userId === myUserId
+        }
       )(root, args, context, info)
     }
     throw new Error("No authorization token")
@@ -351,7 +356,11 @@ const subscriptionFilterOwnedOrShared = (subscriptionName, pubsub) => ({
       const myUserId = context.auth.userId
       return withFilter(
         () => pubsub.asyncIterator(subscriptionName),
-        payload => payload.userIds.indexOf(myUserId) !== -1
+        payload => {
+          context.dataLoaders = createDataLoaders()
+
+          return payload.userIds.indexOf(myUserId) !== -1
+        }
       )(root, args, context, info)
     }
     throw new Error("No authorization token")
