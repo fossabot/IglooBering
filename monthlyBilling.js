@@ -6,7 +6,7 @@ const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY)
   const users = await User.findAll()
 
   const userUpdates = users.map(async user => {
-    if (user.paymentPlan === "PAYING") {
+    if (user.paymentPlan === "INDIVIDUAL") {
       const usageBilled = Math.ceil(user.monthUsage / 1000)
 
       // const subscription = await stripe.subscriptions.create({

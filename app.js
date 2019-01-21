@@ -120,7 +120,8 @@ app.use("/graphql", async (req, res, next) => {
     ) {
       req.user.tokenType = "SWITCH_TO_PAYING"
     } else if (
-      userFound.paymentPlan === "PAYING" &&
+      (userFound.paymentPlan === "INDIVIDUAL" ||
+        userFound.paymentPlan === "BUSINESS") &&
       userFound.usageCap &&
       userFound.monthUsage > userFound.usageCap
     ) {

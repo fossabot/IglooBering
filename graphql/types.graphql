@@ -664,7 +664,8 @@ type Subscription {
 
 enum PaymentPlan {
   FREE
-  PAYING
+  INDIVIDUAL
+  BUSINESS
 }
 
 type Settings {

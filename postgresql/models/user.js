@@ -1,5 +1,5 @@
 module.exports = (queryInterface, Sequelize) => {
-  const PaymentPlan = Sequelize.ENUM("FREE", "PAYING")
+  const PaymentPlan = Sequelize.ENUM("FREE", "INDIVIDUAL", "BUSINESS")
 
   const User = queryInterface.define("user", {
     id: {
