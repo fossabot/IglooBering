@@ -44,6 +44,11 @@ type acceptPendingOwnerChangePayload {
   environment: Environment!
 }
 
+type createUnclaimedDevicePayload {
+  id: ID!
+  qrCode: String!
+}
+
 # Data needed to display the QR code when upgrading to 2-Factor Authentication
 # type UpgradeTo2FactorPayload {
 #   # totp secret
@@ -174,6 +179,12 @@ type Mutation {
     firmware: String
     muted: Boolean
   ): Device
+
+  # FIXME: change name
+  createUnclaimedDevice(
+    deviceType: String
+    firmware: String
+  ): createUnclaimedDevicePayload
 
   # Creates a new notification
   createNotification(

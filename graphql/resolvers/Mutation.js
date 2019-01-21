@@ -37,6 +37,7 @@ import jwt from "jwt-simple"
 import zxcvbn from "zxcvbn"
 import { isNullOrUndefined } from "util"
 import { Op } from "sequelize"
+import QRCode from "qrcode-svg"
 
 require("dotenv").config()
 /* istanbul ignore if */
@@ -79,6 +80,7 @@ const MutationResolver = (
     EnvironmentAdmin,
     EnvironmentEditor,
     EnvironmentSpectator,
+    UnclaimedDevice,
   },
   WebPushNotification,
   pubsub,
@@ -1375,6 +1377,29 @@ const MutationResolver = (
           environmentToParent
         )(resolve, reject)
       }
+    },
+    createUnclaimedDevice(root, args, context) {
+      return authenticated(context, async (resolve, reject) => {
+        const userFound = await User.find({
+          where: { id: context.auth.userId },
+        })
+
+        if (userFound.paymentPlan !== "BUSINESS") {
+          reject("Only business users can create unclaimed devices")
+          return
+        }
+
+        const newDevice = await UnclaimedDevice.create(args)
+
+        const id = newDevice.id
+
+        resolve({
+          id,
+          qrCode: new QRCode({ content: id }).svg(),
+        })
+
+        context.billingUpdater.update(MUTATION_COST)
+      })
     },
     createFloatValue: CreateGenericValue(
       User,
