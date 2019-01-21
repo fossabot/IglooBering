@@ -7,104 +7,178 @@ import {
   logErrorsPromise,
   instanceToSharedIds,
 } from "./utilities"
+import createDataLoaders from "../../dataloaders/index"
 
 const subscriptionResolver = (pubsub, { User, Device, Environment }) => ({
   pendingEnvironmentShareReceived: subscriptionFilterOnlyMine(
     "pendingEnvironmentShareReceived",
-    pubsub
+    pubsub,
+    createDataLoaders
   ),
   pendingEnvironmentShareUpdated: subscriptionFilterOwnedOrShared(
     "pendingEnvironmentShareUpdated",
-    pubsub
+    pubsub,
+    createDataLoaders
   ),
   environmentStoppedSharingWithYou: subscriptionFilterOnlyMine(
     "environmentStoppedSharingWithYou",
-    pubsub
+    pubsub,
+    createDataLoaders
   ),
   pendingEnvironmentShareAccepted: subscriptionFilterOnlyMine(
     "pendingEnvironmentShareAccepted",
-    pubsub
+    pubsub,
+    createDataLoaders
   ),
   pendingEnvironmentShareDeclined: subscriptionFilterOnlyMine(
     "pendingEnvironmentShareDeclined",
-    pubsub
+    pubsub,
+    createDataLoaders
   ),
   pendingEnvironmentShareRevoked: subscriptionFilterOwnedOrShared(
     "pendingEnvironmentShareRevoked",
-    pubsub
+    pubsub,
+    createDataLoaders
   ),
   pendingOwnerChangeReceived: subscriptionFilterOnlyMine(
     "pendingOwnerChangeReceived",
-    pubsub
+    pubsub,
+    createDataLoaders
   ),
   pendingOwnerChangeUpdated: subscriptionFilterOwnedOrShared(
     "pendingOwnerChangeUpdated",
-    pubsub
+    pubsub,
+    createDataLoaders
   ),
   pendingOwnerChangeAccepted: subscriptionFilterOnlyMine(
     "pendingOwnerChangeAccepted",
-    pubsub
+    pubsub,
+    createDataLoaders
   ),
   pendingOwnerChangeDeclined: subscriptionFilterOnlyMine(
     "pendingOwnerChangeDeclined",
-    pubsub
+    pubsub,
+    createDataLoaders
   ),
   pendingOwnerChangeRevoked: subscriptionFilterOnlyMine(
     "pendingOwnerChangeRevoked",
-    pubsub
+    pubsub,
+    createDataLoaders
   ),
-  environmentCreated: subscriptionFilterOnlyMine("environmentCreated", pubsub),
-  deviceCreated: subscriptionFilterOwnedOrShared("deviceCreated", pubsub),
-  deviceMoved: subscriptionFilterOwnedOrShared("deviceMoved", pubsub),
-  valueCreated: subscriptionFilterOwnedOrShared("valueCreated", pubsub),
+  environmentCreated: subscriptionFilterOnlyMine(
+    "environmentCreated",
+    pubsub,
+    createDataLoaders
+  ),
+  deviceCreated: subscriptionFilterOwnedOrShared(
+    "deviceCreated",
+    pubsub,
+    createDataLoaders
+  ),
+  deviceMoved: subscriptionFilterOwnedOrShared(
+    "deviceMoved",
+    pubsub,
+    createDataLoaders
+  ),
+  valueCreated: subscriptionFilterOwnedOrShared(
+    "valueCreated",
+    pubsub,
+    createDataLoaders
+  ),
   permanentTokenCreated: subscriptionFilterOnlyMine(
     "permanentTokenCreated",
-    pubsub
+    pubsub,
+    createDataLoaders
   ),
-  plotNodeCreated: subscriptionFilterOwnedOrShared("plotNodeCreated", pubsub),
+  plotNodeCreated: subscriptionFilterOwnedOrShared(
+    "plotNodeCreated",
+    pubsub,
+    createDataLoaders
+  ),
   categoryPlotNodeCreated: subscriptionFilterOwnedOrShared(
     "categoryPlotNodeCreated",
-    pubsub
+    pubsub,
+    createDataLoaders
   ),
   notificationCreated: subscriptionFilterOwnedOrShared(
     "notificationCreated",
-    pubsub
+    pubsub,
+    createDataLoaders
   ),
-  userUpdated: subscriptionFilterOnlyMine("userUpdated", pubsub),
-  deviceUpdated: subscriptionFilterOwnedOrShared("deviceUpdated", pubsub),
+  userUpdated: subscriptionFilterOnlyMine(
+    "userUpdated",
+    pubsub,
+    createDataLoaders
+  ),
+  deviceUpdated: subscriptionFilterOwnedOrShared(
+    "deviceUpdated",
+    pubsub,
+    createDataLoaders
+  ),
   environmentUpdated: subscriptionFilterOwnedOrShared(
     "environmentUpdated",
-    pubsub
+    pubsub,
+    createDataLoaders
   ),
-  valueUpdated: subscriptionFilterOwnedOrShared("valueUpdated", pubsub),
-  plotNodeUpdated: subscriptionFilterOwnedOrShared("plotNodeUpdated", pubsub),
+  valueUpdated: subscriptionFilterOwnedOrShared(
+    "valueUpdated",
+    pubsub,
+    createDataLoaders
+  ),
+  plotNodeUpdated: subscriptionFilterOwnedOrShared(
+    "plotNodeUpdated",
+    pubsub,
+    createDataLoaders
+  ),
   categoryPlotNodeUpdated: subscriptionFilterOwnedOrShared(
     "categoryPlotNodeUpdated",
-    pubsub
+    pubsub,
+    createDataLoaders
   ),
   notificationUpdated: subscriptionFilterOwnedOrShared(
     "notificationUpdated",
-    pubsub
+    pubsub,
+    createDataLoaders
   ),
   notificationDeleted: subscriptionFilterOwnedOrShared(
     "notificationDeleted",
-    pubsub
+    pubsub,
+    createDataLoaders
   ),
-  valueDeleted: subscriptionFilterOwnedOrShared("valueDeleted", pubsub),
-  deviceDeleted: subscriptionFilterOwnedOrShared("deviceDeleted", pubsub),
+  valueDeleted: subscriptionFilterOwnedOrShared(
+    "valueDeleted",
+    pubsub,
+    createDataLoaders
+  ),
+  deviceDeleted: subscriptionFilterOwnedOrShared(
+    "deviceDeleted",
+    pubsub,
+    createDataLoaders
+  ),
   environmentDeleted: subscriptionFilterOwnedOrShared(
     "environmentDeleted",
-    pubsub
+    pubsub,
+    createDataLoaders
   ),
-  userDeleted: subscriptionFilterOnlyMine("userDeleted", pubsub),
-  plotNodeDeleted: subscriptionFilterOwnedOrShared("plotNodeDeleted", pubsub),
+  userDeleted: subscriptionFilterOnlyMine(
+    "userDeleted",
+    pubsub,
+    createDataLoaders
+  ),
+  plotNodeDeleted: subscriptionFilterOwnedOrShared(
+    "plotNodeDeleted",
+    pubsub,
+    createDataLoaders
+  ),
   categoryPlotNodeDeleted: subscriptionFilterOwnedOrShared(
     "categoryPlotNodeDeleted",
-    pubsub
+    pubsub,
+    createDataLoaders
   ),
   permanentTokenDeleted: subscriptionFilterOnlyMine(
     "permanentTokenDeleted",
-    pubsub
+    pubsub,
+    createDataLoaders
   ),
   keepOnline: {
     subscribe: (root, args, context) =>

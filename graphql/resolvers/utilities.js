@@ -20,7 +20,6 @@ import UpdateBatcher from "update-batcher"
 import webpush from "web-push"
 import { Op } from "sequelize"
 import { isNullOrUndefined } from "util"
-import createDataLoaders from "../../dataloaders/index"
 
 webpush.setVapidDetails(
   "http://igloo.witlab.io/",
@@ -333,7 +332,11 @@ const check2FCode = (code, secret) => {
   }
 }
 
-const subscriptionFilterOnlyMine = (subscriptionName, pubsub) => ({
+const subscriptionFilterOnlyMine = (
+  subscriptionName,
+  pubsub,
+  createDataLoaders
+) => ({
   subscribe: (root, args, context, info) => {
     if (context.auth) {
       const myUserId = context.auth.userId
@@ -350,7 +353,11 @@ const subscriptionFilterOnlyMine = (subscriptionName, pubsub) => ({
   },
 })
 
-const subscriptionFilterOwnedOrShared = (subscriptionName, pubsub) => ({
+const subscriptionFilterOwnedOrShared = (
+  subscriptionName,
+  pubsub,
+  createDataLoaders
+) => ({
   subscribe: (root, args, context, info) => {
     if (context.auth) {
       const myUserId = context.auth.userId
