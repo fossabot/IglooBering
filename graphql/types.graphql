@@ -540,8 +540,6 @@ type Mutation {
     id: ID!
     # notification's content
     content: String
-    # notification's date
-    date: DateTime
     # whether the notification has already been read
     read: Boolean
   ): Notification
