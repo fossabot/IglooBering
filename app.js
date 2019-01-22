@@ -64,6 +64,7 @@ app.use(
           break
 
         case "TEMPORARY":
+        case "DEVICE_ACCESS":
         case "PASSWORD_RECOVERY":
         case "MANAGE_PERMANENT_TOKENS":
         case "DELETE_USER":
@@ -96,7 +97,7 @@ const FREE_USAGE_QUOTA = 100 * 1000
 // Check if usage threshold was exceeded
 app.use("/graphql", async (req, res, next) => {
   // TODO: implement anti-DDOS here
-  if (!req.user) next()
+  if (!req.user || req.user.tokenType === "DEVICE_ACCESS") next()
   else {
     const userFound = await User.find({ where: { id: req.user.userId } })
 

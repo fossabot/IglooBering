@@ -49,7 +49,8 @@ const QueryResolver = ({
 
         context.billingUpdater.update(QUERY_COST)
       },
-      deviceToParent
+      deviceToParent,
+      ["TEMPORARY", "PERMANENT", "DEVICE_ACCESS"]
     )
   },
   environment(root, args, context) {

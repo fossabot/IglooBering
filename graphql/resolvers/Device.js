@@ -36,7 +36,8 @@ const DeviceResolver = ({
       "batteryCharging",
       "firmware",
     ],
-    deviceToParent
+    deviceToParent,
+    ["TEMPORARY", "PERMANENT", "DEVICE_ACCESS"]
   ),
   values(root, args, context) {
     return authorized(
@@ -67,7 +68,8 @@ const DeviceResolver = ({
 
         context.billingUpdater.update(QUERY_COST * valuesFound.length)
       },
-      deviceToParent
+      deviceToParent,
+      ["TEMPORARY", "PERMANENT", "DEVICE_ACCESS"]
     )
   },
   muted(root, args, context) {
@@ -134,7 +136,8 @@ const DeviceResolver = ({
         resolve(notifications.sort(compareDates))
         context.billingUpdater.update(QUERY_COST * notifications.length)
       },
-      deviceToParent
+      deviceToParent,
+      ["TEMPORARY", "PERMANENT", "DEVICE_ACCESS"]
     )
   },
   notificationCount(root, args, context) {
@@ -154,7 +157,8 @@ const DeviceResolver = ({
 
         resolve(count)
       },
-      deviceToParent
+      deviceToParent,
+      ["TEMPORARY", "PERMANENT", "DEVICE_ACCESS"]
     )
   },
   myRole(root, args, context) {

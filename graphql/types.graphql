@@ -47,6 +47,7 @@ type acceptPendingOwnerChangePayload {
 type createUnclaimedDevicePayload {
   id: ID!
   qrCode: String!
+  jwtToken: String!
 }
 
 # Data needed to display the QR code when upgrading to 2-Factor Authentication

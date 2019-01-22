@@ -85,6 +85,16 @@ const generatePermanentAuthenticationToken = (
     "HS512"
   )
 
+const generateDeviceAuthenticationToken = (deviceId, JWT_SECRET) =>
+  jwt.encode(
+    {
+      deviceId,
+      tokenType: "DEVICE_ACCESS",
+    },
+    JWT_SECRET,
+    "HS512"
+  )
+
 const generatePasswordRecoveryToken = (userId, JWT_SECRET) =>
   jwt.encode(
     {
@@ -758,18 +768,29 @@ function authorized(
         reject("The requested resource does not exist")
       } else {
         const parent = await childToParent(context)(found)
-        const userFound = await context.dataLoaders.userLoaderById.load(
-          context.auth.userId
-        )
 
-        if (
-          (await authorizationLevel(parent, userFound, context)) <
-          authorizationRequired
-        ) {
-          /* istanbul ignore next */
-          reject("You are not allowed to perform this operation")
+        if (context.auth.tokenType === "DEVICE_ACCESS") {
+          if (
+            found._modelOptions.name.singular === "device" &&
+            context.auth.deviceId === found.id
+          ) {
+            return callback(resolve, reject, found, [found, parent])
+          } else {
+            reject("You are not allowed to perform this operation")
+          }
         } else {
-          return callback(resolve, reject, found, [found, parent], userFound)
+          const userFound = await context.dataLoaders.userLoaderById.load(
+            context.auth.userId
+          )
+
+          if (
+            (await authorizationLevel(parent, userFound, context)) >=
+            authorizationRequired
+          ) {
+            return callback(resolve, reject, found, [found, parent], userFound)
+          } else {
+            reject("You are not allowed to perform this operation")
+          }
         }
       }
     },
@@ -1230,4 +1251,5 @@ module.exports = {
   sendPushNotification,
   parseStringFilter,
   parseFloatFilter,
+  generateDeviceAuthenticationToken,
 }

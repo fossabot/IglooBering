@@ -30,6 +30,7 @@ import {
   findValue,
   sendPushNotification,
   sendOwnerChangeEmail,
+  generateDeviceAuthenticationToken,
 } from "./utilities"
 import Stripe from "stripe"
 import moment from "moment"
@@ -1395,6 +1396,7 @@ const MutationResolver = (
 
         resolve({
           id,
+          jwtToken: generateDeviceAuthenticationToken(newDevice.id, JWT_SECRET),
           qrCode: new QRCode({ content: id }).svg(),
         })
 
