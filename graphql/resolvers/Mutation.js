@@ -1401,6 +1401,87 @@ const MutationResolver = (
         context.billingUpdater.update(MUTATION_COST)
       })
     },
+    claimDevice(root, args, context) {
+      return async (resolve, reject) => {
+        return authorized(
+          args.environmentId,
+          context,
+          context.dataLoaders.environmentLoaderById,
+          User,
+          2,
+          async (resolve, reject, environmentFound, _, userFound) => {
+            // checks that batteryStatus and signalStatus are within boundaries [0,100]
+            if (
+              isNotNullNorUndefined(args.batteryStatus) &&
+              isOutOfBoundaries(0, 100, args.batteryStatus)
+            ) {
+              reject("batteryStatus is out of boundaries [0,100]")
+              return
+            } else if (
+              isNotNullNorUndefined(args.signalStatus) &&
+              isOutOfBoundaries(0, 100, args.signalStatus)
+            ) {
+              reject("signalStatus is out of boundaries [0,100]")
+              return
+            } else if (args.name === "") {
+              reject("Custom name cannot be an empty string")
+              return
+            } else if (args.muted === null) {
+              reject("muted cannot be null")
+              return
+            }
+
+            const index =
+              args.index !== null && args.index !== undefined
+                ? args.index
+                : (await Device.max("index", {
+                    where: { environmentId: args.environmentId },
+                  })) + 1 || 0 // or 0 replaces NaN when there are no other devices
+
+            const unclaimedDevice = await UnclaimedDevice.find({
+              where: { id: args.unclaimedDeviceId },
+            })
+
+            if (!unclaimedDevice) {
+              reject("The requested resource does not exist")
+              return
+            }
+
+            const newDevice = await Device.create({
+              ...args,
+              muted: !!args.muted,
+              environmentId: args.environmentId,
+              index,
+              firmware: unclaimedDevice.firmware,
+              deviceType: unclaimedDevice.deviceType,
+              id: unclaimedDevice.id,
+            })
+
+            const resolveValue = {
+              ...newDevice.dataValues,
+              environment: newDevice.environmentId
+                ? {
+                    id: newDevice.environmentId,
+                  }
+                : null,
+            }
+
+            pubsub.publish("deviceCreated", {
+              deviceCreated: resolveValue,
+              userIds: await instanceToSharedIds(environmentFound, context),
+            })
+
+            resolve(resolveValue)
+
+            await unclaimedDevice.destroy()
+
+            touch(Environment, environmentFound.id, newDevice.createdAt)
+            context.billingUpdater.update(MUTATION_COST)
+          },
+          environmentToParent
+        )(resolve, reject)
+      }
+    },
     createFloatValue: CreateGenericValue(
       User,
       Device,

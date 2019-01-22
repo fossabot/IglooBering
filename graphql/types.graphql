@@ -186,6 +186,17 @@ type Mutation {
     firmware: String
   ): createUnclaimedDevicePayload
 
+  claimDevice(
+    unclaimedDeviceId: ID!
+    name: String!
+    index: Int
+    signalStatus: Float
+    batteryStatus: Float
+    batteryCharging: Boolean
+    environmentId: ID!
+    muted: Boolean
+  ): Device
+
   # Creates a new notification
   createNotification(
     # device associated with the notification
