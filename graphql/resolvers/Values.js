@@ -28,10 +28,16 @@ const GenericResolver = (
       "value",
       "index",
     ],
-    valueToParent
+    valueToParent,
+    ["TEMPORARY", "PERMANENT", "DEVICE_ACCESS"]
   ),
   ...(hasPermission
-    ? authorizedScalarPropsResolvers(loaderName, ["permission"], valueToParent)
+    ? authorizedScalarPropsResolvers(
+        loaderName,
+        ["permission"],
+        valueToParent,
+        ["TEMPORARY", "PERMANENT", "DEVICE_ACCESS"]
+      )
     : []),
   device: (root, args, context) =>
     authorized(
@@ -44,7 +50,8 @@ const GenericResolver = (
         resolve({ id: valueFound.deviceId })
         context.billingUpdater.update(QUERY_COST)
       },
-      valueToParent
+      valueToParent,
+      ["TEMPORARY", "PERMANENT", "DEVICE_ACCESS"]
     ),
   environment: (root, args, context) =>
     authorized(
@@ -85,7 +92,8 @@ const FloatValueResolver = (loaderName, User, Device, Environment) => ({
   ...authorizedScalarPropsResolvers(
     loaderName,
     ["unitOfMeasurement", "precision", "min", "max"],
-    valueToParent
+    valueToParent,
+    ["TEMPORARY", "PERMANENT", "DEVICE_ACCESS"]
   ),
 })
 const StringValueResolver = (loaderName, User, Device, Environment) => ({
@@ -93,7 +101,8 @@ const StringValueResolver = (loaderName, User, Device, Environment) => ({
   ...authorizedScalarPropsResolvers(
     loaderName,
     ["maxChars", "allowedValues"],
-    valueToParent
+    valueToParent,
+    ["TEMPORARY", "PERMANENT", "DEVICE_ACCESS"]
   ),
 })
 const PlotValueResolver = (
@@ -107,7 +116,8 @@ const PlotValueResolver = (
   ...authorizedScalarPropsResolvers(
     loaderName,
     ["unitOfMeasurement", "precision", "min", "max", "threshold"],
-    valueToParent
+    valueToParent,
+    ["TEMPORARY", "PERMANENT", "DEVICE_ACCESS"]
   ),
   // overriding GenericResolver's value
   value: (root, args, context) =>
@@ -127,7 +137,8 @@ const PlotValueResolver = (
         resolve(nodes)
         context.billingUpdater.update(QUERY_COST * nodes.length)
       },
-      valueToParent
+      valueToParent,
+      ["TEMPORARY", "PERMANENT", "DEVICE_ACCESS"]
     ),
   lastNode: (root, args, context) =>
     authorized(
@@ -144,7 +155,8 @@ const PlotValueResolver = (
         resolve(node)
         context.billingUpdater.update(QUERY_COST)
       },
-      valueToParent
+      valueToParent,
+      ["TEMPORARY", "PERMANENT", "DEVICE_ACCESS"]
     ),
 })
 const CategoryPlotValueResolver = (
@@ -158,7 +170,8 @@ const CategoryPlotValueResolver = (
   ...authorizedScalarPropsResolvers(
     loaderName,
     ["allowedValues"],
-    valueToParent
+    valueToParent,
+    ["TEMPORARY", "PERMANENT", "DEVICE_ACCESS"]
   ),
   // overriding GenericResolver's value
   value: (root, args, context) =>
@@ -179,7 +192,8 @@ const CategoryPlotValueResolver = (
         resolve(nodes)
         context.billingUpdater.update(QUERY_COST * nodes.length)
       },
-      valueToParent
+      valueToParent,
+      ["TEMPORARY", "PERMANENT", "DEVICE_ACCESS"]
     ),
   // overriding GenericResolver's value
   lastNode: (root, args, context) =>
@@ -198,7 +212,8 @@ const CategoryPlotValueResolver = (
         resolve(node)
         context.billingUpdater.update(QUERY_COST)
       },
-      valueToParent
+      valueToParent,
+      ["TEMPORARY", "PERMANENT", "DEVICE_ACCESS"]
     ),
 })
 
@@ -215,7 +230,8 @@ const PlotNodeResolver = (
     ["timestamp", "value"],
     plotNodeFound => plotNodeFound.plotId,
     valueLoader,
-    valueToParent
+    valueToParent,
+    ["TEMPORARY", "PERMANENT", "DEVICE_ACCESS"]
   ),
   user(root, args, context) {
     return inheritAuthorized(
@@ -258,7 +274,8 @@ const PlotNodeResolver = (
         resolve({ id: plotNodeFound.deviceId })
         context.billingUpdater.update(QUERY_COST)
       },
-      valueToParent
+      valueToParent,
+      ["TEMPORARY", "PERMANENT", "DEVICE_ACCESS"]
     )
   },
   plot(root, args, context) {
@@ -280,7 +297,8 @@ const PlotNodeResolver = (
         resolve(plotValueFound.dataValues)
         context.billingUpdater.update(QUERY_COST)
       },
-      valueToParent
+      valueToParent,
+      ["TEMPORARY", "PERMANENT", "DEVICE_ACCESS"]
     )
   },
 })

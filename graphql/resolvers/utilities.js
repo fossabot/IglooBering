@@ -775,6 +775,16 @@ function authorized(
             context.auth.deviceId === found.id
           ) {
             return callback(resolve, reject, found, [found, parent])
+          } else if (
+            (found._modelOptions.name.singular === "floatValue" ||
+              found._modelOptions.name.singular === "stringValue" ||
+              found._modelOptions.name.singular === "booleanValue" ||
+              found._modelOptions.name.singular === "categoryPlotValue" ||
+              found._modelOptions.name.singular === "plotValue" ||
+              found._modelOptions.name.singular === "mapValue") &&
+            context.auth.deviceId === found.deviceId
+          ) {
+            return callback(resolve, reject, found, [found, parent])
           } else {
             reject("You are not allowed to perform this operation")
           }
@@ -1140,15 +1150,15 @@ const randomEnvironmentPicture = () =>
 const randomUserIconColor = () => randomChoice(["blue", "red", "green"])
 
 const updateUserBilling = (dataLoaders, auth) => async bill => {
-  const userFound = await dataLoaders.userLoaderById.load(auth.userId)
-
-  // TODO: handle this failure gracefully
-  if (!userFound) {
-    throw new Error("User doesn't exist. Use `` to create one")
-  } else {
-    const newUser = await userFound.increment("monthUsage", { by: bill })
-    return newUser.monthUsage
-  }
+  //TODO: bill the owner of the instance, not the one doing the request
+  // const userFound = await dataLoaders.userLoaderById.load(auth.userId)
+  // // TODO: handle this failure gracefully
+  // if (!userFound) {
+  //   throw new Error("User doesn't exist. Use `` to create one")
+  // } else {
+  //   const newUser = await userFound.increment("monthUsage", { by: bill })
+  //   return newUser.monthUsage
+  // }
 }
 
 const GenerateUserBillingBatcher = (dataLoaders, auth) =>
