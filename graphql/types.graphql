@@ -614,6 +614,8 @@ type Query {
 type Subscription {
   # subscribes to device creations
   deviceCreated: Device
+  # subscribes to device creations
+  deviceClaimed: Device
   # subscribes to environment creations
   environmentCreated: Environment
   # subscribes to value creations

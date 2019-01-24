@@ -1473,6 +1473,13 @@ const MutationResolver = (
               userIds: await instanceToSharedIds(environmentFound, context),
             })
 
+            // TODO: add company account in the userIds
+            pubsub.publish("deviceClaimed", {
+              deviceClaimed: resolveValue,
+              userIds: await instanceToSharedIds(environmentFound, context),
+              allowedDeviceIds: [newDevice.id],
+            })
+
             resolve(resolveValue)
 
             await unclaimedDevice.destroy()

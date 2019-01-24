@@ -75,6 +75,11 @@ const subscriptionResolver = (pubsub, { User, Device, Environment }) => ({
     pubsub,
     createDataLoaders
   ),
+  deviceClaimed: subscriptionFilterOwnedOrShared(
+    "deviceClaimed",
+    pubsub,
+    createDataLoaders
+  ),
   deviceMoved: subscriptionFilterOwnedOrShared(
     "deviceMoved",
     pubsub,

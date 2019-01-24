@@ -370,15 +370,32 @@ const subscriptionFilterOwnedOrShared = (
 ) => ({
   subscribe: (root, args, context, info) => {
     if (context.auth) {
-      const myUserId = context.auth.userId
-      return withFilter(
-        () => pubsub.asyncIterator(subscriptionName),
-        payload => {
-          context.dataLoaders = createDataLoaders()
+      if (context.auth.userId) {
+        const myUserId = context.auth.userId
+        return withFilter(
+          () => pubsub.asyncIterator(subscriptionName),
+          payload => {
+            context.dataLoaders = createDataLoaders()
 
-          return payload.userIds.indexOf(myUserId) !== -1
-        }
-      )(root, args, context, info)
+            return payload.userIds.indexOf(myUserId) !== -1
+          }
+        )(root, args, context, info)
+      } else if (context.auth.tokenType === "DEVICE_ACCESS") {
+        const authDeviceId = context.auth.deviceId
+        return withFilter(
+          () => pubsub.asyncIterator(subscriptionName),
+          payload => {
+            context.dataLoaders = createDataLoaders()
+
+            return (
+              payload.allowedDeviceIds &&
+              payload.allowedDeviceIds.indexOf(authDeviceId) !== -1
+            )
+          }
+        )(root, args, context, info)
+      } else {
+        throw new Error("No authorization token")
+      }
     }
     throw new Error("No authorization token")
   },
