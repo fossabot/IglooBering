@@ -4,6 +4,7 @@ import {
   getAll,
   parseStringFilter,
 } from "./utilities"
+import SqlString from "sqlstring"
 
 const QUERY_COST = 1
 
@@ -67,6 +68,7 @@ const UserResolver = ({
   Notification,
   PendingEnvironmentShare,
   PendingOwnerChange,
+  sequelize,
 }) => ({
   ...scalarProps(User, ["quietMode", "monthUsage", "emailIsVerified"]),
   email: retrievePublicUserScalarProp(User, "email", [
@@ -214,33 +216,85 @@ const UserResolver = ({
       if (context.auth.userId !== root.id) {
         reject("You are not allowed to perform this operation")
       } else {
-        const parseEnvironmentFilter = filter => {
-          if (!filter) return {}
-          filter.hasOwnProperty = Object.prototype.hasOwnProperty
+        const parseRawStringFilter = (stringFilter, fieldName) => {
+          stringFilter.hasOwnProperty = Object.prototype.hasOwnProperty
 
-          const parsedFilter = {}
-          if (filter.hasOwnProperty("AND"))
-            parsedFilter[Op.and] = filter.AND.map(parseEnvironmentFilter)
-          if (filter.hasOwnProperty("OR"))
-            parsedFilter[Op.or] = filter.OR.map(parseEnvironmentFilter)
-          if (filter.hasOwnProperty("name"))
-            parsedFilter.name = parseStringFilter(filter.name)
-          if (filter.hasOwnProperty("muted")) parsedFilter.muted = filter.muted
-          if (filter.hasOwnProperty("myRole"))
-            parsedFilter.myRole = filter.myRole
-
-          return parsedFilter
+          if (stringFilter.hasOwnProperty("equals"))
+            return `(${fieldName} = E${SqlString.escape(stringFilter.equals)})`
+          else if (stringFilter.hasOwnProperty("like"))
+            return `(${fieldName} LIKE E${SqlString.escape(stringFilter.like)})`
+          else if (stringFilter.hasOwnProperty("similarTo"))
+            return `(${fieldName} SIMILAR TO E${SqlString.escape(
+              stringFilter.similarTo
+            )})`
+          else return ""
         }
 
-        const environments = await getAll(
-          Environment,
-          User,
-          root.id,
-          [],
-          args.limit,
-          args.offset,
-          parseEnvironmentFilter(args.filter)
-        )
+        const parseEnvironmentFilter = filter => {
+          if (!filter) return ""
+          filter.hasOwnProperty = Object.prototype.hasOwnProperty
+
+          const filtersStack = []
+          if (filter.hasOwnProperty("AND"))
+            filtersStack.push(
+              `(${filter.AND.map(parseEnvironmentFilter)
+                .filter(query => query !== "")
+                .join(" AND ")})`
+            )
+          if (filter.hasOwnProperty("OR"))
+            filtersStack.push(
+              `(${filter.OR.map(parseEnvironmentFilter)
+                .filter(query => query !== "")
+                .join(" OR ")})`
+            )
+          if (filter.hasOwnProperty("muted"))
+            filtersStack.push(
+              `(public."environments"."muted" = '${filter.muted}')`
+            )
+          if (filter.hasOwnProperty("name"))
+            filtersStack.push(
+              parseRawStringFilter(filter.name, `public."environments"."name"`)
+            )
+
+          return filtersStack.filter(query => query !== "").join(" AND ")
+        }
+
+        const whereQuery = parseEnvironmentFilter(args.filter)
+
+        const limitQuery = args.limit
+          ? args.offset
+            ? `LIMIT ${args.limit} OFFSET ${args.offset}`
+            : `LIMIT ${args.limit}`
+          : ""
+
+        const query = `
+        SELECT public."environments".id as id
+          FROM
+            public."users" 
+            
+            LEFT JOIN public."environmentAdmins" ON public."environmentAdmins"."userId" = public."users".id
+            LEFT JOIN public."environmentEditors" ON public."environmentEditors"."userId" = public."users".id
+            LEFT JOIN public."environmentSpectators" ON public."environmentSpectators"."userId" = public."users".id
+          
+            LEFT JOIN public."environments" ON 
+              public."environments"."ownerId" = public."users".id OR
+              public."environments"."id" = public."environmentAdmins"."environmentId" OR
+              public."environments"."id" = public."environmentEditors"."environmentId" OR
+              public."environments"."id" = public."environmentSpectators"."environmentId"
+          
+          WHERE
+            (public."users".id = '${context.auth.userId}')
+            ${whereQuery !== "" ? "AND " + whereQuery : ""}
+
+          ORDER BY public."users".id DESC 
+          ${limitQuery};
+        `
+
+        const environments = await sequelize.query(query, {
+          model: Environment,
+          mapToModel: true,
+          type: sequelize.QueryTypes.SELECT,
+        })
 
         resolve(environments)
         context.billingUpdater.update(QUERY_COST * environments.length)

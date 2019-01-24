@@ -1214,7 +1214,7 @@ const parseStringFilter = filter => {
   const parsedFilter = {}
 
   if (filter.equals) parsedFilter[Op.eq] = filter.equals
-  else if (filter.matchesRegex) parsedFilter[Op.regexp] = filter.matchesRegex
+  else if (filter.similarTo) parsedFilter[Op.regexp] = filter.similarTo
   else if (filter.like) parsedFilter[Op.like] = filter.like
 
   return parsedFilter

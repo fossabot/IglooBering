@@ -565,11 +565,10 @@ input EnvironmentFilter {
   AND: [EnvironmentFilter!]
   name: StringFilter
   muted: Boolean
-  myRole: RoleExtended
 }
 
 input StringFilter {
-  matchesRegex: String
+  similarTo: String
   like: String
   equals: String
 }
