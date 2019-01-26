@@ -6,6 +6,7 @@ import {
   instanceToRole,
 } from "./utilities"
 import { Op } from "sequelize"
+import SqlString from "sqlstring"
 
 const QUERY_COST = 1
 
@@ -48,22 +49,47 @@ const DeviceResolver = ({
       User,
       1,
       async (resolve, reject, deviceFound) => {
-        // const valuesFound = await findAllValues(
-        //   {
-        //     BooleanValue,
-        //     FloatValue,
-        //     StringValue,
-        //     PlotValue,
-        //     CategoryPlotValue,
-        //     MapValue,
-        //   },
-        //   {
-        //     where: { deviceId: deviceFound.id },
-        //     limit: args.eachTypeLimit,
-        //     offset: args.eachTypeOffset,
-        //     order: [["id", "DESC"]],
-        //   }
-        // )
+        const parseRawStringFilter = (stringFilter, fieldName) => {
+          stringFilter.hasOwnProperty = Object.prototype.hasOwnProperty
+
+          if (stringFilter.hasOwnProperty("equals"))
+            return `(${fieldName} = E${SqlString.escape(stringFilter.equals)})`
+          else if (stringFilter.hasOwnProperty("like"))
+            return `(${fieldName} LIKE E${SqlString.escape(stringFilter.like)})`
+          else if (stringFilter.hasOwnProperty("similarTo"))
+            return `(${fieldName} SIMILAR TO E${SqlString.escape(
+              stringFilter.similarTo
+            )})`
+          else return ""
+        }
+        const parseValueFilter = (filter, table) => {
+          if (!filter) return ""
+          filter.hasOwnProperty = Object.prototype.hasOwnProperty
+
+          const filtersStack = []
+          if (filter.hasOwnProperty("AND"))
+            filtersStack.push(
+              `(${filter.AND.map(f => parseValueFilter(f, table))
+                .filter(query => query !== "")
+                .join(" AND ")})`
+            )
+          if (filter.hasOwnProperty("OR"))
+            filtersStack.push(
+              `(${filter.OR.map(f => parseValueFilter(f, table))
+                .filter(query => query !== "")
+                .join(" OR ")})`
+            )
+          if (filter.hasOwnProperty("cardSize"))
+            filtersStack.push(
+              `(public."${table}"."cardSize" = '${filter.cardSize}')`
+            )
+          if (filter.hasOwnProperty("name"))
+            filtersStack.push(
+              parseRawStringFilter(filter.name, `public."${table}"."name"`)
+            )
+
+          return filtersStack.filter(query => query !== "").join(" AND ")
+        }
 
         const limitQuery = args.limit
           ? args.offset
@@ -80,36 +106,53 @@ const DeviceResolver = ({
         const additionalSelect = table =>
           args.sortBy ? `, public."${table}"."${args.sortBy}"` : ""
 
+        const whereQuery = table => {
+          const query = parseValueFilter(args.filter, table)
+          return query !== "" ? " AND " + query : ""
+        }
+
         const query = `
         SELECT public."floatValues".id ${additionalSelect(
           "floatValues"
         )} FROM public."floatValues"
-          WHERE public."floatValues"."deviceId" = '${root.id}'
+          WHERE public."floatValues"."deviceId" = '${root.id}' ${whereQuery(
+          "floatValues"
+        )}
         UNION
         SELECT public."stringValues".id ${additionalSelect(
           "stringValues"
         )} FROM public."stringValues"
-          WHERE public."stringValues"."deviceId" = '${root.id}'
+          WHERE public."stringValues"."deviceId" = '${root.id}' ${whereQuery(
+          "stringValues"
+        )}
         UNION
         SELECT public."mapValues".id ${additionalSelect(
           "mapValues"
         )} FROM public."mapValues"
-          WHERE public."mapValues"."deviceId" = '${root.id}'
+          WHERE public."mapValues"."deviceId" = '${root.id}' ${whereQuery(
+          "mapValues"
+        )}
         UNION
         SELECT public."categoryPlotValues".id ${additionalSelect(
           "categoryPlotValues"
         )} FROM public."categoryPlotValues"
-          WHERE public."categoryPlotValues"."deviceId" = '${root.id}'
+          WHERE public."categoryPlotValues"."deviceId" = '${
+            root.id
+          }' ${whereQuery("categoryPlotValues")}
         UNION
         SELECT public."plotValues".id ${additionalSelect(
           "plotValues"
         )} FROM public."plotValues"
-          WHERE public."plotValues"."deviceId" = '${root.id}'
+          WHERE public."plotValues"."deviceId" = '${root.id}' ${whereQuery(
+          "plotValues"
+        )}
         UNION
         SELECT public."booleanValues".id ${additionalSelect(
           "booleanValues"
         )} FROM public."booleanValues"
-          WHERE public."booleanValues"."deviceId" = '${root.id}'
+          WHERE public."booleanValues"."deviceId" = '${root.id}' ${whereQuery(
+          "booleanValues"
+        )}
 
         ${orderQuery}
         ${limitQuery}

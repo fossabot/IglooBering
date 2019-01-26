@@ -593,6 +593,13 @@ input DeviceFilter {
   muted: Boolean
 }
 
+input ValueFilter {
+  OR: [ValueFilter!]
+  AND: [ValueFilter!]
+  name: StringFilter
+  cardSize: CardSize
+}
+
 type Query {
   # gets user's data
   user: User
@@ -822,6 +829,7 @@ type Device {
     offset: Int
     sortBy: VALUE_SORT
     sortDirection: SORT_DIRECTION
+    filter: ValueFilter
   ): [Value!]!
   environment: Environment!
   notifications(limit: Int, offset: Int): [Notification!]!
