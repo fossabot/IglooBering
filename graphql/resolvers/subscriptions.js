@@ -1,15 +1,89 @@
 import {
-  subscriptionFilterOnlyMine,
-  subscriptionFilterOwnedOrShared,
   socketToDeviceMap,
   authorized,
   deviceToParent,
   logErrorsPromise,
   instanceToSharedIds,
 } from "./utilities"
+import { withFilter } from "graphql-subscriptions"
 import createDataLoaders from "../../dataloaders/index"
 
+const subscriptionFilterOnlyMine = (
+  subscriptionName,
+  pubsub,
+  createDataLoaders
+) => ({
+  subscribe: (root, args, context, info) => {
+    if (context.auth) {
+      const myUserId = context.auth.userId
+      return withFilter(
+        () => pubsub.asyncIterator(subscriptionName),
+        payload => {
+          context.dataLoaders = createDataLoaders()
+
+          return payload.userId === myUserId
+        }
+      )(root, args, context, info)
+    }
+    throw new Error("No authorization token")
+  },
+})
+
+const subscriptionFilterOwnedOrShared = (
+  subscriptionName,
+  pubsub,
+  createDataLoaders
+) => ({
+  subscribe: (root, args, context, info) => {
+    if (context.auth) {
+      if (context.auth.userId) {
+        const myUserId = context.auth.userId
+        return withFilter(
+          () => pubsub.asyncIterator(subscriptionName),
+          payload => {
+            context.dataLoaders = createDataLoaders()
+
+            return payload.userIds.indexOf(myUserId) !== -1
+          }
+        )(root, args, context, info)
+      } else if (context.auth.tokenType === "DEVICE_ACCESS") {
+        const authDeviceId = context.auth.deviceId
+        return withFilter(
+          () => pubsub.asyncIterator(subscriptionName),
+          payload => {
+            context.dataLoaders = createDataLoaders()
+
+            return (
+              payload.allowedDeviceIds &&
+              payload.allowedDeviceIds.indexOf(authDeviceId) !== -1
+            )
+          }
+        )(root, args, context, info)
+      } else {
+        throw new Error("No authorization token")
+      }
+    }
+    throw new Error("No authorization token")
+  },
+})
+
 const subscriptionResolver = (pubsub, { User, Device, Environment }) => ({
+  userUpdated: {
+    subscribe: (root, args, context, info) => {
+      if (context.auth) {
+        const userUpdatedId = args.id || context.auth.userId
+        return withFilter(
+          () => pubsub.asyncIterator("userUpdated"),
+          payload => {
+            context.dataLoaders = createDataLoaders()
+
+            return payload.userId === userUpdatedId
+          }
+        )(root, args, context, info)
+      }
+      throw new Error("No authorization token")
+    },
+  },
   pendingEnvironmentShareReceived: subscriptionFilterOnlyMine(
     "pendingEnvironmentShareReceived",
     pubsub,
@@ -107,11 +181,6 @@ const subscriptionResolver = (pubsub, { User, Device, Environment }) => ({
   ),
   notificationCreated: subscriptionFilterOwnedOrShared(
     "notificationCreated",
-    pubsub,
-    createDataLoaders
-  ),
-  userUpdated: subscriptionFilterOnlyMine(
-    "userUpdated",
     pubsub,
     createDataLoaders
   ),

@@ -650,8 +650,8 @@ type Subscription {
   pendingOwnerChangeRevoked: ID
   # subscribes to environment unshares from you or you leave an environment
   environmentStoppedSharingWithYou: ID
-  # subscribes to value updates
-  userUpdated: User
+  # default id is the user making the request
+  userUpdated(id: ID): User
   # subscribes to device updates
   deviceUpdated: Device
   # subscribes to environment updates

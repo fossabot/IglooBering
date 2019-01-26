@@ -13,7 +13,6 @@ import uuid from "uuid"
 import stackTrace from "stack-trace"
 import OTP from "otp.js"
 import fortuna from "javascript-fortuna"
-import { withFilter } from "graphql-subscriptions"
 import winston from "winston"
 import AWS from "aws-sdk"
 import UpdateBatcher from "update-batcher"
@@ -341,65 +340,6 @@ const check2FCode = (code, secret) => {
     return false
   }
 }
-
-const subscriptionFilterOnlyMine = (
-  subscriptionName,
-  pubsub,
-  createDataLoaders
-) => ({
-  subscribe: (root, args, context, info) => {
-    if (context.auth) {
-      const myUserId = context.auth.userId
-      return withFilter(
-        () => pubsub.asyncIterator(subscriptionName),
-        payload => {
-          context.dataLoaders = createDataLoaders()
-
-          return payload.userId === myUserId
-        }
-      )(root, args, context, info)
-    }
-    throw new Error("No authorization token")
-  },
-})
-
-const subscriptionFilterOwnedOrShared = (
-  subscriptionName,
-  pubsub,
-  createDataLoaders
-) => ({
-  subscribe: (root, args, context, info) => {
-    if (context.auth) {
-      if (context.auth.userId) {
-        const myUserId = context.auth.userId
-        return withFilter(
-          () => pubsub.asyncIterator(subscriptionName),
-          payload => {
-            context.dataLoaders = createDataLoaders()
-
-            return payload.userIds.indexOf(myUserId) !== -1
-          }
-        )(root, args, context, info)
-      } else if (context.auth.tokenType === "DEVICE_ACCESS") {
-        const authDeviceId = context.auth.deviceId
-        return withFilter(
-          () => pubsub.asyncIterator(subscriptionName),
-          payload => {
-            context.dataLoaders = createDataLoaders()
-
-            return (
-              payload.allowedDeviceIds &&
-              payload.allowedDeviceIds.indexOf(authDeviceId) !== -1
-            )
-          }
-        )(root, args, context, info)
-      } else {
-        throw new Error("No authorization token")
-      }
-    }
-    throw new Error("No authorization token")
-  },
-})
 
 // races promises returning the first resolve or all the rejects if none resolves
 const firstResolve = promises =>
@@ -1243,7 +1183,6 @@ module.exports = {
   check2FCode,
   logErrorsPromise,
   log,
-  subscriptionFilterOnlyMine,
   findAllValues,
   findValue,
   generatePermanentAuthenticationToken,
@@ -1264,7 +1203,6 @@ module.exports = {
   firstResolve,
   instanceToRole,
   instanceToSharedIds,
-  subscriptionFilterOwnedOrShared,
   inheritAuthorized,
   inheritAuthorizedScalarPropsResolvers,
   getAll,
