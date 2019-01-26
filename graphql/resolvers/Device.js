@@ -21,6 +21,7 @@ const DeviceResolver = ({
   MapValue,
   Notification,
   joinTables,
+  sequelize,
 }) => ({
   ...authorizedScalarPropsResolvers(
     "deviceLoaderById",
@@ -47,22 +48,76 @@ const DeviceResolver = ({
       User,
       1,
       async (resolve, reject, deviceFound) => {
-        const valuesFound = await findAllValues(
-          {
-            BooleanValue,
-            FloatValue,
-            StringValue,
-            PlotValue,
-            CategoryPlotValue,
-            MapValue,
-          },
-          {
-            where: { deviceId: deviceFound.id },
-            limit: args.eachTypeLimit,
-            offset: args.eachTypeOffset,
-            order: [["id", "DESC"]],
-          }
-        )
+        // const valuesFound = await findAllValues(
+        //   {
+        //     BooleanValue,
+        //     FloatValue,
+        //     StringValue,
+        //     PlotValue,
+        //     CategoryPlotValue,
+        //     MapValue,
+        //   },
+        //   {
+        //     where: { deviceId: deviceFound.id },
+        //     limit: args.eachTypeLimit,
+        //     offset: args.eachTypeOffset,
+        //     order: [["id", "DESC"]],
+        //   }
+        // )
+
+        const limitQuery = args.limit
+          ? args.offset
+            ? `LIMIT ${args.limit} OFFSET ${args.offset}`
+            : `LIMIT ${args.limit}`
+          : ""
+
+        const orderQuery = args.sortBy
+          ? args.sortDirection
+            ? `ORDER BY ${args.sortBy} ${args.sortDirection}`
+            : `ORDER BY ${args.sortBy}`
+          : ""
+
+        const additionalSelect = table =>
+          args.sortBy ? `, public."${table}"."${args.sortBy}"` : ""
+
+        const query = `
+        SELECT public."floatValues".id ${additionalSelect(
+          "floatValues"
+        )} FROM public."floatValues"
+          WHERE public."floatValues"."deviceId" = '${root.id}'
+        UNION
+        SELECT public."stringValues".id ${additionalSelect(
+          "stringValues"
+        )} FROM public."stringValues"
+          WHERE public."stringValues"."deviceId" = '${root.id}'
+        UNION
+        SELECT public."mapValues".id ${additionalSelect(
+          "mapValues"
+        )} FROM public."mapValues"
+          WHERE public."mapValues"."deviceId" = '${root.id}'
+        UNION
+        SELECT public."categoryPlotValues".id ${additionalSelect(
+          "categoryPlotValues"
+        )} FROM public."categoryPlotValues"
+          WHERE public."categoryPlotValues"."deviceId" = '${root.id}'
+        UNION
+        SELECT public."plotValues".id ${additionalSelect(
+          "plotValues"
+        )} FROM public."plotValues"
+          WHERE public."plotValues"."deviceId" = '${root.id}'
+        UNION
+        SELECT public."booleanValues".id ${additionalSelect(
+          "booleanValues"
+        )} FROM public."booleanValues"
+          WHERE public."booleanValues"."deviceId" = '${root.id}'
+
+        ${orderQuery}
+        ${limitQuery}
+        `
+
+        const valuesFound = await sequelize.query(query, {
+          type: sequelize.QueryTypes.SELECT,
+        })
 
         resolve(valuesFound)
 
