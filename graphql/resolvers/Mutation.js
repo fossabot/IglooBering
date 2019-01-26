@@ -878,7 +878,7 @@ const MutationResolver = (
         User,
         pendingEnvironmentShare => pendingEnvironmentShare.environmentId,
         context,
-        context.dataLoaders.environmenLoaderById,
+        context.dataLoaders.environmentLoaderById,
         3,
         async (resolve, reject, pendingOwnerChangeFound, environmentFound) => {
           const targetUserId = pendingOwnerChangeFound.receiverId
