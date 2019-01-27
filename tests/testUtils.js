@@ -2,13 +2,13 @@ import MocksGenerator from "./mockUtils";
 
 const { mockContext } = MocksGenerator();
 
-const testScalarProp = (Resolver, root, mockData) => prop => async () => {
+const testScalarProp = (Resolver, root, mockData, userId = "mockUserId") => prop => async () => {
   const propFound = await new Promise((resolve, reject) => {
     Resolver[prop](
       root,
       {},
       {
-        auth: { userId: "mockUserId", tokenType: "TEMPORARY" },
+        auth: { userId, tokenType: "TEMPORARY" },
         ...mockContext
       }
     )(resolve, reject);

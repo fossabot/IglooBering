@@ -1,4 +1,4 @@
-import PendingEnvironmentShareResolverFactory from "../graphql/resolvers/PendingEnvironmentShare";
+import PendingOwnerChangeResolverFactory from "../graphql/resolvers/PendingOwnerChange";
 import MocksGenerator from "./mockUtils";
 import {
   testScalarProp,
@@ -10,88 +10,93 @@ import {
 const {
   MockedEnvironment,
   MockedUser,
-  MockedPendingEnvironmentShare,
+  MockedPendingOwnerChange,
   mockEnvironmentData,
   mockUserData,
-  mockPendingEnvironmentShareData,
+  mockPendingOwnerChangeData,
   mockContext
 } = MocksGenerator();
 
-const PendingEnvironmentShareResolver = PendingEnvironmentShareResolverFactory({
+const PendingOwnerChangeResolver = PendingOwnerChangeResolverFactory({
   User: MockedUser,
   Environment: MockedEnvironment,
-  PendingEnvironmentShare: MockedPendingEnvironmentShare
+  PendingOwnerChange: MockedPendingOwnerChange
 });
 
-describe("PendingEnvironmentShare", () => {
-  const testPendingEnvironmentShareScalarProp = testScalarProp(
-    PendingEnvironmentShareResolver,
-    { id: "mockPendingEnvironmentShareId" },
-    mockPendingEnvironmentShareData[0]
+describe("PendingOwnerChange", () => {
+  const testPendingOwnerChangeScalarPropSender = testScalarProp(
+    PendingOwnerChangeResolver,
+    { id: "mockPendingOwnerChangeId" },
+    mockPendingOwnerChangeData[0]
   );
-  const testUnauthenticated = unauthenticatedShouldFail(PendingEnvironmentShareResolver, {
-    id: "mockPendingEnvironmentShareId"
+  const testPendingOwnerChangeScalarPropReceiver = testScalarProp(
+    PendingOwnerChangeResolver,
+    { id: "mockPendingOwnerChangeId" },
+    mockPendingOwnerChangeData[0],
+    "mockUserId2"
+  );
+  const testUnauthenticated = unauthenticatedShouldFail(PendingOwnerChangeResolver, {
+    id: "mockPendingOwnerChangeId"
   });
   const testNotAuthorized = notAuthorizedShouldFail(
-    PendingEnvironmentShareResolver,
-    { id: "mockPendingEnvironmentShareId" },
+    PendingOwnerChangeResolver,
+    { id: "mockPendingOwnerChangeId" },
     { auth: { userId: "mockUserId4", tokenType: "TEMPORARY" }, ...mockContext }
   );
   const testWrongId = wrongIdShouldFail(
-    PendingEnvironmentShareResolver,
-    { id: "wrongPendingEnvironmentShareId" },
+    PendingOwnerChangeResolver,
+    { id: "wrongPendingOwnerChangeId" },
     { auth: { userId: "mockUserId", tokenType: "TEMPORARY" }, ...mockContext }
   );
 
-  // not using a for loop because this syntax integrates better with the IDE
-  test("id is resolved correctly", testPendingEnvironmentShareScalarProp("id"));
-  test("role is resolved correctly", testPendingEnvironmentShareScalarProp("role"));
+  test("id is resolved correctly by sender", testPendingOwnerChangeScalarPropSender("id"));
+  test("id is resolved correctly by receiver", testPendingOwnerChangeScalarPropReceiver("id"));
   test("receiver is resolved correctly", async done => {
-    const usersWithAccesIds = ["mockUserId", "mockUserId2", "mockUserId3"];
+    const usersWithAccesIds = ["mockUserId", "mockUserId2"];
 
     for (let userId of usersWithAccesIds) {
       const receiverFound = await new Promise((resolve, reject) => {
-        PendingEnvironmentShareResolver.receiver(
-          { id: "mockPendingEnvironmentShareId" },
+        PendingOwnerChangeResolver.receiver(
+          { id: "mockPendingOwnerChangeId" },
           {},
           { auth: { userId, tokenType: "TEMPORARY" }, ...mockContext }
         )(resolve, reject);
       });
 
-      expect(receiverFound).toMatchObject({ id: mockPendingEnvironmentShareData[0].receiverId });
+      expect(receiverFound).toMatchObject({ id: mockPendingOwnerChangeData[0].receiverId });
     }
     done();
   });
   test("sender is resolved correctly", async done => {
-    const usersWithAccesIds = ["mockUserId", "mockUserId2", "mockUserId3"];
+    const usersWithAccesIds = ["mockUserId", "mockUserId2"];
 
     for (let userId of usersWithAccesIds) {
       const senderFound = await new Promise((resolve, reject) => {
-        PendingEnvironmentShareResolver.sender(
-          { id: "mockPendingEnvironmentShareId" },
+        PendingOwnerChangeResolver.sender(
+          { id: "mockPendingOwnerChangeId" },
           {},
           { auth: { userId, tokenType: "TEMPORARY" }, ...mockContext }
         )(resolve, reject);
       });
 
-      expect(senderFound).toMatchObject({ id: mockPendingEnvironmentShareData[0].senderId });
+      expect(senderFound).toMatchObject({ id: mockPendingOwnerChangeData[0].senderId });
     }
     done();
   });
   test("environment is resolved correctly", async done => {
-    const usersWithAccesIds = ["mockUserId", "mockUserId2", "mockUserId3"];
+    const usersWithAccesIds = ["mockUserId", "mockUserId2"];
 
     for (let userId of usersWithAccesIds) {
       const environmentFound = await new Promise((resolve, reject) => {
-        PendingEnvironmentShareResolver.environment(
-          { id: "mockPendingEnvironmentShareId" },
+        PendingOwnerChangeResolver.environment(
+          { id: "mockPendingOwnerChangeId" },
           {},
           { auth: { userId, tokenType: "TEMPORARY" }, ...mockContext }
         )(resolve, reject);
       });
 
       expect(environmentFound).toMatchObject({
-        id: mockPendingEnvironmentShareData[0].environmentId
+        id: mockPendingOwnerChangeData[0].environmentId
       });
     }
     done();
@@ -100,18 +105,15 @@ describe("PendingEnvironmentShare", () => {
   test("id fails if unauthenticated", testUnauthenticated("id"));
   test("sender fails if unauthenticated", testUnauthenticated("sender"));
   test("receiver fails if unauthenticated", testUnauthenticated("receiver"));
-  test("role fails if unauthenticated", testUnauthenticated("role"));
   test("environment fails if unauthenticated", testUnauthenticated("environment"));
 
   test("id fails if not authorized", testNotAuthorized("id"));
   test("sender fails if not authorized", testNotAuthorized("sender"));
   test("receiver fails if not authorized", testNotAuthorized("receiver"));
-  test("role fails if not authorized", testNotAuthorized("role"));
   test("environment fails if not authorized", testNotAuthorized("environment"));
 
   test("id fails if wrong id", testWrongId("id"));
   test("sender fails if wrong id", testWrongId("sender"));
   test("receiver fails if wrong id", testWrongId("receiver"));
-  test("role fails if wrong id", testWrongId("role"));
   test("environment fails if wrong id", testWrongId("environment"));
 });

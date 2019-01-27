@@ -181,8 +181,8 @@ module.exports = () => {
   const mockPendingOwnerChangeData = [
     {
       id: "mockPendingOwnerChangeId",
-      senderId: "mockUserId2",
-      receiverId: "mockUserId",
+      senderId: "mockUserId",
+      receiverId: "mockUserId2",
       environmentId: "mockEnvironmentId"
     }
   ];

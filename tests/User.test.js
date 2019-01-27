@@ -166,10 +166,10 @@ describe("User", () => {
     // receiver user should see the pendingEnvironmentShare in the user prop
     const pendingOwnerChangesFound = await new Promise((resolve, reject) => {
       UserResolver.pendingOwnerChanges(
-        { id: "mockUserId" },
+        { id: "mockUserId2" },
         {},
         {
-          auth: { userId: "mockUserId", tokenType: "TEMPORARY" },
+          auth: { userId: "mockUserId2", tokenType: "TEMPORARY" },
           ...mockContext
         }
       )(resolve, reject);
@@ -183,10 +183,10 @@ describe("User", () => {
     // sender user shouldn't see the pendingEnvironmentShares in the user prop
     const pendingOwnerChangesFound2 = await new Promise((resolve, reject) => {
       UserResolver.pendingOwnerChanges(
-        { id: "mockUserId2" },
+        { id: "mockUserId" },
         {},
         {
-          auth: { userId: "mockUserId2", tokenType: "TEMPORARY" },
+          auth: { userId: "mockUserId", tokenType: "TEMPORARY" },
           ...mockContext
         }
       )(resolve, reject);
@@ -199,10 +199,10 @@ describe("User", () => {
   test("pendingOwnerChangeCount is resolved correctly", async done => {
     const pendingOwnerChangesFound = await new Promise((resolve, reject) => {
       UserResolver.pendingOwnerChangeCount(
-        { id: "mockUserId" },
+        { id: "mockUserId2" },
         {},
         {
-          auth: { userId: "mockUserId", tokenType: "TEMPORARY" },
+          auth: { userId: "mockUserId2", tokenType: "TEMPORARY" },
           ...mockContext
         }
       )(resolve, reject);
@@ -212,10 +212,10 @@ describe("User", () => {
 
     const pendingOwnerChangesFound2 = await new Promise((resolve, reject) => {
       UserResolver.pendingOwnerChangeCount(
-        { id: "mockUserId2" },
+        { id: "mockUserId" },
         {},
         {
-          auth: { userId: "mockUserId2", tokenType: "TEMPORARY" },
+          auth: { userId: "mockUserId", tokenType: "TEMPORARY" },
           ...mockContext
         }
       )(resolve, reject);
