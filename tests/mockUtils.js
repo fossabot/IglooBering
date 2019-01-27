@@ -194,6 +194,95 @@ module.exports = () => {
       lastUsed: "2018-11-19T17:42:05.045Z"
     }
   ];
+  const mockFloatValueData = [
+    {
+      id: "mockFloatValueId",
+      environmentId: "mockEnvironmentId",
+      deviceId: "mockDeviceId",
+      visibility: "VISIBLE",
+      cardSize: "NORMAL",
+      name: "mockName",
+      index: 0,
+      permission: "READ_WRITE",
+      value: 5,
+      precision: 0.1,
+      min: 1,
+      max: 7,
+      unitOfMeasurement: "C"
+    }
+  ];
+  const mockStringValueData = [
+    {
+      id: "mockStringValueId",
+      environmentId: "mockEnvironmentId",
+      deviceId: "mockDeviceId",
+      visibility: "VISIBLE",
+      cardSize: "NORMAL",
+      name: "mockName",
+      index: 0,
+      permission: "READ_WRITE",
+      value: "test",
+      maxChars: null,
+      allowedValues: ["test", "test2"]
+    }
+  ];
+  const mockBooleanValueData = [
+    {
+      id: "mockBooleanValueId",
+      environmentId: "mockEnvironmentId",
+      deviceId: "mockDeviceId",
+      visibility: "VISIBLE",
+      cardSize: "NORMAL",
+      name: "mockName",
+      index: 0,
+      permission: "READ_WRITE",
+      value: true
+    }
+  ];
+  const mockMapValueData = [
+    {
+      id: "mockMapValueId",
+      environmentId: "mockEnvironmentId",
+      deviceId: "mockDeviceId",
+      visibility: "VISIBLE",
+      cardSize: "NORMAL",
+      name: "mockName",
+      index: 0,
+      permission: "READ_WRITE",
+      value: "",
+      latitude: 4,
+      longitude: 2,
+      height: 2
+    }
+  ];
+  const mockPlotValueData = [
+    {
+      id: "mockPlotValueId",
+      environmentId: "mockEnvironmentId",
+      deviceId: "mockDeviceId",
+      visibility: "VISIBLE",
+      cardSize: "NORMAL",
+      name: "mockName",
+      index: 0,
+      precision: 1,
+      threshold: 90,
+      min: 0,
+      max: 100,
+      unitOfMeasurement: "C"
+    }
+  ];
+  const mockCategoryPlotValueData = [
+    {
+      id: "mockCategoryPlotValueId",
+      environmentId: "mockEnvironmentId",
+      deviceId: "mockDeviceId",
+      visibility: "VISIBLE",
+      cardSize: "NORMAL",
+      name: "mockName",
+      index: 0,
+      allowedValues: ["test", "test2"]
+    }
+  ];
 
   const queryAndItemMatch = whereQuery => item => {
     let isMatching = true;
@@ -286,7 +375,19 @@ module.exports = () => {
     MockedPendingOwnerChange: MockedModel(mockPendingOwnerChangeData),
     mockPendingOwnerChangeData,
     MockedPermanentToken: MockedModel(mockPermanentTokenData),
-    mockPermanentTokenData
+    mockPermanentTokenData,
+    MockedFloatValue: MockedModel(mockFloatValueData),
+    mockFloatValueData,
+    MockedStringValue: MockedModel(mockStringValueData),
+    mockStringValueData,
+    MockedBooleanValue: MockedModel(mockBooleanValueData),
+    mockBooleanValueData,
+    MockedMapValue: MockedModel(mockMapValueData),
+    mockMapValueData,
+    MockedPlotValue: MockedModel(mockPlotValueData),
+    mockPlotValueData,
+    MockedCategoryPlotValue: MockedModel(mockCategoryPlotValueData),
+    mockCategoryPlotValueData
   };
 
   const mockDataLoader = MockedModel => ({
@@ -309,6 +410,12 @@ module.exports = () => {
       environmentLoaderById: mockDataLoader(mocks.MockedEnvironment),
       deviceLoaderById: mockDataLoader(mocks.MockedDevice),
       notificationLoaderById: mockDataLoader(mocks.MockedNotification),
+      floatValueLoaderById: mockDataLoader(mocks.MockedFloatValue),
+      stringValueLoaderById: mockDataLoader(mocks.MockedStringValue),
+      booleanValueLoaderById: mockDataLoader(mocks.MockedBooleanValue),
+      mapValueLoaderById: mockDataLoader(mocks.MockedMapValue),
+      plotValueLoaderById: mockDataLoader(mocks.MockedPlotValue),
+      categoryPlotValueLoaderById: mockDataLoader(mocks.MockedCategoryPlotValue),
       permanentTokenLoaderById: mockDataLoader(mocks.MockedPermanentToken),
       pendingEnvironmentShareLoaderById: mockDataLoader(mocks.MockedPendingEnvironmentShare),
       pendingOwnerChangeLoaderById: mockDataLoader(mocks.MockedPendingOwnerChange),

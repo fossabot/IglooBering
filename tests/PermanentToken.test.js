@@ -9,7 +9,7 @@ import {
 
 const { mockContext, mockPermanentTokenData } = MocksGenerator();
 
-describe("PendingEnvironmentShare", () => {
+describe("PermanentToken", () => {
   const testPermanentTokenScalarProp = testScalarProp(
     PermanentTokenResolver,
     { id: "mockPermanentTokenId" },
