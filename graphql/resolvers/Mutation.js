@@ -2372,7 +2372,7 @@ const MutationResolver = (
       User,
       Device,
       Environment,
-      (args, reject) => {
+      (args, valueFound, reject) => {
         if (args.cardSize !== "NORMAL") {
           reject("booleanValue can have cardSize set only to NORMAL")
           return false
@@ -2396,7 +2396,7 @@ const MutationResolver = (
       User,
       Device,
       Environment,
-      (args, reject) => {
+      (args, valueFound, reject) => {
         if (args.unitOfMeasurement === "") {
           reject(
             "unitOfMeasurement cannot be an empty string, pass null instead"
