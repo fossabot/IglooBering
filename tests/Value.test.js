@@ -3,7 +3,7 @@ import MocksGenerator from "./mockUtils";
 
 const { mockContext } = MocksGenerator();
 
-describe("PermanentToken", () => {
+describe("Value", () => {
   test("__resolveType is resolved correctly for FloatValue", async done => {
     const resolveTypeFound = await new Promise((resolve, reject) =>
       ValueResolver.__resolveType(

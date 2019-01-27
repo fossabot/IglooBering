@@ -283,6 +283,26 @@ module.exports = () => {
       allowedValues: ["test", "test2"]
     }
   ];
+  const mockPlotNodeData = [
+    {
+      id: "mockPlotNodeId",
+      userId: "mockUserId",
+      deviceId: "mockDeviceId",
+      plotId: "mockPlotValueId",
+      value: 1,
+      timestamp: "2018-11-19T17:42:05.045Z"
+    }
+  ];
+  const mockCategoryPlotNodeData = [
+    {
+      id: "mockCategoryPlotNodeId",
+      userId: "mockUserId",
+      deviceId: "mockDeviceId",
+      plotId: "mockCategoryPlotValueId",
+      value: 1,
+      timestamp: "2018-11-19T17:42:05.045Z"
+    }
+  ];
 
   const queryAndItemMatch = whereQuery => item => {
     let isMatching = true;
@@ -387,7 +407,11 @@ module.exports = () => {
     MockedPlotValue: MockedModel(mockPlotValueData),
     mockPlotValueData,
     MockedCategoryPlotValue: MockedModel(mockCategoryPlotValueData),
-    mockCategoryPlotValueData
+    mockCategoryPlotValueData,
+    MockedPlotNode: MockedModel(mockPlotNodeData),
+    mockPlotNodeData,
+    MockedCategoryPlotNode: MockedModel(mockCategoryPlotNodeData),
+    mockCategoryPlotNodeData
   };
 
   const mockDataLoader = MockedModel => ({
@@ -415,6 +439,8 @@ module.exports = () => {
       booleanValueLoaderById: mockDataLoader(mocks.MockedBooleanValue),
       mapValueLoaderById: mockDataLoader(mocks.MockedMapValue),
       plotValueLoaderById: mockDataLoader(mocks.MockedPlotValue),
+      plotNodeLoaderById: mockDataLoader(mocks.MockedPlotNode),
+      categoryPlotNodeLoaderById: mockDataLoader(mocks.MockedCategoryPlotNode),
       categoryPlotValueLoaderById: mockDataLoader(mocks.MockedCategoryPlotValue),
       permanentTokenLoaderById: mockDataLoader(mocks.MockedPermanentToken),
       pendingEnvironmentShareLoaderById: mockDataLoader(mocks.MockedPendingEnvironmentShare),
