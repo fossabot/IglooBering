@@ -186,6 +186,14 @@ module.exports = () => {
       environmentId: "mockEnvironmentId"
     }
   ];
+  const mockPermanentTokenData = [
+    {
+      id: "mockPermanentTokenId",
+      userId: "mockUserId",
+      name: "mockPermanentTokenName",
+      lastUsed: "2018-11-19T17:42:05.045Z"
+    }
+  ];
 
   const queryAndItemMatch = whereQuery => item => {
     let isMatching = true;
@@ -276,7 +284,9 @@ module.exports = () => {
     MockedPendingEnvironmentShare: MockedModel(mockPendingEnvironmentShareData),
     mockPendingEnvironmentShareData,
     MockedPendingOwnerChange: MockedModel(mockPendingOwnerChangeData),
-    mockPendingOwnerChangeData
+    mockPendingOwnerChangeData,
+    MockedPermanentToken: MockedModel(mockPermanentTokenData),
+    mockPermanentTokenData
   };
 
   const mockDataLoader = MockedModel => ({
@@ -299,6 +309,7 @@ module.exports = () => {
       environmentLoaderById: mockDataLoader(mocks.MockedEnvironment),
       deviceLoaderById: mockDataLoader(mocks.MockedDevice),
       notificationLoaderById: mockDataLoader(mocks.MockedNotification),
+      permanentTokenLoaderById: mockDataLoader(mocks.MockedPermanentToken),
       pendingEnvironmentShareLoaderById: mockDataLoader(mocks.MockedPendingEnvironmentShare),
       pendingOwnerChangeLoaderById: mockDataLoader(mocks.MockedPendingOwnerChange),
       environmentAdminLoaderByEnvironmentAndUserId: mockRolesDataLoader(

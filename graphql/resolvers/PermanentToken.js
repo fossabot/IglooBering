@@ -9,9 +9,9 @@ const PermanentTokenResolver = {
         root.id
       )
       if (!databaseToken) {
-        reject("This token doesn't exist")
+        reject("The requested resource does not exist")
       } else if (databaseToken.userId !== context.auth.userId) {
-        reject("This token is not yours")
+        reject("You are not allowed to perform this operation")
       } else {
         resolve({ id: databaseToken.userId })
       }
@@ -24,9 +24,9 @@ const PermanentTokenResolver = {
       )
 
       if (!databaseToken) {
-        reject("This token doesn't exist")
+        reject("The requested resource does not exist")
       } else if (databaseToken.userId !== context.auth.userId) {
-        reject("This token is not yours")
+        reject("You are not allowed to perform this operation")
       } else {
         resolve(databaseToken.name)
       }
@@ -39,9 +39,9 @@ const PermanentTokenResolver = {
       )
 
       if (!databaseToken) {
-        reject("This token doesn't exist")
+        reject("The requested resource does not exist")
       } else if (databaseToken.userId !== context.auth.userId) {
-        reject("This token is not yours")
+        reject("You are not allowed to perform this operation")
       } else {
         resolve(databaseToken.lastUsed)
       }
