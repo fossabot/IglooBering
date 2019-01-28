@@ -110,7 +110,7 @@ describe("User", () => {
       )(resolve, reject);
     });
 
-    expect(pendingEnvironmentSharesFound.length).toBe(0);
+    expect(pendingEnvironmentSharesFound.length).toEqual(0);
 
     // receiver user should see the pendingEnvironmentShares
     const pendingEnvironmentSharesFound2 = await new Promise((resolve, reject) => {
@@ -124,7 +124,7 @@ describe("User", () => {
       )(resolve, reject);
     });
 
-    expect(pendingEnvironmentSharesFound2.length).toBe(1);
+    expect(pendingEnvironmentSharesFound2.length).toEqual(1);
     expect(pendingEnvironmentSharesFound2[0]).toMatchObject({
       id: "mockPendingEnvironmentShareId"
     });
@@ -144,7 +144,7 @@ describe("User", () => {
       )(resolve, reject);
     });
 
-    expect(pendingEnvironmentSharesFound).toBe(0);
+    expect(pendingEnvironmentSharesFound).toEqual(0);
 
     // receiver user should see the pendingEnvironmentShares
     const pendingEnvironmentSharesFound2 = await new Promise((resolve, reject) => {
@@ -158,7 +158,7 @@ describe("User", () => {
       )(resolve, reject);
     });
 
-    expect(pendingEnvironmentSharesFound2).toBe(1);
+    expect(pendingEnvironmentSharesFound2).toEqual(1);
 
     done();
   });
@@ -175,7 +175,7 @@ describe("User", () => {
       )(resolve, reject);
     });
 
-    expect(pendingOwnerChangesFound.length).toBe(1);
+    expect(pendingOwnerChangesFound.length).toEqual(1);
     expect(pendingOwnerChangesFound[0]).toMatchObject({
       id: "mockPendingOwnerChangeId"
     });
@@ -192,7 +192,7 @@ describe("User", () => {
       )(resolve, reject);
     });
 
-    expect(pendingOwnerChangesFound2.length).toBe(0);
+    expect(pendingOwnerChangesFound2.length).toEqual(0);
 
     done();
   });
@@ -208,7 +208,7 @@ describe("User", () => {
       )(resolve, reject);
     });
 
-    expect(pendingOwnerChangesFound).toBe(1);
+    expect(pendingOwnerChangesFound).toEqual(1);
 
     const pendingOwnerChangesFound2 = await new Promise((resolve, reject) => {
       UserResolver.pendingOwnerChangeCount(
@@ -221,7 +221,7 @@ describe("User", () => {
       )(resolve, reject);
     });
 
-    expect(pendingOwnerChangesFound2).toBe(0);
+    expect(pendingOwnerChangesFound2).toEqual(0);
 
     done();
   });

@@ -148,7 +148,7 @@ const PlotValueResolver = (
       User,
       1,
       async (resolve, reject, plotFound) => {
-        const nodes = await PlotNode.find({
+        const node = await PlotNode.find({
           where: { plotId: plotFound.id },
           order: [["timestamp", "DESC"]],
         })

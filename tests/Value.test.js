@@ -12,7 +12,7 @@ describe("Value", () => {
       )(resolve, reject)
     );
 
-    expect(resolveTypeFound).toBe("FloatValue");
+    expect(resolveTypeFound).toEqual("FloatValue");
     done();
   });
   test("__resolveType is resolved correctly for StringValue", async done => {
@@ -23,7 +23,7 @@ describe("Value", () => {
       )(resolve, reject)
     );
 
-    expect(resolveTypeFound).toBe("StringValue");
+    expect(resolveTypeFound).toEqual("StringValue");
     done();
   });
   test("__resolveType is resolved correctly for BooleanValue", async done => {
@@ -34,7 +34,7 @@ describe("Value", () => {
       )(resolve, reject)
     );
 
-    expect(resolveTypeFound).toBe("BooleanValue");
+    expect(resolveTypeFound).toEqual("BooleanValue");
     done();
   });
   test("__resolveType is resolved correctly for MapValue", async done => {
@@ -45,7 +45,7 @@ describe("Value", () => {
       )(resolve, reject)
     );
 
-    expect(resolveTypeFound).toBe("MapValue");
+    expect(resolveTypeFound).toEqual("MapValue");
     done();
   });
   test("__resolveType is resolved correctly for PlotValue", async done => {
@@ -56,7 +56,7 @@ describe("Value", () => {
       )(resolve, reject)
     );
 
-    expect(resolveTypeFound).toBe("PlotValue");
+    expect(resolveTypeFound).toEqual("PlotValue");
     done();
   });
   test("__resolveType is resolved correctly for CategoryPlotValue", async done => {
@@ -67,7 +67,7 @@ describe("Value", () => {
       )(resolve, reject)
     );
 
-    expect(resolveTypeFound).toBe("CategoryPlotValue");
+    expect(resolveTypeFound).toEqual("CategoryPlotValue");
     done();
   });
 

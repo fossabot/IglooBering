@@ -65,7 +65,7 @@ describe("Environment", () => {
     });
 
     const correctQuietMode = mockEnvironmentData[0].muted || mockUserData[0].quietMode;
-    expect(mutedFound).toBe(correctQuietMode);
+    expect(mutedFound).toEqual(correctQuietMode);
 
     done();
   });
@@ -83,7 +83,7 @@ describe("Environment", () => {
     });
 
     expect(devicesFound.length).toBeDefined();
-    expect(devicesFound.length).toBe(1);
+    expect(devicesFound.length).toEqual(1);
     expect(devicesFound[0]).toMatchObject({ id: mockDeviceData[0].id });
     done();
   });
@@ -100,7 +100,7 @@ describe("Environment", () => {
       )(resolve, reject);
     });
 
-    expect(deviceCount).toBe(1);
+    expect(deviceCount).toEqual(1);
     done();
   });
 
@@ -116,7 +116,7 @@ describe("Environment", () => {
       )(resolve, reject);
     });
 
-    expect(notificationCount).toBe(2);
+    expect(notificationCount).toEqual(2);
     done();
   });
 

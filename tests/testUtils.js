@@ -14,7 +14,7 @@ const testScalarProp = (Resolver, root, mockData, userId = "mockUserId") => prop
     )(resolve, reject);
   });
 
-  expect(propFound).toBe(mockData[prop]);
+  expect(propFound).toEqual(mockData[prop]);
 };
 
 const unauthenticatedShouldFail = (Resolver, root) => prop => async () => {

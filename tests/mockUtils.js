@@ -291,6 +291,22 @@ module.exports = () => {
       plotId: "mockPlotValueId",
       value: 1,
       timestamp: "2018-11-19T17:42:05.045Z"
+    },
+    {
+      id: "mockPlotNodeId2",
+      userId: "mockUserId",
+      deviceId: "mockDeviceId",
+      plotId: "mockPlotValueId",
+      value: 1,
+      timestamp: "2018-13-19T17:42:05.045Z"
+    },
+    {
+      id: "mockPlotNodeId3",
+      userId: "mockUserId",
+      deviceId: "mockDeviceId",
+      plotId: "mockPlotValueId",
+      value: 1,
+      timestamp: "2018-12-19T17:42:05.045Z"
     }
   ];
   const mockCategoryPlotNodeData = [
@@ -301,6 +317,22 @@ module.exports = () => {
       plotId: "mockCategoryPlotValueId",
       value: 1,
       timestamp: "2018-11-19T17:42:05.045Z"
+    },
+    {
+      id: "mockCategoryPlotNodeId2",
+      userId: "mockUserId",
+      deviceId: "mockDeviceId",
+      plotId: "mockCategoryPlotValueId",
+      value: 1,
+      timestamp: "2018-13-19T17:42:05.045Z"
+    },
+    {
+      id: "mockCategoryPlotNodeId3",
+      userId: "mockUserId",
+      deviceId: "mockDeviceId",
+      plotId: "mockCategoryPlotValueId",
+      value: 1,
+      timestamp: "2018-12-19T17:42:05.045Z"
     }
   ];
 

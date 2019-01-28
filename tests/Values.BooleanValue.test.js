@@ -11,37 +11,37 @@ const {
   MockedEnvironment,
   MockedDevice,
   MockedUser,
-  MockedFloatValue,
-  mockFloatValueData,
+  MockedBooleanValue,
+  mockBooleanValueData,
   mockContext
 } = MocksGenerator();
 
-const { FloatValue: FloatValueResolver } = ValuesResolverFactory(
+const { BooleanValue: BooleanValueResolver } = ValuesResolverFactory(
   {
-    FloatValue: MockedFloatValue
+    BooleanValue: MockedBooleanValue
   },
   MockedUser,
   MockedDevice,
   MockedEnvironment
 );
 
-describe("FloatValue", () => {
-  const testFloatValueScalarProp = testScalarProp(
-    FloatValueResolver,
-    { id: "mockFloatValueId" },
-    mockFloatValueData[0]
+describe("BooleanValue", () => {
+  const testBooleanValueScalarProp = testScalarProp(
+    BooleanValueResolver,
+    { id: "mockBooleanValueId" },
+    mockBooleanValueData[0]
   );
-  const testFloatValueUnauthenticated = unauthenticatedShouldFail(FloatValueResolver, {
-    id: "mockFloatValueId"
+  const testBooleanValueUnauthenticated = unauthenticatedShouldFail(BooleanValueResolver, {
+    id: "mockBooleanValueId"
   });
-  const testFloatValueNotAuthorized = notAuthorizedShouldFail(
-    FloatValueResolver,
-    { id: "mockFloatValueId" },
+  const testBooleanValueNotAuthorized = notAuthorizedShouldFail(
+    BooleanValueResolver,
+    { id: "mockBooleanValueId" },
     { auth: { userId: "mockUserId4", tokenType: "TEMPORARY" }, ...mockContext }
   );
-  const testFloatValueWrongId = wrongIdShouldFail(
-    FloatValueResolver,
-    { id: "wrongFloatValueId" },
+  const testBooleanValueWrongId = wrongIdShouldFail(
+    BooleanValueResolver,
+    { id: "wrongBooleanValueId" },
     { auth: { userId: "mockUserId", tokenType: "TEMPORARY" }, ...mockContext }
   );
 
@@ -53,31 +53,27 @@ describe("FloatValue", () => {
     "name",
     "value",
     "index",
-    "unitOfMeasurement",
-    "precision",
-    "min",
-    "max",
     "permission"
   ];
 
   scalarProps.forEach(prop =>
-    test(`${prop} is resolved correctly by sender`, testFloatValueScalarProp(prop))
+    test(`${prop} is resolved correctly by sender`, testBooleanValueScalarProp(prop))
   );
   test("device is resolved correctly", async () => {
     const deviceFound = await new Promise((resolve, reject) => {
-      FloatValueResolver.device(
-        { id: "mockFloatValueId" },
+      BooleanValueResolver.device(
+        { id: "mockBooleanValueId" },
         {},
         { auth: { userId: "mockUserId", tokenType: "TEMPORARY" }, ...mockContext }
       )(resolve, reject);
     });
 
-    expect(deviceFound).toMatchObject({ id: mockFloatValueData[0].deviceId });
+    expect(deviceFound).toMatchObject({ id: mockBooleanValueData[0].deviceId });
   });
   test("environment is resolved correctly", async () => {
     const environmentFound = await new Promise((resolve, reject) => {
-      FloatValueResolver.environment(
-        { id: "mockFloatValueId" },
+      BooleanValueResolver.environment(
+        { id: "mockBooleanValueId" },
         {},
         { auth: { userId: "mockUserId", tokenType: "TEMPORARY" }, ...mockContext }
       )(resolve, reject);
@@ -87,8 +83,8 @@ describe("FloatValue", () => {
   });
   test("myRole is resolved correctly", async () => {
     const roleFound = await new Promise((resolve, reject) => {
-      FloatValueResolver.myRole(
-        { id: "mockFloatValueId" },
+      BooleanValueResolver.myRole(
+        { id: "mockBooleanValueId" },
         {},
         { auth: { userId: "mockUserId", tokenType: "TEMPORARY" }, ...mockContext }
       )(resolve, reject);
@@ -96,8 +92,8 @@ describe("FloatValue", () => {
 
     expect(roleFound).toEqual("OWNER");
     const roleFound2 = await new Promise((resolve, reject) => {
-      FloatValueResolver.myRole(
-        { id: "mockFloatValueId" },
+      BooleanValueResolver.myRole(
+        { id: "mockBooleanValueId" },
         {},
         { auth: { userId: "mockUserId3", tokenType: "TEMPORARY" }, ...mockContext }
       )(resolve, reject);
@@ -109,8 +105,8 @@ describe("FloatValue", () => {
   const allProps = [...scalarProps, "device", "environment", "myRole"];
 
   allProps.forEach(prop => {
-    test(`${prop} fails if unauthenticated`, testFloatValueUnauthenticated(prop));
-    test(`${prop} fails if not authorized`, testFloatValueNotAuthorized(prop));
-    test(`${prop} fails if wrong id`, testFloatValueWrongId(prop));
+    test(`${prop} fails if unauthenticated`, testBooleanValueUnauthenticated(prop));
+    test(`${prop} fails if not authorized`, testBooleanValueNotAuthorized(prop));
+    test(`${prop} fails if wrong id`, testBooleanValueWrongId(prop));
   });
 });

@@ -11,37 +11,37 @@ const {
   MockedEnvironment,
   MockedDevice,
   MockedUser,
-  MockedFloatValue,
-  mockFloatValueData,
+  MockedStringValue,
+  mockStringValueData,
   mockContext
 } = MocksGenerator();
 
-const { FloatValue: FloatValueResolver } = ValuesResolverFactory(
+const { StringValue: StringValueResolver } = ValuesResolverFactory(
   {
-    FloatValue: MockedFloatValue
+    StringValue: MockedStringValue
   },
   MockedUser,
   MockedDevice,
   MockedEnvironment
 );
 
-describe("FloatValue", () => {
-  const testFloatValueScalarProp = testScalarProp(
-    FloatValueResolver,
-    { id: "mockFloatValueId" },
-    mockFloatValueData[0]
+describe("StringValue", () => {
+  const testStringValueScalarProp = testScalarProp(
+    StringValueResolver,
+    { id: "mockStringValueId" },
+    mockStringValueData[0]
   );
-  const testFloatValueUnauthenticated = unauthenticatedShouldFail(FloatValueResolver, {
-    id: "mockFloatValueId"
+  const testStringValueUnauthenticated = unauthenticatedShouldFail(StringValueResolver, {
+    id: "mockStringValueId"
   });
-  const testFloatValueNotAuthorized = notAuthorizedShouldFail(
-    FloatValueResolver,
-    { id: "mockFloatValueId" },
+  const testStringValueNotAuthorized = notAuthorizedShouldFail(
+    StringValueResolver,
+    { id: "mockStringValueId" },
     { auth: { userId: "mockUserId4", tokenType: "TEMPORARY" }, ...mockContext }
   );
-  const testFloatValueWrongId = wrongIdShouldFail(
-    FloatValueResolver,
-    { id: "wrongFloatValueId" },
+  const testStringValueWrongId = wrongIdShouldFail(
+    StringValueResolver,
+    { id: "wrongStringValueId" },
     { auth: { userId: "mockUserId", tokenType: "TEMPORARY" }, ...mockContext }
   );
 
@@ -53,31 +53,29 @@ describe("FloatValue", () => {
     "name",
     "value",
     "index",
-    "unitOfMeasurement",
-    "precision",
-    "min",
-    "max",
-    "permission"
+    "permission",
+    "maxChars",
+    "allowedValues"
   ];
 
   scalarProps.forEach(prop =>
-    test(`${prop} is resolved correctly by sender`, testFloatValueScalarProp(prop))
+    test(`${prop} is resolved correctly by sender`, testStringValueScalarProp(prop))
   );
   test("device is resolved correctly", async () => {
     const deviceFound = await new Promise((resolve, reject) => {
-      FloatValueResolver.device(
-        { id: "mockFloatValueId" },
+      StringValueResolver.device(
+        { id: "mockStringValueId" },
         {},
         { auth: { userId: "mockUserId", tokenType: "TEMPORARY" }, ...mockContext }
       )(resolve, reject);
     });
 
-    expect(deviceFound).toMatchObject({ id: mockFloatValueData[0].deviceId });
+    expect(deviceFound).toMatchObject({ id: mockStringValueData[0].deviceId });
   });
   test("environment is resolved correctly", async () => {
     const environmentFound = await new Promise((resolve, reject) => {
-      FloatValueResolver.environment(
-        { id: "mockFloatValueId" },
+      StringValueResolver.environment(
+        { id: "mockStringValueId" },
         {},
         { auth: { userId: "mockUserId", tokenType: "TEMPORARY" }, ...mockContext }
       )(resolve, reject);
@@ -87,8 +85,8 @@ describe("FloatValue", () => {
   });
   test("myRole is resolved correctly", async () => {
     const roleFound = await new Promise((resolve, reject) => {
-      FloatValueResolver.myRole(
-        { id: "mockFloatValueId" },
+      StringValueResolver.myRole(
+        { id: "mockStringValueId" },
         {},
         { auth: { userId: "mockUserId", tokenType: "TEMPORARY" }, ...mockContext }
       )(resolve, reject);
@@ -96,8 +94,8 @@ describe("FloatValue", () => {
 
     expect(roleFound).toEqual("OWNER");
     const roleFound2 = await new Promise((resolve, reject) => {
-      FloatValueResolver.myRole(
-        { id: "mockFloatValueId" },
+      StringValueResolver.myRole(
+        { id: "mockStringValueId" },
         {},
         { auth: { userId: "mockUserId3", tokenType: "TEMPORARY" }, ...mockContext }
       )(resolve, reject);
@@ -105,12 +103,11 @@ describe("FloatValue", () => {
 
     expect(roleFound2).toEqual("ADMIN");
   });
-
   const allProps = [...scalarProps, "device", "environment", "myRole"];
 
   allProps.forEach(prop => {
-    test(`${prop} fails if unauthenticated`, testFloatValueUnauthenticated(prop));
-    test(`${prop} fails if not authorized`, testFloatValueNotAuthorized(prop));
-    test(`${prop} fails if wrong id`, testFloatValueWrongId(prop));
+    test(`${prop} fails if unauthenticated`, testStringValueUnauthenticated(prop));
+    test(`${prop} fails if not authorized`, testStringValueNotAuthorized(prop));
+    test(`${prop} fails if wrong id`, testStringValueWrongId(prop));
   });
 });

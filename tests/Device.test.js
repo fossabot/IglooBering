@@ -73,7 +73,7 @@ describe("Device", () => {
 
     const correctQuietMode =
       mockDeviceData[0].muted || mockEnvironmentData[0].muted || mockUserData[0].quietMode;
-    expect(mutedFound).toBe(correctQuietMode);
+    expect(mutedFound).toEqual(correctQuietMode);
 
     done();
   });
@@ -99,7 +99,7 @@ describe("Device", () => {
       )(resolve, reject);
     });
 
-    expect(mutedFound).toBe(correctQuietMode);
+    expect(mutedFound).toEqual(correctQuietMode);
 
     done();
   });
@@ -116,7 +116,7 @@ describe("Device", () => {
     });
 
     expect(notificationsFound.length).toBeDefined();
-    expect(notificationsFound.length).toBe(2);
+    expect(notificationsFound.length).toEqual(2);
     expect(notificationsFound[0]).toMatchObject({ id: mockNotificationData[0].id });
     done();
   });
@@ -132,7 +132,7 @@ describe("Device", () => {
       )(resolve, reject);
     });
 
-    expect(notificationCount).toBe(2);
+    expect(notificationCount).toEqual(2);
 
     done();
   });
