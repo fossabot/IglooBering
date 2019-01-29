@@ -320,6 +320,11 @@ const MutationResolver = (
               settings_temperature: "CELSIUS",
               settings_dateFormat: "DMY",
               settings_timeFormat: "H24",
+              settings_passwordChangeEmail: true,
+              settings_pendingOwnerChangeReceivedEmail: true,
+              settings_pendingEnvironmentChangeReceiverEmail: true,
+              settings_pendingOwnerChangeAcceptedEmail: true,
+              settings_permanentEnvironmentChangeAcceptedEmail: true,
             })
 
             // setting context so that the resolvers for user know that the user is authenticated
@@ -1927,7 +1932,13 @@ const MutationResolver = (
             "temperature",
             "dateFormat",
             "timeFormat",
+            "passwordChangeEmail",
+            "pendingOwnerChangeReceivedEmail",
+            "pendingEnvironmentChangeReceiverEmail",
+            "pendingOwnerChangeAcceptedEmail",
+            "permanentEnvironmentChangeAcceptedEmail",
           ]
+
           fields.forEach(field => {
             if (isNotNullNorUndefined(args[field])) {
               updateQuery[`settings_${field}`] = args[field]
@@ -1942,6 +1953,15 @@ const MutationResolver = (
             temperature: newUser.settings_temperature,
             dateFormat: newUser.settings_dateFormat,
             timeFormat: newUser.settings_timeFormat,
+            passwordChangeEmail: newUser.settings_passwordChangeEmail,
+            pendingOwnerChangeReceivedEmail:
+              newUser.settings_pendingOwnerChangeReceivedEmail,
+            pendingEnvironmentChangeReceiverEmail:
+              newUser.settings_pendingEnvironmentChangeReceiverEmail,
+            pendingOwnerChangeAcceptedEmail:
+              newUser.settings_pendingOwnerChangeAcceptedEmail,
+            permanentEnvironmentChangeAcceptedEmail:
+              newUser.settings_permanentEnvironmentChangeAcceptedEmail,
           })
 
           pubsub.publish("userUpdated", {

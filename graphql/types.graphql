@@ -356,6 +356,11 @@ type Mutation {
     temperature: Temperature
     dateFormat: DateFormat
     timeFormat: TimeFormat
+    passwordChangeEmail: Boolean
+    pendingOwnerChangeReceivedEmail: Boolean
+    pendingEnvironmentChangeReceiverEmail: Boolean
+    pendingOwnerChangeAcceptedEmail: Boolean
+    permanentEnvironmentChangeAcceptedEmail: Boolean
   ): Settings
 
   updatePaymentInfo(stripeToken: String!): Boolean
@@ -703,6 +708,11 @@ type Settings {
   timeFormat: TimeFormat!
   dateFormat: DateFormat!
   language: String!
+  passwordChangeEmail: Boolean!
+  pendingOwnerChangeReceivedEmail: Boolean!
+  pendingEnvironmentChangeReceiverEmail: Boolean!
+  pendingOwnerChangeAcceptedEmail: Boolean!
+  permanentEnvironmentChangeAcceptedEmail: Boolean!
 }
 
 type User {

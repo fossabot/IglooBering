@@ -114,6 +114,15 @@ const UserResolver = ({
           temperature: userFound.settings_temperature,
           dateFormat: userFound.settings_dateFormat,
           timeFormat: userFound.settings_timeFormat,
+          passwordChangeEmail: userFound.settings_passwordChangeEmail,
+          pendingOwnerChangeReceivedEmail:
+            userFound.settings_pendingOwnerChangeReceivedEmail,
+          pendingEnvironmentChangeReceiverEmail:
+            userFound.settings_pendingEnvironmentChangeReceiverEmail,
+          pendingOwnerChangeAcceptedEmail:
+            userFound.settings_pendingOwnerChangeAcceptedEmail,
+          permanentEnvironmentChangeAcceptedEmail:
+            userFound.settings_permanentEnvironmentChangeAcceptedEmail,
         })
         context.billingUpdater.update(QUERY_COST)
       }

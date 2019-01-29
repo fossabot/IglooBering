@@ -2,19 +2,27 @@ import MocksGenerator from "./mockUtils";
 
 const { mockContext } = MocksGenerator();
 
-const testScalarProp = (Resolver, root, mockData, userId = "mockUserId") => prop => async () => {
-  const propFound = await new Promise((resolve, reject) => {
-    Resolver[prop](
-      root,
-      {},
-      {
-        auth: { userId, tokenType: "TEMPORARY" },
-        ...mockContext
-      }
-    )(resolve, reject);
-  });
+const testScalarProp = (
+  Resolver,
+  root,
+  mockData,
+  userId = "mockUserId",
+  tokenTypes = ["TEMPORARY", "PERMANENT"]
+) => prop => async () => {
+  for (let tokenType of tokenTypes) {
+    const propFound = await new Promise((resolve, reject) => {
+      Resolver[prop](
+        root,
+        {},
+        {
+          auth: { userId, tokenType },
+          ...mockContext
+        }
+      )(resolve, reject);
+    });
 
-  expect(propFound).toEqual(mockData[prop]);
+    expect(propFound).toEqual(mockData[prop]);
+  }
 };
 
 const unauthenticatedShouldFail = (Resolver, root) => prop => async () => {

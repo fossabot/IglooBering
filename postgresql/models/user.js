@@ -63,6 +63,26 @@ module.exports = (queryInterface, Sequelize) => {
     settings_timeFormat: {
       type: Sequelize.STRING,
     },
+    settings_passwordChangeEmail: {
+      type: Sequelize.BOOLEAN,
+      defaultValue: true,
+    },
+    settings_pendingOwnerChangeReceivedEmail: {
+      type: Sequelize.BOOLEAN,
+      defaultValue: true,
+    },
+    settings_pendingEnvironmentChangeReceiverEmail: {
+      type: Sequelize.BOOLEAN,
+      defaultValue: true,
+    },
+    settings_pendingOwnerChangeAcceptedEmail: {
+      type: Sequelize.BOOLEAN,
+      defaultValue: true,
+    },
+    settings_permanentEnvironmentChangeAcceptedEmail: {
+      type: Sequelize.BOOLEAN,
+      defaultValue: true,
+    },
   })
   User.associate = function(models) {
     // associations can be defined here
