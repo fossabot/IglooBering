@@ -277,7 +277,7 @@ const UserResolver = ({
           : ""
 
         const query = `
-        SELECT public."environments".id as id
+        SELECT DISTINCT public."environments".id as id
           FROM
             public."users" 
             
