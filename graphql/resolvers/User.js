@@ -277,6 +277,7 @@ const UserResolver = ({
           : ""
 
         const query = `
+        SELECT id FROM (
         SELECT DISTINCT public."environments".id as id
           FROM
             public."users" 
@@ -294,8 +295,7 @@ const UserResolver = ({
           WHERE
             (public."users".id = '${context.auth.userId}')
             ${whereQuery !== "" ? "AND " + whereQuery : ""}
-
-          ORDER BY public."users".id DESC 
+          ) sub
           ${limitQuery};
         `
 
