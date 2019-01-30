@@ -296,6 +296,7 @@ const UserResolver = ({
             (public."users".id = '${context.auth.userId}')
             ${whereQuery !== "" ? "AND " + whereQuery : ""}
           ) sub
+          WHERE id IS NOT NULL
           ${limitQuery};
         `
 
