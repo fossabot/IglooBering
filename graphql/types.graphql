@@ -389,6 +389,7 @@ type Mutation {
     batteryCharging: Boolean
     firmware: String
     muted: Boolean
+    starred: Boolean
   ): Device
 
   value(
@@ -830,6 +831,7 @@ type Device {
   createdAt: DateTime!
   updatedAt: DateTime!
   myRole: RoleExtended!
+  starred: Boolean
   # Product name, for example Igloo Thermostat
   deviceType: String
   # Custom name gave by the end-user to the device

@@ -13,6 +13,9 @@ module.exports = (queryInterface, Sequelize) => {
         key: "id",
       },
     },
+    starred: {
+      type: Sequelize.ARRAY(Sequelize.UUID),
+    },
     deviceType: {
       type: Sequelize.STRING,
     },

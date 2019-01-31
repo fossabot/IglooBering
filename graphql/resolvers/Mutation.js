@@ -2043,7 +2043,7 @@ const MutationResolver = (
         context,
         context.dataLoaders.deviceLoaderById,
         User,
-        2,
+        1,
         async (
           resolve,
           reject,
@@ -2051,6 +2051,17 @@ const MutationResolver = (
           [_, environmentFound],
           userFound
         ) => {
+          // users with read only access can only star a device
+          if (
+            (await instanceToRole(environmentFound, userFound, context)) ===
+              "SPECTATOR" &&
+            (Object.keys(args).length > 2 ||
+              !isNotNullNorUndefined(args.starred))
+          ) {
+            reject("You are not allowed to mutate fields other than starred")
+            return
+          }
+
           // runs sanity checks on the args
           if (
             isNotNullNorUndefined(args.batteryStatus) &&
@@ -2100,7 +2111,20 @@ const MutationResolver = (
             )
           }
 
-          const newDevice = await deviceFound.update(args)
+          const updateQuery = args
+
+          if (updateQuery.starred === true) {
+            updateQuery.starred =
+              deviceFound.starred.indexOf(context.auth.userId) === -1
+                ? [...deviceFound.starred, context.auth.userId]
+                : deviceFound.starred
+          } else if (updateQuery.starred === false) {
+            updateQuery.starred = deviceFound.starred.filter(
+              id => id !== context.auth.userId
+            )
+          }
+
+          const newDevice = await deviceFound.update(updateQuery)
           resolve(newDevice.dataValues)
 
           touch(Environment, environmentFound.id, newDevice.updatedAt)

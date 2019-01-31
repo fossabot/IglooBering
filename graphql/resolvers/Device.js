@@ -170,6 +170,22 @@ const DeviceResolver = ({
       ["TEMPORARY", "PERMANENT", "DEVICE_ACCESS"]
     )
   },
+  starred(root, args, context) {
+    return authorized(
+      root.id,
+      context,
+      context.dataLoaders.deviceLoaderById,
+      User,
+      1,
+      async (resolve, reject, deviceFound) => {
+        const isStarred =
+          deviceFound.starred.indexOf(context.auth.userId) !== -1
+
+        resolve(isStarred)
+      },
+      deviceToParent
+    )
+  },
   muted(root, args, context) {
     return authorized(
       root.id,
@@ -189,8 +205,6 @@ const DeviceResolver = ({
         resolve(
           deviceFound.muted || environmentFound.muted || userFound.quietMode
         )
-
-        context.billingUpdater.update(QUERY_COST)
       },
       deviceToParent
     )
