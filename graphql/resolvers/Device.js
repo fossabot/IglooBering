@@ -99,8 +99,8 @@ const DeviceResolver = ({
 
         const orderQuery = args.sortBy
           ? args.sortDirection
-            ? `ORDER BY ${args.sortBy} ${args.sortDirection}`
-            : `ORDER BY ${args.sortBy}`
+            ? `ORDER BY "${args.sortBy}" ${args.sortDirection}`
+            : `ORDER BY "${args.sortBy}"`
           : ""
 
         const additionalSelect = table =>

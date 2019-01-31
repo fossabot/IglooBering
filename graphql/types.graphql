@@ -597,6 +597,7 @@ input DeviceFilter {
   batteryCharging: Boolean
   firmware: StringFilter
   muted: Boolean
+  starred: Boolean
 }
 
 input ValueFilter {
@@ -725,6 +726,8 @@ type User {
   pendingOwnerChanges: [PendingOwnerChange!]!
   environmentCount: Int!
   environments(
+    sortBy: ENVIRONMENT_SORT
+    sortDirection: SORT_DIRECTION
     limit: Int
     offset: Int
     filter: EnvironmentFilter
@@ -753,10 +756,19 @@ enum RoleExtended {
 }
 
 enum DEVICE_SORT {
+  id
   index
   name
   deviceType
   firmware
+  updatedAt
+}
+
+enum ENVIRONMENT_SORT {
+  id
+  index
+  name
+  updatedAt
 }
 
 enum SORT_DIRECTION {
@@ -821,8 +833,10 @@ type PermanentToken {
 }
 
 enum VALUE_SORT {
+  id
   index
   name
+  updatedAt
 }
 
 type Device {

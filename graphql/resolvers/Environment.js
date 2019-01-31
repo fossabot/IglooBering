@@ -127,7 +127,16 @@ const EnvironmentResolver = ({
           if (filter.hasOwnProperty("online"))
             parsedFilter.online = filter.online
           if (filter.hasOwnProperty("muted")) parsedFilter.muted = filter.muted
-
+          if (filter.hasOwnProperty("starred")) {
+            if (filter.starred === true) {
+              parsedFilter.starred = { [Op.contains]: [context.auth.userId] }
+            } else if (filter.starred == false) {
+              parsedFilter[Op.not] = {
+                ...(parsedFilter[Op.not] ? parsedFilter[Op.not] : {}),
+                starred: { [Op.contains]: [context.auth.userId] },
+              }
+            }
+          }
           return parsedFilter
         }
 

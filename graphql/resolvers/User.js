@@ -276,9 +276,18 @@ const UserResolver = ({
             : `LIMIT ${args.limit}`
           : ""
 
+        const orderQuery = args.sortBy
+          ? args.sortDirection
+            ? `ORDER BY "${args.sortBy}" ${args.sortDirection}`
+            : `ORDER BY "${args.sortBy}"`
+          : ""
+
         const query = `
         SELECT id FROM (
-        SELECT DISTINCT public."environments".id as id
+        SELECT  public."environments".id as id,
+                public."environments".index as index,
+                public."environments".name as name,
+                public."environments"."updatedAt" as "updatedAt"
           FROM
             public."users" 
             
@@ -295,8 +304,10 @@ const UserResolver = ({
           WHERE
             (public."users".id = '${context.auth.userId}')
             ${whereQuery !== "" ? "AND " + whereQuery : ""}
+          GROUP BY public."environments".id
           ) sub
           WHERE id IS NOT NULL
+          ${orderQuery}
           ${limitQuery};
         `
 
