@@ -238,14 +238,30 @@ const DeviceResolver = ({
           where: { deviceId: deviceFound.id },
           limit: args.limit,
           offset: args.offset,
-          order: [["id", "DESC"]],
+          order: [["date", "DESC"]],
         })
 
-        // the database returns ISO-format dates, so sorting the strings without casting is fine
-        const compareDates = (a, b) =>
-          a.date > b.date ? -1 : a.date === b.date ? 0 : 1
+        resolve(notifications)
+        context.billingUpdater.update(QUERY_COST * notifications.length)
+      },
+      deviceToParent,
+      ["TEMPORARY", "PERMANENT", "DEVICE_ACCESS"]
+    )
+  },
+  getLastNotification(root, args, context) {
+    return authorized(
+      root.id,
+      context,
+      context.dataLoaders.deviceLoaderById,
+      User,
+      1,
+      async (resolve, reject, deviceFound) => {
+        const notificationFound = await Notification.find({
+          where: { deviceId: deviceFound.id },
+          order: [["date", "DESC"]],
+        })
 
-        resolve(notifications.sort(compareDates))
+        resolve(notificationFound)
         context.billingUpdater.update(QUERY_COST * notifications.length)
       },
       deviceToParent,

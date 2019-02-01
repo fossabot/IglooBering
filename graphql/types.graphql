@@ -859,6 +859,7 @@ type Device {
   ): [Value!]!
   environment: Environment!
   notifications(limit: Int, offset: Int): [Notification!]!
+  getLastNotification: Notification
   notificationCount: Int!
   online: Boolean
   signalStatus: Float
