@@ -30,6 +30,7 @@ import {
   findValue,
   sendPushNotification,
   sendOwnerChangeEmail,
+  sendAccountDeletedEmail,
   generateDeviceAuthenticationToken,
 } from "./utilities"
 import Stripe from "stripe"
@@ -3366,7 +3367,10 @@ const MutationResolver = (
             destroyPendingEnvironmentShare(),
             destroyPendingOwnerChange(),
           ])
+          const email = userFound.email
           await userFound.destroy()
+
+          sendAccountDeletedEmail(email)
 
           pubsub.publish("userDeleted", {
             userDeleted: context.auth.userId,

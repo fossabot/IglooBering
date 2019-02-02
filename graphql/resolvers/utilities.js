@@ -565,6 +565,31 @@ const sendPasswordRecoveryEmail = (email, userId) => {
     console.log
   )
 }
+const sendAccountDeletedEmail = email => {
+  ses.sendEmail(
+    {
+      Source: "'Igloo Cloud' <noreply@igloo.ooo>",
+      Destination: { ToAddresses: [email] },
+      Message: {
+        Body: {
+          Html: {
+            Charset: "UTF-8",
+            Data: `Your account was deleted.\nWe are sad to see you go`,
+          },
+          Text: {
+            Charset: "UTF-8",
+            Data: `Your account was deleted.\nWe are sad to see you go`,
+          },
+        },
+        Subject: {
+          Charset: "UTF-8",
+          Data: "Account deleted",
+        },
+      },
+    },
+    console.log
+  )
+}
 
 const sendPasswordUpdatedEmail = email => {
   // TODO: create a template for the email verification
@@ -1194,6 +1219,7 @@ module.exports = {
   sendTokenCreatedEmail,
   sendEnvironmentSharedEmail,
   sendOwnerChangeEmail,
+  sendAccountDeletedEmail,
   authorizationLevel,
   authorized,
   authorizedScalarPropsResolvers,
