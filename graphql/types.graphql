@@ -760,15 +760,12 @@ enum DEVICE_SORT {
   index
   name
   deviceType
-  firmware
-  updatedAt
 }
 
 enum ENVIRONMENT_SORT {
   id
   index
   name
-  updatedAt
 }
 
 enum SORT_DIRECTION {
@@ -836,7 +833,6 @@ enum VALUE_SORT {
   id
   index
   name
-  updatedAt
 }
 
 type Device {
