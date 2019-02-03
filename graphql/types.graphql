@@ -358,9 +358,9 @@ type Mutation {
     timeFormat: TimeFormat
     passwordChangeEmail: Boolean
     pendingOwnerChangeReceivedEmail: Boolean
-    pendingEnvironmentChangeReceiverEmail: Boolean
+    pendingEnvironmentShareReceivedEmail: Boolean
     pendingOwnerChangeAcceptedEmail: Boolean
-    permanentEnvironmentChangeAcceptedEmail: Boolean
+    pendingEnvironmentShareAcceptedEmail: Boolean
   ): Settings
 
   updatePaymentInfo(stripeToken: String!): Boolean
@@ -712,9 +712,9 @@ type Settings {
   language: String!
   passwordChangeEmail: Boolean!
   pendingOwnerChangeReceivedEmail: Boolean!
-  pendingEnvironmentChangeReceiverEmail: Boolean!
+  pendingEnvironmentShareReceivedEmail: Boolean!
   pendingOwnerChangeAcceptedEmail: Boolean!
-  permanentEnvironmentChangeAcceptedEmail: Boolean!
+  pendingEnvironmentShareAcceptedEmail: Boolean!
 }
 
 type User {

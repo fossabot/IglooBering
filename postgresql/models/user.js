@@ -71,7 +71,7 @@ module.exports = (queryInterface, Sequelize) => {
       type: Sequelize.BOOLEAN,
       defaultValue: true,
     },
-    settings_pendingEnvironmentChangeReceiverEmail: {
+    settings_pendingEnvironmentShareReceivedEmail: {
       type: Sequelize.BOOLEAN,
       defaultValue: true,
     },
@@ -79,7 +79,7 @@ module.exports = (queryInterface, Sequelize) => {
       type: Sequelize.BOOLEAN,
       defaultValue: true,
     },
-    settings_permanentEnvironmentChangeAcceptedEmail: {
+    settings_pendingEnvironmentShareAcceptedEmail: {
       type: Sequelize.BOOLEAN,
       defaultValue: true,
     },

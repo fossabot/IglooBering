@@ -323,9 +323,9 @@ const MutationResolver = (
               settings_timeFormat: "H24",
               settings_passwordChangeEmail: true,
               settings_pendingOwnerChangeReceivedEmail: true,
-              settings_pendingEnvironmentChangeReceiverEmail: true,
+              settings_pendingEnvironmentShareReceivedEmail: true,
               settings_pendingOwnerChangeAcceptedEmail: true,
-              settings_permanentEnvironmentChangeAcceptedEmail: true,
+              settings_pendingEnvironmentShareAcceptedEmail: true,
             })
 
             // setting context so that the resolvers for user know that the user is authenticated
@@ -1935,9 +1935,9 @@ const MutationResolver = (
             "timeFormat",
             "passwordChangeEmail",
             "pendingOwnerChangeReceivedEmail",
-            "pendingEnvironmentChangeReceiverEmail",
+            "pendingEnvironmentShareReceivedEmail",
             "pendingOwnerChangeAcceptedEmail",
-            "permanentEnvironmentChangeAcceptedEmail",
+            "pendingEnvironmentShareAcceptedEmail",
           ]
 
           fields.forEach(field => {
@@ -1957,12 +1957,12 @@ const MutationResolver = (
             passwordChangeEmail: newUser.settings_passwordChangeEmail,
             pendingOwnerChangeReceivedEmail:
               newUser.settings_pendingOwnerChangeReceivedEmail,
-            pendingEnvironmentChangeReceiverEmail:
-              newUser.settings_pendingEnvironmentChangeReceiverEmail,
+            pendingEnvironmentShareReceivedEmail:
+              newUser.settings_pendingEnvironmentShareReceivedEmail,
             pendingOwnerChangeAcceptedEmail:
               newUser.settings_pendingOwnerChangeAcceptedEmail,
-            permanentEnvironmentChangeAcceptedEmail:
-              newUser.settings_permanentEnvironmentChangeAcceptedEmail,
+            pendingEnvironmentShareAcceptedEmail:
+              newUser.settings_pendingEnvironmentShareAcceptedEmail,
           })
 
           pubsub.publish("userUpdated", {

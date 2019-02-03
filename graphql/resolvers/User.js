@@ -117,12 +117,12 @@ const UserResolver = ({
           passwordChangeEmail: userFound.settings_passwordChangeEmail,
           pendingOwnerChangeReceivedEmail:
             userFound.settings_pendingOwnerChangeReceivedEmail,
-          pendingEnvironmentChangeReceiverEmail:
-            userFound.settings_pendingEnvironmentChangeReceiverEmail,
+          pendingEnvironmentShareReceivedEmail:
+            userFound.settings_pendingEnvironmentShareReceivedEmail,
           pendingOwnerChangeAcceptedEmail:
             userFound.settings_pendingOwnerChangeAcceptedEmail,
-          permanentEnvironmentChangeAcceptedEmail:
-            userFound.settings_permanentEnvironmentChangeAcceptedEmail,
+          pendingEnvironmentShareAcceptedEmail:
+            userFound.settings_pendingEnvironmentShareAcceptedEmail,
         })
         context.billingUpdater.update(QUERY_COST)
       }
