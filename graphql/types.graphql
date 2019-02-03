@@ -117,6 +117,7 @@ type Mutation {
   # Sends an email with a llink to change the password
   sendPasswordRecoveryEmail(email: String!): Boolean
 
+  enableWebauthn(challengeResponse: String, jwtChallenge: String): Boolean
   # Upgrades a user to 2 factor authentication
   # UpgradeTo2FactorAuthentication: UpgradeTo2FactorPayload
 
@@ -607,6 +608,11 @@ input ValueFilter {
   cardSize: CardSize
 }
 
+type WebauthnChallenge {
+  subscribeOptions: String
+  jwtChallenge: String
+}
+
 type Query {
   # gets user's data
   user: User
@@ -622,6 +628,8 @@ type Query {
   plotNode(id: ID!): PlotNode
   # get categoryPlotNode's data
   categoryPlotNode(id: ID!): CategoryPlotNode
+  # get's challenge to enable webauthn
+  getWebauthnSubscribeChallenge(email: String!): WebauthnChallenge
 }
 
 type Subscription {

@@ -10,8 +10,25 @@ import {
   authorizationLevel,
 } from "./utilities"
 import bcrypt from "bcryptjs"
+const { Fido2Lib } = require("fido2-lib-clone")
+import jwt from "jwt-simple"
+import moment from "moment"
+require("dotenv").config()
 
+/* istanbul ignore if */
+if (!process.env.JWT_SECRET) {
+  throw new Error("Could not load .env")
+}
 const QUERY_COST = 1
+
+const f2l = new Fido2Lib()
+
+function ab2str(buf) {
+  return String.fromCharCode.apply(null, new Uint8Array(buf))
+}
+function str2ab(str) {
+  return Uint8Array.from(str, c => c.charCodeAt(0))
+}
 
 const QueryResolver = ({
   User,
@@ -140,6 +157,38 @@ const QueryResolver = ({
       },
       valueToParent
     )
+  },
+  getWebauthnSubscribeChallenge(root, args, context) {
+    return async (resolve, reject) => {
+      let registrationOptions = await f2l.attestationOptions()
+      registrationOptions.challenge = ab2str(registrationOptions.challenge)
+
+      const jwtChallenge = jwt.encode(
+        {
+          exp: moment()
+            .utc()
+            .add({ minutes: 15 })
+            .unix(),
+          challenge: registrationOptions.challenge,
+        },
+        process.env.JWT_SECRET,
+        "HS512"
+      )
+
+      registrationOptions.rp = { name: "Igloo" }
+      registrationOptions.user = { name: args.email, displayName: args.email }
+      registrationOptions.pubKeyCredParams = [{ alg: -7, type: "public-key" }]
+      registrationOptions.authenticatorSelection = {
+        authenticatorAttachment: "cross-platform",
+      }
+      registrationOptions.timeout = 60000
+      registrationOptions.attestation = "none"
+
+      resolve({
+        jwtChallenge,
+        subscribeOptions: JSON.stringify(registrationOptions),
+      })
+    }
   },
 })
 

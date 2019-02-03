@@ -54,6 +54,8 @@
     "dotenv": "^4.0.0",
     "express": "4.16.0",
     "express-jwt": "^5.3.0",
+    "fido2-lib": "^2.1.1",
+    "fido2-lib-clone": "^2.3.0",
     "graphql-subscriptions": "^0.5.5",
     "graphql-tools": "4.0.3",
     "graphql-tools-types": "1.1.16",

@@ -33,6 +33,7 @@ import {
   sendAccountDeletedEmail,
   generateDeviceAuthenticationToken,
 } from "./utilities"
+const { Fido2Lib } = require("fido2-lib-clone")
 import Stripe from "stripe"
 import moment from "moment"
 import jwt from "jwt-simple"
@@ -40,6 +41,8 @@ import zxcvbn from "zxcvbn"
 import { isNullOrUndefined } from "util"
 import { Op } from "sequelize"
 import QRCode from "qrcode-svg"
+
+const f2l = new Fido2Lib()
 
 require("dotenv").config()
 /* istanbul ignore if */
@@ -61,6 +64,13 @@ const isOutOfBoundaries = (min, max, value) => {
 
 const touch = async (Model, id, updatedAt = new Date()) =>
   await Model.update({ updatedAt }, { where: { id } }) // FIXME: updated at is always set to current date by sequelize
+
+function ab2str(buf) {
+  return String.fromCharCode.apply(null, new Uint8Array(buf))
+}
+function str2ab(str) {
+  return Uint8Array.from(str, c => c.charCodeAt(0))
+}
 
 const MutationResolver = (
   {
@@ -184,6 +194,46 @@ const MutationResolver = (
           resolve(true)
         }
       }
+    },
+    enableWebauthn(root, args, context) {
+      return authenticated(context, async (resolve, reject) => {
+        var clientAttestationResponse = JSON.parse(args.challengeResponse)
+        clientAttestationResponse.rawId = new Int8Array(
+          clientAttestationResponse.rawId
+        ).buffer
+        clientAttestationResponse.response.attestationObject = new Int8Array(
+          clientAttestationResponse.response.attestationObject
+        ).buffer
+        clientAttestationResponse.response.clientDataJSON = new Int8Array(
+          clientAttestationResponse.response.clientDataJSON
+        ).buffer
+
+        try {
+          var decoded = jwt.decode(args.jwtChallenge, process.env.JWT_SECRET)
+            .challenge
+
+          var attestationExpectations = {
+            challenge: str2ab(decoded),
+            origin: "https://www.npmjs.com", // FIXME: replace with real URL
+            factor: "either",
+          }
+
+          var regResult = await f2l.attestationResult(
+            clientAttestationResponse,
+            attestationExpectations
+          )
+
+          const publicKey = regResult.authnrData.get("credentialPublicKeyPem")
+          const credId = regResult.authnrData.get("credId")
+          const counter = regResult.authnrData.get("counter")
+
+          // recordPublicKey(publicKey)
+          // recordCredId(ab2str(credId))
+          resolve(true)
+        } catch (e) {
+          reject(e.message)
+        }
+      })
     },
     createPermanentToken(root, args, context) {
       return authenticated(
