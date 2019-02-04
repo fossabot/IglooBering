@@ -769,8 +769,8 @@ enum ENVIRONMENT_SORT {
 }
 
 enum SORT_DIRECTION {
-  ASC
-  DESC
+  ASCENDING
+  DESCENDING
 }
 
 type Environment {

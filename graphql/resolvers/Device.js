@@ -9,6 +9,7 @@ import { Op } from "sequelize"
 import SqlString from "sqlstring"
 
 const QUERY_COST = 1
+const isNotNullNorUndefined = value => value !== undefined && value !== null
 
 const DeviceResolver = ({
   Device,
@@ -49,6 +50,18 @@ const DeviceResolver = ({
       User,
       1,
       async (resolve, reject, deviceFound) => {
+        if (
+          args.sortBy === "index" &&
+          isNotNullNorUndefined(args.sortDirection)
+        ) {
+          reject("Cannot set sort direction when sorting by index")
+          return
+        }
+        args.sortDirection =
+          args.sortDirection === "ASCENDING"
+            ? "ASC"
+            : args.sortDirection === "DESCENDING" ? "DESC" : args.sortDirection
+
         const parseRawStringFilter = (stringFilter, fieldName) => {
           stringFilter.hasOwnProperty = Object.prototype.hasOwnProperty
 
