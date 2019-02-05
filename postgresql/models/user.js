@@ -83,6 +83,10 @@ module.exports = (queryInterface, Sequelize) => {
       type: Sequelize.BOOLEAN,
       defaultValue: true,
     },
+    settings_permanentTokenCreatedEmail: {
+      type: Sequelize.BOOLEAN,
+      defaultValue: true,
+    },
   })
   User.associate = function(models) {
     // associations can be defined here

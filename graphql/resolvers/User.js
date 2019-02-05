@@ -124,6 +124,8 @@ const UserResolver = ({
             userFound.settings_pendingOwnerChangeAcceptedEmail,
           pendingEnvironmentShareAcceptedEmail:
             userFound.settings_pendingEnvironmentShareAcceptedEmail,
+          permanentTokenCreatedEmail:
+            userFound.settings_permanentTokenCreatedEmail,
         })
         context.billingUpdater.update(QUERY_COST)
       }
