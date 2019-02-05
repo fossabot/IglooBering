@@ -7,6 +7,7 @@ import {
 import SqlString from "sqlstring"
 
 const QUERY_COST = 1
+const isNotNullNorUndefined = value => value !== undefined && value !== null
 
 const retrieveUserScalarProp = (User, prop, acceptedTokens) => (
   root,
@@ -123,6 +124,8 @@ const UserResolver = ({
             userFound.settings_pendingOwnerChangeAcceptedEmail,
           pendingEnvironmentShareAcceptedEmail:
             userFound.settings_pendingEnvironmentShareAcceptedEmail,
+          permanentTokenCreatedEmail:
+            userFound.settings_permanentTokenCreatedEmail,
         })
         context.billingUpdater.update(QUERY_COST)
       }
@@ -222,9 +225,20 @@ const UserResolver = ({
   },
   environments(root, args, context) {
     return authenticated(context, async (resolve, reject) => {
-      if (context.auth.userId !== root.id) {
+      if (
+        args.sortBy === "index" &&
+        isNotNullNorUndefined(args.sortDirection)
+      ) {
+        reject("Cannot set sort direction when sorting by index")
+        return
+      } else if (context.auth.userId !== root.id) {
         reject("You are not allowed to perform this operation")
       } else {
+        args.sortDirection =
+          args.sortDirection === "ASCENDING"
+            ? "ASC"
+            : args.sortDirection === "DESCENDING" ? "DESC" : args.sortDirection
+
         const parseRawStringFilter = (stringFilter, fieldName) => {
           stringFilter.hasOwnProperty = Object.prototype.hasOwnProperty
 

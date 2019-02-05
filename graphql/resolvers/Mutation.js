@@ -376,6 +376,7 @@ const MutationResolver = (
               settings_pendingEnvironmentShareReceivedEmail: true,
               settings_pendingOwnerChangeAcceptedEmail: true,
               settings_pendingEnvironmentShareAcceptedEmail: true,
+              settings_permanentTokenCreatedEmail: true,
             })
 
             // setting context so that the resolvers for user know that the user is authenticated
@@ -1988,6 +1989,7 @@ const MutationResolver = (
             "pendingEnvironmentShareReceivedEmail",
             "pendingOwnerChangeAcceptedEmail",
             "pendingEnvironmentShareAcceptedEmail",
+            "permanentTokenCreatedEmail",
           ]
 
           fields.forEach(field => {
@@ -2013,6 +2015,8 @@ const MutationResolver = (
               newUser.settings_pendingOwnerChangeAcceptedEmail,
             pendingEnvironmentShareAcceptedEmail:
               newUser.settings_pendingEnvironmentShareAcceptedEmail,
+            permanentTokenCreatedEmail:
+              newUser.settings_permanentTokenCreatedEmail,
           })
 
           pubsub.publish("userUpdated", {

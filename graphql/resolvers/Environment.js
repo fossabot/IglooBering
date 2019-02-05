@@ -11,6 +11,7 @@ import {
 import { Op } from "sequelize"
 
 const QUERY_COST = 1
+const isNotNullNorUndefined = value => value !== undefined && value !== null
 
 const rolesResolver = (roleName, Environment, User) => (root, args, context) =>
   authorized(
@@ -106,6 +107,18 @@ const EnvironmentResolver = ({
       User,
       1,
       async (resolve, reject, environmentFound) => {
+        if (
+          args.sortBy === "index" &&
+          isNotNullNorUndefined(args.sortDirection)
+        ) {
+          reject("Cannot set sort direction when sorting by index")
+          return
+        }
+        args.sortDirection =
+          args.sortDirection === "ASCENDING"
+            ? "ASC"
+            : args.sortDirection === "DESCENDING" ? "DESC" : args.sortDirection
+
         const parseDeviceFilter = filter => {
           if (!filter) return {}
 

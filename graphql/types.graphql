@@ -362,6 +362,7 @@ type Mutation {
     pendingEnvironmentShareReceivedEmail: Boolean
     pendingOwnerChangeAcceptedEmail: Boolean
     pendingEnvironmentShareAcceptedEmail: Boolean
+    permanentTokenCreatedEmail: Boolean
   ): Settings
 
   updatePaymentInfo(stripeToken: String!): Boolean
@@ -723,6 +724,7 @@ type Settings {
   pendingEnvironmentShareReceivedEmail: Boolean!
   pendingOwnerChangeAcceptedEmail: Boolean!
   pendingEnvironmentShareAcceptedEmail: Boolean!
+  permanentTokenCreatedEmail: Boolean!
 }
 
 type User {
@@ -777,8 +779,8 @@ enum ENVIRONMENT_SORT {
 }
 
 enum SORT_DIRECTION {
-  ASC
-  DESC
+  ASCENDING
+  DESCENDING
 }
 
 type Environment {
