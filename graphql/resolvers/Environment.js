@@ -51,6 +51,39 @@ const retrievePublicEnvironmentScalarProp = (Environment, prop) => (
     }
   })
 
+const parseDeviceFilter = filter => {
+  if (!filter) return {}
+
+  filter.hasOwnProperty = Object.prototype.hasOwnProperty
+
+  const parsedFilter = {}
+  if (filter.hasOwnProperty("AND"))
+    parsedFilter[Op.and] = filter.AND.map(parseDeviceFilter)
+  if (filter.hasOwnProperty("OR"))
+    parsedFilter[Op.or] = filter.OR.map(parseDeviceFilter)
+  if (filter.hasOwnProperty("name"))
+    parsedFilter.name = parseStringFilter(filter.name)
+  if (filter.hasOwnProperty("firmware"))
+    parsedFilter.firmware = parseStringFilter(filter.firmware)
+  if (filter.hasOwnProperty("batteryStatus"))
+    parsedFilter.batteryStatus = parseFloatFilter(filter.batteryStatus)
+  if (filter.hasOwnProperty("signalStatus"))
+    parsedFilter.signalStatus = parseFloatFilter(filter.signalStatus)
+  if (filter.hasOwnProperty("online")) parsedFilter.online = filter.online
+  if (filter.hasOwnProperty("muted")) parsedFilter.muted = filter.muted
+  if (filter.hasOwnProperty("starred")) {
+    if (filter.starred === true) {
+      parsedFilter.starred = { [Op.contains]: [context.auth.userId] }
+    } else if (filter.starred == false) {
+      parsedFilter[Op.not] = {
+        ...(parsedFilter[Op.not] ? parsedFilter[Op.not] : {}),
+        starred: { [Op.contains]: [context.auth.userId] },
+      }
+    }
+  }
+  return parsedFilter
+}
+
 const EnvironmentResolver = ({
   User,
   Environment,
@@ -119,40 +152,6 @@ const EnvironmentResolver = ({
             ? "ASC"
             : args.sortDirection === "DESCENDING" ? "DESC" : args.sortDirection
 
-        const parseDeviceFilter = filter => {
-          if (!filter) return {}
-
-          filter.hasOwnProperty = Object.prototype.hasOwnProperty
-
-          const parsedFilter = {}
-          if (filter.hasOwnProperty("AND"))
-            parsedFilter[Op.and] = filter.AND.map(parseDeviceFilter)
-          if (filter.hasOwnProperty("OR"))
-            parsedFilter[Op.or] = filter.OR.map(parseDeviceFilter)
-          if (filter.hasOwnProperty("name"))
-            parsedFilter.name = parseStringFilter(filter.name)
-          if (filter.hasOwnProperty("firmware"))
-            parsedFilter.firmware = parseStringFilter(filter.firmware)
-          if (filter.hasOwnProperty("batteryStatus"))
-            parsedFilter.batteryStatus = parseFloatFilter(filter.batteryStatus)
-          if (filter.hasOwnProperty("signalStatus"))
-            parsedFilter.signalStatus = parseFloatFilter(filter.signalStatus)
-          if (filter.hasOwnProperty("online"))
-            parsedFilter.online = filter.online
-          if (filter.hasOwnProperty("muted")) parsedFilter.muted = filter.muted
-          if (filter.hasOwnProperty("starred")) {
-            if (filter.starred === true) {
-              parsedFilter.starred = { [Op.contains]: [context.auth.userId] }
-            } else if (filter.starred == false) {
-              parsedFilter[Op.not] = {
-                ...(parsedFilter[Op.not] ? parsedFilter[Op.not] : {}),
-                starred: { [Op.contains]: [context.auth.userId] },
-              }
-            }
-          }
-          return parsedFilter
-        }
-
         const sortDirection = args.sortDirection || "DESC"
 
         const devices = await Device.findAll({
@@ -180,7 +179,7 @@ const EnvironmentResolver = ({
       1,
       async (resolve, reject, environmentFound) => {
         const devices = await Device.count({
-          where: { environmentId: root.id },
+          where: { environmentId: root.id, ...parseDeviceFilter(args.filter) },
         })
 
         resolve(devices)
