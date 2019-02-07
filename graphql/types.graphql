@@ -346,7 +346,6 @@ type Mutation {
     paymentPlan: PaymentPlan
     name: String
     profileIcon: String
-    profileIconColor: String
   ): User
   changeEmail(newEmail: String!): Boolean
 
