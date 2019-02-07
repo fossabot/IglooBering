@@ -1128,7 +1128,8 @@ const randomChoice = (...args) => {
 const randomEnvironmentPicture = () =>
   randomChoice(["NORTHERN_LIGHTS", "DENALI", "FOX", "PUFFIN", "TREETOPS"])
 
-const randomUserIconColor = () => randomChoice(["blue", "red", "green"])
+const randomUserIconColor = () =>
+  randomChoice(["#43A047", "#0097A7", "#9C27B0", "#D81B60", "#FF5722"])
 
 const updateUserBilling = (dataLoaders, auth) => async bill => {
   //TODO: bill the owner of the instance, not the one doing the request
