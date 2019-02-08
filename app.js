@@ -22,6 +22,7 @@ import {
 } from "./postgresql/models/index"
 import jwt from "jwt-simple"
 import { GenerateUserBillingBatcher } from "./graphql/resolvers/utilities"
+import { pubsub } from "./shared"
 
 webpush.setVapidDetails(
   "http://igloo.witlab.io/",
@@ -285,18 +286,26 @@ app.get("/verifyEmail/:verificationToken", async (req, res) => {
       res.send("Malformed token")
     } else {
       const foundUser = await User.find({ where: { id: decodedToken.userId } })
+      const sameEmailUserFound = await User.find({
+        where: { email: decodedToken.email },
+      })
 
       if (!foundUser) {
         res.send("User doesn't exist anymore")
-      } else if (decodedToken.email !== foundUser.email) {
-        res.send("This isn't your primary email anymore")
+      } else if (sameEmailUserFound) {
+        res.send("A user with this email already exists")
       } else {
-        foundUser.update({ emailIsVerified: true })
+        foundUser.update({ emailIsVerified: true, email: decodedToken.email })
 
+        pubsub.publish("userUpdated", {
+          userUpdated: foundUser.dataValues,
+          userId: foundUser.id,
+        })
         res.redirect("https://aurora.igloo.ooo")
       }
     }
   } catch (e) {
+    console.log(e)
     res.send("Failed verification")
   }
 })

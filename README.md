@@ -1,6 +1,8 @@
-![Igloo Bering](https://github.com/hellowitlab/iglooHouston/blob/master/iglooHouston.png?raw=true "Igloo Houston")
+<p align="center">
+  <img src="https://github.com/IglooCloud/IglooBering/blob/master/IglooLogo.png" alt="Igloo logo" width="128"/>
+</p>
 
-# Igloo Bering
+<h1 align="center">Igloo Bering</h1>
 
 Bering is the back-end service of Igloo.
 
@@ -114,7 +116,7 @@ npm start
 
 ### General structure
 
-Data on Igloo is organized hierarchically: the fundamental unit is the **Device** (e.g. thermometer, people counter, air pollution sensor, ...), every device has multiple **Value**s (e.g. tmeperature, humiildity, CO2 concentration, ...). Multiple devices can be organized in **Environment**s (e.g. marine area, beehives, ...).
+Data on Igloo is organized hierarchically: the fundamental unit is the **Device** (e.g. thermometer, people counter, air pollution sensor, ...), every device has multiple **Value**s (e.g. temperature, humidity, CO2 concentration, ...). Multiple devices can be organized in **Environment**s (e.g. marine area, beehives, ...).
 
 ## Contributing
 

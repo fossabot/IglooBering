@@ -1921,10 +1921,6 @@ const MutationResolver = (
       return authenticated(
         context,
         async (resolve, reject) => {
-          const userFound = await context.dataLoaders.userLoaderById.load(
-            context.auth.userId
-          )
-
           const sameEmailUserFound = await User.find({
             where: { email: args.newEmail },
           })
@@ -1934,18 +1930,8 @@ const MutationResolver = (
           }
 
           try {
-            const newUser = await userFound.update({
-              email: args.newEmail,
-              emailIsVerified: false,
-            })
+            sendVerificationEmail(args.newEmail, context.auth.userId)
             resolve(true)
-
-            pubsub.publish("userUpdated", {
-              userUpdated: newUser.dataValues,
-              userId: context.auth.userId,
-            })
-
-            sendVerificationEmail(args.newEmail, newUser.id)
 
             context.billingUpdater.update(MUTATION_COST)
           } catch (e) {

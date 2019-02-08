@@ -347,7 +347,6 @@ type Mutation {
     paymentPlan: PaymentPlan
     name: String
     profileIcon: String
-    profileIconColor: String
   ): User
   changeEmail(newEmail: String!): Boolean
 
@@ -802,7 +801,7 @@ type Environment {
   pendingOwnerChanges: [PendingOwnerChange!]
   name: String!
   picture: EnvironmentPicture!
-  deviceCount: Int
+  deviceCount(filter: DeviceFilter): Int
   devices(
     limit: Int
     offset: Int
