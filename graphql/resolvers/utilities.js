@@ -508,7 +508,7 @@ const sendVerificationEmail = (email, userId) => {
   // TODO: create a template for the email verification
   ses.sendEmail(
     {
-      Source: "'Igloo Cloud' <noreply@igloo.ooo>",
+      Source: "'Igloo' <noreply@igloo.ooo>",
       Destination: { ToAddresses: [email] },
       Message: {
         Body: {
@@ -542,7 +542,7 @@ const sendPasswordRecoveryEmail = (email, userId) => {
   // TODO: create a template for the email verification
   ses.sendEmail(
     {
-      Source: "'Igloo Cloud' <noreply@igloo.ooo>",
+      Source: "'Igloo' <noreply@igloo.ooo>",
       Destination: { ToAddresses: [email] },
       Message: {
         Body: {
@@ -567,7 +567,7 @@ const sendPasswordRecoveryEmail = (email, userId) => {
 const sendAccountDeletedEmail = email => {
   ses.sendEmail(
     {
-      Source: "'Igloo Cloud' <noreply@igloo.ooo>",
+      Source: "'Igloo' <noreply@igloo.ooo>",
       Destination: { ToAddresses: [email] },
       Message: {
         Body: {
@@ -594,7 +594,7 @@ const sendPasswordUpdatedEmail = email => {
   // TODO: create a template for the email verification
   ses.sendEmail(
     {
-      Source: "'Igloo Cloud' <noreply@igloo.ooo>",
+      Source: "'Igloo' <noreply@igloo.ooo>",
       Destination: { ToAddresses: [email] },
       Message: {
         Body: {
@@ -623,7 +623,7 @@ const sendTokenCreatedEmail = email => {
   // TODO: create a template for the email verification
   ses.sendEmail(
     {
-      Source: "'Igloo Cloud' <noreply@igloo.ooo>",
+      Source: "'Igloo' <noreply@igloo.ooo>",
       Destination: { ToAddresses: [email] },
       Message: {
         Body: {
@@ -651,7 +651,7 @@ const sendEnvironmentSharedEmail = (email, userName, environmentName) => {
   // TODO: create a template for the email verification
   ses.sendEmail(
     {
-      Source: "'Igloo Cloud' <noreply@igloo.ooo>",
+      Source: "'Igloo' <noreply@igloo.ooo>",
       Destination: { ToAddresses: [email] },
       Message: {
         Body: {
@@ -677,7 +677,7 @@ const sendOwnerChangeEmail = (email, userName, environmentName) => {
   // TODO: create a template for the email verification
   ses.sendEmail(
     {
-      Source: "'Igloo Cloud' <noreply@igloo.ooo>",
+      Source: "'Igloo' <noreply@igloo.ooo>",
       Destination: { ToAddresses: [email] },
       Message: {
         Body: {
