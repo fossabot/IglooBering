@@ -30,20 +30,7 @@ function str2ab(str) {
   return Uint8Array.from(str, c => c.charCodeAt(0))
 }
 
-const QueryResolver = ({
-  User,
-  Device,
-  Environment,
-  FloatValue,
-  StringValue,
-  BooleanValue,
-  PlotValue,
-  CategoryPlotValue,
-  MapValue,
-  Notification,
-  PlotNode,
-  CategoryPlotNode,
-}) => ({
+const QueryResolver = ({ User, WebauthnKey }) => ({
   user(root, args, context) {
     return authenticated(
       context,
@@ -177,7 +164,10 @@ const QueryResolver = ({
 
       registrationOptions.rp = { name: "Igloo" }
       registrationOptions.user = { name: args.email, displayName: args.email }
-      registrationOptions.pubKeyCredParams = [{ alg: -7, type: "public-key" }]
+      registrationOptions.pubKeyCredParams = [
+        { alg: -7, type: "public-key" },
+        { alg: -257, type: "public-key" },
+      ]
       registrationOptions.authenticatorSelection = {
         authenticatorAttachment: "cross-platform",
       }
@@ -186,7 +176,72 @@ const QueryResolver = ({
 
       resolve({
         jwtChallenge,
-        subscribeOptions: JSON.stringify(registrationOptions),
+        publicKeyOptions: JSON.stringify(registrationOptions),
+      })
+    }
+  },
+  getWebauthnLoginChallenge(root, args, context) {
+    return async (resolve, reject) => {
+      const userFound = await User.find({ where: { email: args.email } })
+      if (!userFound) {
+        reject("This user doesn't exist")
+        return
+      }
+
+      const keys = await WebauthnKey.findAll({
+        where: { userId: userFound.id },
+      })
+
+      if (keys.length === 0) {
+        reject("No webauthn keys registered")
+        return
+      }
+
+      const authnOptions = await f2l.assertionOptions()
+
+      authnOptions.challenge = ab2str(authnOptions.challenge)
+      authnOptions.allowCredentials = keys.reduce(
+        (acc, { credId }) => [
+          ...acc,
+          {
+            type: "public-key",
+            alg: -7,
+            id: credId,
+          },
+          {
+            type: "public-key",
+            alg: -257,
+            id: credId,
+          },
+        ],
+        []
+      )
+
+      authnOptions.rp = { name: "Igloo" }
+      authnOptions.user = {
+        // id: userFound.id, // FIXME: uncomment?
+        name: args.email,
+        displayName: args.email,
+      }
+      authnOptions.userVerification = "discouraged"
+      authnOptions.timeout = 60000
+      authnOptions.attestation = "none"
+
+      const jwtChallenge = jwt.encode(
+        {
+          exp: moment()
+            .utc()
+            .add({ minutes: 15 })
+            .unix(),
+          challenge: authnOptions.challenge,
+        },
+        process.env.JWT_SECRET,
+        "HS512"
+      )
+
+      resolve({
+        jwtChallenge,
+        publicKeyOptions: JSON.stringify(authnOptions),
       })
     }
   },

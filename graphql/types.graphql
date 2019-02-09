@@ -98,6 +98,10 @@ enum TokenType {
 type Mutation {
   # Gets an authentication token
   logIn(email: String!, password: String!): authenticationPayload
+  logInWithWebauthn(
+    challengeResponse: String!
+    jwtChallenge: String!
+  ): authenticationPayload
 
   # creates a token to perform special operations
   createToken(password: String!, tokenType: TokenType!): String
@@ -609,7 +613,7 @@ input ValueFilter {
 }
 
 type WebauthnChallenge {
-  subscribeOptions: String
+  publicKeyOptions: String
   jwtChallenge: String
 }
 
@@ -630,6 +634,8 @@ type Query {
   categoryPlotNode(id: ID!): CategoryPlotNode
   # get's challenge to enable webauthn
   getWebauthnSubscribeChallenge(email: String!): WebauthnChallenge
+  # get's challenge to sign in with webauthn
+  getWebauthnLoginChallenge(email: String!): WebauthnChallenge
 }
 
 type Subscription {

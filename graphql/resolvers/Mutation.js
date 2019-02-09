@@ -93,6 +93,7 @@ const MutationResolver = (
     EnvironmentEditor,
     EnvironmentSpectator,
     UnclaimedDevice,
+    WebauthnKey,
   },
   WebPushNotification,
   pubsub,
@@ -156,6 +157,74 @@ const MutationResolver = (
         }
       }
     },
+    logInWithWebauthn(root, args, context) {
+      return async (resolve, reject) => {
+        const clientAssertionResponse = JSON.parse(args.challengeResponse)
+        const keyFound = await WebauthnKey.find({
+          where: { credId: ab2str(clientAssertionResponse.rawId) },
+        })
+
+        clientAssertionResponse.rawId = new Int8Array(
+          clientAssertionResponse.rawId
+        ).buffer
+        clientAssertionResponse.response.clientDataJSON = new Int8Array(
+          clientAssertionResponse.response.clientDataJSON
+        ).buffer
+        clientAssertionResponse.response.authenticatorData = new Int8Array(
+          clientAssertionResponse.response.authenticatorData
+        ).buffer
+        clientAssertionResponse.response.signature = new Int8Array(
+          clientAssertionResponse.response.signature
+        ).buffer
+
+        const decodedChallenge = jwt.decode(
+          args.jwtChallenge,
+          process.env.JWT_SECRET
+        ).challenge
+
+        var assertionExpectations = {
+          challenge: str2ab(decodedChallenge),
+          origin: "https://aurora.igloo.ooo",
+          factor: "either",
+          publicKey: keyFound.publicKey,
+          userHandle: null,
+          prevCounter: keyFound.counter,
+        }
+
+        try {
+          var authnResult = await f2l.assertionResult(
+            clientAssertionResponse,
+            assertionExpectations
+          )
+
+          await keyFound.update({
+            counter: authnResult.authnrData.get("counter"),
+          })
+
+          // setting context so that the resolvers for user know that the user is authenticated
+          context.auth = {
+            userId: "29e4c3f7-0027-40e4-aaf7-10117b26db78",
+            accessLevel: "OWNER",
+            tokenType: "TEMPORARY",
+          }
+          context.billingUpdater = GenerateUserBillingBatcher(
+            context.dataLoaders,
+            context.auth
+          )
+
+          resolve({
+            token: generateAuthenticationToken(
+              "29e4c3f7-0027-40e4-aaf7-10117b26db78",
+              JWT_SECRET
+            ),
+            user: { id: "29e4c3f7-0027-40e4-aaf7-10117b26db78" },
+          })
+        } catch (e) {
+          console.log(e)
+          reject(e.message)
+        }
+      }
+    },
     createToken(root, args, context) {
       return authenticated(context, async (resolve, reject) => {
         const userFound = await context.dataLoaders.userLoaderById.load(
@@ -214,7 +283,7 @@ const MutationResolver = (
 
           var attestationExpectations = {
             challenge: str2ab(decoded),
-            origin: "https://www.npmjs.com", // FIXME: replace with real URL
+            origin: "https://aurora.igloo.ooo",
             factor: "either",
           }
 
@@ -224,11 +293,16 @@ const MutationResolver = (
           )
 
           const publicKey = regResult.authnrData.get("credentialPublicKeyPem")
-          const credId = regResult.authnrData.get("credId")
+          const credId = ab2str(regResult.authnrData.get("credId"))
           const counter = regResult.authnrData.get("counter")
 
-          // recordPublicKey(publicKey)
-          // recordCredId(ab2str(credId))
+          await WebauthnKey.create({
+            userId: context.auth.userId,
+            publicKey,
+            credId,
+            counter,
+          })
+
           resolve(true)
         } catch (e) {
           reject(e.message)
