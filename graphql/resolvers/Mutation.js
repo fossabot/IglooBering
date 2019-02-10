@@ -2147,6 +2147,30 @@ const MutationResolver = (
             userIds: await instanceToSharedIds(environmentFound, context),
           })
 
+          const pendingEnvironmentSharesFound = await PendingEnvironmentShare.findAll(
+            { where: { environmentId: newEnvironment.id } }
+          )
+
+          pendingEnvironmentSharesFound.map(environmentShare => {
+            pubsub.publish("pendingEnvironmentShareUpdated", {
+              pendingEnvironmentShareUpdated: environmentShare,
+              userIds: [environmentShare.senderId, environmentShare.receiverId],
+            })
+          })
+
+          const ownerChanges = await PendingOwnerChange.findAll({
+            where: {
+              environmentId: newEnvironment.id,
+            },
+          })
+
+          ownerChanges.map(ownerChange => {
+            pubsub.publish("pendingOwnerChangeUpdated", {
+              pendingOwnerChangeUpdated: ownerChange,
+              userIds: [ownerChange.senderId, ownerChange.receiverId],
+            })
+          })
+
           context.billingUpdater.update(MUTATION_COST)
         },
         environmentToParent
