@@ -3496,6 +3496,23 @@ const MutationResolver = (
               })
             )
           }
+          async function destroyWebauthnKeys() {
+            const webauthnKeys = await WebauthnKey.findAll({
+              where: {
+                userId: context.auth.userId,
+              },
+            })
+
+            await Promise.all(
+              webauthnKeys.map(async key => {
+                // pubsub.publish("pendingOwnerChangeRevoked", {
+                //   pendingOwnerChangeRevoked: ownerChange.id,
+                //   userId: ownerChange.receiverId,
+                // })
+                await key.destroy()
+              })
+            )
+          }
 
           await Promise.all([
             ...deleteEnvironmentsPromises,
@@ -3504,6 +3521,7 @@ const MutationResolver = (
             ...removeJoinTablePromises,
             destroyPendingEnvironmentShare(),
             destroyPendingOwnerChange(),
+            destroyWebauthnKeys(),
           ])
           const email = userFound.email
           await userFound.destroy()

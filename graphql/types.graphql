@@ -703,7 +703,7 @@ type Subscription {
   # subscribes to environment deletes
   environmentDeleted: ID
   # subscribes to user deletes
-  userDeleted: ID
+  userDeleted(id: ID): ID
   # subscribes to token deletes
   permanentTokenDeleted: ID
   # subscribes to notification deletes

@@ -234,11 +234,22 @@ const subscriptionResolver = (pubsub, { User, Device, Environment }) => ({
     pubsub,
     createDataLoaders
   ),
-  userDeleted: subscriptionFilterOnlyMine(
-    "userDeleted",
-    pubsub,
-    createDataLoaders
-  ),
+  userDeleted: {
+    subscribe: (root, args, context, info) => {
+      if (context.auth) {
+        const userDeletedId = args.id || context.auth.userId
+        return withFilter(
+          () => pubsub.asyncIterator("userDeleted"),
+          payload => {
+            context.dataLoaders = createDataLoaders()
+
+            return payload.userId === userDeletedId
+          }
+        )(root, args, context, info)
+      }
+      throw new Error("No authorization token")
+    },
+  },
   plotNodeDeleted: subscriptionFilterOwnedOrShared(
     "plotNodeDeleted",
     pubsub,
