@@ -51,16 +51,16 @@ const retrievePublicEnvironmentScalarProp = (Environment, prop) => (
     }
   })
 
-const parseDeviceFilter = filter => {
+const parseDeviceFilter = userId => filter => {
   if (!filter) return {}
 
   filter.hasOwnProperty = Object.prototype.hasOwnProperty
 
   const parsedFilter = {}
   if (filter.hasOwnProperty("AND"))
-    parsedFilter[Op.and] = filter.AND.map(parseDeviceFilter)
+    parsedFilter[Op.and] = filter.AND.map(parseDeviceFilter(userId))
   if (filter.hasOwnProperty("OR"))
-    parsedFilter[Op.or] = filter.OR.map(parseDeviceFilter)
+    parsedFilter[Op.or] = filter.OR.map(parseDeviceFilter(userId))
   if (filter.hasOwnProperty("name"))
     parsedFilter.name = parseStringFilter(filter.name)
   if (filter.hasOwnProperty("firmware"))
@@ -73,11 +73,11 @@ const parseDeviceFilter = filter => {
   if (filter.hasOwnProperty("muted")) parsedFilter.muted = filter.muted
   if (filter.hasOwnProperty("starred")) {
     if (filter.starred === true) {
-      parsedFilter.starred = { [Op.contains]: [context.auth.userId] }
-    } else if (filter.starred == false) {
+      parsedFilter.starred = { [Op.contains]: [userId] }
+    } else if (filter.starred === false) {
       parsedFilter[Op.not] = {
         ...(parsedFilter[Op.not] ? parsedFilter[Op.not] : {}),
-        starred: { [Op.contains]: [context.auth.userId] },
+        starred: { [Op.contains]: [userId] },
       }
     }
   }
@@ -155,7 +155,10 @@ const EnvironmentResolver = ({
         const sortDirection = args.sortDirection || "DESC"
 
         const devices = await Device.findAll({
-          where: { environmentId: root.id, ...parseDeviceFilter(args.filter) },
+          where: {
+            environmentId: root.id,
+            ...parseDeviceFilter(context.auth.userId)(args.filter),
+          },
           limit: args.limit,
           offset: args.offset,
           order: args.sortBy
@@ -179,7 +182,10 @@ const EnvironmentResolver = ({
       1,
       async (resolve, reject, environmentFound) => {
         const devices = await Device.count({
-          where: { environmentId: root.id, ...parseDeviceFilter(args.filter) },
+          where: {
+            environmentId: root.id,
+            ...parseDeviceFilter(context.auth.userId)(args.filter),
+          },
         })
 
         resolve(devices)
