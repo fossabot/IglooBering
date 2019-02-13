@@ -619,7 +619,7 @@ type WebauthnChallenge {
 
 type Query {
   # gets user's data
-  user: User
+  user(email: String): User
   #  get's device's data
   device(id: ID!): Device
   # get's environment's data

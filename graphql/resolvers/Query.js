@@ -34,9 +34,20 @@ const QueryResolver = ({ User, WebauthnKey }) => ({
   user(root, args, context) {
     return authenticated(
       context,
-      resolve => {
-        resolve({ id: context.auth.userId })
-        context.billingUpdater.update(QUERY_COST)
+      async (resolve, reject) => {
+        if (args.email) {
+          const userFound = await User.find({ where: { email: args.email } })
+
+          if (userFound) {
+            resolve({ id: userFound.id })
+            context.billingUpdater.update(QUERY_COST)
+          } else {
+            reject("User not found")
+          }
+        } else {
+          resolve({ id: context.auth.userId })
+          context.billingUpdater.update(QUERY_COST)
+        }
       },
       ["TEMPORARY", "PERMANENT", "PASSWORD_RECOVERY"]
     )
