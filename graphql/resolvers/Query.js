@@ -158,6 +158,13 @@ const QueryResolver = ({ User, WebauthnKey }) => ({
   },
   getWebauthnSubscribeChallenge(root, args, context) {
     return async (resolve, reject) => {
+      const userFound = await User.find({ where: { email: args.email } })
+
+      if (!userFound) {
+        reject("user not found")
+        return
+      }
+
       let registrationOptions = await f2l.attestationOptions()
       registrationOptions.challenge = ab2str(registrationOptions.challenge)
 
@@ -174,7 +181,11 @@ const QueryResolver = ({ User, WebauthnKey }) => ({
       )
 
       registrationOptions.rp = { name: "Igloo" }
-      registrationOptions.user = { name: args.email, displayName: args.email }
+      registrationOptions.user = {
+        name: args.email,
+        displayName: args.email,
+        id: userFound.id,
+      }
       registrationOptions.pubKeyCredParams = [
         { alg: -7, type: "public-key" },
         { alg: -257, type: "public-key" },
