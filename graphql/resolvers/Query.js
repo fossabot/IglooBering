@@ -179,9 +179,6 @@ const QueryResolver = ({ User, WebauthnKey }) => ({
         { alg: -7, type: "public-key" },
         { alg: -257, type: "public-key" },
       ]
-      registrationOptions.authenticatorSelection = {
-        authenticatorAttachment: "cross-platform",
-      }
       registrationOptions.timeout = 60000
       registrationOptions.attestation = "none"
 
