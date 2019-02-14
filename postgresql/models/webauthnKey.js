@@ -17,7 +17,7 @@ module.exports = (queryInterface, Sequelize) => {
       type: Sequelize.FLOAT,
     },
     publicKey: {
-      type: Sequelize.STRING,
+      type: Sequelize.STRING(2000),
     },
     credId: {
       type: Sequelize.STRING,
