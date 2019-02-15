@@ -238,7 +238,7 @@ const QueryResolver = ({ User, WebauthnKey }) => ({
 
       authnOptions.rp = { name: "Igloo" }
       authnOptions.user = {
-        // id: userFound.id, // FIXME: uncomment?
+        id: userFound.id,
         name: args.email,
         displayName: args.email,
       }
@@ -253,6 +253,7 @@ const QueryResolver = ({ User, WebauthnKey }) => ({
             .add({ minutes: 15 })
             .unix(),
           challenge: authnOptions.challenge,
+          userId: userFound.id,
         },
         process.env.JWT_SECRET,
         "HS512"

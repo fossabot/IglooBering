@@ -177,10 +177,10 @@ const MutationResolver = (
           clientAssertionResponse.response.signature
         ).buffer
 
-        const decodedChallenge = jwt.decode(
+        const { challenge: decodedChallenge, userId } = jwt.decode(
           args.jwtChallenge,
           process.env.JWT_SECRET
-        ).challenge
+        )
 
         var assertionExpectations = {
           challenge: str2ab(decodedChallenge),
@@ -203,7 +203,7 @@ const MutationResolver = (
 
           // setting context so that the resolvers for user know that the user is authenticated
           context.auth = {
-            userId: "29e4c3f7-0027-40e4-aaf7-10117b26db78",
+            userId,
             accessLevel: "OWNER",
             tokenType: "TEMPORARY",
           }
@@ -213,11 +213,8 @@ const MutationResolver = (
           )
 
           resolve({
-            token: generateAuthenticationToken(
-              "29e4c3f7-0027-40e4-aaf7-10117b26db78",
-              JWT_SECRET
-            ),
-            user: { id: "29e4c3f7-0027-40e4-aaf7-10117b26db78" },
+            token: generateAuthenticationToken(userId, JWT_SECRET),
+            user: { id: userId },
           })
         } catch (e) {
           console.log(e)
