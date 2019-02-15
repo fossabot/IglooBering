@@ -156,7 +156,7 @@ const QueryResolver = ({ User, WebauthnKey }) => ({
       valueToParent
     )
   },
-  getWebauthnSubscribeChallenge(root, args, context) {
+  getWebAuthnEnableChallenge(root, args, context) {
     return async (resolve, reject) => {
       const userFound = await User.find({ where: { email: args.email } })
 
@@ -199,7 +199,7 @@ const QueryResolver = ({ User, WebauthnKey }) => ({
       })
     }
   },
-  getWebauthnLoginChallenge(root, args, context) {
+  getWebAuthnLogInChallenge(root, args, context) {
     return async (resolve, reject) => {
       const userFound = await User.find({ where: { email: args.email } })
       if (!userFound) {

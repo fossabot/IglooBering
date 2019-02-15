@@ -16,7 +16,6 @@ module.exports = (queryInterface, Sequelize) => {
     },
     password: {
       type: Sequelize.STRING,
-      allowNull: false,
     },
     twoFactorSecret: {
       type: Sequelize.STRING,

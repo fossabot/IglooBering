@@ -14,6 +14,7 @@ enum EnvironmentPicture {
 type signUpPayload {
   # token used to authenticate, pass it as a bearer in the authentication header
   token: String!
+  changePasswordToken: String!
   user: User!
 }
 
@@ -116,7 +117,9 @@ type Mutation {
   deletePermanentToken(id: ID!): ID
 
   # Creates a new account
-  signUp(email: String!, password: String!, name: String!): signUpPayload
+  signUp(email: String!, name: String!): signUpPayload
+  # Creates a new account
+  enablePassword(password: String!): Boolean
 
   # Sends an email with a llink to change the password
   sendPasswordRecoveryEmail(email: String!): Boolean
@@ -633,9 +636,9 @@ type Query {
   # get categoryPlotNode's data
   categoryPlotNode(id: ID!): CategoryPlotNode
   # get's challenge to enable webauthn
-  getWebauthnSubscribeChallenge(email: String!): WebauthnChallenge
+  getWebAuthnEnableChallenge(email: String!): WebauthnChallenge
   # get's challenge to sign in with webauthn
-  getWebauthnLoginChallenge(email: String!): WebauthnChallenge
+  getWebAuthnLogInChallenge(email: String!): WebauthnChallenge
 }
 
 type Subscription {

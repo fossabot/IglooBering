@@ -110,6 +110,8 @@ const MutationResolver = (
         })
         if (!userFound) {
           reject("User doesn't exist. Use `signUp` to create one")
+        } else if (!userFound.dataValues.password) {
+          reject("this user does not have a password")
         } else if (
           !bcrypt.compareSync(args.password, userFound.dataValues.password)
         ) {
@@ -400,22 +402,6 @@ const MutationResolver = (
     },
     signUp(root, args, context) {
       return async (resolve, reject) => {
-        // check password strength
-        const zxcvbnDictionary = [
-          args.email,
-          args.email.split("@")[0],
-          args.name,
-          "igloo",
-          "igloo aurora",
-          "aurora",
-        ]
-        if (zxcvbn(args.password, zxcvbnDictionary).score < 2) {
-          reject(
-            "Password too weak, avoid easily guessable password or short ones"
-          )
-          return
-        }
-
         if (!args.name) {
           reject("name required")
           return
@@ -425,11 +411,9 @@ const MutationResolver = (
         if (userFound) {
           reject("A user with this email already exists")
         } else {
-          const encryptedPass = bcrypt.hashSync(args.password, SALT_ROUNDS)
           try {
             const newUser = await User.create({
               email: args.email,
-              password: encryptedPass,
               quietMode: false,
               devMode: false,
               monthUsage: 0,
@@ -466,6 +450,18 @@ const MutationResolver = (
                 newUser.dataValues.id,
                 JWT_SECRET
               ),
+              changePasswordToken: jwt.encode(
+                {
+                  userId: newUser.id,
+                  tokenType: "CHANGE_PASSWORD",
+                  exp: moment()
+                    .utc()
+                    .add({ minutes: 15 })
+                    .unix(),
+                },
+                JWT_SECRET,
+                "HS512"
+              ),
               user: newUser,
             })
 
@@ -481,7 +477,8 @@ const MutationResolver = (
           }
         }
       }
-    } /* 
+    },
+    /*
     UpgradeTo2FactorAuthentication(root, args, context) {
       return authenticated(context, async (resolve, reject) => {
           const userFound = await Ucontext.dataLoaders.userLoaderById.load(context.auth.userId)
@@ -506,7 +503,7 @@ const MutationResolver = (
           }
         })
       
-  }, */,
+  }, */
     // changes the password and returns an access token
     changePassword(root, args, context) {
       return authenticated(
