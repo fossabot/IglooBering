@@ -546,6 +546,9 @@ const MutationResolver = (
                 newUser.dataValues.id,
                 JWT_SECRET
               ),
+              user: {
+                id: userFound.id,
+              },
             })
 
             sendPasswordUpdatedEmail(userFound.email)
