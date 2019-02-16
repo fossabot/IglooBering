@@ -15,7 +15,7 @@ const sequelize = new Sequelize(process.env.CONNECTION_STRING, {
   logging: false,
   pool: {
     max: process.env.NODE_ENV === "production" ? 50 : 5,
-    min: process.env.NODE_ENV === "production" ? 50 : 5,
+    min: process.env.NODE_ENV === "production" ? 20 : 1,
     idle: 200000,
     acquire: 400000,
     evict: 200000,

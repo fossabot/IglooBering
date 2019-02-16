@@ -261,7 +261,7 @@ const DeviceResolver = ({
       ["TEMPORARY", "PERMANENT", "DEVICE_ACCESS"]
     )
   },
-  getLastNotification(root, args, context) {
+  lastNotification(root, args, context) {
     return authorized(
       root.id,
       context,
