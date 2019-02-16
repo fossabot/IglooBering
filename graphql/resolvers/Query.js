@@ -180,7 +180,11 @@ const QueryResolver = ({ User, WebauthnKey }) => ({
         "HS512"
       )
 
-      registrationOptions.rp = { name: "Igloo" }
+      registrationOptions.rp = {
+        name: "Igloo",
+        icon:
+          "https://raw.githubusercontent.com/IglooCloud/IglooBering/master/IglooLogo.png",
+      }
       registrationOptions.user = {
         name: args.email,
         displayName: args.email,
@@ -236,7 +240,11 @@ const QueryResolver = ({ User, WebauthnKey }) => ({
         []
       )
 
-      authnOptions.rp = { name: "Igloo" }
+      authnOptions.rp = {
+        name: "Igloo",
+        icon:
+          "https://raw.githubusercontent.com/IglooCloud/IglooBering/master/IglooLogo.png",
+      }
       authnOptions.user = {
         id: userFound.id,
         name: args.email,
