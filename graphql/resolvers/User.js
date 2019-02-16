@@ -22,7 +22,7 @@ const retrieveUserScalarProp = (User, prop, acceptedTokens) => (
       } else {
         const userFound = await context.dataLoaders.userLoaderById.load(root.id)
         if (!userFound) {
-          reject("User doesn't exist. Use `` to create one")
+          reject("User doesn't exist. Use `signUp` to create one")
         } else {
           resolve(userFound[prop])
         }
@@ -47,7 +47,7 @@ const retrievePublicUserScalarProp = (User, prop, acceptedTokens) => (
     async (resolve, reject) => {
       const userFound = await context.dataLoaders.userLoaderById.load(root.id)
       if (!userFound) {
-        reject("User doesn't exist. Use `` to create one")
+        reject("User doesn't exist. Use `signUp` to create one")
       } else {
         resolve(userFound[prop])
       }

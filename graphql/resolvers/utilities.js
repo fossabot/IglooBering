@@ -1136,7 +1136,7 @@ const updateUserBilling = (dataLoaders, auth) => async bill => {
   // const userFound = await dataLoaders.userLoaderById.load(auth.userId)
   // // TODO: handle this failure gracefully
   // if (!userFound) {
-  //   throw new Error("User doesn't exist. Use `` to create one")
+  //   throw new Error("User doesn't exist. Use `signUp` to create one")
   // } else {
   //   const newUser = await userFound.increment("monthUsage", { by: bill })
   //   return newUser.monthUsage

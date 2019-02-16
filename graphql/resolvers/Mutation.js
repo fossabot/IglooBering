@@ -484,7 +484,7 @@ const MutationResolver = (
           const userFound = await Ucontext.dataLoaders.userLoaderById.load(context.auth.userId)
           // istanbul ignore if - should ever happen 
           if (!userFound) {
-            reject("User doesn't exist. Use `` to create one")
+            reject("User doesn't exist. Use `signUp` to create one")
           } else if (!userFound.twoFactorSecret) {
             const { secret, qrCode } = create2FSecret(userFound.email)
             await userFound.update({ twoFactorSecret: secret })
@@ -513,7 +513,7 @@ const MutationResolver = (
             context.auth.userId
           )
           if (!userFound) {
-            reject("User doesn't exist. Use `` to create one")
+            reject("User doesn't exist. Use `signUp` to create one")
           } else {
             // check password strength
             const zxcvbnDictionary = [
@@ -556,7 +556,7 @@ const MutationResolver = (
           context.auth.userId
         )
         if (!userFound) {
-          reject("User doesn't exist. Use `` to create one")
+          reject("User doesn't exist. Use `signUp` to create one")
         } else if (userFound.emailIsVerified) {
           reject("This user has already verified their email")
         } else {
@@ -2021,7 +2021,7 @@ const MutationResolver = (
           context.auth.userId
         )
         if (!userFound) {
-          reject("User doesn't exist. Use `` to create one")
+          reject("User doesn't exist. Use `signUp` to create one")
         } else if (
           args.language === null ||
           args.lengthAndMass === null ||
@@ -2088,7 +2088,7 @@ const MutationResolver = (
           context.auth.userId
         )
         if (!userFound) {
-          reject("User doesn't exist. Use `` to create one")
+          reject("User doesn't exist. Use `signUp` to create one")
         } else if (userFound.stripeCustomerId) {
           // replaces customer payment method
           await stripe.customers.createSource(userFound.stripeCustomerId, {
