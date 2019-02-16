@@ -264,49 +264,53 @@ const MutationResolver = (
       }
     },
     enableWebauthn(root, args, context) {
-      return authenticated(context, async (resolve, reject) => {
-        var clientAttestationResponse = JSON.parse(args.challengeResponse)
-        clientAttestationResponse.rawId = new Int8Array(
-          clientAttestationResponse.rawId
-        ).buffer
-        clientAttestationResponse.response.attestationObject = new Int8Array(
-          clientAttestationResponse.response.attestationObject
-        ).buffer
-        clientAttestationResponse.response.clientDataJSON = new Int8Array(
-          clientAttestationResponse.response.clientDataJSON
-        ).buffer
+      return authenticated(
+        context,
+        async (resolve, reject) => {
+          var clientAttestationResponse = JSON.parse(args.challengeResponse)
+          clientAttestationResponse.rawId = new Int8Array(
+            clientAttestationResponse.rawId
+          ).buffer
+          clientAttestationResponse.response.attestationObject = new Int8Array(
+            clientAttestationResponse.response.attestationObject
+          ).buffer
+          clientAttestationResponse.response.clientDataJSON = new Int8Array(
+            clientAttestationResponse.response.clientDataJSON
+          ).buffer
 
-        try {
-          var decoded = jwt.decode(args.jwtChallenge, process.env.JWT_SECRET)
-            .challenge
+          try {
+            var decoded = jwt.decode(args.jwtChallenge, process.env.JWT_SECRET)
+              .challenge
 
-          var attestationExpectations = {
-            challenge: str2ab(decoded),
-            origin: "https://aurora.igloo.ooo",
-            factor: "either",
+            var attestationExpectations = {
+              challenge: str2ab(decoded),
+              origin: "https://aurora.igloo.ooo",
+              factor: "either",
+            }
+
+            var regResult = await f2l.attestationResult(
+              clientAttestationResponse,
+              attestationExpectations
+            )
+
+            const publicKey = regResult.authnrData.get("credentialPublicKeyPem")
+            const credId = ab2str(regResult.authnrData.get("credId"))
+            const counter = regResult.authnrData.get("counter")
+
+            await WebauthnKey.create({
+              userId: context.auth.userId,
+              publicKey,
+              credId,
+              counter,
+            })
+
+            resolve(true)
+          } catch (e) {
+            reject(e.message)
           }
-
-          var regResult = await f2l.attestationResult(
-            clientAttestationResponse,
-            attestationExpectations
-          )
-
-          const publicKey = regResult.authnrData.get("credentialPublicKeyPem")
-          const credId = ab2str(regResult.authnrData.get("credId"))
-          const counter = regResult.authnrData.get("counter")
-
-          await WebauthnKey.create({
-            userId: context.auth.userId,
-            publicKey,
-            credId,
-            counter,
-          })
-
-          resolve(true)
-        } catch (e) {
-          reject(e.message)
-        }
-      })
+        },
+        ["CHANGE_AUTHENTICATION"]
+      )
     },
     createPermanentToken(root, args, context) {
       return authenticated(
@@ -450,10 +454,10 @@ const MutationResolver = (
                 newUser.dataValues.id,
                 JWT_SECRET
               ),
-              changePasswordToken: jwt.encode(
+              changeAuthenticationToken: jwt.encode(
                 {
                   userId: newUser.id,
-                  tokenType: "CHANGE_PASSWORD",
+                  tokenType: "CHANGE_AUTHENTICATION",
                   exp: moment()
                     .utc()
                     .add({ minutes: 15 })
@@ -547,7 +551,7 @@ const MutationResolver = (
             sendPasswordUpdatedEmail(userFound.email)
           }
         },
-        ["CHANGE_PASSWORD", "PASSWORD_RECOVERY"]
+        ["CHANGE_AUTHENTICATION", "PASSWORD_RECOVERY"]
       )
     },
     resendVerificationEmail(root, args, context) {

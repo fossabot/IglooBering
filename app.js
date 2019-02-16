@@ -69,7 +69,7 @@ app.use(
         case "PASSWORD_RECOVERY":
         case "MANAGE_PERMANENT_TOKENS":
         case "DELETE_USER":
-        case "CHANGE_PASSWORD":
+        case "CHANGE_AUTHENTICATION":
         case "CHANGE_EMAIL":
           done(null, false)
           break
