@@ -1198,6 +1198,8 @@ const parseFloatFilter = filter => {
   return parsedFilter
 }
 
+const parseDateFilter = parseFloatFilter
+
 module.exports = {
   authenticated,
   generateAuthenticationToken,
@@ -1242,5 +1244,6 @@ module.exports = {
   sendPushNotification,
   parseStringFilter,
   parseFloatFilter,
+  parseDateFilter,
   generateDeviceAuthenticationToken,
 }

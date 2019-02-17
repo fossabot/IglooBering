@@ -4,12 +4,42 @@ import {
   authorizedScalarPropsResolvers,
   deviceToParent,
   instanceToRole,
+  parseStringFilter,
+  parseDateFilter,
 } from "./utilities"
 import { Op } from "sequelize"
 import SqlString from "sqlstring"
 
 const QUERY_COST = 1
 const isNotNullNorUndefined = value => value !== undefined && value !== null
+
+const parseNotificationFilter = userId => filter => {
+  if (!filter) return {}
+
+  filter.hasOwnProperty = Object.prototype.hasOwnProperty
+
+  const parsedFilter = {}
+  if (filter.hasOwnProperty("AND"))
+    parsedFilter[Op.and] = filter.AND.map(parseNotificationFilter(userId))
+  if (filter.hasOwnProperty("OR"))
+    parsedFilter[Op.or] = filter.OR.map(parseNotificationFilter(userId))
+  if (filter.hasOwnProperty("content"))
+    parsedFilter.content = parseStringFilter(filter.content)
+  if (filter.hasOwnProperty("date"))
+    parsedFilter.date = parseDateFilter(filter.date)
+  if (filter.hasOwnProperty("read")) {
+    if (filter.read === true) {
+      parsedFilter[Op.not] = {
+        ...(parsedFilter[Op.not] ? parsedFilter[Op.not] : {}),
+        notRead: { [Op.contains]: [userId] },
+      }
+    } else if (filter.read === false) {
+      parsedFilter.notRead = { [Op.contains]: [userId] }
+    }
+  }
+
+  return parsedFilter
+}
 
 const DeviceResolver = ({
   Device,
@@ -248,7 +278,10 @@ const DeviceResolver = ({
       1,
       async (resolve, reject, deviceFound) => {
         const notifications = await Notification.findAll({
-          where: { deviceId: deviceFound.id },
+          where: {
+            deviceId: deviceFound.id,
+            ...parseNotificationFilter(context.auth.userId)(args.filter),
+          },
           limit: args.limit,
           offset: args.offset,
           order: [["date", "DESC"]],
@@ -270,12 +303,15 @@ const DeviceResolver = ({
       1,
       async (resolve, reject, deviceFound) => {
         const notificationFound = await Notification.find({
-          where: { deviceId: deviceFound.id },
+          where: {
+            deviceId: deviceFound.id,
+            ...parseNotificationFilter(context.auth.userId)(args.filter),
+          },
           order: [["date", "DESC"]],
         })
 
         resolve(notificationFound)
-        context.billingUpdater.update(QUERY_COST * notifications.length)
+        context.billingUpdater.update(QUERY_COST)
       },
       deviceToParent,
       ["TEMPORARY", "PERMANENT", "DEVICE_ACCESS"]

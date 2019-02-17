@@ -595,6 +595,14 @@ input FloatFilter {
   lessOrEqualTo: Float
 }
 
+input DateFilter {
+  equals: DateTime
+  greaterThan: DateTime
+  greaterOrEqualTo: DateTime
+  lessThan: DateTime
+  lessOrEqualTo: DateTime
+}
+
 input DeviceFilter {
   OR: [DeviceFilter!]
   AND: [DeviceFilter!]
@@ -613,6 +621,14 @@ input ValueFilter {
   AND: [ValueFilter!]
   name: StringFilter
   cardSize: CardSize
+}
+
+input NotificationFilter {
+  OR: [NotificationFilter!]
+  AND: [NotificationFilter!]
+  content: StringFilter
+  date: DateFilter
+  read: Boolean
 }
 
 type WebauthnChallenge {
@@ -872,8 +888,12 @@ type Device {
     filter: ValueFilter
   ): [Value!]!
   environment: Environment!
-  notifications(limit: Int, offset: Int): [Notification!]!
-  lastNotification: Notification
+  notifications(
+    limit: Int
+    offset: Int
+    filter: NotificationFilter
+  ): [Notification!]!
+  lastNotification(filter: NotificationFilter): Notification
   notificationCount: Int!
   online: Boolean
   signalStatus: Float
