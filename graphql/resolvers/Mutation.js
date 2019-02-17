@@ -159,7 +159,7 @@ const MutationResolver = (
         }
       }
     },
-    logInWithWebauthn(root, args, context) {
+    loginWithWebAuthn(root, args, context) {
       return async (resolve, reject) => {
         const clientAssertionResponse = JSON.parse(args.challengeResponse)
         const keyFound = await WebauthnKey.find({
