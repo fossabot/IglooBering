@@ -159,9 +159,20 @@ const MutationResolver = (
         }
       }
     },
-    loginWithWebAuthn(root, args, context) {
+    logInWithWebAuthn(root, args, context) {
       return async (resolve, reject) => {
-        const clientAssertionResponse = JSON.parse(args.challengeResponse)
+        let clientAssertionResponse
+        try {
+          clientAssertionResponse = JSON.parse(args.challengeResponse)
+        } catch (e) {
+          if (e instanceof SyntaxError) {
+            reject("Invaild JSON passed for challengeResponse")
+            return
+          } else {
+            reject("Internal error")
+          }
+        }
+
         const keyFound = await WebauthnKey.find({
           where: { credId: ab2str(clientAssertionResponse.rawId) },
         })
@@ -179,10 +190,14 @@ const MutationResolver = (
           clientAssertionResponse.response.signature
         ).buffer
 
-        const { challenge: decodedChallenge, userId } = jwt.decode(
-          args.jwtChallenge,
-          process.env.JWT_SECRET
-        )
+        let decodedJwt
+        try {
+          decodedJwt = jwt.decode(args.jwtChallenge, process.env.JWT_SECRET)
+        } catch (e) {
+          reject("Invalid or expired jwtChallenge")
+          return
+        }
+        const { challenge: decodedChallenge, userId } = decodedJwt
 
         var assertionExpectations = {
           challenge: str2ab(decodedChallenge),
@@ -267,7 +282,18 @@ const MutationResolver = (
       return authenticated(
         context,
         async (resolve, reject) => {
-          var clientAttestationResponse = JSON.parse(args.challengeResponse)
+          let clientAttestationResponse
+          try {
+            clientAttestationResponse = JSON.parse(args.challengeResponse)
+          } catch (e) {
+            if (e instanceof SyntaxError) {
+              reject("Invaild JSON passed for challengeResponse")
+              return
+            } else {
+              reject("Internal error")
+            }
+          }
+
           clientAttestationResponse.rawId = new Int8Array(
             clientAttestationResponse.rawId
           ).buffer
@@ -278,36 +304,44 @@ const MutationResolver = (
             clientAttestationResponse.response.clientDataJSON
           ).buffer
 
+          let decodedJwt
           try {
-            var decoded = jwt.decode(args.jwtChallenge, process.env.JWT_SECRET)
-              .challenge
+            decodedJwt = jwt.decode(args.jwtChallenge, process.env.JWT_SECRET)
+          } catch (e) {
+            reject("Invalid or expired jwtChallenge")
+            return
+          }
+          const decoded = decodedJwt.challenge
 
-            var attestationExpectations = {
-              challenge: str2ab(decoded),
-              origin: "https://aurora.igloo.ooo",
-              factor: "either",
-            }
+          var attestationExpectations = {
+            challenge: str2ab(decoded),
+            origin: "https://aurora.igloo.ooo",
+            factor: "either",
+          }
 
-            var regResult = await f2l.attestationResult(
+          let regResult
+          try {
+            regResult = await f2l.attestationResult(
               clientAttestationResponse,
               attestationExpectations
             )
-
-            const publicKey = regResult.authnrData.get("credentialPublicKeyPem")
-            const credId = ab2str(regResult.authnrData.get("credId"))
-            const counter = regResult.authnrData.get("counter")
-
-            await WebauthnKey.create({
-              userId: context.auth.userId,
-              publicKey,
-              credId,
-              counter,
-            })
-
-            resolve(true)
           } catch (e) {
-            reject(e.message)
+            reject("Invalid challengeResponse")
+            return
           }
+
+          const publicKey = regResult.authnrData.get("credentialPublicKeyPem")
+          const credId = ab2str(regResult.authnrData.get("credId"))
+          const counter = regResult.authnrData.get("counter")
+
+          await WebauthnKey.create({
+            userId: context.auth.userId,
+            publicKey,
+            credId,
+            counter,
+          })
+
+          resolve(true)
         },
         ["CHANGE_AUTHENTICATION"]
       )

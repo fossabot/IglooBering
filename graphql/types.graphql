@@ -99,7 +99,7 @@ enum TokenType {
 type Mutation {
   # Gets an authentication token
   logIn(email: String!, password: String!): authenticationPayload
-  loginWithWebAuthn(
+  logInWithWebAuthn(
     challengeResponse: String!
     jwtChallenge: String!
   ): authenticationPayload
