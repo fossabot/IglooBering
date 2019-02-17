@@ -1,8 +1,8 @@
 ---
 name: Feature request
 about: Suggest an idea for this project
-title: New feature
-labels: ''
+title: ''
+labels: New feature
 assignees: ''
 
 ---
