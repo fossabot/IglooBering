@@ -146,4 +146,4 @@ TBD
 
 ## License
 
-See the [LICENSE](https://github.com/hellowitlab/iglooHouston/blob/master/LICENSE) file for license rights and limitations.
+See the [LICENSE](https://github.com/IglooCloud/IglooBering/blob/master/LICENSE.md) file for license rights and limitations.
