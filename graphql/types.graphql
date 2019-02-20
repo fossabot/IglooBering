@@ -12,10 +12,7 @@ enum EnvironmentPicture {
 
 # Payload returned after signing up
 type signUpPayload {
-  # token used to authenticate, pass it as a bearer in the authentication header
-  token: String!
   changeAuthenticationToken: String!
-  user: User!
 }
 
 # Payload returned when authenticating
@@ -119,12 +116,15 @@ type Mutation {
   # Creates a new account
   signUp(email: String!, name: String!): signUpPayload
   # Creates a new account
-  enablePassword(password: String!): Boolean
+  enablePassword(password: String!): authenticationPayload
 
   # Sends an email with a llink to change the password
   sendPasswordRecoveryEmail(email: String!): Boolean
 
-  enableWebauthn(challengeResponse: String, jwtChallenge: String): Boolean
+  enableWebauthn(
+    challengeResponse: String
+    jwtChallenge: String
+  ): authenticationPayload
   # Upgrades a user to 2 factor authentication
   # UpgradeTo2FactorAuthentication: UpgradeTo2FactorPayload
 
@@ -652,7 +652,7 @@ type Query {
   # get categoryPlotNode's data
   categoryPlotNode(id: ID!): CategoryPlotNode
   # get's challenge to enable webauthn
-  getWebAuthnEnableChallenge(email: String!): WebauthnChallenge
+  getWebAuthnEnableChallenge: WebauthnChallenge
   # get's challenge to sign in with webauthn
   getWebAuthnLogInChallenge(email: String!): WebauthnChallenge
 }

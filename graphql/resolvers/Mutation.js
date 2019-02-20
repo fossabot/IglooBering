@@ -341,7 +341,22 @@ const MutationResolver = (
             counter,
           })
 
-          resolve(true)
+          context.auth = {
+            userId: context.auth.userId,
+            accessLevel: "OWNER",
+            tokenType: "TEMPORARY",
+          }
+          context.billingUpdater = GenerateUserBillingBatcher(
+            context.dataLoaders,
+            context.auth
+          )
+
+          resolve({
+            token: generateAuthenticationToken(context.auth.userId, JWT_SECRET),
+            user: {
+              id: context.auth.userId,
+            },
+          })
         },
         ["CHANGE_AUTHENTICATION"]
       )
@@ -472,22 +487,7 @@ const MutationResolver = (
               settings_permanentTokenCreatedEmail: true,
             })
 
-            // setting context so that the resolvers for user know that the user is authenticated
-            context.auth = {
-              userId: newUser.id,
-              accessLevel: "OWNER",
-              tokenType: "TEMPORARY",
-            }
-            context.billingUpdater = GenerateUserBillingBatcher(
-              context.dataLoaders,
-              context.auth
-            )
-
             resolve({
-              token: generateAuthenticationToken(
-                newUser.dataValues.id,
-                JWT_SECRET
-              ),
               changeAuthenticationToken: jwt.encode(
                 {
                   userId: newUser.id,
@@ -500,7 +500,6 @@ const MutationResolver = (
                 JWT_SECRET,
                 "HS512"
               ),
-              user: newUser,
             })
 
             sendVerificationEmail(args.email, newUser.id)
@@ -543,6 +542,64 @@ const MutationResolver = (
       
   }, */
     // changes the password and returns an access token
+    enablePassword(root, args, context) {
+      return authenticated(
+        context,
+        async (resolve, reject) => {
+          const userFound = await context.dataLoaders.userLoaderById.load(
+            context.auth.userId
+          )
+          if (!userFound) {
+            reject("User doesn't exist. Use `signUp` to create one")
+          } else {
+            // check password strength
+            const zxcvbnDictionary = [
+              userFound.email,
+              userFound.email.split("@")[0],
+              userFound.name,
+              "igloo",
+              "igloo aurora",
+              "aurora",
+            ]
+
+            if (zxcvbn(args.password, zxcvbnDictionary).score < 2) {
+              reject(
+                "Password too weak, avoid easily guessable password or short ones"
+              )
+              return
+            }
+
+            const encryptedPass = bcrypt.hashSync(args.password, SALT_ROUNDS)
+
+            const newUser = await userFound.update({
+              password: encryptedPass,
+            })
+
+            context.auth = {
+              userId: context.auth.userId,
+              accessLevel: "OWNER",
+              tokenType: "TEMPORARY",
+            }
+            context.billingUpdater = GenerateUserBillingBatcher(
+              context.dataLoaders,
+              context.auth
+            )
+
+            resolve({
+              token: generateAuthenticationToken(
+                newUser.dataValues.id,
+                JWT_SECRET
+              ),
+              user: {
+                id: userFound.id,
+              },
+            })
+          }
+        },
+        ["CHANGE_AUTHENTICATION"]
+      )
+    },
+    // changes the password and returns an access token
     changePassword(root, args, context) {
       return authenticated(
         context,
@@ -574,6 +631,16 @@ const MutationResolver = (
             const newUser = await userFound.update({
               password: encryptedPass,
             })
+            context.auth = {
+              userId: context.auth.userId,
+              accessLevel: "OWNER",
+              tokenType: "TEMPORARY",
+            }
+            context.billingUpdater = GenerateUserBillingBatcher(
+              context.dataLoaders,
+              context.auth
+            )
+
             resolve({
               id: newUser.dataValues.id,
               token: generateAuthenticationToken(
@@ -592,19 +659,23 @@ const MutationResolver = (
       )
     },
     resendVerificationEmail(root, args, context) {
-      return authenticated(context, async (resolve, reject) => {
-        const userFound = await context.dataLoaders.userLoaderById.load(
-          context.auth.userId
-        )
-        if (!userFound) {
-          reject("User doesn't exist. Use `signUp` to create one")
-        } else if (userFound.emailIsVerified) {
-          reject("This user has already verified their email")
-        } else {
-          resolve(true)
-          sendVerificationEmail(userFound.email, userFound.id)
-        }
-      })
+      return authenticated(
+        context,
+        async (resolve, reject) => {
+          const userFound = await context.dataLoaders.userLoaderById.load(
+            context.auth.userId
+          )
+          if (!userFound) {
+            reject("User doesn't exist. Use `signUp` to create one")
+          } else if (userFound.emailIsVerified) {
+            reject("This user has already verified their email")
+          } else {
+            resolve(true)
+            sendVerificationEmail(userFound.email, userFound.id)
+          }
+        },
+        ["TEMPORARY", "CHANGE_AUTHENTICATION"]
+      )
     },
     shareEnvironment: (root, args, context) =>
       authorized(

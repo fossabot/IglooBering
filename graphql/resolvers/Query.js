@@ -157,51 +157,57 @@ const QueryResolver = ({ User, WebauthnKey }) => ({
     )
   },
   getWebAuthnEnableChallenge(root, args, context) {
-    return async (resolve, reject) => {
-      const userFound = await User.find({ where: { email: args.email } })
+    return authenticated(
+      context,
+      async (resolve, reject) => {
+        const userFound = await User.find({
+          where: { id: context.auth.userId },
+        })
 
-      if (!userFound) {
-        reject("user not found")
-        return
-      }
+        if (!userFound) {
+          reject("user does not exist")
+          return
+        }
 
-      let registrationOptions = await f2l.attestationOptions()
-      registrationOptions.challenge = ab2str(registrationOptions.challenge)
+        let registrationOptions = await f2l.attestationOptions()
+        registrationOptions.challenge = ab2str(registrationOptions.challenge)
 
-      const jwtChallenge = jwt.encode(
-        {
-          exp: moment()
-            .utc()
-            .add({ minutes: 15 })
-            .unix(),
-          challenge: registrationOptions.challenge,
-        },
-        process.env.JWT_SECRET,
-        "HS512"
-      )
+        const jwtChallenge = jwt.encode(
+          {
+            exp: moment()
+              .utc()
+              .add({ minutes: 15 })
+              .unix(),
+            challenge: registrationOptions.challenge,
+          },
+          process.env.JWT_SECRET,
+          "HS512"
+        )
 
-      registrationOptions.rp = {
-        name: "Igloo",
-        icon:
-          "https://raw.githubusercontent.com/IglooCloud/IglooBering/master/IglooLogo.png",
-      }
-      registrationOptions.user = {
-        name: args.email,
-        displayName: args.email,
-        id: userFound.id,
-      }
-      registrationOptions.pubKeyCredParams = [
-        { alg: -7, type: "public-key" },
-        { alg: -257, type: "public-key" },
-      ]
-      registrationOptions.timeout = 60000
-      registrationOptions.attestation = "none"
+        registrationOptions.rp = {
+          name: "Igloo",
+          icon:
+            "https://raw.githubusercontent.com/IglooCloud/IglooBering/master/IglooLogo.png",
+        }
+        registrationOptions.user = {
+          name: userFound.email,
+          displayName: userFound.email,
+          id: userFound.id,
+        }
+        registrationOptions.pubKeyCredParams = [
+          { alg: -7, type: "public-key" },
+          { alg: -257, type: "public-key" },
+        ]
+        registrationOptions.timeout = 60000
+        registrationOptions.attestation = "none"
 
-      resolve({
-        jwtChallenge,
-        publicKeyOptions: JSON.stringify(registrationOptions),
-      })
-    }
+        resolve({
+          jwtChallenge,
+          publicKeyOptions: JSON.stringify(registrationOptions),
+        })
+      },
+      ["TEMPORARY", "CHANGE_AUTHENTICATION"]
+    )
   },
   getWebAuthnLogInChallenge(root, args, context) {
     return async (resolve, reject) => {
