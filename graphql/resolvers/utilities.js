@@ -18,6 +18,7 @@ import AWS from "aws-sdk"
 import UpdateBatcher from "update-batcher"
 import webpush from "web-push"
 import { Op } from "sequelize"
+import { isNullOrUndefined } from "util"
 
 webpush.setVapidDetails(
   "http://igloo.witlab.io/",

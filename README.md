@@ -1,6 +1,7 @@
 <p align="center">
-  <img src="https://github.com/IglooCloud/IglooBering/blob/master/IglooLogo.png" alt="Igloo logo" width="128"/>
+  <img src="https://raw.githubusercontent.com/IglooCloud/IglooBering/master/IglooLogo.png" alt="Igloo logo" width="128"/>
 </p>
+
 
 <h1 align="center">Igloo Bering</h1>
 
