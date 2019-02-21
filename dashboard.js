@@ -9,26 +9,40 @@ class DashboardPage extends PageBuilder {
   }
 
   async build() {
-    const userCount = await User.count({
-      where: { [Op.not]: { email: { [Op.like]: "%@igloo.ooo" } } },
-    })
-    this.addBlock({
-      title: "Users",
-      value: userCount,
-      icon: "fas fa-users fa-2x",
-      columns: 3,
+    const userCountFree = await User.count({
+      where: {
+        paymentPlan: "FREE",
+        // [Op.not]: { email: { [Op.like]: "%@igloo.ooo" } },
+      },
     })
     const userCountBusiness = await User.count({
       where: {
         paymentPlan: "BUSINESS",
-        [Op.not]: { email: { [Op.like]: "%@igloo.ooo" } },
+        // [Op.not]: { email: { [Op.like]: "%@igloo.ooo" } },
       },
     })
-    this.addBlock({
-      title: "Business users",
-      value: userCountBusiness,
-      icon: "fas fa-dollar-sign fa-2x",
-      columns: 3,
+    this.addChart({
+      columns: 6,
+      title: "Total Users",
+      config: {
+        type: "bar",
+        data: {
+          datasets: [
+            {
+              label: "FREE",
+              fill: true,
+              backgroundColor: PageBuilder.COLOR.INFO,
+              data: [userCountFree],
+            },
+            {
+              label: "BUSINESS",
+              fill: true,
+              backgroundColor: PageBuilder.COLOR.WARNING,
+              data: [userCountBusiness],
+            },
+          ],
+        },
+      },
     })
 
     const environmentCount = await Environment.count({
