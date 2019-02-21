@@ -14,7 +14,8 @@
     "precommit": "lint-staged",
     "sequelize":
       "sequelize --config ./postgresql/config/config.json --models-path ./postgresql/models --migrations-path ./postgresql/migrations --seeders-path ./postgresql/seeders",
-    "bill": "babel-node ./monthlyBilling"
+    "bill": "babel-node ./monthlyBilling",
+    "docs": "jsdoc -c jsdoc.json"
   },
   "lint-staged": {
     "*.js": ["prettier --write", "git add"],
@@ -51,6 +52,7 @@
     "cors": "^2.8.4",
     "coveralls": "^3.0.0",
     "dataloader": "^1.4.0",
+    "docdash": "^1.0.3",
     "dotenv": "^4.0.0",
     "express": "4.16.0",
     "express-jwt": "^5.3.0",

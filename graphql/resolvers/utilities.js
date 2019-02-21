@@ -1,3 +1,8 @@
+/**
+ * Various function that can be reused
+ * @namespace Utilities
+ */
+
 require("dotenv").config()
 
 /* istanbul ignore if */
@@ -33,6 +38,22 @@ const JWT_EXPIRE_DAYS = 7
 
 fortuna.init()
 
+/**
+ * @callback PromiseExecutor
+ * @param {number} resolve - resolve callback for the promise
+ * @param {number} reject - resolve callback for the promise
+ */
+
+/**
+ * Checks that the request is authenticated with the correct authorizations and executes the callback
+ * @param {Object} context
+ * @param {Object} context.auth - the decoded jwt token used to authenticate
+ * @param {PromiseExecutor} callback - callback to call if authorized
+ * @param {string[]} [acceptedTokenTypes=["TEMPORARY", "PERMANENT"]] - List of the authorized token types
+ * @returns {PromiseExecutor} function accepting (resolve, reject) arguments running the callback if authorized otherwise rejects
+ *
+ * @memberof Utilities
+ */
 const authenticated = (
   context,
   callback,
@@ -52,6 +73,14 @@ const authenticated = (
         } else reject("This token doesn't have the required authorizations")
       }
 
+/**
+ * Creates an authentication token expiring after JWT_EXPIRE (global constant) days
+ * @param {string} userId - id of the user to be authenticated as
+ * @param {string} JWT_SECRET - encryption key for the JWT
+ * @returns {string} authentication token
+ *
+ * @memberof Utilities
+ */
 const generateAuthenticationToken = (userId, JWT_SECRET) =>
   jwt.encode(
     {
@@ -67,6 +96,16 @@ const generateAuthenticationToken = (userId, JWT_SECRET) =>
     "HS512"
   )
 
+/**
+ * Creates a permanent authentication token
+ * @param {string} userId - id of the user to be authenticated as
+ * @param {string} tokenId - id of the token on the database (used for checking whether the token was revoked)
+ * @param {string} accessLevel - TODO
+ * @param {string} JWT_SECRET - encryption key for the JWT
+ * @returns {string} authentication token
+ *
+ * @memberof Utilities
+ */
 const generatePermanentAuthenticationToken = (
   userId,
   tokenId,
@@ -84,6 +123,14 @@ const generatePermanentAuthenticationToken = (
     "HS512"
   )
 
+/**
+ * Creates a permanent authentication token bound to a device (instead of a user)
+ * @param {string} deviceId - id of the user to be authenticated as
+ * @param {string} JWT_SECRET - encryption key for the JWT
+ * @returns {string} authentication token
+ *
+ * @memberof Utilities
+ */
 const generateDeviceAuthenticationToken = (deviceId, JWT_SECRET) =>
   jwt.encode(
     {
@@ -94,6 +141,16 @@ const generateDeviceAuthenticationToken = (deviceId, JWT_SECRET) =>
     "HS512"
   )
 
+// TODO: use a generic generateToken
+
+/**
+ * Creates a token used to change the password of the user
+ * @param {string} deviceId - id of the user to be authenticated as
+ * @param {string} JWT_SECRET - encryption key for the JWT
+ * @returns {string} recovery token
+ *
+ * @memberof Utilities
+ */
 const generatePasswordRecoveryToken = (userId, JWT_SECRET) =>
   jwt.encode(
     {
