@@ -23,6 +23,7 @@ import {
 import jwt from "jwt-simple"
 import { GenerateUserBillingBatcher } from "./graphql/resolvers/utilities"
 import { pubsub } from "./shared"
+import setupAdmin from "./admin"
 
 webpush.setVapidDetails(
   "http://igloo.witlab.io/",
@@ -315,5 +316,7 @@ app.get("/", (req, res) => {
     "This is the backend for the igloo service, maybe you were looking for aurora.igloo.ooo"
   )
 })
+
+setupAdmin(app)
 
 export default app
