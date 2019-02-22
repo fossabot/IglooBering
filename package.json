@@ -9,7 +9,7 @@
     "build":
       "babel server.js app.js s3helpers.js shared.js admin.js dashboard.js -d build --source-maps && babel postgresql -d build/postgresql --source-maps && babel graphql -d build/graphql --source-maps && babel dataloaders -d build/dataloaders --source-maps",
     "test": "jest --c=jest.config.json",
-    "posttest": "npm run docs",
+    "posttest": "ls",
     "coveralls": "cat ./coverage/lcov.info | ./node_modules/.bin/coveralls",
     "lint": "prettier **/*.js --write",
     "precommit": "lint-staged",
