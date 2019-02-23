@@ -317,6 +317,6 @@ app.get("/", (req, res) => {
   )
 })
 
-setupAdmin(app)
+// setupAdmin(app)
 
 export default app

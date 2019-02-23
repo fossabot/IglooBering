@@ -244,7 +244,11 @@ const MutationResolver = (
         const userFound = await context.dataLoaders.userLoaderById.load(
           context.auth.userId
         )
-        if (!bcrypt.compareSync(args.password, userFound.dataValues.password)) {
+        if (!userFound.dataValues.password) {
+          reject("This user does not have password authentication enabled")
+        } else if (
+          !bcrypt.compareSync(args.password, userFound.dataValues.password)
+        ) {
           reject("Wrong password")
         } else {
           resolve(
