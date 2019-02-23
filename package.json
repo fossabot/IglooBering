@@ -9,14 +9,14 @@
     "build":
       "babel server.js app.js s3helpers.js shared.js admin.js dashboard.js -d build --source-maps && babel postgresql -d build/postgresql --source-maps && babel graphql -d build/graphql --source-maps && babel dataloaders -d build/dataloaders --source-maps",
     "test": "jest --c=jest.config.json",
-    "posttest": "npm run docs",
+    "posttest": "ls",
     "coveralls": "cat ./coverage/lcov.info | ./node_modules/.bin/coveralls",
     "lint": "prettier **/*.js --write",
     "precommit": "lint-staged",
     "sequelize":
       "sequelize --config ./postgresql/config/config.json --models-path ./postgresql/models --migrations-path ./postgresql/migrations --seeders-path ./postgresql/seeders",
     "bill": "babel-node ./monthlyBilling",
-    "docs": "jsdoc -c jsdoc.json"
+    "docs": "./node_modules/.bin/jsdoc -c jsdoc.json"
   },
   "lint-staged": {
     "*.js": ["prettier --write", "git add"],
@@ -68,6 +68,7 @@
     "graphql-tools": "4.0.3",
     "graphql-tools-types": "1.1.16",
     "javascript-fortuna": "^1.0.8",
+    "jsdoc": "^3.5.5",
     "jwt-simple": "^0.5.1",
     "moment": "^2.19.2",
     "otp.js": "^1.1.0",
