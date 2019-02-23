@@ -45,6 +45,14 @@ fortuna.init()
  */
 
 /**
+ * @typedef SequelizeModel
+ */
+
+/**
+ * @typedef pubsub
+ */
+
+/**
  * Checks that the request is authenticated with the correct authorizations and executes the callback
  * @param {Object} context
  * @param {Object} context.auth - the decoded jwt token used to authenticate
@@ -166,6 +174,14 @@ const generatePasswordRecoveryToken = (userId, JWT_SECRET) =>
     "HS512"
   )
 
+/**
+ * Creates an object containing the required fields if they have a not null value in the args object
+ * @param {Object} args - object to read the fields from
+ * @param {string[]} props - fields to read
+ * @returns {Object} filtered object
+ *
+ * @memberof Utilities
+ */
 const getPropsIfDefined = (args, props) => {
   const propObject = {}
   for (let i = 0; i < props.length; i += 1) {
@@ -178,7 +194,31 @@ const getPropsIfDefined = (args, props) => {
 }
 
 const MUTATION_COST = 2
-// generic resolver for CreateXValue mutations
+
+/**
+ * Function checking that the passed arguments are correct and rejecting if not
+ * @callback argsChecker
+ * @param {object} args - object containing the passed arguments
+ * @param {function} reject - function to call to reject the GraphQL operation
+ *
+ * @returns {boolean} true if arguments are correct, false if not
+ */
+
+/**
+ * generic resolver for CreateXValue mutations
+ * @param {SequelizeModel} User
+ * @param {SequelizeModel} Device
+ * @param {SequelizeModel} Environment
+ * @param {SequelizeModel} Model - Model of the value to create
+ * @param {string} ModelName - name of the model used
+ * @param {SequelizeModel[]} ValueModels - Models of all the Value types
+ * @param {pubsub} pubsub - PubSub manager
+ * @param {argsChecker} argsChecks - function checking that the arguments are valid
+ *
+ * @returns {Object} filtered object // TODO
+ *
+ * @memberof Utilities
+ */
 const CreateGenericValue = (
   User,
   Device,
