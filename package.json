@@ -7,7 +7,7 @@
     "start":
       "npm run build && npm run sequelize db:migrate && node ./build/server.js",
     "build":
-      "babel server.js app.js s3helpers.js shared.js admin.js dashboard.js -d build --source-maps && babel postgresql -d build/postgresql --source-maps && babel graphql -d build/graphql --source-maps && babel dataloaders -d build/dataloaders --source-maps",
+      "babel server.js app.js s3helpers.js shared.js admin.js dashboard.js -d build --source-maps && babel postgresql -d build/postgresql --source-maps && babel redis -d build/redis --source-maps && babel graphql -d build/graphql --source-maps && babel dataloaders -d build/dataloaders --source-maps",
     "test": "jest --c=jest.config.json",
     "posttest": "ls",
     "coveralls": "cat ./coverage/lcov.info | ./node_modules/.bin/coveralls",
