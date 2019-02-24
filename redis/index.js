@@ -44,7 +44,33 @@ function increaseUserAccessCount(userId, delta = 1) {
   return hincrby("leaky_bucket_user", userId, delta)
 }
 
+async function isIpBlocked(ip) {
+  if (!hash) {
+    hash = await script("LOAD", leakyBucketScript)
+  }
+  const currVal = await evalsha(
+    hash,
+    3,
+    ip,
+    "leaky_bucket_ip_time",
+    "leaky_bucket_ip",
+    FLUSH_PER_SECOND
+  )
+
+  if (currVal >= BUCKET_SIZE) {
+    return true
+  } else {
+    return false
+  }
+}
+
+function increaseIpAccessCount(ip, delta = 1) {
+  return hincrby("leaky_bucket_ip", ip, delta)
+}
+
 module.exports = {
   isUserBlocked,
   increaseUserAccessCount,
+  isIpBlocked,
+  increaseIpAccessCount,
 }

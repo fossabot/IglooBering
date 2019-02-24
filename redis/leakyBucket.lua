@@ -3,7 +3,7 @@ local time = redis.call('TIME')[1];
 local oldTime = redis.call('hget', KEYS[2], KEYS[1]);
 if (oldTime == false)
 then
-    redis.call('hset', '', KEYS[1], 0);
+    redis.call('hset', KEYS[3], KEYS[1], 0);
     redis.call('hset', KEYS[2], KEYS[1], time);
     return 0
 end

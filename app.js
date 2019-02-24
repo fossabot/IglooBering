@@ -24,7 +24,12 @@ import jwt from "jwt-simple"
 import { GenerateUserBillingBatcher } from "./graphql/resolvers/utilities"
 import { pubsub } from "./shared"
 import setupAdmin from "./admin"
-import { isUserBlocked, increaseUserAccessCount } from "./redis"
+import {
+  isUserBlocked,
+  increaseUserAccessCount,
+  isIpBlocked,
+  increaseIpAccessCount,
+} from "./redis"
 
 webpush.setVapidDetails(
   "http://igloo.witlab.io/",
@@ -101,7 +106,25 @@ app.set("trust proxy", 1)
 // Check if usage threshold was exceeded
 app.use("/graphql", async (req, res, next) => {
   // TODO: implement anti-DDOS here
-  console.log(req.ip)
+  if (await isIpBlocked(req.ip)) {
+    res.send(
+      JSON.stringify({
+        data: null,
+        errors: [
+          {
+            message: "Your ip exceeded the rate limit",
+            path: [],
+            locations: [],
+          },
+        ],
+      })
+    )
+    return
+  } else {
+    // TODO: handle errors
+    increaseIpAccessCount(req.ip)
+  }
+
   if (!req.user || req.user.tokenType === "DEVICE_ACCESS") next()
   else {
     const userFound = await User.find({ where: { id: req.user.userId } })
