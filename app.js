@@ -24,6 +24,7 @@ import jwt from "jwt-simple"
 import { GenerateUserBillingBatcher } from "./graphql/resolvers/utilities"
 import { pubsub } from "./shared"
 import setupAdmin from "./admin"
+import { isUserBlocked, increaseUserAccessCount } from "./redis"
 
 webpush.setVapidDetails(
   "http://igloo.witlab.io/",
@@ -102,6 +103,24 @@ app.use("/graphql", async (req, res, next) => {
   if (!req.user || req.user.tokenType === "DEVICE_ACCESS") next()
   else {
     const userFound = await User.find({ where: { id: req.user.userId } })
+    if (await isUserBlocked(userFound.id)) {
+      res.send(
+        JSON.stringify({
+          data: null,
+          errors: [
+            {
+              message: "You exceeded the rate limit",
+              path: [],
+              locations: [],
+            },
+          ],
+        })
+      )
+      return
+    } else {
+      // TODO: handle errors
+      increaseUserAccessCount(userFound.id)
+    }
 
     if (!userFound) {
       res.send(
