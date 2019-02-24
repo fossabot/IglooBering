@@ -1,7 +1,6 @@
 const redis = require("redis")
 const { promisify } = require("util")
 const fs = require("fs")
-const { join } = require("path")
 require("dotenv").config()
 
 const client = redis.createClient(process.env.REDIS_URL)
@@ -25,8 +24,14 @@ async function isUserBlocked(userId) {
   if (!hash) {
     hash = await script("LOAD", leakyBucketScript)
   }
-  const currVal = await evalsha(hash, 1, userId, FLUSH_PER_SECOND)
-  console.log(currVal)
+  const currVal = await evalsha(
+    hash,
+    3,
+    userId,
+    "leaky_bucket_user_time",
+    "leaky_bucket_user",
+    FLUSH_PER_SECOND
+  )
 
   if (currVal >= BUCKET_SIZE) {
     return true

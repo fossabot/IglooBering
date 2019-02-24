@@ -97,9 +97,11 @@ app.use((err, req, res, next) => {
 // TODO: replace with real free usage quota
 const FREE_USAGE_QUOTA = 100 * 1000
 
+app.set("trust proxy", 1)
 // Check if usage threshold was exceeded
 app.use("/graphql", async (req, res, next) => {
   // TODO: implement anti-DDOS here
+  console.log(req.ip)
   if (!req.user || req.user.tokenType === "DEVICE_ACCESS") next()
   else {
     const userFound = await User.find({ where: { id: req.user.userId } })
@@ -109,7 +111,7 @@ app.use("/graphql", async (req, res, next) => {
           data: null,
           errors: [
             {
-              message: "You exceeded the rate limit",
+              message: "Your user exceeded the rate limit",
               path: [],
               locations: [],
             },
