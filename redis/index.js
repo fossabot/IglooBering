@@ -10,10 +10,7 @@ const hincrby = promisify(client.hincrby).bind(client)
 const script = promisify(client.script).bind(client)
 const evalsha = promisify(client.evalsha).bind(client)
 
-const leakyBucketScript = fs.readFileSync(
-  join(__dirname, "./leakyBucket.lua"),
-  "utf8"
-)
+const leakyBucketScript = fs.readFileSync("./redis/leakyBucket.lua", "utf8")
 
 client.on("error", function(err) {
   console.log("Error " + err)
