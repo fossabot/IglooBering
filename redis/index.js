@@ -4,7 +4,7 @@ const fs = require("fs")
 const { join } = require("path")
 require("dotenv").config()
 
-const client = redis.createClient(process.env.REDIS)
+const client = redis.createClient(process.env.REDIS_URL)
 
 const hincrby = promisify(client.hincrby).bind(client)
 const script = promisify(client.script).bind(client)
