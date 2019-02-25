@@ -68,9 +68,35 @@ function increaseIpAccessCount(ip, delta = 1) {
   return hincrby("leaky_bucket_ip", ip, delta)
 }
 
+async function isDeviceBlocked(deviceId) {
+  if (!hash) {
+    hash = await script("LOAD", leakyBucketScript)
+  }
+  const currVal = await evalsha(
+    hash,
+    3,
+    deviceId,
+    "leaky_bucket_device_time",
+    "leaky_bucket_device",
+    FLUSH_PER_SECOND
+  )
+
+  if (currVal >= BUCKET_SIZE) {
+    return true
+  } else {
+    return false
+  }
+}
+
+function increaseDeviceAccessCount(deviceId, delta = 1) {
+  return hincrby("leaky_bucket_device", deviceId, delta)
+}
+
 module.exports = {
   isUserBlocked,
   increaseUserAccessCount,
   isIpBlocked,
   increaseIpAccessCount,
+  isDeviceBlocked,
+  increaseDeviceAccessCount,
 }

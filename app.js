@@ -29,6 +29,8 @@ import {
   increaseUserAccessCount,
   isIpBlocked,
   increaseIpAccessCount,
+  isDeviceBlocked,
+  increaseDeviceAccessCount,
 } from "./redis"
 
 webpush.setVapidDetails(
@@ -125,8 +127,28 @@ app.use("/graphql", async (req, res, next) => {
     increaseIpAccessCount(req.ip)
   }
 
-  if (!req.user || req.user.tokenType === "DEVICE_ACCESS") next()
-  else {
+  if (!req.user) next()
+  else if (req.user.tokenType === "DEVICE_ACCESS") {
+    if (await isDeviceBlocked(req.user.deviceId)) {
+      res.send(
+        JSON.stringify({
+          data: null,
+          errors: [
+            {
+              message: "Your device exceeded the rate limit",
+              path: [],
+              locations: [],
+            },
+          ],
+        })
+      )
+      return
+    } else {
+      // TODO: handle errors
+      increaseDeviceAccessCount(req.user.deviceId)
+      next()
+    }
+  } else {
     const userFound = await User.find({ where: { id: req.user.userId } })
     if (await isUserBlocked(userFound.id)) {
       res.send(
