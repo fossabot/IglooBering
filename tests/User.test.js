@@ -251,9 +251,7 @@ describe("User", () => {
     test(`${prop} fails if not authorized`, testNotAuthorized(prop));
   }
 
-  let authenticatedProps = [...authorizedProps, ...publicScalarProps];
-
-  for (let prop of authenticatedProps) {
+  for (let prop of authorizedProps) {
     test(`${prop} fails if unauthenticated`, testUnauthenticated(prop));
   }
 });
