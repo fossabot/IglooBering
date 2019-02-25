@@ -32,25 +32,23 @@ function str2ab(str) {
 
 const QueryResolver = ({ User, WebauthnKey }) => ({
   user(root, args, context) {
-    return authenticated(
-      context,
-      async (resolve, reject) => {
-        if (args.email) {
-          const userFound = await User.find({ where: { email: args.email } })
+    return async (resolve, reject) => {
+      if (args.email) {
+        const userFound = await User.find({ where: { email: args.email } })
 
-          if (userFound) {
-            resolve({ id: userFound.id })
-            context.billingUpdater.update(QUERY_COST)
-          } else {
-            reject("User not found")
-          }
-        } else {
-          resolve({ id: context.auth.userId })
+        if (userFound) {
+          resolve({ id: userFound.id })
           context.billingUpdater.update(QUERY_COST)
+        } else {
+          reject("User not found")
         }
-      },
-      ["TEMPORARY", "PERMANENT", "PASSWORD_RECOVERY"]
-    )
+      } else if (context.auth && context.auth.userId) {
+        resolve({ id: context.auth.userId })
+        context.billingUpdater.update(QUERY_COST)
+      } else {
+        reject("Unauthenticated user query requires email or id field")
+      }
+    }
   },
   device(root, args, context) {
     return authorized(

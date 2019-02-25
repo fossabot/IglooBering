@@ -9,7 +9,7 @@ import SqlString from "sqlstring"
 const QUERY_COST = 1
 const isNotNullNorUndefined = value => value !== undefined && value !== null
 
-const retrieveUserScalarProp = (User, prop, acceptedTokens) => (
+const retrieveUserScalarProp = (prop, acceptedTokens) => (
   root,
   args,
   context
@@ -31,29 +31,29 @@ const retrieveUserScalarProp = (User, prop, acceptedTokens) => (
     acceptedTokens
   )
 
-const scalarProps = (User, props) =>
+const scalarProps = props =>
   props.reduce((acc, prop) => {
-    acc[prop] = retrieveUserScalarProp(User, prop)
+    acc[prop] = retrieveUserScalarProp(prop)
     return acc
   }, {})
 
-const retrievePublicUserScalarProp = (User, prop, acceptedTokens) => (
-  root,
-  args,
-  context
-) =>
-  authenticated(
-    context,
-    async (resolve, reject) => {
-      const userFound = await context.dataLoaders.userLoaderById.load(root.id)
-      if (!userFound) {
-        reject("User doesn't exist. Use `signUp` to create one")
-      } else {
-        resolve(userFound[prop])
-      }
-    },
-    acceptedTokens
-  )
+const retrievePublicUserScalarProp = prop => (root, args, context) => async (
+  resolve,
+  reject
+) => {
+  const userFound = await context.dataLoaders.userLoaderById.load(root.id)
+  if (!userFound) {
+    reject("User doesn't exist. Use `signUp` to create one")
+  } else {
+    resolve(userFound[prop])
+  }
+}
+
+const publicScalarProps = props =>
+  props.reduce((acc, prop) => {
+    acc[prop] = retrievePublicUserScalarProp(prop)
+    return acc
+  }, {})
 
 const UserResolver = ({
   User,
@@ -71,33 +71,14 @@ const UserResolver = ({
   PendingOwnerChange,
   sequelize,
 }) => ({
-  ...scalarProps(User, ["quietMode", "monthUsage", "emailIsVerified"]),
-  email: retrievePublicUserScalarProp(User, "email", [
-    "TEMPORARY",
-    "PERMANENT",
-    "PASSWORD_RECOVERY",
-  ]),
-  name: retrievePublicUserScalarProp(User, "name", [
-    "TEMPORARY",
-    "PERMANENT",
-    "PASSWORD_RECOVERY",
-  ]),
-  profileIcon: retrievePublicUserScalarProp(User, "profileIcon", [
-    "TEMPORARY",
-    "PERMANENT",
-    "PASSWORD_RECOVERY",
-  ]),
-  profileIconColor: retrievePublicUserScalarProp(User, "profileIconColor", [
-    "TEMPORARY",
-    "PERMANENT",
-    "PASSWORD_RECOVERY",
-  ]),
-  paymentPlan: retrieveUserScalarProp(User, "paymentPlan", [
+  ...scalarProps(["quietMode", "monthUsage", "emailIsVerified"]),
+  ...publicScalarProps(["email", "name", "profileIcon", "profileIconColor"]),
+  paymentPlan: retrieveUserScalarProp("paymentPlan", [
     "TEMPORARY",
     "PERMANENT",
     "SWITCH_TO_PAYING",
   ]),
-  usageCap: retrieveUserScalarProp(User, "usageCap", [
+  usageCap: retrieveUserScalarProp("usageCap", [
     "TEMPORARY",
     "PERMANENT",
     "CHANGE_USAGE_CAP",
