@@ -5,11 +5,11 @@
   "scripts": {
     "dev": "nodemon ./server.js --exec babel-node --inspect -e js,graphql,env",
     "start":
-      "npm run build && npm run sequelize db:migrate && node ./build/server.js",
-    "build":
-      "babel server.js app.js s3helpers.js shared.js admin.js dashboard.js -d build --source-maps && babel postgresql -d build/postgresql --source-maps && babel redis -d build/redis --source-maps && babel graphql -d build/graphql --source-maps && babel dataloaders -d build/dataloaders --source-maps",
+      "npm run compile && npm run sequelize db:migrate && node ./compiled/server.js",
+    "compile":
+      "babel server.js app.js s3helpers.js shared.js admin.js dashboard.js -d compiled --source-maps && babel postgresql -d compiled/postgresql --source-maps && babel redis -d compiled/redis --source-maps && babel graphql -d compiled/graphql --source-maps && babel dataloaders -d compiled/dataloaders --source-maps",
     "test": "jest --c=jest.config.json",
-    "posttest": "ls && npm run docs",
+    "posttest": "npm run docs",
     "coveralls": "cat ./coverage/lcov.info | ./node_modules/.bin/coveralls",
     "lint": "prettier **/*.js --write",
     "precommit": "lint-staged",

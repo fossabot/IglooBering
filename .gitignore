@@ -41,7 +41,7 @@ node_modules
 # lock
 package-lock.json
 
-build
+compiled
 # Elastic Beanstalk Files
 .elasticbeanstalk/*
 !.elasticbeanstalk/*.cfg.yml

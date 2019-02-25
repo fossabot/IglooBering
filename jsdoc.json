@@ -5,7 +5,7 @@
   "source": {
     "include": ".",
     "includePattern": ".js$",
-    "excludePattern": "(node_modules|docs|build|coverage|tests)"
+    "excludePattern": "(node_modules|docs|compiled|coverage|tests)"
   },
   "opts": {
     "template": "node_modules/docdash/",
