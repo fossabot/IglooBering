@@ -26,7 +26,7 @@
 
 <nav >
     
-    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li><a href="Utilities.html">Utilities</a><ul class='methods'><li data-type='method'><a href="Utilities.html#.authenticated">authenticated</a></li><li data-type='method'><a href="Utilities.html#.CreateGenericValue">CreateGenericValue</a></li><li data-type='method'><a href="Utilities.html#.generateAuthenticationToken">generateAuthenticationToken</a></li><li data-type='method'><a href="Utilities.html#.generateDeviceAuthenticationToken">generateDeviceAuthenticationToken</a></li><li data-type='method'><a href="Utilities.html#.generatePasswordRecoveryToken">generatePasswordRecoveryToken</a></li><li data-type='method'><a href="Utilities.html#.generatePermanentAuthenticationToken">generatePermanentAuthenticationToken</a></li><li data-type='method'><a href="Utilities.html#.getPropsIfDefined">getPropsIfDefined</a></li></ul></li></ul><h3><a href="global.html">Global</a></h3>
+    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li><a href="Utilities.html">Utilities</a><ul class='methods'><li data-type='method'><a href="Utilities.html#.authenticated">authenticated</a></li><li data-type='method'><a href="Utilities.html#.CreateGenericValue">CreateGenericValue</a></li><li data-type='method'><a href="Utilities.html#.generateAuthenticationToken">generateAuthenticationToken</a></li><li data-type='method'><a href="Utilities.html#.generateDeviceAuthenticationToken">generateDeviceAuthenticationToken</a></li><li data-type='method'><a href="Utilities.html#.generatePasswordRecoveryToken">generatePasswordRecoveryToken</a></li><li data-type='method'><a href="Utilities.html#.generatePermanentAuthenticationToken">generatePermanentAuthenticationToken</a></li><li data-type='method'><a href="Utilities.html#.genericValueMutation">genericValueMutation</a></li><li data-type='method'><a href="Utilities.html#.getPropsIfDefined">getPropsIfDefined</a></li><li data-type='method'><a href="Utilities.html#.log">log</a></li><li data-type='method'><a href="Utilities.html#.logErrorsPromise">logErrorsPromise</a></li></ul></li></ul><h3>Global</h3><ul><li><a href="global.html#firstResolve">firstResolve</a></li></ul>
 </nav>
 
 <div id="main">
@@ -427,7 +427,7 @@
 
     
 
-    <h4 class="name" id=".CreateGenericValue"><span class="type-signature">(static) </span>CreateGenericValue<span class="signature">(User, Device, Environment, Model, ModelName, ValueModels, pubsub, argsChecks)</span><span class="type-signature"> &rarr; {Object}</span></h4>
+    <h4 class="name" id=".CreateGenericValue"><span class="type-signature">(static) </span>CreateGenericValue<span class="signature">(User, Device, Environment, Model, ModelName, ValueModels, pubsub, argsChecks)</span><span class="type-signature"> &rarr; {<a href="global.html#GraphQLHandler">GraphQLHandler</a>}</span></h4>
 
     
 
@@ -439,7 +439,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="utilities.js.html">utilities.js</a>, <a href="utilities.js.html#line222">line 222</a>
+        <a href="utilities.js.html">utilities.js</a>, <a href="utilities.js.html#line232">line 232</a>
     </li></ul></dd>
     
 
@@ -720,7 +720,7 @@
 
         
 <div class="param-desc">
-    filtered object // TODO
+    function handling the mutation
 </div>
 
 
@@ -731,7 +731,7 @@
     </dt>
     <dd>
         
-<span class="param-type">Object</span>
+<span class="param-type"><a href="global.html#GraphQLHandler">GraphQLHandler</a></span>
 
 
     </dd>
@@ -1516,6 +1516,302 @@
 
     
 
+    <h4 class="name" id=".genericValueMutation"><span class="type-signature">(static) </span>genericValueMutation<span class="signature">(childLoaderName, __resolveType, pubsub, User, Device, Environment, argsChecks)</span><span class="type-signature"> &rarr; {<a href="global.html#GraphQLHandler">GraphQLHandler</a>}</span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="utilities.js.html">utilities.js</a>, <a href="utilities.js.html#line400">line 400</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description">
+    generic resolver for xValue mutations
+</div>
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>childLoaderName</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">key of the dataloader for the value being updated, for example `floatValueLoaderById`</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>__resolveType</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">resolveType to return (for example `FloatValue`)</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>pubsub</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="global.html#pubsub">pubsub</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">pubsub carrying the subscriptions</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>User</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="global.html#SequelizeModel">SequelizeModel</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>Device</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="global.html#SequelizeModel">SequelizeModel</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>Environment</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="global.html#SequelizeModel">SequelizeModel</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>argsChecks</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="global.html#argsChecker">argsChecker</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">function checking that the arguments are valid</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    function handling the mutation
+</div>
+
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="global.html#GraphQLHandler">GraphQLHandler</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
     <h4 class="name" id=".getPropsIfDefined"><span class="type-signature">(static) </span>getPropsIfDefined<span class="signature">(args, props)</span><span class="type-signature"> &rarr; {Object}</span></h4>
 
     
@@ -1693,6 +1989,331 @@
 
 
         
+            
+
+    
+
+    <h4 class="name" id=".log"><span class="type-signature">(static) </span>log<span class="signature">(message, importance)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="utilities.js.html">utilities.js</a>, <a href="utilities.js.html#line326">line 326</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description">
+    logs messages colorized by priority, both to console and to `logs` file
+</div>
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>message</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last">message to log</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>importance</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Integer</span>
+
+
+            
+            </td>
+
+            
+
+            
+                <td class="default">
+                
+                    <code>1</code>
+                
+                </td>
+            
+
+            <td class="description last">2=HIGH 1=NORMAL 0=VERBOSE</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id=".logErrorsPromise"><span class="type-signature">(static) </span>logErrorsPromise<span class="signature">(callback)</span><span class="type-signature"> &rarr; {Promise}</span></h4>
+
+    
+
+
+
+
+<dl class="details">
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="utilities.js.html">utilities.js</a>, <a href="utilities.js.html#line352">line 352</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+<div class="description">
+    catches internal errors in PromiseExecutor handles them gracefully
+</div>
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>callback</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="global.html#PromiseExecutor">PromiseExecutor</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+
+
+<dl class="param-type">
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Promise</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
     
 
     
@@ -1712,7 +2333,7 @@
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Tue Feb 26 2019 18:00:12 GMT+0000 (UTC) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Tue Feb 26 2019 18:35:04 GMT+0000 (UTC) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
 <script>prettyPrint();</script>
