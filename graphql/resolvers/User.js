@@ -71,7 +71,13 @@ const UserResolver = ({
   PendingOwnerChange,
   sequelize,
 }) => ({
-  ...scalarProps(["quietMode", "monthUsage", "emailIsVerified"]),
+  ...scalarProps([
+    "quietMode",
+    "monthUsage",
+    "emailIsVerified",
+    "primaryAuthenticationMethods",
+    "secondaryAuthenticationMethods",
+  ]),
   ...publicScalarProps(["email", "name", "profileIcon", "profileIconColor"]),
   paymentPlan: retrieveUserScalarProp("paymentPlan", [
     "TEMPORARY",

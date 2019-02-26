@@ -92,6 +92,17 @@ enum TokenType {
   CHANGE_AUTHENTICATION
 }
 
+enum PrimaryAuthenticationMethod {
+  PASSWORD
+  WEBAUTHN
+}
+
+enum SecondaryAuthenticationMethod {
+  PASSWORD
+  WEBAUTHN
+  TOTP
+}
+
 # All available mutations
 type Mutation {
   # Gets an authentication token
@@ -130,6 +141,11 @@ type Mutation {
 
   # Changes the password of the authenticated user
   changePassword(newPassword: String!): authenticationPayload
+
+  changeAuthenticationSettings(
+    primaryAuthenticationMethods: [PrimaryAuthenticationMethod!]!
+    secondaryAuthenticationMethods: [SecondaryAuthenticationMethod!]!
+  ): User
 
   resendVerificationEmail: Boolean
 
@@ -780,6 +796,8 @@ type User {
   profileIconColor: String
   emailIsVerified: Boolean
   settings: Settings!
+  primaryAuthenticationMethods: [PrimaryAuthenticationMethod!]!
+  secondaryAuthenticationMethods: [SecondaryAuthenticationMethod!]!
 }
 
 enum RoleExtended {

@@ -239,6 +239,47 @@ const MutationResolver = (
         }
       }
     },
+    changeAuthenticationSettings(root, args, context) {
+      return authenticated(
+        context,
+        async (resolve, reject) => {
+          const userFound = await context.dataLoaders.userLoaderById.load(
+            context.auth.userId
+          )
+
+          const webauthnCount = await WebauthnKey.count({
+            where: { userId: userFound.id },
+          })
+
+          if (
+            (args.primaryAuthenticationMethods.indexOf("PASSWORD") !== -1 ||
+              args.secondaryAuthenticationMethods.indexOf("PASSWORD") !== -1) &&
+            userFound.password === null
+          ) {
+            reject(
+              "You cannot use password as authentication method as it is not set"
+            )
+          } else if (
+            (args.primaryAuthenticationMethods.indexOf("WEBAUTHN") !== -1 ||
+              args.secondaryAuthenticationMethods.indexOf("WEBAUTHN") !== -1) &&
+            webauthnCount === 0
+          ) {
+            reject(
+              "You cannot use WebAuthn as authentication method as you have no registered device"
+            )
+          } else if (
+            args.secondaryAuthenticationMethods.indexOf("TOTP") !== -1
+          ) {
+            reject("Totp authentication is not yet available")
+          } else {
+            const newUser = await userFound.update(args)
+
+            resolve(newUser)
+          }
+        },
+        ["CHANGE_AUTHENTICATION"]
+      )
+    },
     createToken(root, args, context) {
       return authenticated(context, async (resolve, reject) => {
         const userFound = await context.dataLoaders.userLoaderById.load(

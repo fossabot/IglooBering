@@ -86,6 +86,14 @@ module.exports = (queryInterface, Sequelize) => {
       type: Sequelize.BOOLEAN,
       defaultValue: true,
     },
+    primaryAuthenticationMethods: {
+      type: Sequelize.ARRAY(Sequelize.STRING),
+      defaultValue: [],
+    },
+    secondaryAuthenticationMethods: {
+      type: Sequelize.ARRAY(Sequelize.STRING),
+      defaultValue: [],
+    },
   })
   User.associate = function(models) {
     // associations can be defined here
