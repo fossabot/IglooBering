@@ -252,6 +252,11 @@ const MutationResolver = (
           })
 
           if (
+            args.primaryAuthenticationMethods.length === 0 &&
+            args.secondaryAuthenticationMethods !== 0
+          ) {
+            reject("Cannot set only secondary authentication methods")
+          } else if (
             (args.primaryAuthenticationMethods.indexOf("PASSWORD") !== -1 ||
               args.secondaryAuthenticationMethods.indexOf("PASSWORD") !== -1) &&
             userFound.password === null

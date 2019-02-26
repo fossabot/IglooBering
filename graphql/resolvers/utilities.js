@@ -205,6 +205,16 @@ const MUTATION_COST = 2
  */
 
 /**
+ * Function checking that the passed arguments are correct and rejecting if not
+ * @callback GraphQLHandler
+ * @param {object} root - object containing the root element (for example in the user.email resolver root contains the id of the user)
+ * @param {object} args - arguments passed to the graphql query/mutation
+ * @param {object} context - object containing information on the api call, for example the token used to authenticate the request
+ *
+ * @returns {PromiseExecutor} promise executor resolving the result of the query/mutation or rejecting with an error
+ */
+
+/**
  * generic resolver for CreateXValue mutations
  * @param {SequelizeModel} User
  * @param {SequelizeModel} Device
@@ -215,7 +225,7 @@ const MUTATION_COST = 2
  * @param {pubsub} pubsub - PubSub manager
  * @param {argsChecker} argsChecks - function checking that the arguments are valid
  *
- * @returns {Object} filtered object // TODO
+ * @returns {GraphQLHandler} function handling the mutation
  *
  * @memberof Utilities
  */
@@ -307,15 +317,22 @@ const CreateGenericValue = (
     deviceToParent
   )
 
-// logs messages colorized by priority, both to console and to `logs` file
-function log(message, priority = 1) {
+/**  logs messages colorized by priority, both to console and to `logs` file
+ * @param {String} message - message to log
+ * @param {Integer} importance - 2=HIGH 1=NORMAL 0=VERBOSE
+ *
+ * @memberof Utilities
+ */
+function log(message, importance = 1) {
   // choose color
   let colorize =
-    priority === 2 ? chalk.bgRedBright : priority === 1 ? chalk.green : id => id
+    importance === 2
+      ? chalk.bgRedBright
+      : importance === 1 ? chalk.green : id => id
 
   console.log(colorize(message))
 
-  if (priority > 0) {
+  if (importance > 0) {
     appendFile(
       "./logs",
       message + "\n",
@@ -325,8 +342,14 @@ function log(message, priority = 1) {
   }
 }
 
-// returns promise that gracefully logs errors without crashing
-function logErrorsPromise(_, _a, callback) {
+/** catches internal errors in PromiseExecutor handles them gracefully
+ * @param {PromiseExecutor} callback
+ *
+ * @returns {Promise}
+ *
+ * @memberof Utilities
+ */
+function logErrorsPromise(callback) {
   return new Promise(async (resolve, reject) => {
     try {
       return await callback(resolve, reject)
@@ -360,6 +383,20 @@ function logErrorsPromise(_, _a, callback) {
   })
 }
 
+/**
+ * generic resolver for xValue mutations
+ * @param {String} childLoaderName - key of the dataloader for the value being updated, for example `floatValueLoaderById`
+ * @param {String} __resolveType - resolveType to return (for example `FloatValue`)
+ * @param {pubsub} pubsub - pubsub carrying the subscriptions
+ * @param {SequelizeModel} User
+ * @param {SequelizeModel} Device
+ * @param {SequelizeModel} Environment
+ * @param {argsChecker} argsChecks - function checking that the arguments are valid
+ *
+ * @returns {GraphQLHandler} function handling the mutation
+ *
+ * @memberof Utilities
+ */
 const genericValueMutation = (
   childLoaderName,
   __resolveType,
@@ -418,27 +455,32 @@ const genericValueMutation = (
     valueToParent
   )
 
-const create2FSecret = user => {
-  const allowedChars = "QWERTYUIOPASDFGHJKLZXCVBNM234567"
-  let secret = ""
-  for (let i = 0; i < 12; i += 1) {
-    const randomNumber = Math.floor(fortuna.random() * allowedChars.length)
-    secret += allowedChars[randomNumber]
-  }
-  secret = GA.encode(secret)
-  return { secret, qrCode: GA.qrCode(user, "igloo", secret) }
-}
+// const create2FSecret = user => {
+//   const allowedChars = "QWERTYUIOPASDFGHJKLZXCVBNM234567"
+//   let secret = ""
+//   for (let i = 0; i < 12; i += 1) {
+//     const randomNumber = Math.floor(fortuna.random() * allowedChars.length)
+//     secret += allowedChars[randomNumber]
+//   }
+//   secret = GA.encode(secret)
+//   return { secret, qrCode: GA.qrCode(user, "igloo", secret) }
+// }
 
-const check2FCode = (code, secret) => {
-  try {
-    const { delta } = GA.verify(code, secret)
-    return Math.abs(delta) < 3
-  } catch (e) {
-    return false
-  }
-}
+// const check2FCode = (code, secret) => {
+//   try {
+//     const { delta } = GA.verify(code, secret)
+//     return Math.abs(delta) < 3
+//   } catch (e) {
+//     return false
+//   }
+// }
 
-// races promises returning the first resolve or all the rejects if none resolves
+/** races promises returning the first resolve or all the rejects if none resolves
+ * @param {Promise[]} promises - promises to be raced
+ *
+ * @returns {Promise} promise returning the first resolve or all the rejects
+ */
+
 const firstResolve = promises =>
   new Promise((resolve, reject) => {
     const errors = []
@@ -464,7 +506,7 @@ const firstResolve = promises =>
     })
   })
 
-// !! doesn't check if the user has the authorizations needed
+// FIXME: doesn't check if the user has the authorizations needed
 const findAllValues = (
   {
     BooleanValue,

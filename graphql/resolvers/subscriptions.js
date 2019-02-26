@@ -268,8 +268,6 @@ const subscriptionResolver = (pubsub, { User, Device, Environment }) => ({
   keepOnline: {
     subscribe: (root, args, context) =>
       logErrorsPromise(
-        "keepOnlineSubscription",
-        1000,
         authorized(
           args.deviceId,
           context,

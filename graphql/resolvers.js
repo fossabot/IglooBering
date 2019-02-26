@@ -90,8 +90,6 @@ function wrapInLogger(resolverFunctions) {
     if (resolverFunctions.hasOwnProperty(resolverFunctionName)) {
       wrappedResolverFunctions[resolverFunctionName] = (root, args, context) =>
         logErrorsPromise(
-          "login",
-          1,
           resolverFunctions[resolverFunctionName](root, args, context)
         )
     }
