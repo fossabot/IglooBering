@@ -7,7 +7,7 @@
       "ssl": true
     }
   },
-  "test": {
+  "staging": {
     "use_env_variable": "CONNECTION_STRING",
     "dialect": "postgres",
     "ssl": true,
