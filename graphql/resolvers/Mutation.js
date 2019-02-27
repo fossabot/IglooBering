@@ -3046,6 +3046,24 @@ const MutationResolver = (
             notificationUpdated: newNotification,
             userIds: deviceSharedIds,
           })
+          pubsub.publish("deviceUpdated", {
+            deviceUpdated: {
+              id: newNotification.deviceId,
+            },
+            userIds: deviceSharedIds,
+          })
+          pubsub.publish("environmentUpdated", {
+            environmentUpdated: {
+              id: environmentFound.id,
+            },
+            userIds: deviceSharedIds,
+          })
+          pubsub.publish("userUpdated", {
+            userUpdated: {
+              id: userFound.id,
+            },
+            userId: userFound.id,
+          })
 
           context.billingUpdater.update(MUTATION_COST)
         },
