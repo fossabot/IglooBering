@@ -159,6 +159,116 @@ const MutationResolver = (
         }
       }
     },
+    verifyPassword(root, args, context) {
+      return async (resolve, reject) => {
+        const userFound = await User.find({
+          where: { email: args.email },
+        })
+        if (!userFound) {
+          reject("User doesn't exist. Use `signUp` to create one")
+        } else if (!userFound.dataValues.password) {
+          reject("this user does not have a password")
+        } else if (
+          !bcrypt.compareSync(args.password, userFound.dataValues.password)
+        ) {
+          reject("Wrong password")
+        } else {
+          const certificate = jwt.encode(
+            {
+              exp: moment()
+                .utc()
+                .add({ minutes: 15 })
+                .unix(),
+              userId: userFound.id,
+              certificateType: "PASSWORD",
+            },
+            JWT_SECRET,
+            "HS512"
+          )
+
+          resolve(certificate)
+        }
+      }
+    },
+    verifyWebAuthn(root, args, context) {
+      return async (resolve, reject) => {
+        let clientAssertionResponse
+        try {
+          clientAssertionResponse = JSON.parse(args.challengeResponse)
+        } catch (e) {
+          if (e instanceof SyntaxError) {
+            reject("Invaild JSON passed for challengeResponse")
+            return
+          } else {
+            reject("Internal error")
+          }
+        }
+
+        const keyFound = await WebauthnKey.find({
+          where: { credId: ab2str(clientAssertionResponse.rawId) },
+        })
+
+        clientAssertionResponse.rawId = new Int8Array(
+          clientAssertionResponse.rawId
+        ).buffer
+        clientAssertionResponse.response.clientDataJSON = new Int8Array(
+          clientAssertionResponse.response.clientDataJSON
+        ).buffer
+        clientAssertionResponse.response.authenticatorData = new Int8Array(
+          clientAssertionResponse.response.authenticatorData
+        ).buffer
+        clientAssertionResponse.response.signature = new Int8Array(
+          clientAssertionResponse.response.signature
+        ).buffer
+
+        let decodedJwt
+        try {
+          decodedJwt = jwt.decode(args.jwtChallenge, process.env.JWT_SECRET)
+        } catch (e) {
+          reject("Invalid or expired jwtChallenge")
+          return
+        }
+        const { challenge: decodedChallenge, userId } = decodedJwt
+
+        var assertionExpectations = {
+          challenge: str2ab(decodedChallenge),
+          origin: "https://aurora.igloo.ooo",
+          factor: "either",
+          publicKey: keyFound.publicKey,
+          userHandle: null,
+          prevCounter: keyFound.counter,
+        }
+
+        try {
+          var authnResult = await f2l.assertionResult(
+            clientAssertionResponse,
+            assertionExpectations
+          )
+
+          await keyFound.update({
+            counter: authnResult.authnrData.get("counter"),
+          })
+
+          const certificate = jwt.encode(
+            {
+              exp: moment()
+                .utc()
+                .add({ minutes: 15 })
+                .unix(),
+              userId,
+              certificateType: "WEBAUTHN",
+            },
+            JWT_SECRET,
+            "HS512"
+          )
+
+          resolve(certificate)
+        } catch (e) {
+          console.log(e)
+          reject(e.message)
+        }
+      }
+    },
     logInWithWebAuthn(root, args, context) {
       return async (resolve, reject) => {
         let clientAssertionResponse

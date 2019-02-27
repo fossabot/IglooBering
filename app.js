@@ -54,6 +54,11 @@ app.use(
     secret: process.env.JWT_SECRET,
     credentialsRequired: false,
     isRevoked: async (req, payload, done) => {
+      if (!payload.tokenType) {
+        done(null, true)
+        return
+      }
+
       switch (payload.tokenType) {
         case "PERMANENT":
           try {
@@ -93,10 +98,12 @@ app.use(
 
 // handle the errors thrown by expressJwt
 app.use((err, req, res, next) => {
-  if (err.code === "invalid_token") {
+  if (err.code === "invalid_token" || err.code === "revoked_token") {
     res.status(401).send({
       data: null,
-      errors: [{ message: "The token is invalid, expired or malformed" }],
+      errors: [
+        { message: "The token is invalid, expired, revoked or malformed" },
+      ],
     })
   }
 })

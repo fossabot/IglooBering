@@ -153,7 +153,7 @@ const generateDeviceAuthenticationToken = (deviceId, JWT_SECRET) =>
 
 /**
  * Creates a token used to change the password of the user
- * @param {string} deviceId - id of the user to be authenticated as
+ * @param {string} userId - id of the user to be authenticated as
  * @param {string} JWT_SECRET - encryption key for the JWT
  * @returns {string} recovery token
  *
