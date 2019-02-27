@@ -16,14 +16,14 @@ This service is still in development, some features may be missing. If your Iglo
 Start by cloning the repository and downloading the required libraries:
 
 ```bash
-git clone https://github.com/hellowitlab/iglooBering
+git clone https://github.com/IglooCloud/IglooBering
 yarn
 ```
 
 or
 
 ```bash
-git clone https://github.com/hellowitlab/iglooBering
+git clone https://github.com/IglooCloud/IglooBering
 npm install
 ```
 
