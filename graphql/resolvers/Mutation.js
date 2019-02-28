@@ -72,6 +72,24 @@ function str2ab(str) {
   return Uint8Array.from(str, c => c.charCodeAt(0))
 }
 
+function checkAuthenticationMethod(
+  method,
+  passwordCert,
+  webauthnCert,
+  totpCert
+) {
+  switch (method) {
+    case "PASSWORD":
+      return passwordCert !== null
+    case "WEBAUTHN":
+      return webauthnCert !== null
+    case "TOTP":
+      return totpCert !== null
+    default:
+      return false
+  }
+}
+
 const MutationResolver = (
   {
     User,
@@ -105,57 +123,139 @@ const MutationResolver = (
     // and returns an access token
     logIn(root, args, context) {
       return async (resolve, reject) => {
+        if (!args.passwordCertificate && !args.webAuthnCertificate) {
+          reject("No primary authentication method certificate passed")
+          return
+        }
+
+        // decode the certificates passed
+        let decodedPasswordCertificate
+        let decodedWebAuthnCertificate
+        let decodedTotpCertificate
+        try {
+          decodedPasswordCertificate = args.passwordCertificate
+            ? jwt.decode(args.passwordCertificate, JWT_SECRET)
+            : null
+        } catch (e) {
+          reject("Invalid password certificate")
+          return
+        }
+        try {
+          decodedWebAuthnCertificate = args.webAuthnCertificate
+            ? jwt.decode(args.webAuthnCertificate, JWT_SECRET)
+            : null
+        } catch (e) {
+          reject("Invalid WebAuthn certificate")
+          return
+        }
+        try {
+          decodedTotpCertificate = args.totpCertificate
+            ? jwt.decode(args.totpCertificate, JWT_SECRET)
+            : null
+        } catch (e) {
+          reject("Invalid TOTP certificate")
+          return
+        }
+
+        // check that the passed certificate attest the correct authentication method
+        if (
+          decodedPasswordCertificate &&
+          decodedPasswordCertificate.certificateType !== "PASSWORD"
+        ) {
+          reject(
+            "Value passed to passwordCertificate is not a password certificate"
+          )
+          return
+        } else if (
+          decodedWebAuthnCertificate &&
+          decodedWebAuthnCertificate.certificateType !== "WEBAUTHN"
+        ) {
+          reject(
+            "Value passed to webAuthnCertificate is not a WebAuthn certificate"
+          )
+          return
+        } else if (
+          decodedTotpCertificate &&
+          decodedTotpCertificate.certificateType !== "TOTP"
+        ) {
+          reject("Value passed to totpCertificate is not a TOTP certificate")
+          return
+        }
+
+        const userId =
+          (decodedPasswordCertificate && decodedPasswordCertificate.userId) ||
+          (decodedWebAuthnCertificate && decodedWebAuthnCertificate.userId)
+        if (
+          (decodedWebAuthnCertificate &&
+            decodedWebAuthnCertificate.userId !== userId) ||
+          (decodedTotpCertificate && decodedTotpCertificate.userId !== userId)
+        ) {
+          reject("The various certificates refer to different users")
+          return
+        }
+
         const userFound = await User.find({
-          where: { email: args.email },
+          where: { id: userId },
         })
         if (!userFound) {
           reject("User doesn't exist. Use `signUp` to create one")
-        } else if (!userFound.dataValues.password) {
-          reject("this user does not have a password")
-        } else if (
-          !bcrypt.compareSync(args.password, userFound.dataValues.password)
-        ) {
-          reject("Wrong password")
-        } else if (!userFound.twoFactorSecret) {
-          // setting context so that the resolvers for user know that the user is authenticated
-          context.auth = {
-            userId: userFound.id,
-            accessLevel: "OWNER",
-            tokenType: "TEMPORARY",
-          }
-          context.billingUpdater = GenerateUserBillingBatcher(
-            context.dataLoaders,
-            context.auth
-          )
-
-          resolve({
-            token: generateAuthenticationToken(
-              userFound.dataValues.id,
-              JWT_SECRET
-            ),
-            user: userFound,
-          })
-        } else if (check2FCode(args.twoFactorCode, userFound.twoFactorSecret)) {
-          // setting context so that the resolvers for user know that the user is authenticated
-          context.auth = {
-            userId: userFound.id,
-            accessLevel: "OWNER",
-            tokenType: "TEMPORARY",
-          }
-          context.billingUpdater = GenerateUserBillingBatcher(
-            context.dataLoaders,
-            context.auth
-          )
-
-          resolve({
-            token: generateAuthenticationToken(
-              userFound.dataValues.id,
-              JWT_SECRET
-            ),
-            user: userFound,
-          })
         } else {
-          reject("Wrong or missing 2-Factor Authentication Code")
+          const {
+            primaryAuthenticationMethods,
+            secondaryAuthenticationMethods,
+          } = userFound
+
+          let primaryPassed = false
+          for (let authenticationMethod of primaryAuthenticationMethods) {
+            primaryPassed =
+              primaryPassed ||
+              checkAuthenticationMethod(
+                authenticationMethod,
+                decodedPasswordCertificate,
+                decodedWebAuthnCertificate,
+                decodedTotpCertificate
+              )
+          }
+          if (!primaryPassed) {
+            reject(
+              "You didn't pass any certificate that matches your primaryAuthenticationMethods"
+            )
+            return
+          }
+
+          let secondaryPassed = secondaryAuthenticationMethods.length === 0
+          for (let authenticationMethod of secondaryAuthenticationMethods) {
+            secondaryPassed =
+              secondaryPassed ||
+              checkAuthenticationMethod(
+                authenticationMethod,
+                decodedPasswordCertificate,
+                decodedWebAuthnCertificate,
+                decodedTotpCertificate
+              )
+          }
+          if (!secondaryPassed) {
+            reject(
+              "You didn't pass any certificate that matches your secondaryAuthenticationMethods"
+            )
+            return
+          }
+
+          // setting context so that the resolvers for user know that the user is authenticated
+          context.auth = {
+            userId: userFound.id,
+            accessLevel: "OWNER",
+            tokenType: "TEMPORARY",
+          }
+          context.billingUpdater = GenerateUserBillingBatcher(
+            context.dataLoaders,
+            context.auth
+          )
+
+          resolve({
+            token: generateAuthenticationToken(userId, JWT_SECRET),
+            user: userFound,
+          })
         }
       }
     },
@@ -263,86 +363,6 @@ const MutationResolver = (
           )
 
           resolve(certificate)
-        } catch (e) {
-          console.log(e)
-          reject(e.message)
-        }
-      }
-    },
-    logInWithWebAuthn(root, args, context) {
-      return async (resolve, reject) => {
-        let clientAssertionResponse
-        try {
-          clientAssertionResponse = JSON.parse(args.challengeResponse)
-        } catch (e) {
-          if (e instanceof SyntaxError) {
-            reject("Invaild JSON passed for challengeResponse")
-            return
-          } else {
-            reject("Internal error")
-          }
-        }
-
-        const keyFound = await WebauthnKey.find({
-          where: { credId: ab2str(clientAssertionResponse.rawId) },
-        })
-
-        clientAssertionResponse.rawId = new Int8Array(
-          clientAssertionResponse.rawId
-        ).buffer
-        clientAssertionResponse.response.clientDataJSON = new Int8Array(
-          clientAssertionResponse.response.clientDataJSON
-        ).buffer
-        clientAssertionResponse.response.authenticatorData = new Int8Array(
-          clientAssertionResponse.response.authenticatorData
-        ).buffer
-        clientAssertionResponse.response.signature = new Int8Array(
-          clientAssertionResponse.response.signature
-        ).buffer
-
-        let decodedJwt
-        try {
-          decodedJwt = jwt.decode(args.jwtChallenge, process.env.JWT_SECRET)
-        } catch (e) {
-          reject("Invalid or expired jwtChallenge")
-          return
-        }
-        const { challenge: decodedChallenge, userId } = decodedJwt
-
-        var assertionExpectations = {
-          challenge: str2ab(decodedChallenge),
-          origin: "https://aurora.igloo.ooo",
-          factor: "either",
-          publicKey: keyFound.publicKey,
-          userHandle: null,
-          prevCounter: keyFound.counter,
-        }
-
-        try {
-          var authnResult = await f2l.assertionResult(
-            clientAssertionResponse,
-            assertionExpectations
-          )
-
-          await keyFound.update({
-            counter: authnResult.authnrData.get("counter"),
-          })
-
-          // setting context so that the resolvers for user know that the user is authenticated
-          context.auth = {
-            userId,
-            accessLevel: "OWNER",
-            tokenType: "TEMPORARY",
-          }
-          context.billingUpdater = GenerateUserBillingBatcher(
-            context.dataLoaders,
-            context.auth
-          )
-
-          resolve({
-            token: generateAuthenticationToken(userId, JWT_SECRET),
-            user: { id: userId },
-          })
         } catch (e) {
           console.log(e)
           reject(e.message)

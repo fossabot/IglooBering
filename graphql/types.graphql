@@ -108,10 +108,10 @@ type Mutation {
   verifyPassword(email: String!, password: String!): String
   verifyWebAuthn(challengeResponse: String!, jwtChallenge: String!): String
   # Gets an authentication token
-  logIn(email: String!, password: String!): authenticationPayload
-  logInWithWebAuthn(
-    challengeResponse: String!
-    jwtChallenge: String!
+  logIn(
+    passwordCertificate: String
+    webAuthnCertificate: String
+    totpCertificate: String
   ): authenticationPayload
 
   # creates a token to perform special operations

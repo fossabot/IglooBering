@@ -4,24 +4,30 @@
   "description": "Backend for the igloo platform",
   "scripts": {
     "dev": "nodemon ./server.js --exec babel-node --inspect -e js,graphql,env",
-    "start":
-      "npm run compile && npm run sequelize db:migrate && node ./compiled/server.js",
-    "compile":
-      "babel server.js app.js s3helpers.js shared.js admin.js dashboard.js -d compiled --source-maps && babel postgresql -d compiled/postgresql --source-maps && babel redis -d compiled/redis --source-maps && babel graphql -d compiled/graphql --source-maps && babel dataloaders -d compiled/dataloaders --source-maps",
+    "start": "npm run compile && npm run sequelize db:migrate && node ./compiled/server.js",
+    "compile": "babel server.js app.js s3helpers.js shared.js admin.js dashboard.js -d compiled --source-maps && babel postgresql -d compiled/postgresql --source-maps && babel redis -d compiled/redis --source-maps && babel graphql -d compiled/graphql --source-maps && babel dataloaders -d compiled/dataloaders --source-maps",
     "test": "jest --c=jest.config.json",
     "posttest": "npm run docs",
     "coveralls": "cat ./coverage/lcov.info | ./node_modules/.bin/coveralls",
     "lint": "prettier **/*.js --write",
     "precommit": "lint-staged",
-    "sequelize":
-      "sequelize --config ./postgresql/config/config.json --models-path ./postgresql/models --migrations-path ./postgresql/migrations --seeders-path ./postgresql/seeders",
+    "sequelize": "sequelize --config ./postgresql/config/config.json --models-path ./postgresql/models --migrations-path ./postgresql/migrations --seeders-path ./postgresql/seeders",
     "bill": "babel-node ./monthlyBilling",
     "docs": "./node_modules/.bin/jsdoc -c jsdoc.json"
   },
   "lint-staged": {
-    "*.js": ["prettier --write", "git add"],
-    "*.json": ["prettier --write", "git add"],
-    "*.graphql": ["prettier --write", "git add"]
+    "*.js": [
+      "prettier --write",
+      "git add"
+    ],
+    "*.json": [
+      "prettier --write",
+      "git add"
+    ],
+    "*.graphql": [
+      "prettier --write",
+      "git add"
+    ]
   },
   "repository": {
     "type": "git",
@@ -34,21 +40,14 @@
   },
   "homepage": "https://github.com/IglooCloud/IglooBering",
   "dependencies": {
+    "@babel/plugin-transform-runtime": "^7.3.4",
+    "@babel/preset-stage-0": "^7.0.0",
+    "@babel/runtime": "^7.3.4",
     "admin-bro": "^0.5.0",
     "admin-bro-expressjs": "^0.1.5",
     "admin-bro-sequelizejs": "^0.1.9",
     "apollo-server-express": "^1.0.2",
     "aws-sdk": "^2.229.1",
-    "babel-cli": "^6.26.0",
-    "babel-core": "^6.26.0",
-    "babel-jest": "^23.6.0",
-    "babel-plugin-transform-runtime": "^6.23.0",
-    "babel-polyfill": "6.5.0",
-    "babel-preset-env": "^1.7.0",
-    "babel-preset-es2015": "6.5.0",
-    "babel-preset-react": "^6.5.0",
-    "babel-preset-stage-0": "6.5.0",
-    "babel-runtime": "^6.26.0",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.17.2",
     "chalk": "^2.3.0",
@@ -91,6 +90,10 @@
     "zxcvbn": "^4.4.2"
   },
   "devDependencies": {
+    "@babel/cli": "^7.2.3",
+    "@babel/core": "^7.3.4",
+    "@babel/node": "^7.2.2",
+    "@babel/preset-env": "^7.3.4",
     "babel-eslint": "^8.1.2",
     "eslint": "4.9.0",
     "eslint-config-airbnb": "16.1.0",
