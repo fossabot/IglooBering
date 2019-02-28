@@ -63,6 +63,7 @@
     "express-session": "^1.15.6",
     "fido2-lib": "^2.1.1",
     "fido2-lib-clone": "^2.3.0",
+    "graphql-custom-directive": "^0.2.0",
     "graphql-subscriptions": "^0.5.5",
     "graphql-tools": "4.0.3",
     "graphql-tools-types": "1.1.16",
