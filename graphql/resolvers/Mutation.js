@@ -383,7 +383,7 @@ const MutationResolver = (
 
           if (
             args.primaryAuthenticationMethods.length === 0 &&
-            args.secondaryAuthenticationMethods !== 0
+            args.secondaryAuthenticationMethods.length !== 0
           ) {
             reject("Cannot set only secondary authentication methods")
           } else if (
