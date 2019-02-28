@@ -90,7 +90,9 @@ const DeviceResolver = ({
         args.sortDirection =
           args.sortDirection === "ASCENDING"
             ? "ASC"
-            : args.sortDirection === "DESCENDING" ? "DESC" : args.sortDirection
+            : args.sortDirection === "DESCENDING"
+            ? "DESC"
+            : args.sortDirection
 
         const parseRawStringFilter = (stringFilter, fieldName) => {
           stringFilter.hasOwnProperty = Object.prototype.hasOwnProperty
@@ -328,7 +330,7 @@ const DeviceResolver = ({
         const count = await Notification.count({
           where: {
             deviceId: root.id,
-            notRead: { [Op.contains]: [context.auth.userId] },
+            ...parseNotificationFilter(context.auth.userId)(args.filter),
           },
         })
 

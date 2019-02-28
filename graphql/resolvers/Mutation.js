@@ -137,7 +137,7 @@ const MutationResolver = (
             ? jwt.decode(args.passwordCertificate, JWT_SECRET)
             : null
         } catch (e) {
-          reject("Invalid password certificate")
+          reject("Invalid, expired or malformed password certificate")
           return
         }
         try {
@@ -145,7 +145,7 @@ const MutationResolver = (
             ? jwt.decode(args.webAuthnCertificate, JWT_SECRET)
             : null
         } catch (e) {
-          reject("Invalid WebAuthn certificate")
+          reject("Invalid, expired or malformed WebAuthn certificate")
           return
         }
         try {
@@ -153,7 +153,7 @@ const MutationResolver = (
             ? jwt.decode(args.totpCertificate, JWT_SECRET)
             : null
         } catch (e) {
-          reject("Invalid TOTP certificate")
+          reject("Invalid, expired or malformed TOTP certificate")
           return
         }
 
