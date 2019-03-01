@@ -1,29 +1,55 @@
 import { makeExecutableSchema } from "graphql-tools"
 import fs from "fs"
-import { DirectiveLocation } from "graphql"
+import { DirectiveLocation, GraphQLString } from "graphql"
+import resolvers from "./resolvers"
 import {
   GraphQLCustomDirective,
   applySchemaCustomDirectives,
 } from "graphql-custom-directive"
-import resolvers from "./resolvers"
+import { isNumber } from "util"
+import { convert } from "./utilities"
 
-const typeDefs = fs.readFileSync("./graphql/types.graphql").toString()
-const schema = makeExecutableSchema({ typeDefs, resolvers })
-
-const ToUpperDirective = new GraphQLCustomDirective({
-  name: "toUpperCase",
-  description: "change the case of a string to uppercase",
+const GraphQLCustomDuplicateDirective = new GraphQLCustomDirective({
+  name: "convertTo",
+  description: "convert to chosen unit",
+  args: {
+    unit: { type: GraphQLString, description: "desired output unit" },
+  },
   locations: [DirectiveLocation.FIELD],
-  resolve(resolve, root) {
+  resolve(resolve, root, args, context, info) {
+    if (info.fieldName !== "value") {
+      throw new Error(
+        "@convertTo directive can only be used on the value field"
+      )
+    }
+    if (!args.unit) {
+      throw new Error("unit field is required on @convertTo directive")
+    }
+    if (!root.unitOfMeasurement) {
+      throw new Error("this resource does not have a unit")
+    }
+
     return resolve().then(result => {
-      if (!result.toUpperCase)
-        throw new Error("toUpperCase directive is only available on strings")
-      return result.toUpperCase ? result.toUpperCase() : result
+      if (!isNumber(result)) {
+        throw new Error(
+          "@convertTo directive can only be used on numeric fields"
+        )
+      }
+
+      return convert(result, root.unitOfMeasurement, args.unit)
     })
   },
 })
 
-schema._directives.push.apply(schema._directives, [ToUpperDirective])
+const typeDefs = fs.readFileSync("./graphql/types.graphql").toString()
+const schema = makeExecutableSchema({
+  typeDefs,
+  resolvers,
+})
+
+schema._directives.push.apply(schema._directives, [
+  GraphQLCustomDuplicateDirective,
+])
 applySchemaCustomDirectives(schema)
 
-export default schema
+module.exports = schema

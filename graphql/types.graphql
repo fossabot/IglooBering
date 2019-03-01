@@ -663,6 +663,13 @@ type Query {
   environment(id: ID!): Environment
   # get's value's data
   value(id: ID!): Value
+  floatValue(id: ID!): FloatValue
+  stringValue(id: ID!): StringValue
+  booleanValue(id: ID!): BooleanValue
+  plotValue(id: ID!): PlotValue
+  categoryPlotValue(id: ID!): CategoryPlotValue
+  mapValue(id: ID!): MapValue
+
   # get notification's data
   notification(id: ID!): Notification
   # get plotNode's data
@@ -1006,6 +1013,7 @@ type FloatValue implements Value {
   permission: ValuePermission!
   visibility: ValueVisibility!
   unitOfMeasurement: String
+  # tagged
   value: Float!
   # used when the end-user reads or modifies the value
   precision: Float
