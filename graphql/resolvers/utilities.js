@@ -328,7 +328,9 @@ function log(message, importance = 1) {
   let colorize =
     importance === 2
       ? chalk.bgRedBright
-      : importance === 1 ? chalk.green : id => id
+      : importance === 1
+      ? chalk.green
+      : id => id
 
   console.log(colorize(message))
 
@@ -455,25 +457,25 @@ const genericValueMutation = (
     valueToParent
   )
 
-// const create2FSecret = user => {
-//   const allowedChars = "QWERTYUIOPASDFGHJKLZXCVBNM234567"
-//   let secret = ""
-//   for (let i = 0; i < 12; i += 1) {
-//     const randomNumber = Math.floor(fortuna.random() * allowedChars.length)
-//     secret += allowedChars[randomNumber]
-//   }
-//   secret = GA.encode(secret)
-//   return { secret, qrCode: GA.qrCode(user, "igloo", secret) }
-// }
+const create2FSecret = user => {
+  const allowedChars = "QWERTYUIOPASDFGHJKLZXCVBNM234567"
+  let secret = ""
+  for (let i = 0; i < 12; i += 1) {
+    const randomNumber = Math.floor(fortuna.random() * allowedChars.length)
+    secret += allowedChars[randomNumber]
+  }
+  secret = GA.encode(secret)
+  return { secret, qrCode: GA.qrCode(user, "Igloo", secret) }
+}
 
-// const check2FCode = (code, secret) => {
-//   try {
-//     const { delta } = GA.verify(code, secret)
-//     return Math.abs(delta) < 3
-//   } catch (e) {
-//     return false
-//   }
-// }
+const check2FCode = (code, secret) => {
+  try {
+    const { delta } = GA.verify(code, secret)
+    return Math.abs(delta) < 3
+  } catch (e) {
+    return false
+  }
+}
 
 /** races promises returning the first resolve or all the rejects if none resolves
  * @param {Promise[]} promises - promises to be raced
@@ -1346,8 +1348,8 @@ module.exports = {
   CreateGenericValue,
   getPropsIfDefined,
   genericValueMutation,
-  // create2FSecret,
-  // check2FCode,
+  create2FSecret,
+  check2FCode,
   logErrorsPromise,
   log,
   findAllValues,

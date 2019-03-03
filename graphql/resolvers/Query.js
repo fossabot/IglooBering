@@ -4,6 +4,7 @@ import {
   authorized,
   deviceToParent,
   notificationToParent,
+  create2FSecret,
   inheritAuthorized,
   environmentToParent,
   valueToParent,
@@ -153,6 +154,19 @@ const QueryResolver = ({ User, WebauthnKey }) => ({
       },
       valueToParent
     )
+  },
+  getNewTotpSecret(root, args, context) {
+    return authenticated(context, async (resolve, reject) => {
+      const userFound = await context.dataLoaders.userLoaderById.load(
+        context.auth.userId
+      )
+      if (!userFound) {
+        reject("User doesn't exist. Use `signUp` to create one")
+      } else {
+        const { secret, qrCode } = create2FSecret(userFound.email)
+        resolve({ secret, qrCode })
+      }
+    })
   },
   getWebAuthnEnableChallenge(root, args, context) {
     return authenticated(

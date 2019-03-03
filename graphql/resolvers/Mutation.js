@@ -290,6 +290,37 @@ const MutationResolver = (
         }
       }
     },
+    verifyTotp(root, args, context) {
+      return async (resolve, reject) => {
+        const userFound = await User.find({
+          where: { email: args.email },
+        })
+        if (!userFound) {
+          reject("User doesn't exist. Use `signUp` to create one")
+        } else if (!userFound.dataValues.twoFactorSecret) {
+          reject("this user does not have TOTP authentication set up")
+        } else if (
+          !check2FCode(args.code, userFound.dataValues.twoFactorSecret)
+        ) {
+          reject("Code and secret do not match")
+        } else {
+          const certificate = jwt.encode(
+            {
+              exp: moment()
+                .utc()
+                .add({ minutes: 15 })
+                .unix(),
+              userId: userFound.id,
+              certificateType: "TOTP",
+            },
+            JWT_SECRET,
+            "HS512"
+          )
+
+          resolve(certificate)
+        }
+      }
+    },
     verifyWebAuthn(root, args, context) {
       return async (resolve, reject) => {
         let clientAssertionResponse
@@ -695,32 +726,25 @@ const MutationResolver = (
         }
       }
     },
-    /*
-    UpgradeTo2FactorAuthentication(root, args, context) {
-      return authenticated(context, async (resolve, reject) => {
-          const userFound = await Ucontext.dataLoaders.userLoaderById.load(context.auth.userId)
-          // istanbul ignore if - should ever happen 
+    enableTotp(root, args, context) {
+      return authenticated(
+        context,
+        async (resolve, reject) => {
+          const userFound = await context.dataLoaders.userLoaderById.load(
+            context.auth.userId
+          )
           if (!userFound) {
             reject("User doesn't exist. Use `signUp` to create one")
-          } else if (!userFound.twoFactorSecret) {
-            const { secret, qrCode } = create2FSecret(userFound.email)
-            await userFound.update({ twoFactorSecret: secret })
-            resolve({ secret, qrCode })
+          } else if (check2FCode(args.code, args.secret)) {
+            await userFound.update({ twoFactorSecret: args.secret })
+            resolve(true)
           } else {
-            const qrCode = OTP.googleAuthenticator.qrCode(
-              userFound.email,
-              "igloo",
-              userFound.twoFactorSecret
-            )
-
-            resolve({
-              secret: userFound.twoFactorSecret,
-              qrCode,
-            })
+            reject("Code and secret do not match")
           }
-        })
-      
-  }, */
+        },
+        ["CHANGE_AUTHENTICATION"]
+      )
+    },
     // changes the password and returns an access token
     enablePassword(root, args, context) {
       return authenticated(

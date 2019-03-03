@@ -49,12 +49,12 @@ type createUnclaimedDevicePayload {
 }
 
 # Data needed to display the QR code when upgrading to 2-Factor Authentication
-# type UpgradeTo2FactorPayload {
-#   # totp secret
-#   secret: String
-#   # svg for the qr code
-#   qrCode: String
-# }
+type TotpSecret {
+  # totp secret
+  secret: String
+  # svg for the qr code
+  qrCode: String
+}
 
 enum Role {
   ADMIN
@@ -107,6 +107,7 @@ enum SecondaryAuthenticationMethod {
 type Mutation {
   verifyPassword(email: String!, password: String!): String
   verifyWebAuthn(challengeResponse: String!, jwtChallenge: String!): String
+  verifyTotp(email: String, code: String): String
   # Gets an authentication token
   logIn(
     passwordCertificate: String
@@ -133,6 +134,8 @@ type Mutation {
 
   # Sends an email with a llink to change the password
   sendPasswordRecoveryEmail(email: String!): Boolean
+
+  enableTotp(code: String, secret: String): Boolean
 
   enableWebauthn(
     challengeResponse: String
@@ -676,6 +679,7 @@ type Query {
   plotNode(id: ID!): PlotNode
   # get categoryPlotNode's data
   categoryPlotNode(id: ID!): CategoryPlotNode
+  getNewTotpSecret: TotpSecret
   # get's challenge to enable webauthn
   getWebAuthnEnableChallenge: WebauthnChallenge
   # get's challenge to sign in with webauthn
