@@ -149,31 +149,6 @@ const generateDeviceAuthenticationToken = (deviceId, JWT_SECRET) =>
     "HS512"
   )
 
-// TODO: use a generic generateToken
-
-/**
- * Creates a token used to change the password of the user
- * @param {string} userId - id of the user to be authenticated as
- * @param {string} JWT_SECRET - encryption key for the JWT
- * @returns {string} recovery token
- *
- * @memberof Utilities
- */
-const generatePasswordRecoveryToken = (userId, JWT_SECRET) =>
-  jwt.encode(
-    {
-      exp: moment()
-        .utc()
-        .add({ hours: 1 })
-        .unix(),
-      userId,
-      accessLevel: "OWNER",
-      tokenType: "PASSWORD_RECOVERY",
-    },
-    JWT_SECRET,
-    "HS512"
-  )
-
 /**
  * Creates an object containing the required fields if they have a not null value in the args object
  * @param {Object} args - object to read the fields from
@@ -673,39 +648,6 @@ const sendVerificationEmail = (email, userId) => {
   )
 }
 
-const sendPasswordRecoveryEmail = (email, userId) => {
-  const recoveryToken = generatePasswordRecoveryToken(
-    userId,
-    process.env.JWT_SECRET
-  )
-
-  const emailRecoverylink = `https://aurora.igloo.ooo/recovery?token=${recoveryToken}`
-
-  // TODO: create a template for the email verification
-  ses.sendEmail(
-    {
-      Source: "'Igloo' <noreply@igloo.ooo>",
-      Destination: { ToAddresses: [email] },
-      Message: {
-        Body: {
-          Html: {
-            Charset: "UTF-8",
-            Data: `Change your password clicking this link: <a href="${emailRecoverylink}">Recover password</a>`,
-          },
-          Text: {
-            Charset: "UTF-8",
-            Data: `Change your password at this link: ${emailRecoverylink}`,
-          },
-        },
-        Subject: {
-          Charset: "UTF-8",
-          Data: "Recover your password",
-        },
-      },
-    },
-    console.log
-  )
-}
 const sendAccountDeletedEmail = email => {
   ses.sendEmail(
     {
@@ -1357,8 +1299,6 @@ module.exports = {
   generatePermanentAuthenticationToken,
   socketToDeviceMap,
   sendVerificationEmail,
-  generatePasswordRecoveryToken,
-  sendPasswordRecoveryEmail,
   sendPasswordUpdatedEmail,
   sendTokenCreatedEmail,
   sendEnvironmentSharedEmail,

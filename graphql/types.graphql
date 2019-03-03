@@ -130,22 +130,16 @@ type Mutation {
   # Creates a new account
   signUp(email: String!, name: String!): signUpPayload
   # Creates a new account
-  enablePassword(password: String!): authenticationPayload
+  setPassword(password: String!): authenticationPayload
 
-  # Sends an email with a llink to change the password
-  sendPasswordRecoveryEmail(email: String!): Boolean
+  setTotp(code: String, secret: String): Boolean
 
-  enableTotp(code: String, secret: String): Boolean
-
-  enableWebauthn(
+  setWebauthn(
     challengeResponse: String
     jwtChallenge: String
   ): authenticationPayload
   # Upgrades a user to 2 factor authentication
   # UpgradeTo2FactorAuthentication: UpgradeTo2FactorPayload
-
-  # Changes the password of the authenticated user
-  changePassword(newPassword: String!): authenticationPayload
 
   changeAuthenticationSettings(
     primaryAuthenticationMethods: [PrimaryAuthenticationMethod!]!

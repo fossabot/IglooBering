@@ -80,7 +80,6 @@ app.use(
 
         case "TEMPORARY":
         case "DEVICE_ACCESS":
-        case "PASSWORD_RECOVERY":
         case "MANAGE_PERMANENT_TOKENS":
         case "DELETE_USER":
         case "CHANGE_AUTHENTICATION":
@@ -307,8 +306,7 @@ app.get("/file/:file", async (req, res) => {
     const objectOwner = await getObjectOwner(s3, getParams)
 
     if (objectOwner === req.user.userId) {
-      s3
-        .getObject(getParams)
+      s3.getObject(getParams)
         .createReadStream()
         .pipe(res)
     } else {

@@ -10,7 +10,6 @@ import {
   check2FCode,
   getPropsIfDefined,
   sendVerificationEmail,
-  sendPasswordRecoveryEmail,
   sendPasswordUpdatedEmail,
   sendTokenCreatedEmail,
   authorized,
@@ -433,10 +432,6 @@ const MutationResolver = (
             reject(
               "You cannot use WebAuthn as authentication method as you have no registered device"
             )
-          } else if (
-            args.secondaryAuthenticationMethods.indexOf("TOTP") !== -1
-          ) {
-            reject("Totp authentication is not yet available")
           } else {
             const newUser = await userFound.update(args)
 
@@ -475,21 +470,7 @@ const MutationResolver = (
         }
       })
     },
-    sendPasswordRecoveryEmail(root, args, context) {
-      return async (resolve, reject) => {
-        const userFound = await User.find({
-          where: { email: args.email },
-        })
-        if (!userFound) {
-          reject("User doesn't exist. Use `signUp` to create one")
-        } else {
-          sendPasswordRecoveryEmail(userFound.email, userFound.id)
-
-          resolve(true)
-        }
-      }
-    },
-    enableWebauthn(root, args, context) {
+    setWebauthn(root, args, context) {
       return authenticated(
         context,
         async (resolve, reject) => {
@@ -726,7 +707,7 @@ const MutationResolver = (
         }
       }
     },
-    enableTotp(root, args, context) {
+    setTotp(root, args, context) {
       return authenticated(
         context,
         async (resolve, reject) => {
@@ -746,7 +727,7 @@ const MutationResolver = (
       )
     },
     // changes the password and returns an access token
-    enablePassword(root, args, context) {
+    setPassword(root, args, context) {
       return authenticated(
         context,
         async (resolve, reject) => {
@@ -775,6 +756,7 @@ const MutationResolver = (
 
             const encryptedPass = bcrypt.hashSync(args.password, SALT_ROUNDS)
 
+            const sendUpdatedPasswordEmail = !!userFound.password
             const newUser = await userFound.update({
               password: encryptedPass,
             })
@@ -798,68 +780,13 @@ const MutationResolver = (
                 id: userFound.id,
               },
             })
+
+            if (sendUpdatedPasswordEmail) {
+              sendPasswordUpdatedEmail(userFound.email)
+            }
           }
         },
         ["CHANGE_AUTHENTICATION"]
-      )
-    },
-    // changes the password and returns an access token
-    changePassword(root, args, context) {
-      return authenticated(
-        context,
-        async (resolve, reject) => {
-          const userFound = await context.dataLoaders.userLoaderById.load(
-            context.auth.userId
-          )
-          if (!userFound) {
-            reject("User doesn't exist. Use `signUp` to create one")
-          } else {
-            // check password strength
-            const zxcvbnDictionary = [
-              userFound.email,
-              userFound.email.split("@")[0],
-              userFound.name,
-              "igloo",
-              "igloo aurora",
-              "aurora",
-            ]
-            if (zxcvbn(args.newPassword, zxcvbnDictionary).score < 2) {
-              reject(
-                "Password too weak, avoid easily guessable password or short ones"
-              )
-              return
-            }
-
-            const encryptedPass = bcrypt.hashSync(args.newPassword, SALT_ROUNDS)
-
-            const newUser = await userFound.update({
-              password: encryptedPass,
-            })
-            context.auth = {
-              userId: context.auth.userId,
-              accessLevel: "OWNER",
-              tokenType: "TEMPORARY",
-            }
-            context.billingUpdater = GenerateUserBillingBatcher(
-              context.dataLoaders,
-              context.auth
-            )
-
-            resolve({
-              id: newUser.dataValues.id,
-              token: generateAuthenticationToken(
-                newUser.dataValues.id,
-                JWT_SECRET
-              ),
-              user: {
-                id: userFound.id,
-              },
-            })
-
-            sendPasswordUpdatedEmail(userFound.email)
-          }
-        },
-        ["CHANGE_AUTHENTICATION", "PASSWORD_RECOVERY"]
       )
     },
     resendVerificationEmail(root, args, context) {
