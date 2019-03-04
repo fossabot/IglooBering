@@ -682,23 +682,23 @@ type Query {
 
 type Subscription {
   # subscribes to device creations
-  deviceCreated: Device
+  deviceCreated(environmentId: String): Device
   # subscribes to device creations
-  deviceClaimed: Device
+  deviceClaimed(environmentId: String): Device
   # subscribes to environment creations
   environmentCreated: Environment
   # subscribes to value creations
-  valueCreated: Value
+  valueCreated(deviceId: String): Value
   # subscribes to plot node creations
-  plotNodeCreated: PlotNode
+  plotNodeCreated(plotId: String): PlotNode
   # subscribes to string plot node creations
-  categoryPlotNodeCreated: CategoryPlotNode
+  categoryPlotNodeCreated(plotId: String): CategoryPlotNode
   #subscribes to token creations
   permanentTokenCreated: PermanentToken
   # subscribes to notification creations
   notificationCreated: Notification
   # subscribes to device creations
-  deviceMoved: Device
+  deviceMoved(environmentId: String): Device
   # subscribes to environment shares to you
   pendingEnvironmentShareReceived: PendingEnvironmentShare
   pendingEnvironmentShareUpdated: PendingEnvironmentShare
@@ -723,25 +723,25 @@ type Subscription {
   # default id is the user making the request
   userUpdated(id: ID): User
   # subscribes to device updates
-  deviceUpdated: Device
+  deviceUpdated(environmentId: String): Device
   # subscribes to environment updates
   environmentUpdated: Environment
   # subscribes to value updates
-  valueUpdated: Value
+  valueUpdated(deviceId: String): Value
   # subscribes to plot node updates
-  plotNodeUpdated: PlotNode
+  plotNodeUpdated(plotId: String): PlotNode
   # subscribes to plot node updates
-  categoryPlotNodeUpdated: CategoryPlotNode
+  categoryPlotNodeUpdated(plotId: String): CategoryPlotNode
   # subscribes to notification updates
   notificationUpdated: Notification
   # subscribes to value deleted
-  valueDeleted: ID
+  valueDeleted(deviceId: String): ID
   # subscribes to plot node deletes
-  plotNodeDeleted: ID
+  plotNodeDeleted(plotId: String): ID
   # subscribes to plot node deletes
-  categoryPlotNodeDeleted: ID
+  categoryPlotNodeDeleted(plotId: String): ID
   # subscribes to device deletes
-  deviceDeleted: ID
+  deviceDeleted(environmentId: String): ID
   # subscribes to environment deletes
   environmentDeleted: ID
   # subscribes to user deletes

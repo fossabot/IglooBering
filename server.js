@@ -29,6 +29,8 @@ httpServer.listen(GRAPHQL_PORT, () => {
       subscribe,
       schema,
       onConnect: (connectionParams, websocket) => {
+        connectionParams.Authorization =
+          connectionParams.Authorization || connectionParams.authorization
         if (!connectionParams.Authorization) {
           throw new Error("You should pass an authorization token")
         } else if (!connectionParams.Authorization.startsWith("Bearer ")) {
