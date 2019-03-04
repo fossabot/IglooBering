@@ -589,7 +589,9 @@ const MutationResolver = (
               context.auth.userId
             )
 
-            sendTokenCreatedEmail(userFound.email)
+            if (userFound.settings_permanentTokenCreatedEmail) {
+              sendTokenCreatedEmail(userFound.email)
+            }
           }
         },
         ["MANAGE_PERMANENT_TOKENS"]
@@ -781,7 +783,10 @@ const MutationResolver = (
               },
             })
 
-            if (sendUpdatedPasswordEmail) {
+            if (
+              sendUpdatedPasswordEmail &&
+              userFound.settings_passwordChangeEmail
+            ) {
               sendPasswordUpdatedEmail(userFound.email)
             }
           }
@@ -887,11 +892,13 @@ const MutationResolver = (
               pendingEnvironmentShareReceived: newPendingShare,
               userId: receiverFound.id,
             })
-            sendEnvironmentSharedEmail(
-              receiverFound.email,
-              senderFound.name,
-              environmentFound.name
-            )
+            if (receiverFound.settings_pendingEnvironmentShareReceivedEmail) {
+              sendEnvironmentSharedEmail(
+                receiverFound.email,
+                senderFound.name,
+                environmentFound.name
+              )
+            }
             if (!receiverFound.quietMode && !environmentFound.muted) {
               sendPushNotification(
                 [receiverFound.id],
@@ -1205,11 +1212,13 @@ const MutationResolver = (
               pendingOwnerChangeReceived: newOwnerChange,
               userId: receiverFound.id,
             })
-            sendOwnerChangeEmail(
-              receiverFound.email,
-              senderFound.name,
-              environmentFound.name
-            )
+            if (receiverFound.settings_pendingOwnerChangeReceivedEmail) {
+              sendOwnerChangeEmail(
+                receiverFound.email,
+                senderFound.name,
+                environmentFound.name
+              )
+            }
             if (!receiverFound.quietMode && !environmentFound.muted) {
               sendPushNotification(
                 [receiverFound.id],
