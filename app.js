@@ -32,6 +32,8 @@ import {
   isDeviceBlocked,
   increaseDeviceAccessCount,
 } from "./redis"
+const expressPlayground = require("graphql-playground-middleware-express")
+  .default
 
 webpush.setVapidDetails(
   "http://igloo.witlab.io/",
@@ -220,26 +222,17 @@ app.use(
           : undefined,
         dataLoaders,
       },
+      tracing: process.env.NODE_ENV === "development",
     }
   })
 )
-/* istanbul ignore next */
-app.get("/graphiql", (req, res, next) => {
-  if (req.query.bearer) {
-    return graphiqlExpress({
-      endpointURL: "/graphql",
-      subscriptionsEndpoint: WEBSOCKET_URL,
-      passHeader: `'Authorization': 'Bearer ${req.query.bearer}'`,
-      websocketConnectionParams: {
-        Authorization: `Bearer ${req.query.bearer}`,
-      },
-    })(req, res, next)
-  }
-  return graphiqlExpress({
-    endpointURL: "/graphql",
+app.get(
+  "/playground",
+  expressPlayground({
+    endpoint: "/graphql",
     subscriptionsEndpoint: WEBSOCKET_URL,
-  })(req, res, next)
-})
+  })
+)
 
 app.post("/webPushSubscribe", async (req, res) => {
   if (req.user) {
