@@ -352,7 +352,7 @@ app.get("/verifyEmail/:verificationToken", async (req, res) => {
     } else {
       const foundUser = await User.find({ where: { id: decodedToken.userId } })
       const sameEmailUserFound = await User.find({
-        where: { email: decodedToken.email },
+        where: { email: decodedToken.email, emailIsVerified: true },
       })
 
       if (!foundUser) {
