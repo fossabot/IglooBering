@@ -655,7 +655,7 @@ type Query {
   # gets user's data
   user(email: String): User
   #  get's device's data
-  device(id: ID!): Device
+  device(id: ID): Device
   # get's environment's data
   environment(id: ID!): Environment
   # get's value's data

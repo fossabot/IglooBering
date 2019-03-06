@@ -13,7 +13,7 @@ import {
 import bcrypt from "bcryptjs"
 const { Fido2Lib } = require("fido2-lib-clone")
 import jwt from "jwt-simple"
-import moment from "moment"
+import moment, { relativeTimeRounding } from "moment"
 require("dotenv").config()
 
 /* istanbul ignore if */
@@ -52,20 +52,28 @@ const QueryResolver = ({ User, WebauthnKey }) => ({
     }
   },
   device(root, args, context) {
-    return authorized(
-      args.id,
-      context,
-      context.dataLoaders.deviceLoaderById,
-      User,
-      1,
-      async (resolve, reject, deviceFound) => {
-        resolve(deviceFound.dataValues)
+    return (resolve, reject) => {
+      const requestedId = args.id || context.auth.deviceId
+      if (!requestedId) {
+        reject("id field is required")
+        return
+      }
 
-        context.billingUpdater.update(QUERY_COST)
-      },
-      deviceToParent,
-      ["TEMPORARY", "PERMANENT", "DEVICE_ACCESS"]
-    )
+      return authorized(
+        requestedId,
+        context,
+        context.dataLoaders.deviceLoaderById,
+        User,
+        1,
+        async (resolve, reject, deviceFound) => {
+          resolve(deviceFound.dataValues)
+
+          context.billingUpdater.update(QUERY_COST)
+        },
+        deviceToParent,
+        ["TEMPORARY", "PERMANENT", "DEVICE_ACCESS"]
+      )(resolve, reject)
+    }
   },
   environment(root, args, context) {
     return authorized(
