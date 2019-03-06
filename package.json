@@ -91,21 +91,21 @@
     "web-push": "^3.3.0",
     "winston": "^3.0.0-rc1",
     "winston-slacker": "^1.0.3",
-    "zxcvbn": "^4.4.2"
-  },
-  "devDependencies": {
+    "zxcvbn": "^4.4.2",
     "@babel/cli": "^7.2.3",
     "@babel/core": "^7.3.4",
     "@babel/node": "^7.2.2",
     "@babel/preset-env": "^7.3.4",
+    "graphql": "14.0.2",
+    "graphql-tag": "^2.6.1"
+  },
+  "devDependencies": {
     "babel-eslint": "^8.1.2",
     "eslint": "4.9.0",
     "eslint-config-airbnb": "16.1.0",
     "eslint-plugin-import": "2.7.0",
     "eslint-plugin-jsx-a11y": "6.0.2",
     "eslint-plugin-react": "7.4.0",
-    "graphql": "14.0.2",
-    "graphql-tag": "^2.6.1",
     "husky": "^0.14.3",
     "jest": "24.1.0",
     "lint-staged": "^6.0.0",

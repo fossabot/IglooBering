@@ -75,6 +75,7 @@ httpServer.listen(GRAPHQL_PORT, () => {
           })
         }
       },
+      keepAlive: 10000,
     },
     {
       server: httpServer,

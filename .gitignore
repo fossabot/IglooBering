@@ -42,9 +42,7 @@ node_modules
 package-lock.json
 
 compiled
-# Elastic Beanstalk Files
-.elasticbeanstalk/*
-!.elasticbeanstalk/*.cfg.yml
-!.elasticbeanstalk/*.global.yml
 
 docs
+
+saved_configs

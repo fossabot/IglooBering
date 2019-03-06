@@ -1,0 +1,51 @@
+branch-defaults:
+  master:
+    environment: Igloo-env
+environment-defaults:
+  Igloo-env:
+    branch: null
+    repository: null
+global:
+  application_name: igloo
+  default_ec2_keyname: ssh eb
+  default_platform: Node.js
+  default_region: eu-west-1
+  include_git_submodules: true
+  instance_profile: null
+  platform_name: null
+  platform_version: null
+  profile: eb-cli
+  sc: git
+  workspace_type: Application
+Platform:
+  PlatformArn: arn:aws:elasticbeanstalk:eu-west-1::platform/Node.js running on 64bit Amazon Linux/4.8.1
+OptionSettings:
+  aws:elasticbeanstalk:container:nodejs:
+    NodeCommand: npm start
+  AWSEBAutoScalingGroup.aws:autoscaling:asg:
+    MinSize: '1'
+    MaxSize: '2'
+  aws:elasticbeanstalk:environment:
+    ServiceRole: aws-elasticbeanstalk-service-role
+    LoadBalancerType: application
+  aws:elbv2:listener:443:
+    ListenerEnabled: true
+    SSLCertificateArns: arn:aws:acm:eu-west-1:147375949032:certificate/0b5e1465-b73d-4c99-bb5f-161dc677400b
+    DefaultProcess: default
+    Protocol: HTTPS
+    Rules: ''
+  aws:autoscaling:launchconfiguration:
+    IamInstanceProfile: aws-elasticbeanstalk-ec2-role
+    EC2KeyName: ssh eb
+  AWSEBV2LoadBalancerTargetGroup.aws:elasticbeanstalk:environment:process:default:
+    Port: '8081'
+EnvironmentTier:
+  Type: Standard
+  Name: WebServer
+container_commands:
+  enable_websockets:
+    command: |
+     sed -i '/\s*proxy_set_header\s*Connection/c \
+              proxy_set_header Upgrade $http_upgrade;\
+              proxy_set_header Connection "upgrade";\
+      ' /tmp/deployment/config/#etc#nginx#conf.d#00_elastic_beanstalk_proxy.conf
