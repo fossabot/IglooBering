@@ -46,3 +46,5 @@ compiled
 docs
 
 saved_configs
+
+yarn.lock

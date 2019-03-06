@@ -617,7 +617,7 @@ const sendVerificationEmail = (email, userId) => {
 
   const GRAPHQL_PORT = process.env.PORT || 3000
   const serverLink =
-    process.env.NODE_ENV === "production" || process.env.NODE_ENV === "staging"
+    process.env.NODE_ENV !== "development"
       ? `https://${process.env.BASE_URL}/verifyEmail/`
       : `http://localhost:${GRAPHQL_PORT}/verifyEmail/`
   const emailVerificationLink = serverLink + verificationToken

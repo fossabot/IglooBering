@@ -27,8 +27,7 @@ const db = {}
 const uppercaseFirstLetter = name => name[0].toUpperCase() + name.slice(1)
 
 // load all models into db
-fs
-  .readdirSync(__dirname)
+fs.readdirSync(__dirname)
   .filter(
     file =>
       file.indexOf(".") !== 0 && file !== basename && file.slice(-3) === ".js"
