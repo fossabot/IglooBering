@@ -134,7 +134,7 @@ type Mutation {
 
   setTotp(code: String, secret: String): Boolean
 
-  setWebauthn(
+  setWebAuthn(
     challengeResponse: String
     jwtChallenge: String
   ): authenticationPayload

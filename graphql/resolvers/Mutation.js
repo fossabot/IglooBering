@@ -470,7 +470,7 @@ const MutationResolver = (
         }
       })
     },
-    setWebauthn(root, args, context) {
+    setWebAuthn(root, args, context) {
       return authenticated(
         context,
         async (resolve, reject) => {
