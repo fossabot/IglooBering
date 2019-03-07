@@ -148,9 +148,11 @@ type Mutation {
 
   resendVerificationEmail: Boolean
 
+  # specify email of userId of the target user
   shareEnvironment(
     environmentId: ID!
-    email: String!
+    email: String
+    userId: String
     role: Role!
   ): PendingEnvironmentShare
   pendingEnvironmentShare(id: ID!, role: Role!): PendingEnvironmentShare
@@ -164,10 +166,18 @@ type Mutation {
   # returns the ID of the declined environment
   declinePendingEnvironmentShare(pendingEnvironmentShareId: ID!): ID
 
-  stopSharingEnvironment(environmentId: ID!, email: String!): Environment
+  stopSharingEnvironment(
+    environmentId: ID!
+    email: String
+    userId: ID
+  ): Environment
   leaveEnvironment(environmentId: ID!): ID
 
-  changeOwner(environmentId: ID!, email: String!): PendingOwnerChange
+  changeOwner(
+    environmentId: ID!
+    email: String
+    userId: String
+  ): PendingOwnerChange
   # returns the ID of the pending share that was revoked
   revokePendingOwnerChange(pendingOwnerChangeId: ID!): ID
 
@@ -653,7 +663,7 @@ type WebauthnChallenge {
 
 type Query {
   # gets user's data
-  user(email: String): User
+  user(email: String, id: ID): User
   #  get's device's data
   device(id: ID): Device
   # get's environment's data

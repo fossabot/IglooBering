@@ -821,9 +821,18 @@ const MutationResolver = (
         User,
         3,
         async (resolve, reject, environmentFound, _, senderFound) => {
-          const receiverFound = await User.find({
-            where: { email: args.email },
-          })
+          let receiverFound
+          if (args.email) {
+            receiverFound = await User.find({
+              where: { email: args.email },
+            })
+          } else if (args.userId) {
+            receiverFound = await User.find({
+              where: { id: args.userId },
+            })
+          } else {
+            reject("userId or email required")
+          }
 
           if (!receiverFound) {
             reject("This account doesn't exist, check the email passed")
@@ -1152,10 +1161,19 @@ const MutationResolver = (
         User,
         4,
         async (resolve, reject, environmentFound, _, senderFound) => {
-          const receiverFound = await User.find({
-            where: { email: args.email },
-          })
-
+          let receiverFound
+          if (args.email) {
+            receiverFound = await User.find({
+              where: { email: args.email },
+            })
+          } else if (args.userId) {
+            receiverFound = await User.find({
+              where: { id: args.userId },
+            })
+          } else {
+            reject("userId or email required")
+          }
+          
           if (!receiverFound) {
             reject("This account doesn't exist, check the email passed")
           } else if (receiverFound.id === context.auth.userId) {
@@ -1573,9 +1591,19 @@ const MutationResolver = (
         User,
         3,
         async (resolve, reject, environmentFound) => {
-          const userFound = await User.find({
-            where: { email: args.email },
-          })
+          let userFound
+          if (args.email) {
+            userFound = await User.find({
+              where: { email: args.email },
+            })
+          } else if (args.userId) {
+            userFound = await User.find({
+              where: { id: args.userId },
+            })
+          } else {
+            reject("userId or email required")
+          }
+
           if (!userFound) {
             reject("This user doesn't exist, check that the email is correct")
             return

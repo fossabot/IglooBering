@@ -43,6 +43,9 @@ const QueryResolver = ({ User, WebauthnKey }) => ({
         } else {
           reject("User not found")
         }
+      } else if (args.id) {
+        resolve({ id: args.id })
+        context.billingUpdater.update(QUERY_COST)
       } else if (context.auth && context.auth.userId) {
         resolve({ id: context.auth.userId })
         context.billingUpdater.update(QUERY_COST)
