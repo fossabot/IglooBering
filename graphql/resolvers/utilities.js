@@ -783,6 +783,62 @@ const sendOwnerChangeEmail = (email, userName, environmentName) => {
     console.log
   )
 }
+const sendOwnerChangeAcceptedEmail = (email, userName, environmentName) => {
+  // TODO: create a template for the email verification
+  ses.sendEmail(
+    {
+      Source: "'Igloo' <noreply@igloo.ooo>",
+      Destination: { ToAddresses: [email] },
+      Message: {
+        Body: {
+          Html: {
+            Charset: "UTF-8",
+            Data: `${userName} accepted your transfer request of "${environmentName}"`,
+          },
+          Text: {
+            Charset: "UTF-8",
+            Data: `${userName} accepted your transfer request of "${environmentName}"`,
+          },
+        },
+        Subject: {
+          Charset: "UTF-8",
+          Data: "A environment was shared with you",
+        },
+      },
+    },
+    console.log
+  )
+}
+const sendEnvironmentShareAcceptedEmail = (
+  email,
+  userName,
+  environmentName
+) => {
+  // TODO: create a template for the email verification
+  ses.sendEmail(
+    {
+      Source: "'Igloo' <noreply@igloo.ooo>",
+      Destination: { ToAddresses: [email] },
+      Message: {
+        Body: {
+          Html: {
+            Charset: "UTF-8",
+            Data: `${userName} accepted your environment share of "${environmentName}"`,
+          },
+          Text: {
+            Charset: "UTF-8",
+            Data: `${userName} accepted your environment share of "${environmentName}"`,
+          },
+        },
+        Subject: {
+          Charset: "UTF-8",
+          Data: "A environment was shared with you",
+        },
+      },
+    },
+    console.log
+  )
+}
 
 async function authorizationLevel(
   instance,
@@ -1304,6 +1360,8 @@ module.exports = {
   sendEnvironmentSharedEmail,
   sendOwnerChangeEmail,
   sendAccountDeletedEmail,
+  sendOwnerChangeAcceptedEmail,
+  sendEnvironmentShareAcceptedEmail,
   authorizationLevel,
   authorized,
   authorizedScalarPropsResolvers,

@@ -31,6 +31,8 @@ import {
   sendOwnerChangeEmail,
   sendAccountDeletedEmail,
   generateDeviceAuthenticationToken,
+  sendOwnerChangeAcceptedEmail,
+  sendEnvironmentShareAcceptedEmail,
 } from "./utilities"
 const { Fido2Lib } = require("fido2-lib-clone")
 import Stripe from "stripe"
@@ -1042,6 +1044,13 @@ const MutationResolver = (
           const senderFound = await context.dataLoaders.userLoaderById.load(
             pendingEnvironmentFound.senderId
           )
+          if (senderFound.settings_pendingEnvironmentShareAcceptedEmail) {
+            sendEnvironmentShareAcceptedEmail(
+              senderFound.email,
+              userFound.name,
+              environmentFound.name
+            )
+          }
           if (!senderFound.quietMode && !environmentFound.muted) {
             sendPushNotification(
               [senderFound.id],
@@ -1173,7 +1182,7 @@ const MutationResolver = (
           } else {
             reject("userId or email required")
           }
-          
+
           if (!receiverFound) {
             reject("This account doesn't exist, check the email passed")
           } else if (receiverFound.id === context.auth.userId) {
@@ -1377,6 +1386,13 @@ const MutationResolver = (
           const senderFound = await context.dataLoaders.userLoaderById.load(
             pendingOwnerChangeFound.senderId
           )
+          if (senderFound.settings_pendingOwnerChangeAcceptedEmail) {
+            sendOwnerChangeAcceptedEmail(
+              senderFound.email,
+              userFound.name,
+              environmentFound.name
+            )
+          }
           if (!senderFound.quietMode && !environmentFound.muted) {
             sendPushNotification(
               [senderFound.id],
