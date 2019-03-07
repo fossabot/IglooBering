@@ -802,7 +802,7 @@ const sendOwnerChangeAcceptedEmail = (email, userName, environmentName) => {
         },
         Subject: {
           Charset: "UTF-8",
-          Data: "A environment was shared with you",
+          Data: "Transfer request accepted",
         },
       },
     },
@@ -832,7 +832,7 @@ const sendEnvironmentShareAcceptedEmail = (
         },
         Subject: {
           Charset: "UTF-8",
-          Data: "A environment was shared with you",
+          Data: "Environment ${environmentName} got accepted",
         },
       },
     },
