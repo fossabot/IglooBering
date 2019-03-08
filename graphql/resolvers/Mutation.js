@@ -91,6 +91,91 @@ function checkAuthenticationMethod(
   }
 }
 
+const validateCertificates = (
+  passwordCertificate,
+  webAuthnCertificate,
+  totpCertificate,
+  reject,
+  JWT_SECRET
+) => {
+  let decodedPasswordCertificate
+  let decodedWebAuthnCertificate
+  let decodedTotpCertificate
+  try {
+    decodedPasswordCertificate = passwordCertificate
+      ? jwt.decode(passwordCertificate, JWT_SECRET)
+      : null
+  } catch (e) {
+    reject("Invalid, expired or malformed password certificate")
+    return false
+  }
+  try {
+    decodedWebAuthnCertificate = webAuthnCertificate
+      ? jwt.decode(webAuthnCertificate, JWT_SECRET)
+      : null
+  } catch (e) {
+    reject("Invalid, expired or malformed WebAuthn certificate")
+    return false
+  }
+  try {
+    decodedTotpCertificate = totpCertificate
+      ? jwt.decode(totpCertificate, JWT_SECRET)
+      : null
+  } catch (e) {
+    reject("Invalid, expired or malformed TOTP certificate")
+    return false
+  }
+
+  // check that the passed certificate attest the correct authentication method
+  if (
+    decodedPasswordCertificate &&
+    decodedPasswordCertificate.certificateType !== "PASSWORD"
+  ) {
+    reject("Value passed to passwordCertificate is not a password certificate")
+    return false
+  } else if (
+    decodedWebAuthnCertificate &&
+    decodedWebAuthnCertificate.certificateType !== "WEBAUTHN"
+  ) {
+    reject("Value passed to webAuthnCertificate is not a WebAuthn certificate")
+    return false
+  } else if (
+    decodedTotpCertificate &&
+    decodedTotpCertificate.certificateType !== "TOTP"
+  ) {
+    reject("Value passed to totpCertificate is not a TOTP certificate")
+    return false
+  }
+
+  if (
+    !decodedPasswordCertificate &&
+    !decodedWebAuthnCertificate &&
+    !decodedTotpCertificate
+  ) {
+    reject("No certificate passed")
+    return false
+  }
+
+  const userId =
+    (decodedPasswordCertificate && decodedPasswordCertificate.userId) ||
+    (decodedWebAuthnCertificate && decodedWebAuthnCertificate.userId)
+  if (
+    (decodedWebAuthnCertificate &&
+      decodedWebAuthnCertificate.userId !== userId) ||
+    (decodedTotpCertificate && decodedTotpCertificate.userId !== userId)
+  ) {
+    reject("The various certificates refer to different users")
+    return false
+  }
+
+  return {
+    decodedPasswordCertificate,
+    decodedWebAuthnCertificate,
+    decodedTotpCertificate,
+    userId,
+  }
+}
+
 const MutationResolver = (
   {
     User,
@@ -130,74 +215,26 @@ const MutationResolver = (
         }
 
         // decode the certificates passed
-        let decodedPasswordCertificate
-        let decodedWebAuthnCertificate
-        let decodedTotpCertificate
-        try {
-          decodedPasswordCertificate = args.passwordCertificate
-            ? jwt.decode(args.passwordCertificate, JWT_SECRET)
-            : null
-        } catch (e) {
-          reject("Invalid, expired or malformed password certificate")
-          return
-        }
-        try {
-          decodedWebAuthnCertificate = args.webAuthnCertificate
-            ? jwt.decode(args.webAuthnCertificate, JWT_SECRET)
-            : null
-        } catch (e) {
-          reject("Invalid, expired or malformed WebAuthn certificate")
-          return
-        }
-        try {
-          decodedTotpCertificate = args.totpCertificate
-            ? jwt.decode(args.totpCertificate, JWT_SECRET)
-            : null
-        } catch (e) {
-          reject("Invalid, expired or malformed TOTP certificate")
+        const validatedCertificates = validateCertificates(
+          args.passwordCertificate,
+          args.webAuthnCertificate,
+          args.totpCertificate,
+          reject,
+          JWT_SECRET
+        )
+
+        if (!validatedCertificates) {
           return
         }
 
-        // check that the passed certificate attest the correct authentication method
-        if (
-          decodedPasswordCertificate &&
-          decodedPasswordCertificate.certificateType !== "PASSWORD"
-        ) {
-          reject(
-            "Value passed to passwordCertificate is not a password certificate"
-          )
-          return
-        } else if (
-          decodedWebAuthnCertificate &&
-          decodedWebAuthnCertificate.certificateType !== "WEBAUTHN"
-        ) {
-          reject(
-            "Value passed to webAuthnCertificate is not a WebAuthn certificate"
-          )
-          return
-        } else if (
-          decodedTotpCertificate &&
-          decodedTotpCertificate.certificateType !== "TOTP"
-        ) {
-          reject("Value passed to totpCertificate is not a TOTP certificate")
-          return
-        }
+        let {
+          decodedPasswordCertificate,
+          decodedWebAuthnCertificate,
+          decodedTotpCertificate,
+          userId,
+        } = validatedCertificates
 
-        const userId =
-          (decodedPasswordCertificate && decodedPasswordCertificate.userId) ||
-          (decodedWebAuthnCertificate && decodedWebAuthnCertificate.userId)
-        if (
-          (decodedWebAuthnCertificate &&
-            decodedWebAuthnCertificate.userId !== userId) ||
-          (decodedTotpCertificate && decodedTotpCertificate.userId !== userId)
-        ) {
-          reject("The various certificates refer to different users")
-          return
-        }
-
-        const userFound = await User.find({
-          where: { id: userId },
-        })
+        const userFound = await context.dataLoaders.userLoaderById.load(userId)
         if (!userFound) {
           reject("User doesn't exist. Use `signUp` to create one")
         } else {
@@ -444,21 +481,60 @@ const MutationResolver = (
       )
     },
     createToken(root, args, context) {
-      return authenticated(context, async (resolve, reject) => {
-        const userFound = await context.dataLoaders.userLoaderById.load(
-          context.auth.userId
+      return async (resolve, reject) => {
+        // decode the certificates passed
+        const validatedCertificates = validateCertificates(
+          args.passwordCertificate,
+          args.webAuthnCertificate,
+          args.totpCertificate,
+          reject,
+          JWT_SECRET
         )
-        if (!userFound.dataValues.password) {
-          reject("This user does not have password authentication enabled")
-        } else if (
-          !bcrypt.compareSync(args.password, userFound.dataValues.password)
-        ) {
-          reject("Wrong password")
+
+        if (!validatedCertificates) {
+          return
+        }
+
+        let {
+          userId,
+          decodedPasswordCertificate,
+          decodedWebAuthnCertificate,
+          decodedTotpCertificate,
+        } = validatedCertificates
+
+        const userFound = await context.dataLoaders.userLoaderById.load(userId)
+        if (!userFound) {
+          reject("User doesn't exist. Use `signUp` to create one")
         } else {
+          const {
+            primaryAuthenticationMethods,
+            secondaryAuthenticationMethods,
+          } = userFound
+
+          let enabledFactorPassed = false
+          for (let authenticationMethod of [
+            ...primaryAuthenticationMethods,
+            ...secondaryAuthenticationMethods,
+          ]) {
+            enabledFactorPassed =
+              enabledFactorPassed ||
+              checkAuthenticationMethod(
+                authenticationMethod,
+                decodedPasswordCertificate,
+                decodedWebAuthnCertificate,
+                decodedTotpCertificate
+              )
+          }
+
+          if (!enabledFactorPassed) {
+            reject("Did not pass any enabled authentication method")
+            return
+          }
+
           resolve(
             jwt.encode(
               {
-                userId: context.auth.userId,
+                userId: userId,
                 tokenType: args.tokenType,
                 exp: moment()
                   .utc()
@@ -470,7 +546,7 @@ const MutationResolver = (
             )
           )
         }
-      })
+      }
     },
     setWebAuthn(root, args, context) {
       return authenticated(

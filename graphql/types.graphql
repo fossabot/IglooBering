@@ -116,7 +116,13 @@ type Mutation {
   ): authenticationPayload
 
   # creates a token to perform special operations
-  createToken(password: String!, tokenType: TokenType!): String
+
+  createToken(
+    passwordCertificate: String
+    webAuthnCertificate: String
+    totpCertificate: String
+    tokenType: TokenType!
+  ): String
 
   # Generates a permanent access token
   createPermanentToken(
