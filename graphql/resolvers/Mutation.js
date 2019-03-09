@@ -475,6 +475,11 @@ const MutationResolver = (
             const newUser = await userFound.update(args)
 
             resolve(newUser)
+
+            pubsub.publish("userUpdated", {
+              userUpdated: newUser,
+              userId: newUser.id,
+            })
           }
         },
         ["CHANGE_AUTHENTICATION"]
