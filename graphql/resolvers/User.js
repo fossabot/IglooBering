@@ -71,7 +71,7 @@ const UserResolver = ({
   PendingOwnerChange,
   sequelize,
 }) => ({
-  ...scalarProps(["quietMode", "monthUsage", "emailIsVerified"]),
+  ...scalarProps(["quietMode", "monthUsage"]),
   ...publicScalarProps([
     "email",
     "name",
@@ -79,6 +79,7 @@ const UserResolver = ({
     "profileIconColor",
     "primaryAuthenticationMethods",
     "secondaryAuthenticationMethods",
+    "emailIsVerified",
   ]),
   paymentPlan: retrieveUserScalarProp("paymentPlan", [
     "TEMPORARY",
@@ -225,7 +226,9 @@ const UserResolver = ({
         args.sortDirection =
           args.sortDirection === "ASCENDING"
             ? "ASC"
-            : args.sortDirection === "DESCENDING" ? "DESC" : args.sortDirection
+            : args.sortDirection === "DESCENDING"
+            ? "DESC"
+            : args.sortDirection
 
         const parseRawStringFilter = (stringFilter, fieldName) => {
           stringFilter.hasOwnProperty = Object.prototype.hasOwnProperty
