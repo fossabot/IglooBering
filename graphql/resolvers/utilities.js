@@ -649,7 +649,7 @@ const sendVerificationEmail = (email, userId) => {
 }
 
 const sendLoginEmail = (email, token) => {
-  const loginLink = `https://aurora.igloo.ooo/emailLogin/${token}`
+  const loginLink = `https://aurora.igloo.ooo/login?certificate=${token}`
 
   // TODO: create a template for the email verification
   ses.sendEmail(
