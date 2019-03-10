@@ -394,9 +394,27 @@ const MutationResolver = (
         try {
           decodedJwt = jwt.decode(args.jwtChallenge, process.env.JWT_SECRET)
         } catch (e) {
-          reject("Invalid or expired jwtChallenge")
+          if(e.message === "Not enough or too many segments"){
+            reject("jwtChallenge is not a valid JWT")
+          } else if (e.message === "No token supplied") {
+            reject("No jwtChallenge supplied")
+          } else if (e.message === "Algorithm not supported") {
+            reject("jwtChallenge was not created by Igloo")
+          } else if (e.message === "Algorithm not supported" || e.message === "Signature verification failed") {
+            reject("jwtChallenge was not created by Igloo")
+          } else if (e.message === "Algorithm not supported" || e.message === "Signature verification failed") {
+            reject("jwtChallenge was not created by Igloo")
+          } else if (e.message === "Token expired") {
+            reject("jwtChallenge expired")
+          }
+
           return
         }
+        if(!decodedJwt.challenge){
+          reject("jwtChallenge is not a challenge token")
+          return
+        }
+        
         const { challenge: decodedChallenge, userId } = decodedJwt
 
         var assertionExpectations = {

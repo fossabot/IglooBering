@@ -43,14 +43,8 @@ describe("User", () => {
     { auth: { userId: "mockUserId4", tokenType: "TEMPORARY" }, ...mockContext }
   );
 
-  let privateScalarProps = [
-    "quietMode",
-    "monthUsage",
-    "emailIsVerified",
-    "paymentPlan",
-    "usageCap"
-  ];
-  let publicScalarProps = ["email", "name", "profileIcon", "profileIconColor"];
+  let privateScalarProps = ["quietMode", "monthUsage", "paymentPlan", "usageCap"];
+  let publicScalarProps = ["email", "name", "profileIcon", "profileIconColor", "emailIsVerified"];
 
   const scalarProps = [...privateScalarProps, ...publicScalarProps];
   for (let prop of scalarProps) {
