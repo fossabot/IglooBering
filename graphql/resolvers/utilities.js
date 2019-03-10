@@ -648,6 +648,35 @@ const sendVerificationEmail = (email, userId) => {
   )
 }
 
+const sendLoginEmail = (email, token) => {
+  const loginLink = `https://aurora.igloo.ooo/emailLogin/${token}`
+
+  // TODO: create a template for the email verification
+  ses.sendEmail(
+    {
+      Source: "'Igloo' <noreply@igloo.ooo>",
+      Destination: { ToAddresses: [email] },
+      Message: {
+        Body: {
+          Html: {
+            Charset: "UTF-8",
+            Data: `Log into your account clicking this link: <a href="${loginLink}">LOGIN</a>`,
+          },
+          Text: {
+            Charset: "UTF-8",
+            Data: `Log into your account visiting this link: ${loginLink}`,
+          },
+        },
+        Subject: {
+          Charset: "UTF-8",
+          Data: "Login Magic Link",
+        },
+      },
+    },
+    console.log
+  )
+}
+
 const sendAccountDeletedEmail = email => {
   ses.sendEmail(
     {
@@ -1355,6 +1384,7 @@ module.exports = {
   generatePermanentAuthenticationToken,
   socketToDeviceMap,
   sendVerificationEmail,
+  sendLoginEmail,
   sendPasswordUpdatedEmail,
   sendTokenCreatedEmail,
   sendEnvironmentSharedEmail,

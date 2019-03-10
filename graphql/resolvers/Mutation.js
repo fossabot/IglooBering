@@ -33,13 +33,13 @@ import {
   generateDeviceAuthenticationToken,
   sendOwnerChangeAcceptedEmail,
   sendEnvironmentShareAcceptedEmail,
+  sendLoginEmail,
 } from "./utilities"
 const { Fido2Lib } = require("fido2-lib-clone")
 import Stripe from "stripe"
 import moment from "moment"
 import jwt from "jwt-simple"
 import zxcvbn from "zxcvbn"
-import { isNullOrUndefined } from "util"
 import { Op } from "sequelize"
 import QRCode from "qrcode-svg"
 
@@ -198,6 +198,7 @@ const MutationResolver = (
     EnvironmentSpectator,
     UnclaimedDevice,
     WebauthnKey,
+    EmailLoginToken,
   },
   WebPushNotification,
   pubsub,
@@ -209,6 +210,40 @@ const MutationResolver = (
     // and returns an access token
     logIn(root, args, context) {
       return async (resolve, reject) => {
+        if (args.emailCertificate) {
+          const loginTokenFound = await EmailLoginToken.find({
+            where: { id: args.emailCertificate },
+          })
+
+          if (!loginTokenFound) {
+            reject("Invalid, used or expired emailCertificate")
+            return
+          }
+
+          context.auth = {
+            userId: loginTokenFound.userId,
+            accessLevel: "OWNER",
+            tokenType: "TEMPORARY",
+          }
+          context.billingUpdater = GenerateUserBillingBatcher(
+            context.dataLoaders,
+            context.auth
+          )
+
+          resolve({
+            token: generateAuthenticationToken(
+              loginTokenFound.userId,
+              JWT_SECRET
+            ),
+            user: {
+              id: loginTokenFound.userId,
+            },
+          })
+
+          await loginTokenFound.destroy()
+          return
+        }
+
         if (!args.passwordCertificate && !args.webAuthnCertificate) {
           reject("No primary authentication method certificate passed")
           return
@@ -294,6 +329,23 @@ const MutationResolver = (
             token: generateAuthenticationToken(userId, JWT_SECRET),
             user: userFound,
           })
+        }
+      }
+    },
+    sendLoginEmail(root, args, context) {
+      return async (resolve, reject) => {
+        const userFound = await User.find({ where: { email: args.email } })
+
+        if (!userFound) {
+          reject("User not found")
+        } else {
+          const loginToken = await EmailLoginToken.create({
+            userId: userFound.id,
+          })
+
+          sendLoginEmail(userFound.email, loginToken.id)
+
+          resolve(true)
         }
       }
     },
@@ -394,15 +446,21 @@ const MutationResolver = (
         try {
           decodedJwt = jwt.decode(args.jwtChallenge, process.env.JWT_SECRET)
         } catch (e) {
-          if(e.message === "Not enough or too many segments"){
+          if (e.message === "Not enough or too many segments") {
             reject("jwtChallenge is not a valid JWT")
           } else if (e.message === "No token supplied") {
             reject("No jwtChallenge supplied")
           } else if (e.message === "Algorithm not supported") {
             reject("jwtChallenge was not created by Igloo")
-          } else if (e.message === "Algorithm not supported" || e.message === "Signature verification failed") {
+          } else if (
+            e.message === "Algorithm not supported" ||
+            e.message === "Signature verification failed"
+          ) {
             reject("jwtChallenge was not created by Igloo")
-          } else if (e.message === "Algorithm not supported" || e.message === "Signature verification failed") {
+          } else if (
+            e.message === "Algorithm not supported" ||
+            e.message === "Signature verification failed"
+          ) {
             reject("jwtChallenge was not created by Igloo")
           } else if (e.message === "Token expired") {
             reject("jwtChallenge expired")
@@ -410,11 +468,11 @@ const MutationResolver = (
 
           return
         }
-        if(!decodedJwt.challenge){
+        if (!decodedJwt.challenge) {
           reject("jwtChallenge is not a challenge token")
           return
         }
-        
+
         const { challenge: decodedChallenge, userId } = decodedJwt
 
         var assertionExpectations = {
