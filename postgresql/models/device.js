@@ -7,9 +7,15 @@ module.exports = (queryInterface, Sequelize) => {
     },
     environmentId: {
       type: Sequelize.UUID,
-      allowNull: false,
       references: {
         model: "environments",
+        key: "id",
+      },
+    },
+    producerId: {
+      type: Sequelize.UUID,
+      references: {
+        model: "users",
         key: "id",
       },
     },
@@ -41,6 +47,12 @@ module.exports = (queryInterface, Sequelize) => {
       type: Sequelize.STRING,
     },
     muted: {
+      type: Sequelize.BOOLEAN,
+    },
+    producerHasAccess: {
+      type: Sequelize.BOOLEAN,
+    },
+    producerIsBilled: {
       type: Sequelize.BOOLEAN,
     },
   })

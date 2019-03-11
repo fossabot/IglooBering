@@ -154,7 +154,7 @@ type Mutation {
     secondaryAuthenticationMethods: [SecondaryAuthenticationMethod!]!
   ): User
 
-  resendVerificationEmail: Boolean
+  resendVerificationEmail(email: String!): Boolean
 
   # specify email of userId of the target user
   shareEnvironment(
@@ -206,35 +206,18 @@ type Mutation {
     muted: Boolean
   ): Environment
 
-  # Creates a new Device
   createDevice(
-    # Product name, for example Igloo Thermostat
     deviceType: String
-    # Custom name gave by the end-user to the device
-    name: String!
-    # used to sort the devices in Igloo Aurora
-    index: Int
+    firmware: String
     signalStatus: Float
     batteryStatus: Float
     batteryCharging: Boolean
-    environmentId: ID!
-    firmware: String
-    muted: Boolean
-  ): Device
-
-  # FIXME: change name
-  createUnclaimedDevice(
-    deviceType: String
-    firmware: String
   ): createUnclaimedDevicePayload
 
   claimDevice(
-    unclaimedDeviceId: ID!
+    deviceId: ID!
     name: String!
     index: Int
-    signalStatus: Float
-    batteryStatus: Float
-    batteryCharging: Boolean
     environmentId: ID!
     muted: Boolean
   ): Device

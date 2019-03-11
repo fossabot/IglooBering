@@ -196,7 +196,6 @@ const MutationResolver = (
     EnvironmentAdmin,
     EnvironmentEditor,
     EnvironmentSpectator,
-    UnclaimedDevice,
     WebauthnKey,
     EmailLoginToken,
   },
@@ -954,23 +953,17 @@ const MutationResolver = (
       )
     },
     resendVerificationEmail(root, args, context) {
-      return authenticated(
-        context,
-        async (resolve, reject) => {
-          const userFound = await context.dataLoaders.userLoaderById.load(
-            context.auth.userId
-          )
-          if (!userFound) {
-            reject("User doesn't exist. Use `signUp` to create one")
-          } else if (userFound.emailIsVerified) {
-            reject("This user has already verified their email")
-          } else {
-            resolve(true)
-            sendVerificationEmail(userFound.email, userFound.id)
-          }
-        },
-        ["TEMPORARY", "CHANGE_AUTHENTICATION"]
-      )
+      return async (resolve, reject) => {
+        const userFound = await User.find({ where: { email: args.email } })
+        if (!userFound) {
+          reject("User doesn't exist. Use `signUp` to create one")
+        } else if (userFound.emailIsVerified) {
+          reject("This user has already verified their email")
+        } else {
+          resolve(true)
+          sendVerificationEmail(userFound.email, userFound.id)
+        }
+      }
     },
     shareEnvironment: (root, args, context) =>
       authorized(
@@ -1890,85 +1883,98 @@ const MutationResolver = (
         context.billingUpdater.update(MUTATION_COST)
       })
     },
+    // createDevice(root, args, context) {
+    //   return async (resolve, reject) => {
+    //     return authorized(
+    //       args.environmentId,
+    //       context,
+    //       context.dataLoaders.environmentLoaderById,
+    //       User,
+    //       2,
+    //       async (resolve, reject, environmentFound, _, userFound) => {
+    //         // checks that batteryStatus and signalStatus are within boundaries [0,100]
+    //         if (
+    //           isNotNullNorUndefined(args.batteryStatus) &&
+    //           isOutOfBoundaries(0, 100, args.batteryStatus)
+    //         ) {
+    //           reject("batteryStatus is out of boundaries [0,100]")
+    //           return
+    //         } else if (
+    //           isNotNullNorUndefined(args.signalStatus) &&
+    //           isOutOfBoundaries(0, 100, args.signalStatus)
+    //         ) {
+    //           reject("signalStatus is out of boundaries [0,100]")
+    //           return
+    //         } else if (args.name === "") {
+    //           reject("Custom name cannot be an empty string")
+    //           return
+    //         } else if (args.muted === null) {
+    //           reject("muted cannot be null")
+    //           return
+    //         }
+
+    //         const index =
+    //           args.index !== null && args.index !== undefined
+    //             ? args.index
+    //             : (await Device.max("index", {
+    //                 where: { environmentId: args.environmentId },
+    //               })) + 1 || 0 // or 0 replaces NaN when there are no other devices
+
+    //         const newDevice = await Device.create({
+    //           ...args,
+    //           muted: !!args.muted,
+    //           index,
+    //         })
+
+    //         const resolveValue = {
+    //           ...newDevice.dataValues,
+    //           environment: newDevice.environmentId
+    //             ? {
+    //                 id: newDevice.environmentId,
+    //               }
+    //             : null,
+    //         }
+
+    //         pubsub.publish("deviceCreated", {
+    //           deviceCreated: resolveValue,
+    //           userIds: await instanceToSharedIds(environmentFound, context),
+    //         })
+
+    //         resolve(resolveValue)
+
+    //         touch(Environment, environmentFound.id, newDevice.createdAt)
+    //         context.billingUpdater.update(MUTATION_COST)
+    //       },
+    //       environmentToParent
+    //     )(resolve, reject)
+    //   }
+    // },
     createDevice(root, args, context) {
-      return async (resolve, reject) => {
-        return authorized(
-          args.environmentId,
-          context,
-          context.dataLoaders.environmentLoaderById,
-          User,
-          2,
-          async (resolve, reject, environmentFound, _, userFound) => {
-            // checks that batteryStatus and signalStatus are within boundaries [0,100]
-            if (
-              isNotNullNorUndefined(args.batteryStatus) &&
-              isOutOfBoundaries(0, 100, args.batteryStatus)
-            ) {
-              reject("batteryStatus is out of boundaries [0,100]")
-              return
-            } else if (
-              isNotNullNorUndefined(args.signalStatus) &&
-              isOutOfBoundaries(0, 100, args.signalStatus)
-            ) {
-              reject("signalStatus is out of boundaries [0,100]")
-              return
-            } else if (args.name === "") {
-              reject("Custom name cannot be an empty string")
-              return
-            } else if (args.muted === null) {
-              reject("muted cannot be null")
-              return
-            }
-
-            const index =
-              args.index !== null && args.index !== undefined
-                ? args.index
-                : (await Device.max("index", {
-                    where: { environmentId: args.environmentId },
-                  })) + 1 || 0 // or 0 replaces NaN when there are no other devices
-
-            const newDevice = await Device.create({
-              ...args,
-              muted: !!args.muted,
-              environmentId: args.environmentId,
-              index,
-            })
-
-            const resolveValue = {
-              ...newDevice.dataValues,
-              environment: newDevice.environmentId
-                ? {
-                    id: newDevice.environmentId,
-                  }
-                : null,
-            }
-
-            pubsub.publish("deviceCreated", {
-              deviceCreated: resolveValue,
-              userIds: await instanceToSharedIds(environmentFound, context),
-            })
-
-            resolve(resolveValue)
-
-            touch(Environment, environmentFound.id, newDevice.createdAt)
-            context.billingUpdater.update(MUTATION_COST)
-          },
-          environmentToParent
-        )(resolve, reject)
-      }
-    },
-    createUnclaimedDevice(root, args, context) {
       return authenticated(context, async (resolve, reject) => {
+        // checks that batteryStatus and signalStatus are within boundaries [0,100]
+        if (
+          isNotNullNorUndefined(args.batteryStatus) &&
+          isOutOfBoundaries(0, 100, args.batteryStatus)
+        ) {
+          reject("batteryStatus is out of boundaries [0,100]")
+          return
+        } else if (
+          isNotNullNorUndefined(args.signalStatus) &&
+          isOutOfBoundaries(0, 100, args.signalStatus)
+        ) {
+          reject("signalStatus is out of boundaries [0,100]")
+          return
+        }
         const userFound = await User.find({
           where: { id: context.auth.userId },
         })
 
         if (userFound.paymentPlan !== "BUSINESS") {
-          reject("Only business users can create unclaimed devices")
+          reject("Only business users can create devices")
           return
         }
 
-        const newDevice = await UnclaimedDevice.create(args)
+        const newDevice = await Device.create(args)
 
         const id = newDevice.id
 
@@ -1978,6 +1984,12 @@ const MutationResolver = (
           qrCode: new QRCode({ content: id }).svg(),
         })
 
+        pubsub.publish("deviceCreated", {
+          deviceCreated: {
+            id,
+          },
+          userIds: [userFound.id],
+        })
         context.billingUpdater.update(MUTATION_COST)
       })
     },
@@ -1990,20 +2002,7 @@ const MutationResolver = (
           User,
           2,
           async (resolve, reject, environmentFound, _, userFound) => {
-            // checks that batteryStatus and signalStatus are within boundaries [0,100]
-            if (
-              isNotNullNorUndefined(args.batteryStatus) &&
-              isOutOfBoundaries(0, 100, args.batteryStatus)
-            ) {
-              reject("batteryStatus is out of boundaries [0,100]")
-              return
-            } else if (
-              isNotNullNorUndefined(args.signalStatus) &&
-              isOutOfBoundaries(0, 100, args.signalStatus)
-            ) {
-              reject("signalStatus is out of boundaries [0,100]")
-              return
-            } else if (args.name === "") {
+            if (args.name === "") {
               reject("Custom name cannot be an empty string")
               return
             } else if (args.muted === null) {
@@ -2018,49 +2017,42 @@ const MutationResolver = (
                     where: { environmentId: args.environmentId },
                   })) + 1 || 0 // or 0 replaces NaN when there are no other devices
 
-            const unclaimedDevice = await UnclaimedDevice.find({
-              where: { id: args.unclaimedDeviceId },
+            const deviceFound = await Device.find({
+              where: { id: args.deviceId },
             })
 
-            if (!unclaimedDevice) {
+            if (!deviceFound) {
               reject("The requested resource does not exist")
               return
             }
 
-            const newDevice = await Device.create({
+            if (deviceFound.environmentId) {
+              reject("This device has already been claimed")
+              return
+            }
+
+            const newDevice = await deviceFound.update({
               ...args,
               muted: !!args.muted,
               environmentId: args.environmentId,
               index,
-              firmware: unclaimedDevice.firmware,
-              deviceType: unclaimedDevice.deviceType,
-              id: unclaimedDevice.id,
             })
 
             const resolveValue = {
               ...newDevice.dataValues,
-              environment: newDevice.environmentId
-                ? {
-                    id: newDevice.environmentId,
-                  }
-                : null,
+              environment: { id: newDevice.environmentId },
             }
 
-            pubsub.publish("deviceCreated", {
-              deviceCreated: resolveValue,
-              userIds: await instanceToSharedIds(environmentFound, context),
-            })
-
-            // TODO: add company account in the userIds
             pubsub.publish("deviceClaimed", {
               deviceClaimed: resolveValue,
-              userIds: await instanceToSharedIds(environmentFound, context),
+              userIds: [
+                ...(await instanceToSharedIds(environmentFound, context)),
+                newDevice.producerId,
+              ],
               allowedDeviceIds: [newDevice.id],
             })
 
             resolve(resolveValue)
-
-            await unclaimedDevice.destroy()
 
             touch(Environment, environmentFound.id, newDevice.createdAt)
             context.billingUpdater.update(MUTATION_COST)
