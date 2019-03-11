@@ -33,7 +33,7 @@ import {
   generateDeviceAuthenticationToken,
   sendOwnerChangeAcceptedEmail,
   sendEnvironmentShareAcceptedEmail,
-  sendLoginEmail,
+  sendLogInEmail,
 } from "./utilities"
 const { Fido2Lib } = require("fido2-lib-clone")
 import Stripe from "stripe"
@@ -331,7 +331,7 @@ const MutationResolver = (
         }
       }
     },
-    sendLoginEmail(root, args, context) {
+    sendLogInEmail(root, args, context) {
       return async (resolve, reject) => {
         const userFound = await User.find({ where: { email: args.email } })
 
@@ -342,7 +342,7 @@ const MutationResolver = (
             userId: userFound.id,
           })
 
-          sendLoginEmail(userFound.email, loginToken.id)
+          sendLogInEmail(userFound.email, loginToken.id)
 
           resolve(true)
         }
