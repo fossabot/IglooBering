@@ -264,9 +264,13 @@ const DeviceResolver = ({
       async (resolve, reject, deviceFound) => {
         // the Environment resolver will take care of loading the other props,
         // it only needs to know the environment id
-        resolve({ id: deviceFound.environmentId })
+        resolve(
+          deviceFound.environmentId ? { id: deviceFound.environmentId } : null
+        )
 
-        context.billingUpdater.update(QUERY_COST)
+        context.billingUpdater.update(
+          deviceFound.environmentId ? QUERY_COST : 0
+        )
       },
       deviceToParent
     )

@@ -913,7 +913,7 @@ type Device {
     sortDirection: SORT_DIRECTION
     filter: ValueFilter
   ): [Value!]!
-  environment: Environment!
+  environment: Environment
   notifications(
     limit: Int
     offset: Int
