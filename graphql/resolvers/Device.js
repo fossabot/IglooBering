@@ -9,6 +9,7 @@ import {
 } from "./utilities"
 import { Op } from "sequelize"
 import SqlString from "sqlstring"
+import QRCode from "qrcode-svg"
 
 const QUERY_COST = 1
 const isNotNullNorUndefined = value => value !== undefined && value !== null
@@ -365,6 +366,19 @@ const DeviceResolver = ({
         )
 
         resolve(myRole)
+      },
+      deviceToParent
+    )
+  },
+  qrCode(root, args, context) {
+    return authorized(
+      root.id,
+      context,
+      context.dataLoaders.deviceLoaderById,
+      User,
+      1,
+      async (resolve, reject) => {
+        resolve(new QRCode({ content: root.id }).svg())
       },
       deviceToParent
     )

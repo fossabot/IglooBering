@@ -928,6 +928,7 @@ type Device {
   batteryCharging: Boolean
   firmware: String
   muted: Boolean!
+  qrCode: String!
 }
 
 enum ValuePermission {
