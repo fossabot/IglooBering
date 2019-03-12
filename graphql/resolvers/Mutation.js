@@ -863,6 +863,9 @@ const MutationResolver = (
                 JWT_SECRET,
                 "HS512"
               ),
+              user:{
+                id:newUser.id
+              }
             })
 
             sendVerificationEmail(args.email, newUser.id)
