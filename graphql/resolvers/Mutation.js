@@ -863,9 +863,9 @@ const MutationResolver = (
                 JWT_SECRET,
                 "HS512"
               ),
-              user:{
-                id:newUser.id
-              }
+              user: {
+                id: newUser.id,
+              },
             })
 
             sendVerificationEmail(args.email, newUser.id)
@@ -987,6 +987,11 @@ const MutationResolver = (
         User,
         3,
         async (resolve, reject, environmentFound, _, senderFound) => {
+          if (!senderFound.emailIsVerified) {
+            reject("Unverified user can not share environments")
+            return
+          }
+
           let receiverFound
           if (args.email) {
             receiverFound = await User.find({
@@ -1168,6 +1173,11 @@ const MutationResolver = (
           const userFound = await context.dataLoaders.userLoaderById.load(
             context.auth.userId
           )
+
+          if (!userFound.emailIsVerified) {
+            reject("Unverified users can not accept environment share")
+            return
+          }
 
           // await userFound[`add${Environment[parsedRole]}`](environmentFound)
           if (pendingEnvironmentFound.role === "ADMIN") {
@@ -1864,6 +1874,14 @@ const MutationResolver = (
           context.auth.userId
         )
 
+        const environmentCount = await Environment.count({
+          where: { ownerId: context.auth.userId },
+        })
+        if (!userFound.emailIsVerified && environmentCount !== 0) {
+          reject("Unverified users can only have one environment")
+          return
+        }
+
         const newEnvironment = await Environment.create({
           ...args,
           ownerId: userFound.id,
@@ -2030,6 +2048,14 @@ const MutationResolver = (
                 : (await Device.max("index", {
                     where: { environmentId: args.environmentId },
                   })) + 1 || 0 // or 0 replaces NaN when there are no other devices
+
+            const deviceCount = await Device.count({
+              where: { environmentId: args.environmentId },
+            })
+            if (!userFound.emailIsVerified && deviceCount !== 0) {
+              reject("Unverified users can only have one device")
+              return
+            }
 
             const deviceFound = await Device.find({
               where: { id: args.deviceId },
