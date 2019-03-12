@@ -561,72 +561,83 @@ const MutationResolver = (
       )
     },
     createToken(root, args, context) {
-      return async (resolve, reject) => {
-        // decode the certificates passed
-        const validatedCertificates = validateCertificates(
-          args.passwordCertificate,
-          args.webAuthnCertificate,
-          args.totpCertificate,
-          reject,
-          JWT_SECRET
-        )
+      return authenticated(
+        context,
+        async (resolve, reject) => {
+          // decode the certificates passed
+          const validatedCertificates = validateCertificates(
+            args.passwordCertificate,
+            args.webAuthnCertificate,
+            args.totpCertificate,
+            reject,
+            JWT_SECRET
+          )
 
-        if (!validatedCertificates) {
-          return
-        }
-
-        let {
-          userId,
-          decodedPasswordCertificate,
-          decodedWebAuthnCertificate,
-          decodedTotpCertificate,
-        } = validatedCertificates
-
-        const userFound = await context.dataLoaders.userLoaderById.load(userId)
-        if (!userFound) {
-          reject("User doesn't exist. Use `signUp` to create one")
-        } else {
-          const {
-            primaryAuthenticationMethods,
-            secondaryAuthenticationMethods,
-          } = userFound
-
-          let enabledFactorPassed = false
-          for (let authenticationMethod of [
-            ...primaryAuthenticationMethods,
-            ...secondaryAuthenticationMethods,
-          ]) {
-            enabledFactorPassed =
-              enabledFactorPassed ||
-              checkAuthenticationMethod(
-                authenticationMethod,
-                decodedPasswordCertificate,
-                decodedWebAuthnCertificate,
-                decodedTotpCertificate
-              )
-          }
-
-          if (!enabledFactorPassed) {
-            reject("Did not pass any enabled authentication method")
+          if (!validatedCertificates) {
             return
           }
 
-          resolve(
-            jwt.encode(
-              {
-                userId: userId,
-                tokenType: args.tokenType,
-                exp: moment()
-                  .utc()
-                  .add({ minutes: 15 })
-                  .unix(),
-              },
-              JWT_SECRET,
-              "HS512"
-            )
+          let {
+            userId,
+            decodedPasswordCertificate,
+            decodedWebAuthnCertificate,
+            decodedTotpCertificate,
+          } = validatedCertificates
+
+          if (userId !== context.auth.userId) {
+            reject("Certificate user not matching authenticated user")
+            return
+          }
+
+          const userFound = await context.dataLoaders.userLoaderById.load(
+            userId
           )
-        }
-      }
+          if (!userFound) {
+            reject("User doesn't exist. Use `signUp` to create one")
+          } else {
+            const {
+              primaryAuthenticationMethods,
+              secondaryAuthenticationMethods,
+            } = userFound
+
+            let enabledFactorPassed = false
+            for (let authenticationMethod of [
+              ...primaryAuthenticationMethods,
+              ...secondaryAuthenticationMethods,
+            ]) {
+              enabledFactorPassed =
+                enabledFactorPassed ||
+                checkAuthenticationMethod(
+                  authenticationMethod,
+                  decodedPasswordCertificate,
+                  decodedWebAuthnCertificate,
+                  decodedTotpCertificate
+                )
+            }
+
+            if (!enabledFactorPassed) {
+              reject("Did not pass any enabled authentication method")
+              return
+            }
+
+            resolve(
+              jwt.encode(
+                {
+                  userId: userId,
+                  tokenType: args.tokenType,
+                  exp: moment()
+                    .utc()
+                    .add({ minutes: 15 })
+                    .unix(),
+                },
+                JWT_SECRET,
+                "HS512"
+              )
+            )
+          }
+        },
+        ["TEMPORARY"]
+      )
     },
     setWebAuthn(root, args, context) {
       return authenticated(
