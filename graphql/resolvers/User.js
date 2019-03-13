@@ -71,7 +71,7 @@ const UserResolver = ({
   PendingOwnerChange,
   sequelize,
 }) => ({
-  ...scalarProps(["quietMode", "monthUsage"]),
+  ...scalarProps(["quietMode", "monthUsage", "devMode"]),
   ...publicScalarProps([
     "email",
     "name",

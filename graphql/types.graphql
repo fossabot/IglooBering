@@ -367,6 +367,7 @@ type Mutation {
   # Change user's data
   user(
     quietMode: Boolean
+    devMode: Boolean
     usageCap: Int
     paymentPlan: PaymentPlan
     name: String
@@ -797,6 +798,7 @@ type User {
   permanentTokenCount: Int!
   permanentTokens(limit: Int, offset: Int): [PermanentToken!]!
   quietMode: Boolean
+  devMode: Boolean
   monthUsage: Int
   paymentPlan: PaymentPlan
   usageCap: Int

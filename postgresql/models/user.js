@@ -23,6 +23,9 @@ module.exports = (queryInterface, Sequelize) => {
     quietMode: {
       type: Sequelize.BOOLEAN,
     },
+    devMode: {
+      type: Sequelize.BOOLEAN,
+    },
     stripeCustomerId: {
       type: Sequelize.STRING,
     },
