@@ -62,12 +62,12 @@ fortuna.init()
  *
  * @memberof Utilities
  */
-const authenticated = (
+function authenticated(
   context,
   callback,
   acceptedTokenTypes = ["TEMPORARY", "PERMANENT"]
-) =>
-  context.auth && acceptedTokenTypes.indexOf(context.auth.tokenType) > -1
+) {
+  return context.auth && acceptedTokenTypes.indexOf(context.auth.tokenType) > -1
     ? callback
     : (resolve, reject) => {
         if (!context.auth) {
@@ -80,7 +80,7 @@ const authenticated = (
           reject("You exceeded the usage cap that you set")
         } else reject("This token doesn't have the required authorizations")
       }
-
+}
 /**
  * Creates an authentication token expiring after JWT_EXPIRE (global constant) days
  * @param {string} userId - id of the user to be authenticated as
@@ -221,6 +221,10 @@ const CreateGenericValue = (
     User,
     2,
     async (resolve, reject, deviceFound, [_, environmentFound], userFound) => {
+      if (!userFound.devMode) {
+        reject("Only dev users can create values, set devMode to true")
+        return
+      }
       if (!argsChecks(args, reject)) {
         return
       }

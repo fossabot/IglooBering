@@ -839,7 +839,7 @@ const MutationResolver = (
             const newUser = await User.create({
               email: args.email,
               quietMode: false,
-              devMode: false,
+              devMode: true, // BETA: after beta the default should be false
               monthUsage: 0,
               paymentPlan: "FREE",
               emailIsVerified: false,
@@ -1923,76 +1923,16 @@ const MutationResolver = (
         context.billingUpdater.update(MUTATION_COST)
       })
     },
-    // createDevice(root, args, context) {
-    //   return async (resolve, reject) => {
-    //     return authorized(
-    //       args.environmentId,
-    //       context,
-    //       context.dataLoaders.environmentLoaderById,
-    //       User,
-    //       2,
-    //       async (resolve, reject, environmentFound, _, userFound) => {
-    //         // checks that batteryStatus and signalStatus are within boundaries [0,100]
-    //         if (
-    //           isNotNullNorUndefined(args.batteryStatus) &&
-    //           isOutOfBoundaries(0, 100, args.batteryStatus)
-    //         ) {
-    //           reject("batteryStatus is out of boundaries [0,100]")
-    //           return
-    //         } else if (
-    //           isNotNullNorUndefined(args.signalStatus) &&
-    //           isOutOfBoundaries(0, 100, args.signalStatus)
-    //         ) {
-    //           reject("signalStatus is out of boundaries [0,100]")
-    //           return
-    //         } else if (args.name === "") {
-    //           reject("Custom name cannot be an empty string")
-    //           return
-    //         } else if (args.muted === null) {
-    //           reject("muted cannot be null")
-    //           return
-    //         }
-
-    //         const index =
-    //           args.index !== null && args.index !== undefined
-    //             ? args.index
-    //             : (await Device.max("index", {
-    //                 where: { environmentId: args.environmentId },
-    //               })) + 1 || 0 // or 0 replaces NaN when there are no other devices
-
-    //         const newDevice = await Device.create({
-    //           ...args,
-    //           muted: !!args.muted,
-    //           index,
-    //         })
-
-    //         const resolveValue = {
-    //           ...newDevice.dataValues,
-    //           environment: newDevice.environmentId
-    //             ? {
-    //                 id: newDevice.environmentId,
-    //               }
-    //             : null,
-    //         }
-
-    //         pubsub.publish("deviceCreated", {
-    //           deviceCreated: resolveValue,
-    //           userIds: await instanceToSharedIds(environmentFound, context),
-    //         })
-
-    //         resolve(resolveValue)
-
-    //         touch(Environment, environmentFound.id, newDevice.createdAt)
-    //         context.billingUpdater.update(MUTATION_COST)
-    //       },
-    //       environmentToParent
-    //     )(resolve, reject)
-    //   }
-    // },
     createDevice(root, args, context) {
       return authenticated(context, async (resolve, reject) => {
-        // checks that batteryStatus and signalStatus are within boundaries [0,100]
-        if (
+        const userFound = await context.dataLoaders.userLoaderById.load(
+          context.auth.userId
+        )
+
+        if (!userFound.devMode) {
+          reject("Only dev users can create devices, set devMode to true")
+          return
+        } else if (
           isNotNullNorUndefined(args.batteryStatus) &&
           isOutOfBoundaries(0, 100, args.batteryStatus)
         ) {
@@ -2003,14 +1943,6 @@ const MutationResolver = (
           isOutOfBoundaries(0, 100, args.signalStatus)
         ) {
           reject("signalStatus is out of boundaries [0,100]")
-          return
-        }
-        const userFound = await User.find({
-          where: { id: context.auth.userId },
-        })
-
-        if (userFound.paymentPlan !== "BUSINESS") {
-          reject("Only business users can create devices")
           return
         }
 
