@@ -547,6 +547,14 @@ const MutationResolver = (
               "You cannot use WebAuthn as authentication method as you have no registered device"
             )
           } else {
+            for (let method of args.primaryAuthenticationMethods) {
+              if (args.secondaryAuthenticationMethods.indexOf(method) !== -1) {
+                reject(
+                  "Cannot use the same authentication method both as primary and secondary"
+                )
+                return
+              }
+            }
             const newUser = await userFound.update(args)
 
             resolve(newUser)
