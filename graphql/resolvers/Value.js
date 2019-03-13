@@ -14,7 +14,6 @@ const ValueResolver = {
           BooleanValue: context.dataLoaders.booleanValueLoaderById,
           CategoryPlotValue: context.dataLoaders.categoryPlotValueLoaderById,
           FloatValue: context.dataLoaders.floatValueLoaderById,
-          MapValue: context.dataLoaders.mapValueLoaderById,
           PlotValue: context.dataLoaders.plotValueLoaderById,
           StringValue: context.dataLoaders.stringValueLoaderById,
         }
@@ -72,11 +71,10 @@ const ValueResolver = {
             // looked for is of another type
 
             reject(
-              e.reduce(
-                (acc, val) =>
-                  acc === NOT_ALLOWED || val === NOT_ALLOWED
-                    ? NOT_ALLOWED
-                    : NOT_EXIST
+              e.reduce((acc, val) =>
+                acc === NOT_ALLOWED || val === NOT_ALLOWED
+                  ? NOT_ALLOWED
+                  : NOT_EXIST
               )
             )
           })

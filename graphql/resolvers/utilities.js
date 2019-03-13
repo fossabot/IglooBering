@@ -489,14 +489,7 @@ const firstResolve = promises =>
 
 // FIXME: doesn't check if the user has the authorizations needed
 const findAllValues = (
-  {
-    BooleanValue,
-    FloatValue,
-    StringValue,
-    PlotValue,
-    CategoryPlotValue,
-    MapValue,
-  },
+  { BooleanValue, FloatValue, StringValue, PlotValue, CategoryPlotValue },
   query
 ) => {
   const booleanValues = BooleanValue.findAll(query)
@@ -504,7 +497,6 @@ const findAllValues = (
   const stringValues = StringValue.findAll(query)
   const plotValues = PlotValue.findAll(query)
   const categoryPlotValues = CategoryPlotValue.findAll(query)
-  const mapValues = MapValue.findAll(query)
 
   return Promise.all([
     booleanValues,
@@ -512,7 +504,6 @@ const findAllValues = (
     stringValues,
     plotValues,
     categoryPlotValues,
-    mapValues,
   ]).then(
     ([
       booleanValues,
@@ -520,7 +511,6 @@ const findAllValues = (
       stringValues,
       plotValues,
       categoryPlotValues,
-      mapValues,
     ]) => [
       ...booleanValues.map(value => ({
         ...value.dataValues,
@@ -552,12 +542,6 @@ const findAllValues = (
         device: { id: value.dataValues.deviceId },
         __resolveType: "CategoryPlotValue",
       })),
-      ...mapValues.map(value => ({
-        ...value.dataValues,
-        owner: { id: value.dataValues.ownerId },
-        device: { id: value.dataValues.deviceId },
-        __resolveType: "MapValue",
-      })),
     ]
   )
 }
@@ -570,13 +554,11 @@ const findValue = (context, id, userFound) => {
     stringValueLoaderById,
     plotValueLoaderById,
     categoryPlotValueLoaderById,
-    mapValueLoaderById,
     environmentLoaderById,
   } = context.dataLoaders
   const booleanValue = booleanValueLoaderById.load(id)
   const floatValue = floatValueLoaderById.load(id)
   const stringValue = stringValueLoaderById.load(id)
-  const mapValue = mapValueLoaderById.load(id)
   const plotValue = plotValueLoaderById.load(id)
   const categoryPlotValue = categoryPlotValueLoaderById.load(id)
 
@@ -584,7 +566,6 @@ const findValue = (context, id, userFound) => {
     booleanValue,
     floatValue,
     stringValue,
-    mapValue,
     plotValue,
     categoryPlotValue,
   ])
@@ -934,8 +915,7 @@ function authorized(
               found._modelOptions.name.singular === "stringValue" ||
               found._modelOptions.name.singular === "booleanValue" ||
               found._modelOptions.name.singular === "categoryPlotValue" ||
-              found._modelOptions.name.singular === "plotValue" ||
-              found._modelOptions.name.singular === "mapValue") &&
+              found._modelOptions.name.singular === "plotValue") &&
             context.auth.deviceId === found.deviceId
           ) {
             return callback(resolve, reject, found, [found, parent])

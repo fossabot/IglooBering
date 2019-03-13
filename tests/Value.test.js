@@ -37,17 +37,6 @@ describe("Value", () => {
     expect(resolveTypeFound).toEqual("BooleanValue");
     done();
   });
-  test("__resolveType is resolved correctly for MapValue", async done => {
-    const resolveTypeFound = await new Promise((resolve, reject) =>
-      ValueResolver.__resolveType(
-        { id: "mockMapValueId" },
-        { auth: { userId: "mockUserId", tokenType: "TEMPORARY" }, ...mockContext }
-      )(resolve, reject)
-    );
-
-    expect(resolveTypeFound).toEqual("MapValue");
-    done();
-  });
   test("__resolveType is resolved correctly for PlotValue", async done => {
     const resolveTypeFound = await new Promise((resolve, reject) =>
       ValueResolver.__resolveType(

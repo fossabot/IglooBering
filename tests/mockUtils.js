@@ -263,22 +263,6 @@ module.exports = () => {
       value: true
     }
   ];
-  const mockMapValueData = [
-    {
-      id: "mockMapValueId",
-      environmentId: "mockEnvironmentId",
-      deviceId: "mockDeviceId",
-      visibility: "VISIBLE",
-      cardSize: "NORMAL",
-      name: "mockName",
-      index: 0,
-      permission: "READ_WRITE",
-      value: "",
-      latitude: 4,
-      longitude: 2,
-      height: 2
-    }
-  ];
   const mockPlotValueData = [
     {
       id: "mockPlotValueId",
@@ -458,8 +442,6 @@ module.exports = () => {
     mockStringValueData,
     MockedBooleanValue: MockedModel(mockBooleanValueData),
     mockBooleanValueData,
-    MockedMapValue: MockedModel(mockMapValueData),
-    mockMapValueData,
     MockedPlotValue: MockedModel(mockPlotValueData),
     mockPlotValueData,
     MockedCategoryPlotValue: MockedModel(mockCategoryPlotValueData),
@@ -493,7 +475,6 @@ module.exports = () => {
       floatValueLoaderById: mockDataLoader(mocks.MockedFloatValue),
       stringValueLoaderById: mockDataLoader(mocks.MockedStringValue),
       booleanValueLoaderById: mockDataLoader(mocks.MockedBooleanValue),
-      mapValueLoaderById: mockDataLoader(mocks.MockedMapValue),
       plotValueLoaderById: mockDataLoader(mocks.MockedPlotValue),
       plotNodeLoaderById: mockDataLoader(mocks.MockedPlotNode),
       categoryPlotNodeLoaderById: mockDataLoader(mocks.MockedCategoryPlotNode),

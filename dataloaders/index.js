@@ -8,7 +8,6 @@ import {
   EnvironmentEditor,
   EnvironmentSpectator,
   FloatValue,
-  MapValue,
   Notification,
   PendingEnvironmentShare,
   PendingOwnerChange,
@@ -96,7 +95,6 @@ const loadEnvironmentAdminsByIds = genericLoadById(EnvironmentAdmin)
 const loadEnvironmentEditorsByIds = genericLoadById(EnvironmentEditor)
 const loadEnvironmentSpectatorsByIds = genericLoadById(EnvironmentSpectator)
 const loadFloatValuesByIds = genericLoadById(FloatValue)
-const loadMapValuesByIds = genericLoadById(MapValue)
 const loadNotificationsByIds = genericLoadById(Notification)
 const loadPendingEnvironmentSharesByIds = genericLoadById(
   PendingEnvironmentShare
@@ -144,7 +142,6 @@ module.exports = () => ({
     loadEnvironmentSpectatorsByIds
   ),
   floatValueLoaderById: new DataLoader(loadFloatValuesByIds),
-  mapValueLoaderById: new DataLoader(loadMapValuesByIds),
   notificationLoaderById: new DataLoader(loadNotificationsByIds),
   pendingEnvironmentShareLoaderById: new DataLoader(
     loadPendingEnvironmentSharesByIds

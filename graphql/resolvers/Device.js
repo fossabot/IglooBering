@@ -51,7 +51,6 @@ const DeviceResolver = ({
   StringValue,
   PlotValue,
   CategoryPlotValue,
-  MapValue,
   Notification,
   joinTables,
   sequelize,
@@ -170,13 +169,6 @@ const DeviceResolver = ({
         )} FROM public."stringValues"
           WHERE public."stringValues"."deviceId" = '${root.id}' ${whereQuery(
           "stringValues"
-        )}
-        UNION
-        SELECT public."mapValues".id ${additionalSelect(
-          "mapValues"
-        )} FROM public."mapValues"
-          WHERE public."mapValues"."deviceId" = '${root.id}' ${whereQuery(
-          "mapValues"
         )}
         UNION
         SELECT public."categoryPlotValues".id ${additionalSelect(

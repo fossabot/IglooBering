@@ -65,7 +65,6 @@ const UserResolver = ({
   BooleanValue,
   PlotValue,
   CategoryPlotValue,
-  MapValue,
   Notification,
   PendingEnvironmentShare,
   PendingOwnerChange,
@@ -373,7 +372,6 @@ const UserResolver = ({
           BooleanValue,
           PlotValue,
           CategoryPlotValue,
-          MapValue,
         ]
 
         const valuesInheritedFromEnvironments = await getAll(
@@ -398,7 +396,6 @@ const UserResolver = ({
                 ...device.booleanValues,
                 ...device.plotValues,
                 ...device.categoryPlotValues,
-                ...device.mapValues,
               ],
               []
             ),

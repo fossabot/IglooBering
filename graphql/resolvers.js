@@ -36,7 +36,6 @@ const {
   StringValue,
   PlotValue,
   PlotNode,
-  MapValue,
   Notification,
   WebPushNotification,
   CategoryPlotNode,

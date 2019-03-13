@@ -185,7 +185,6 @@ const MutationResolver = (
     FloatValue,
     StringValue,
     BooleanValue,
-    MapValue,
     PlotValue,
     PlotNode,
     CategoryPlotValue,
@@ -2051,7 +2050,6 @@ const MutationResolver = (
         FloatValue,
         StringValue,
         BooleanValue,
-        MapValue,
         PlotValue,
         CategoryPlotValue,
       ],
@@ -2089,7 +2087,6 @@ const MutationResolver = (
         FloatValue,
         StringValue,
         BooleanValue,
-        MapValue,
         PlotValue,
         CategoryPlotValue,
       ],
@@ -2133,7 +2130,6 @@ const MutationResolver = (
         FloatValue,
         StringValue,
         BooleanValue,
-        MapValue,
         PlotValue,
         CategoryPlotValue,
       ],
@@ -2147,22 +2143,6 @@ const MutationResolver = (
         return true
       }
     ),
-    createMapValue: CreateGenericValue(
-      User,
-      Device,
-      Environment,
-      MapValue,
-      "MapValue",
-      [
-        FloatValue,
-        StringValue,
-        BooleanValue,
-        MapValue,
-        PlotValue,
-        CategoryPlotValue,
-      ],
-      pubsub
-    ),
     createPlotValue: CreateGenericValue(
       User,
       Device,
@@ -2173,7 +2153,6 @@ const MutationResolver = (
         FloatValue,
         StringValue,
         BooleanValue,
-        MapValue,
         PlotValue,
         CategoryPlotValue,
       ],
@@ -2205,7 +2184,6 @@ const MutationResolver = (
         FloatValue,
         StringValue,
         BooleanValue,
-        MapValue,
         PlotValue,
         CategoryPlotValue,
       ],
@@ -2736,7 +2714,6 @@ const MutationResolver = (
             BooleanValue,
             FloatValue,
             StringValue,
-            MapValue,
             PlotValue,
             CategoryPlotValue,
             Notification,
@@ -2982,14 +2959,6 @@ const MutationResolver = (
 
         return true
       }
-    ),
-    mapValue: genericValueMutation(
-      "mapValueLoaderById",
-      "MapValue",
-      pubsub,
-      User,
-      Device,
-      Environment
     ),
     plotValue: genericValueMutation(
       "plotValueLoaderById",
@@ -3390,7 +3359,6 @@ const MutationResolver = (
           FloatValue,
           StringValue,
           BooleanValue,
-          MapValue,
           PlotValue,
           CategoryPlotValue,
         },
@@ -3465,7 +3433,6 @@ const MutationResolver = (
               [FloatValue, "valueDeleted"],
               [StringValue, "valueDeleted"],
               [BooleanValue, "valueDeleted"],
-              [MapValue, "valueDeleted"],
               [PlotValue, "valueDeleted"],
               [CategoryPlotValue, "valueDeleted"],
               [PlotNode, "plotNodeDeleted"],
@@ -3548,7 +3515,6 @@ const MutationResolver = (
                 [FloatValue, "valueDeleted"],
                 [StringValue, "valueDeleted"],
                 [BooleanValue, "valueDeleted"],
-                [MapValue, "valueDeleted"],
                 [PlotValue, "valueDeleted"],
                 [CategoryPlotValue, "valueDeleted"],
                 [Notification, "notificationDeleted"],
@@ -3789,7 +3755,6 @@ const MutationResolver = (
                   [FloatValue, "valueDeleted"],
                   [StringValue, "valueDeleted"],
                   [BooleanValue, "valueDeleted"],
-                  [MapValue, "valueDeleted"],
                   [PlotValue, "valueDeleted"],
                   [CategoryPlotValue, "valueDeleted"],
                   [Notification, "notificationDeleted"],

@@ -289,26 +289,6 @@ type Mutation {
     index: Int
   ): BooleanValue
 
-  # Creates a MapValue
-  createMapValue(
-    # device owning the value
-    deviceId: ID!
-    # whether the value should be READ_ONLY or READ_WRITE in Igloo Aurora
-    permission: ValuePermission!
-    # whether the value should be VISIBLE, HIDDEN or INVISIBLE in Igloo Aurora
-    visibility: ValueVisibility
-    # name of the value, displayed in Igloo Aurora
-    name: String!
-    # tile size in Igloo Aurora
-    cardSize: CardSize
-    # GEOJson string
-    value: String
-    latitude: Float
-    longitude: Float
-    height: Float
-    index: Int
-  ): MapValue
-
   # Creates a new PlotValue
   createPlotValue(
     # device owning the value
@@ -490,26 +470,6 @@ type Mutation {
     index: Int
   ): BooleanValue
 
-  # changes mapValue's data
-  mapValue(
-    # value id
-    id: ID!
-    # whether the value should be READ_ONLY or READ_WRITE in Igloo Aurora
-    permission: ValuePermission
-    # whether the value should be VISIBLE, HIDDEN or INVISIBLE in Igloo Aurora
-    visibility: ValueVisibility
-    # name of the value, displayed in Igloo Aurora
-    name: String
-    # tile size in Igloo Aurora
-    cardSize: CardSize
-    # GEOJson string
-    value: String
-    latitude: Float
-    longitude: Float
-    height: Float
-    index: Int
-  ): MapValue
-
   # changes plotValue's data
   plotValue(
     # value id
@@ -668,7 +628,6 @@ type Query {
   booleanValue(id: ID!): BooleanValue
   plotValue(id: ID!): PlotValue
   categoryPlotValue(id: ID!): CategoryPlotValue
-  mapValue(id: ID!): MapValue
 
   # get notification's data
   notification(id: ID!): Notification
@@ -1092,24 +1051,6 @@ type BooleanValue implements Value {
   permission: ValuePermission!
   visibility: ValueVisibility!
   value: Boolean!
-  cardSize: CardSize!
-  name: String
-  index: Int
-}
-
-type MapValue implements Value {
-  id: ID!
-  createdAt: DateTime!
-  updatedAt: DateTime!
-  myRole: RoleExtended!
-  device: Device!
-  environment: Environment!
-  permission: ValuePermission!
-  visibility: ValueVisibility!
-  value: String
-  latitude: Float
-  longitude: Float
-  height: Float
   cardSize: CardSize!
   name: String
   index: Int
