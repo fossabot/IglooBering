@@ -71,6 +71,7 @@
     "graphql-tag": "^2.6.1",
     "graphql-tools": "4.0.3",
     "graphql-tools-types": "1.1.16",
+    "is-my-uuid-valid": "^0.1.1",
     "javascript-fortuna": "^1.0.8",
     "jsdoc": "^3.5.5",
     "jwt-simple": "^0.5.1",
