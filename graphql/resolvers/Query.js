@@ -34,7 +34,10 @@ function str2ab(str) {
 const QueryResolver = ({ User, WebauthnKey }) => ({
   user(root, args, context) {
     return async (resolve, reject) => {
-      if (args.email) {
+      if(args.email && args.id){
+        reject("Cannot pass both email and id")
+      }
+      else if (args.email) {
         const userFound = await User.find({ where: { email: args.email } })
 
         if (userFound) {
