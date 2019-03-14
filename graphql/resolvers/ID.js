@@ -4,12 +4,10 @@ const validateUUID = validator({})
 
 export default {
   __serialize: value => {
-    console.log("serializing")
     return value
   },
 
   __parseValue: value => {
-    console.log("parsing")
     return value
   },
 

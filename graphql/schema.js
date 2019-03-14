@@ -30,6 +30,7 @@ const GraphQLCustomDuplicateDirective = new GraphQLCustomDirective({
     }
 
     return resolve().then(result => {
+      if (result === null) return null
       if (!isNumber(result)) {
         throw new Error(
           "@convertTo directive can only be used on numeric fields"

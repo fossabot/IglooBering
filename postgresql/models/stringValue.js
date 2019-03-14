@@ -5,7 +5,6 @@ module.exports = (queryInterface, Sequelize) => {
     ...ValueModel(Sequelize),
     value: {
       type: Sequelize.TEXT,
-      allowNull: false,
     },
     maxChars: {
       type: Sequelize.INTEGER,

@@ -5,7 +5,6 @@ module.exports = (queryInterface, Sequelize) => {
     ...ValueModel(Sequelize),
     value: {
       type: Sequelize.FLOAT,
-      allowNull: false,
     },
     precision: {
       type: Sequelize.FLOAT,

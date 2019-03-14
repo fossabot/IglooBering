@@ -241,7 +241,7 @@ type Mutation {
     visibility: ValueVisibility
     # additional details about the value
     unitOfMeasurement: String
-    value: Float!
+    value: Float
     # used when displaying or changing the value in Igloo Aurora
     precision: Float
     min: Float
@@ -261,7 +261,7 @@ type Mutation {
     permission: ValuePermission!
     # whether the value should be VISIBLE, HIDDEN or INVISIBLE in Igloo Aurora
     visibility: ValueVisibility
-    value: String!
+    value: String
     # max length of the string
     maxChars: Int
     # name of the value, displayed in Igloo Aurora
@@ -281,7 +281,7 @@ type Mutation {
     permission: ValuePermission!
     # whether the value should be VISIBLE, HIDDEN or INVISIBLE in Igloo Aurora
     visibility: ValueVisibility
-    value: Boolean!
+    value: Boolean
     # name of the value, displayed in Igloo Aurora
     name: String!
     # tile size in Igloo Aurora
@@ -976,7 +976,7 @@ type FloatValue implements Value {
   visibility: ValueVisibility!
   unitOfMeasurement: String
   # tagged
-  value: Float!
+  value: Float
   # used when the end-user reads or modifies the value
   precision: Float
   min: Float
@@ -995,7 +995,7 @@ type StringValue implements Value {
   environment: Environment!
   permission: ValuePermission!
   visibility: ValueVisibility!
-  value: String!
+  value: String
   maxChars: Int
   cardSize: CardSize!
   index: Int
@@ -1050,7 +1050,7 @@ type BooleanValue implements Value {
   environment: Environment!
   permission: ValuePermission!
   visibility: ValueVisibility!
-  value: Boolean!
+  value: Boolean
   cardSize: CardSize!
   name: String
   index: Int

@@ -5,7 +5,6 @@ module.exports = (queryInterface, Sequelize) => {
     ...ValueModel(Sequelize),
     value: {
       type: Sequelize.BOOLEAN,
-      allowNull: false,
     },
   })
 
