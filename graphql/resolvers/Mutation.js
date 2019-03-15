@@ -1931,18 +1931,6 @@ const MutationResolver = (
         if (!userFound.devMode) {
           reject("Only dev users can create devices, set devMode to true")
           return
-        } else if (
-          isNotNullNorUndefined(args.batteryStatus) &&
-          isOutOfBoundaries(0, 100, args.batteryStatus)
-        ) {
-          reject("batteryStatus is out of boundaries [0,100]")
-          return
-        } else if (
-          isNotNullNorUndefined(args.signalStatus) &&
-          isOutOfBoundaries(0, 100, args.signalStatus)
-        ) {
-          reject("signalStatus is out of boundaries [0,100]")
-          return
         }
 
         const newDevice = await Device.create(args)
@@ -2046,13 +2034,7 @@ const MutationResolver = (
       Environment,
       FloatValue,
       "FloatValue",
-      [
-        FloatValue,
-        StringValue,
-        BooleanValue,
-        PlotValue,
-        CategoryPlotValue,
-      ],
+      [FloatValue, StringValue, BooleanValue, PlotValue, CategoryPlotValue],
       pubsub,
       (args, reject) => {
         if (
@@ -2083,13 +2065,7 @@ const MutationResolver = (
       Environment,
       StringValue,
       "StringValue",
-      [
-        FloatValue,
-        StringValue,
-        BooleanValue,
-        PlotValue,
-        CategoryPlotValue,
-      ],
+      [FloatValue, StringValue, BooleanValue, PlotValue, CategoryPlotValue],
       pubsub,
       (args, reject) => {
         if (isNotNullNorUndefined(args.maxChars) && args.maxChars <= 0) {
@@ -2126,13 +2102,7 @@ const MutationResolver = (
       Environment,
       BooleanValue,
       "BooleanValue",
-      [
-        FloatValue,
-        StringValue,
-        BooleanValue,
-        PlotValue,
-        CategoryPlotValue,
-      ],
+      [FloatValue, StringValue, BooleanValue, PlotValue, CategoryPlotValue],
       pubsub,
       (args, reject) => {
         if (args.cardSize !== "NORMAL") {
@@ -2149,13 +2119,7 @@ const MutationResolver = (
       Environment,
       PlotValue,
       "PlotValue",
-      [
-        FloatValue,
-        StringValue,
-        BooleanValue,
-        PlotValue,
-        CategoryPlotValue,
-      ],
+      [FloatValue, StringValue, BooleanValue, PlotValue, CategoryPlotValue],
       pubsub,
       (args, reject) => {
         if (
@@ -2180,13 +2144,7 @@ const MutationResolver = (
       Environment,
       CategoryPlotValue,
       "CategoryPlotValue",
-      [
-        FloatValue,
-        StringValue,
-        BooleanValue,
-        PlotValue,
-        CategoryPlotValue,
-      ],
+      [FloatValue, StringValue, BooleanValue, PlotValue, CategoryPlotValue],
       pubsub,
       (args, reject) => {
         if (

@@ -210,9 +210,6 @@ type Mutation {
   createDevice(
     deviceType: String
     firmware: String
-    signalStatus: Float
-    batteryStatus: Float
-    batteryCharging: Boolean
   ): createUnclaimedDevicePayload
 
   claimDevice(
