@@ -1933,7 +1933,10 @@ const MutationResolver = (
           return
         }
 
-        const newDevice = await Device.create(args)
+        const newDevice = await Device.create({
+          ...args,
+          producerId: userFound.id,
+        })
 
         const id = newDevice.id
 
@@ -3355,68 +3358,72 @@ const MutationResolver = (
         Device,
         Environment
       ),
-    deleteDevice: (root, args, context) =>
-      authorized(
-        args.id,
-        context,
-        context.dataLoaders.deviceLoaderById,
-        User,
-        3,
-        async (resolve, reject, deviceFound, [_, environmentFound]) => {
-          const authorizedUsersIds = await instanceToSharedIds(
-            environmentFound,
-            context
-          )
+    deleteDevice: (root, args, context) => async (resolve, reject) => {
+      const deviceFound = await context.dataLoaders.deviceLoaderById.load(
+        args.id
+      )
+      if (context.auth.userId !== deviceFound.producerId) {
+        reject("Only the producer can delete a device")
+        return
+      }
 
-          const deleteChild = async ([Model, subscription]) => {
-            const childrenFound = await Model.findAll({
-              where: {
-                deviceId: args.id,
-              },
+      const environmentFound = deviceFound.environmentId
+        ? await context.dataLoaders.environmentLoaderById.load(
+            deviceFound.environmentId
+          )
+        : null
+      const authorizedUsersIds = [
+        ...(await instanceToSharedIds(environmentFound, context)),
+        deviceFound.producerId,
+      ]
+
+      const deleteChild = async ([Model, subscription]) => {
+        const childrenFound = await Model.findAll({
+          where: {
+            deviceId: args.id,
+          },
+        })
+
+        await Promise.all(
+          childrenFound.map(async child => {
+            await child.destroy()
+            pubsub.publish(subscription, {
+              [subscription]: args.id,
+              userIds: authorizedUsersIds,
             })
-
-            await Promise.all(
-              childrenFound.map(async child => {
-                await child.destroy()
-                pubsub.publish(subscription, {
-                  [subscription]: args.id,
-                  userIds: authorizedUsersIds,
-                })
-              })
-            )
-          }
-
-          await Promise.all(
-            [
-              [FloatValue, "valueDeleted"],
-              [StringValue, "valueDeleted"],
-              [BooleanValue, "valueDeleted"],
-              [PlotValue, "valueDeleted"],
-              [CategoryPlotValue, "valueDeleted"],
-              [PlotNode, "plotNodeDeleted"],
-              [CategoryPlotNode, "categoryPlotNodeDeleted"],
-              [Notification, "notificationDeleted"],
-            ].map(deleteChild)
-          )
-
-          await deviceFound.destroy()
-
-          pubsub.publish("deviceDeleted", {
-            deviceDeleted: args.id,
-            userIds: authorizedUsersIds,
           })
+        )
+      }
 
-          resolve(args.id)
+      await Promise.all(
+        [
+          [FloatValue, "valueDeleted"],
+          [StringValue, "valueDeleted"],
+          [BooleanValue, "valueDeleted"],
+          [PlotValue, "valueDeleted"],
+          [CategoryPlotValue, "valueDeleted"],
+          [PlotNode, "plotNodeDeleted"],
+          [CategoryPlotNode, "categoryPlotNodeDeleted"],
+          [Notification, "notificationDeleted"],
+        ].map(deleteChild)
+      )
 
-          touch(Environment, environmentFound.id)
-          pubsub.publish("environmentUpdated", {
-            environmentUpdated: environmentFound.dataValues,
-            userIds: authorizedUsersIds,
-          })
-          context.billingUpdater.update(MUTATION_COST)
-        },
-        deviceToParent
-      ),
+      await deviceFound.destroy()
+
+      pubsub.publish("deviceDeleted", {
+        deviceDeleted: args.id,
+        userIds: authorizedUsersIds,
+      })
+
+      resolve(args.id)
+
+      touch(Environment, environmentFound.id)
+      pubsub.publish("environmentUpdated", {
+        environmentUpdated: environmentFound.dataValues,
+        userIds: authorizedUsersIds,
+      })
+      context.billingUpdater.update(MUTATION_COST)
+    },
     deleteEnvironment: (root, args, context) =>
       authorized(
         args.id,
