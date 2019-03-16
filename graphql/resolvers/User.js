@@ -4,6 +4,7 @@ import {
   getAll,
   parseStringFilter,
 } from "./utilities"
+import { Op } from "sequelize"
 import SqlString from "sqlstring"
 
 const QUERY_COST = 1
@@ -404,6 +405,45 @@ const UserResolver = ({
         )
 
         resolve(flattenedAllValues.length)
+      }
+    })
+  },
+  developerDevices(root, args, context) {
+    return authenticated(context, async (resolve, reject) => {
+      if (context.auth.userId !== root.id) {
+        reject("You are not allowed to perform this operation")
+      } else {
+        const parseDeveloperDeviceFilter = filter => {
+          if (!filter) return {}
+
+          filter.hasOwnProperty = Object.prototype.hasOwnProperty
+
+          const parsedFilter = {}
+          if (filter.hasOwnProperty("AND"))
+            parsedFilter[Op.and] = filter.AND.map(parseDeviceFilter)
+          if (filter.hasOwnProperty("OR"))
+            parsedFilter[Op.or] = filter.OR.map(parseDeviceFilter)
+          if (filter.hasOwnProperty("claimed")) {
+            if (filter.claimed)
+              parsedFilter.environmentId = {
+                [Op.ne]: null,
+              }
+            else parsedFilter.environmentId = null
+          }
+          return parsedFilter
+        }
+        const devices = await Device.findAll({
+          where: {
+            ...parseDeveloperDeviceFilter(args.filter),
+            producerId: root.id,
+          },
+          limit: args.limit,
+          offset: args.offset,
+          order: [["id", "DESC"]],
+        })
+
+        resolve(devices)
+        context.billingUpdater.update(QUERY_COST * devices.length)
       }
     })
   },

@@ -598,6 +598,12 @@ input DeviceFilter {
   starred: Boolean
 }
 
+input DeveloperDeviceFilter {
+  OR: [DeviceFilter!]
+  AND: [DeviceFilter!]
+  claimed: Boolean
+}
+
 input ValueFilter {
   OR: [ValueFilter!]
   AND: [ValueFilter!]
@@ -757,6 +763,11 @@ type User {
     offset: Int
     filter: EnvironmentFilter
   ): [Environment!]!
+  developerDevices(
+    filter: DeveloperDeviceFilter
+    limit: Int
+    offset: Int
+  ): [Device!]!
   deviceCount: Int
   valueCount: Int!
   notificationCount: Int!
