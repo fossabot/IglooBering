@@ -62,7 +62,7 @@ fortuna.init()
  *
  * @memberof Utilities
  */
-function authenticated(
+export function authenticated(
   context,
   callback,
   acceptedTokenTypes = ["TEMPORARY", "PERMANENT"]
@@ -89,8 +89,8 @@ function authenticated(
  *
  * @memberof Utilities
  */
-const generateAuthenticationToken = (userId, JWT_SECRET) =>
-  jwt.encode(
+export function generateAuthenticationToken(userId, JWT_SECRET) {
+  return jwt.encode(
     {
       exp: moment()
         .utc()
@@ -103,7 +103,7 @@ const generateAuthenticationToken = (userId, JWT_SECRET) =>
     JWT_SECRET,
     "HS512"
   )
-
+}
 /**
  * Creates a permanent authentication token
  * @param {string} userId - id of the user to be authenticated as
@@ -114,13 +114,13 @@ const generateAuthenticationToken = (userId, JWT_SECRET) =>
  *
  * @memberof Utilities
  */
-const generatePermanentAuthenticationToken = (
+export function generatePermanentAuthenticationToken(
   userId,
   tokenId,
   accessLevel,
   JWT_SECRET
-) =>
-  jwt.encode(
+) {
+  return jwt.encode(
     {
       userId,
       tokenId,
@@ -130,6 +130,7 @@ const generatePermanentAuthenticationToken = (
     JWT_SECRET,
     "HS512"
   )
+}
 
 /**
  * Creates a permanent authentication token bound to a device (instead of a user)
@@ -139,8 +140,8 @@ const generatePermanentAuthenticationToken = (
  *
  * @memberof Utilities
  */
-const generateDeviceAuthenticationToken = (deviceId, JWT_SECRET) =>
-  jwt.encode(
+export function generateDeviceAuthenticationToken(deviceId, JWT_SECRET) {
+  return jwt.encode(
     {
       deviceId,
       tokenType: "DEVICE_ACCESS",
@@ -148,6 +149,7 @@ const generateDeviceAuthenticationToken = (deviceId, JWT_SECRET) =>
     JWT_SECRET,
     "HS512"
   )
+}
 
 /**
  * Creates an object containing the required fields if they have a not null value in the args object
@@ -157,7 +159,7 @@ const generateDeviceAuthenticationToken = (deviceId, JWT_SECRET) =>
  *
  * @memberof Utilities
  */
-const getPropsIfDefined = (args, props) => {
+export function getPropsIfDefined(args, props) {
   const propObject = {}
   for (let i = 0; i < props.length; i += 1) {
     if (args[props[i]] !== undefined && args[props[i]] !== null) {
@@ -204,7 +206,7 @@ const MUTATION_COST = 2
  *
  * @memberof Utilities
  */
-const CreateGenericValue = (
+export function CreateGenericValue(
   User,
   Device,
   Environment,
@@ -213,88 +215,96 @@ const CreateGenericValue = (
   ValueModels,
   pubsub,
   argsChecks = (args, reject) => true
-) => (root, args, context) =>
-  authorized(
-    args.deviceId,
-    context,
-    context.dataLoaders.deviceLoaderById,
-    User,
-    2,
-    async (resolve, reject, deviceFound, [_, environmentFound], userFound) => {
-      if (!userFound.devMode) {
-        reject("Only dev users can create values, set devMode to true")
-        return
-      }
-      if (!argsChecks(args, reject)) {
-        return
-      }
+) {
+  return (root, args, context) =>
+    authorized(
+      args.deviceId,
+      context,
+      context.dataLoaders.deviceLoaderById,
+      User,
+      2,
+      async (
+        resolve,
+        reject,
+        deviceFound,
+        [_, environmentFound],
+        userFound
+      ) => {
+        if (!userFound.devMode) {
+          reject("Only dev users can create values, set devMode to true")
+          return
+        }
+        if (!argsChecks(args, reject)) {
+          return
+        }
 
-      if (args.name === "") {
-        reject("name cannot be an empty string")
-        return
-      }
+        if (args.name === "") {
+          reject("name cannot be an empty string")
+          return
+        }
 
-      async function calculateIndex() {
-        const valuesCountPromises = ValueModels.map(
-          async model =>
-            await model.max("index", { where: { deviceId: args.deviceId } })
+        async function calculateIndex() {
+          const valuesCountPromises = ValueModels.map(
+            async model =>
+              await model.max("index", { where: { deviceId: args.deviceId } })
+          )
+          const valuesCount = await Promise.all(valuesCountPromises)
+
+          const maxIndex = valuesCount.reduce(
+            (acc, curr) => Math.max(acc, !isNaN(curr) ? curr : 0),
+            0
+          )
+          return maxIndex + 1
+        }
+
+        const index =
+          args.index !== null && args.index !== undefined
+            ? args.index
+            : await calculateIndex()
+
+        const newValue = await Model.create({
+          ...args,
+          environmentId: environmentFound.id,
+          deviceId: deviceFound.id,
+          cardSize: args.cardSize || "NORMAL",
+          visibility: isNullOrUndefined(args.visibility)
+            ? "VISIBLE"
+            : args.visibility,
+          index,
+        })
+
+        await environmentFound[`add${ModelName}`](newValue)
+
+        const resolveObj = {
+          ...newValue.dataValues,
+          user: {
+            id: newValue.userId,
+          },
+          device: {
+            id: newValue.deviceId,
+          },
+        }
+
+        resolve(resolveObj)
+
+        Environment.update(
+          { updatedAt: newValue.createdAt },
+          { where: { id: environmentFound.id } }
         )
-        const valuesCount = await Promise.all(valuesCountPromises)
-
-        const maxIndex = valuesCount.reduce(
-          (acc, curr) => Math.max(acc, !isNaN(curr) ? curr : 0),
-          0
+        Device.update(
+          { updatedAt: newValue.createdAt },
+          { where: { id: args.deviceId } }
         )
-        return maxIndex + 1
-      }
 
-      const index =
-        args.index !== null && args.index !== undefined
-          ? args.index
-          : await calculateIndex()
-
-      const newValue = await Model.create({
-        ...args,
-        environmentId: environmentFound.id,
-        deviceId: deviceFound.id,
-        cardSize: args.cardSize || "NORMAL",
-        visibility: isNullOrUndefined(args.visibility)
-          ? "VISIBLE"
-          : args.visibility,
-        index,
-      })
-
-      await environmentFound[`add${ModelName}`](newValue)
-
-      const resolveObj = {
-        ...newValue.dataValues,
-        user: {
-          id: newValue.userId,
-        },
-        device: {
-          id: newValue.deviceId,
-        },
-      }
-
-      resolve(resolveObj)
-
-      Environment.update(
-        { updatedAt: newValue.createdAt },
-        { where: { id: environmentFound.id } }
-      )
-      Device.update(
-        { updatedAt: newValue.createdAt },
-        { where: { id: args.deviceId } }
-      )
-
-      pubsub.publish("valueCreated", {
-        valueCreated: resolveObj,
-        userIds: await instanceToSharedIds(environmentFound, context),
-      })
-      context.billingUpdater.update(MUTATION_COST)
-    },
-    deviceToParent
-  )
+        pubsub.publish("valueCreated", {
+          valueCreated: resolveObj,
+          userIds: await instanceToSharedIds(environmentFound, context),
+        })
+        context.billingUpdater.update(MUTATION_COST)
+      },
+      deviceToParent
+    )
+}
 
 /**  logs messages colorized by priority, both to console and to `logs` file
  * @param {String} message - message to log
@@ -302,7 +312,7 @@ const CreateGenericValue = (
  *
  * @memberof Utilities
  */
-function log(message, importance = 1) {
+export function log(message, importance = 1) {
   // choose color
   let colorize =
     importance === 2
@@ -330,7 +340,7 @@ function log(message, importance = 1) {
  *
  * @memberof Utilities
  */
-function logErrorsPromise(callback) {
+export function logErrorsPromise(callback) {
   return new Promise(async (resolve, reject) => {
     try {
       return await callback(resolve, reject)
@@ -378,7 +388,7 @@ function logErrorsPromise(callback) {
  *
  * @memberof Utilities
  */
-const genericValueMutation = (
+export const genericValueMutation = (
   childLoaderName,
   __resolveType,
   pubsub,
@@ -436,7 +446,7 @@ const genericValueMutation = (
     valueToParent
   )
 
-const create2FSecret = user => {
+export const create2FSecret = user => {
   const allowedChars = "QWERTYUIOPASDFGHJKLZXCVBNM234567"
   let secret = ""
   for (let i = 0; i < 12; i += 1) {
@@ -447,7 +457,7 @@ const create2FSecret = user => {
   return { secret, qrCode: GA.qrCode(user, "Igloo", secret) }
 }
 
-const check2FCode = (code, secret) => {
+export const check2FCode = (code, secret) => {
   try {
     const { delta } = GA.verify(code, secret)
     return Math.abs(delta) < 3
@@ -462,7 +472,7 @@ const check2FCode = (code, secret) => {
  * @returns {Promise} promise returning the first resolve or all the rejects
  */
 
-const firstResolve = promises =>
+export const firstResolve = promises =>
   new Promise((resolve, reject) => {
     const errors = []
     let count = 0
@@ -488,7 +498,7 @@ const firstResolve = promises =>
   })
 
 // FIXME: doesn't check if the user has the authorizations needed
-const findAllValues = (
+export const findAllValues = (
   { BooleanValue, FloatValue, StringValue, PlotValue, CategoryPlotValue },
   query
 ) => {
@@ -547,7 +557,7 @@ const findAllValues = (
 }
 
 // try refactoring this with firstResolve
-const findValue = (context, id, userFound) => {
+export const findValue = (context, id, userFound) => {
   const {
     booleanValueLoaderById,
     floatValueLoaderById,
@@ -588,7 +598,7 @@ const findValue = (context, id, userFound) => {
 
 const socketToDeviceMap = {}
 
-const sendVerificationEmail = (email, userId) => {
+export const sendVerificationEmail = (email, userId) => {
   // TODO: use different jwt secrets?
   const verificationToken = jwt.encode(
     {
@@ -633,7 +643,7 @@ const sendVerificationEmail = (email, userId) => {
   )
 }
 
-const sendLogInEmail = (email, token) => {
+export const sendLogInEmail = (email, token) => {
   const loginLink = `https://aurora.igloo.ooo/login?certificate=${token}`
 
   // TODO: create a template for the email verification
@@ -662,7 +672,7 @@ const sendLogInEmail = (email, token) => {
   )
 }
 
-const sendAccountDeletedEmail = email => {
+export const sendAccountDeletedEmail = email => {
   ses.sendEmail(
     {
       Source: "'Igloo' <noreply@igloo.ooo>",
@@ -688,7 +698,7 @@ const sendAccountDeletedEmail = email => {
   )
 }
 
-const sendPasswordUpdatedEmail = email => {
+export const sendPasswordUpdatedEmail = email => {
   // TODO: create a template for the email verification
   ses.sendEmail(
     {
@@ -717,7 +727,7 @@ const sendPasswordUpdatedEmail = email => {
   )
 }
 
-const sendTokenCreatedEmail = email => {
+export const sendTokenCreatedEmail = email => {
   // TODO: create a template for the email verification
   ses.sendEmail(
     {
@@ -745,7 +755,11 @@ const sendTokenCreatedEmail = email => {
     console.log
   )
 }
-const sendEnvironmentSharedEmail = (email, userName, environmentName) => {
+export const sendEnvironmentSharedEmail = (
+  email,
+  userName,
+  environmentName
+) => {
   // TODO: create a template for the email verification
   ses.sendEmail(
     {
@@ -771,7 +785,7 @@ const sendEnvironmentSharedEmail = (email, userName, environmentName) => {
     console.log
   )
 }
-const sendOwnerChangeEmail = (email, userName, environmentName) => {
+export const sendOwnerChangeEmail = (email, userName, environmentName) => {
   // TODO: create a template for the email verification
   ses.sendEmail(
     {
@@ -797,7 +811,11 @@ const sendOwnerChangeEmail = (email, userName, environmentName) => {
     console.log
   )
 }
-const sendOwnerChangeAcceptedEmail = (email, userName, environmentName) => {
+export const sendOwnerChangeAcceptedEmail = (
+  email,
+  userName,
+  environmentName
+) => {
   // TODO: create a template for the email verification
   ses.sendEmail(
     {
@@ -823,7 +841,7 @@ const sendOwnerChangeAcceptedEmail = (email, userName, environmentName) => {
     console.log
   )
 }
-const sendEnvironmentShareAcceptedEmail = (
+export const sendEnvironmentShareAcceptedEmail = (
   email,
   userName,
   environmentName
@@ -854,7 +872,7 @@ const sendEnvironmentShareAcceptedEmail = (
   )
 }
 
-async function authorizationLevel(
+export async function authorizationLevel(
   instance,
   userFound,
   {
@@ -884,7 +902,7 @@ async function authorizationLevel(
   return 0
 }
 
-function authorized(
+export function authorized(
   id,
   context,
   loader,
@@ -942,7 +960,7 @@ function authorized(
   )
 }
 
-const authorizedRetrieveScalarProp = (
+export const authorizedRetrieveScalarProp = (
   loaderName,
   prop,
   childToParent,
@@ -961,7 +979,7 @@ const authorizedRetrieveScalarProp = (
     acceptedTokenTypes
   )
 
-const authorizedScalarPropsResolvers = (
+export const authorizedScalarPropsResolvers = (
   loaderName,
   props,
   childToParent,
@@ -977,7 +995,7 @@ const authorizedScalarPropsResolvers = (
     return acc
   }, {})
 
-const deviceToParent = ({
+export const deviceToParent = ({
   dataLoaders: { environmentLoaderById },
 }) => async deviceFound => {
   const environmentFound = await environmentLoaderById.load(
@@ -987,7 +1005,7 @@ const deviceToParent = ({
   return environmentFound
 }
 
-const valueToParent = ({
+export const valueToParent = ({
   dataLoaders: { environmentLoaderById },
 }) => async valueFound => {
   const environmentFound = await environmentLoaderById.load(
@@ -997,7 +1015,7 @@ const valueToParent = ({
   return environmentFound
 }
 
-const authorizedValue = (
+export const authorizedValue = (
   id,
   context,
   Values,
@@ -1066,7 +1084,7 @@ const authorizedValue = (
     )
   })
 
-const instanceToRole = async (instance, userFound, context) => {
+export const instanceToRole = async (instance, userFound, context) => {
   const roleLevel = await authorizationLevel(instance, userFound, context)
 
   switch (roleLevel) {
@@ -1083,7 +1101,7 @@ const instanceToRole = async (instance, userFound, context) => {
   }
 }
 
-const instanceToSharedIds = async (
+export const instanceToSharedIds = async (
   instance,
   {
     dataLoaders: {
@@ -1107,7 +1125,7 @@ const instanceToSharedIds = async (
   return [owner, ...admins, ...editors, ...spectators]
 }
 
-const inheritAuthorized = (
+export const inheritAuthorized = (
   ownId,
   ownLoader,
   User,
@@ -1145,7 +1163,7 @@ const inheritAuthorized = (
   }
 }
 
-const inheritAuthorizedRetrieveScalarProp = (
+export const inheritAuthorizedRetrieveScalarProp = (
   ownLoaderName,
   User,
   prop,
@@ -1167,7 +1185,7 @@ const inheritAuthorizedRetrieveScalarProp = (
     acceptedTokenTypes
   )
 
-const inheritAuthorizedScalarPropsResolvers = (
+export const inheritAuthorizedScalarPropsResolvers = (
   ownLoaderName,
   User,
   props,
@@ -1189,7 +1207,7 @@ const inheritAuthorizedScalarPropsResolvers = (
     return acc
   }, {})
 
-async function getAll(
+export async function getAll(
   Model,
   User,
   userId,
@@ -1278,13 +1296,13 @@ const randomChoice = (...args) => {
   return chooseAmong[randomIndex]
 }
 
-const randomEnvironmentPicture = () =>
+export const randomEnvironmentPicture = () =>
   randomChoice(["NORTHERN_LIGHTS", "DENALI", "FOX", "PUFFIN", "TREETOPS"])
 
-const randomUserIconColor = () =>
+export const randomUserIconColor = () =>
   randomChoice(["#43A047", "#0097A7", "#9C27B0", "#D81B60", "#FF5722"])
 
-const updateUserBilling = (dataLoaders, auth) => async bill => {
+export const updateUserBilling = (dataLoaders, auth) => async bill => {
   //TODO: bill the owner of the instance, not the one doing the request
   // const userFound = await dataLoaders.userLoaderById.load(auth.userId)
   // // TODO: handle this failure gracefully
@@ -1296,15 +1314,20 @@ const updateUserBilling = (dataLoaders, auth) => async bill => {
   // }
 }
 
-const GenerateUserBillingBatcher = (dataLoaders, auth) =>
+export const GenerateUserBillingBatcher = (dataLoaders, auth) =>
   new UpdateBatcher(updateUserBilling(dataLoaders, auth))
 
 // an environment is it's own parent
-const environmentToParent = context => x => x
+export const environmentToParent = context => x => x
 
-const runInParallel = async (...funcs) => await Promise.all(funcs.map(f => f()))
+export const runInParallel = async (...funcs) =>
+  await Promise.all(funcs.map(f => f()))
 
-const sendPushNotification = async (userIds, payload, WebPushNotification) => {
+export const sendPushNotification = async (
+  userIds,
+  payload,
+  WebPushNotification
+) => {
   const notificationSubscriptions = await WebPushNotification.findAll({
     where: {
       userId: {
@@ -1328,7 +1351,7 @@ const sendPushNotification = async (userIds, payload, WebPushNotification) => {
   )
 }
 
-const parseStringFilter = filter => {
+export const parseStringFilter = filter => {
   const parsedFilter = {}
 
   if (filter.equals) parsedFilter[Op.eq] = filter.equals
@@ -1338,7 +1361,7 @@ const parseStringFilter = filter => {
   return parsedFilter
 }
 
-const parseFloatFilter = filter => {
+export const parseFloatFilter = filter => {
   const parsedFilter = {}
 
   if (filter.equals) parsedFilter[Op.eq] = filter.equals
@@ -1351,53 +1374,4 @@ const parseFloatFilter = filter => {
   return parsedFilter
 }
 
-const parseDateFilter = parseFloatFilter
-
-module.exports = {
-  authenticated,
-  generateAuthenticationToken,
-  CreateGenericValue,
-  getPropsIfDefined,
-  genericValueMutation,
-  create2FSecret,
-  check2FCode,
-  logErrorsPromise,
-  log,
-  findAllValues,
-  findValue,
-  generatePermanentAuthenticationToken,
-  socketToDeviceMap,
-  sendVerificationEmail,
-  sendLogInEmail,
-  sendPasswordUpdatedEmail,
-  sendTokenCreatedEmail,
-  sendEnvironmentSharedEmail,
-  sendOwnerChangeEmail,
-  sendAccountDeletedEmail,
-  sendOwnerChangeAcceptedEmail,
-  sendEnvironmentShareAcceptedEmail,
-  authorizationLevel,
-  authorized,
-  authorizedScalarPropsResolvers,
-  deviceToParent,
-  valueToParent,
-  authorizedValue,
-  firstResolve,
-  instanceToRole,
-  instanceToSharedIds,
-  inheritAuthorized,
-  inheritAuthorizedScalarPropsResolvers,
-  getAll,
-  randomChoice,
-  randomEnvironmentPicture,
-  randomUserIconColor,
-  updateUserBilling,
-  GenerateUserBillingBatcher,
-  environmentToParent,
-  runInParallel,
-  sendPushNotification,
-  parseStringFilter,
-  parseFloatFilter,
-  parseDateFilter,
-  generateDeviceAuthenticationToken,
-}
+export const parseDateFilter = parseFloatFilter

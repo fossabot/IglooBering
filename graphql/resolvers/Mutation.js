@@ -3358,6 +3358,44 @@ const MutationResolver = (
         Device,
         Environment
       ),
+    unclaimDevice: (root, args, context) =>
+      authorized(
+        args.id,
+        context,
+        context.dataLoaders.deviceLoaderById,
+        User,
+        3,
+        async (resolve, reject, deviceFound, [environmentFound], userFound) => {
+          await deviceFound.update({
+            muted: null,
+            environmentId: null,
+            index: null,
+            name: null,
+          })
+
+          resolve({
+            id: deviceFound.id,
+            qrCode: new QRCode({ content: deviceFound.id }).svg(),
+          })
+
+          const authorizedUsersIds = await instanceToSharedIds(
+            environmentFound,
+            context
+          )
+
+          pubsub.publish("deviceUnclaimed", {
+            deviceUnclaimed: args.id,
+            userIds: [...authorizedUsersIds, deviceFound.producerId],
+            allowedDeviceIds: deviceFound.id,
+          })
+
+          pubsub.publish("environmentUpdated", {
+            environmentUpdated: environmentFound.dataValues,
+            userIds: authorizedUsersIds,
+          })
+        },
+        deviceToParent
+      ),
     deleteDevice: (root, args, context) => async (resolve, reject) => {
       const deviceFound = await context.dataLoaders.deviceLoaderById.load(
         args.id
@@ -3413,6 +3451,7 @@ const MutationResolver = (
       pubsub.publish("deviceDeleted", {
         deviceDeleted: args.id,
         userIds: authorizedUsersIds,
+        allowedDeviceIds: deviceFound.id,
       })
 
       resolve(args.id)

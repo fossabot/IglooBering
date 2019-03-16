@@ -246,14 +246,12 @@ const subscriptionResolver = (pubsub, { User, Device, Environment }) => ({
   valueDeleted: subscriptionFilterOwnedOrShared(
     "valueDeleted",
     pubsub,
-    createDataLoaders,
-    customFilterByField("valueDeleted", "deviceId")
+    createDataLoaders
   ),
   deviceDeleted: subscriptionFilterOwnedOrShared(
     "deviceDeleted",
     pubsub,
-    createDataLoaders,
-    customFilterByField("deviceUpdated", "environmentId")
+    createDataLoaders
   ),
   environmentDeleted: subscriptionFilterOwnedOrShared(
     "environmentDeleted",

@@ -48,6 +48,10 @@ type createUnclaimedDevicePayload {
   qrCode: String!
   jwtToken: String!
 }
+type unclaimDevicePayload {
+  id: ID!
+  qrCode: String!
+}
 
 # Data needed to display the QR code when upgrading to 2-Factor Authentication
 type TotpSecret {
@@ -541,6 +545,7 @@ type Mutation {
   deleteValue(id: ID!): ID
   # delete device
   deleteDevice(id: ID!): ID
+  unclaimDevice(id: ID!): unclaimDevicePayload
   # delete environment
   deleteEnvironment(id: ID!): ID
   # delte user
@@ -703,6 +708,8 @@ type Subscription {
   categoryPlotNodeDeleted(plotId: String): ID
   # subscribes to device deletes
   deviceDeleted(environmentId: String): ID
+  # subscribes to device unclaims
+  deviceUnclaimed(environmentId: String): ID
   # subscribes to environment deletes
   environmentDeleted: ID
   # subscribes to user deletes
