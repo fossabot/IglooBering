@@ -1997,8 +1997,16 @@ const MutationResolver = (
             }
 
             if (deviceFound.environmentId) {
-              reject("This device has already been claimed")
-              return
+              const parentEnvironment = await context.dataLoaders.environmentLoaderById.load(
+                deviceFound.environmentId
+              )
+              const parentUser = await context.dataLoaders.userLoaderById.load(
+                parentEnvironment.ownerId
+              )
+              if (parentUser.emailIsVerified) {
+                reject("This device has already been claimed")
+                return
+              }
             }
 
             const newDevice = await deviceFound.update({
