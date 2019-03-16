@@ -31,6 +31,8 @@ import {
   isDeviceBlocked,
   increaseDeviceAccessCount,
 } from "./redis"
+import depthLimit from "graphql-depth-limit"
+
 const expressPlayground = require("graphql-playground-middleware-express")
   .default
 
@@ -221,6 +223,7 @@ app.use(
           : undefined,
         dataLoaders,
       },
+      validationRules: [depthLimit(10)],
       tracing: process.env.NODE_ENV === "development",
     }
   })
