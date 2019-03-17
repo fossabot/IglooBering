@@ -1303,15 +1303,34 @@ export const randomUserIconColor = () =>
   randomChoice(["#43A047", "#0097A7", "#9C27B0", "#D81B60", "#FF5722"])
 
 export const updateUserBilling = (dataLoaders, auth) => async bill => {
-  //TODO: bill the owner of the instance, not the one doing the request
-  // const userFound = await dataLoaders.userLoaderById.load(auth.userId)
-  // // TODO: handle this failure gracefully
-  // if (!userFound) {
-  //   throw new Error("User doesn't exist. Use `signUp` to create one")
-  // } else {
-  //   const newUser = await userFound.increment("monthUsage", { by: bill })
-  //   return newUser.monthUsage
-  // }
+  // bill device token queries to the producer or owner depending on producerIsBilled setting
+  if (auth.deviceId) {
+    const deviceFound = await dataLoaders.deviceLoaderById.load(auth.deviceId)
+    if (deviceFound.producerIsBilled || !deviceFound.environmentId) {
+      const userFound = await dataLoaders.userLoaderById.load(
+        deviceFound.producerId
+      )
+      const newUser = await userFound.increment("monthUsage", { by: bill })
+      return newUser.monthUsage
+    } else {
+      const environmentFound = await dataLoaders.environmentLoaderBydId.load(
+        deviceFound.environmentId
+      )
+      const userFound = await dataLoaders.userLoaderById.load(
+        environmentFound.ownerId
+      )
+      const newUser = await userFound.increment("monthUsage", { by: bill })
+      return newUser.monthUsage
+    }
+  }
+
+  const userFound = await dataLoaders.userLoaderById.load(auth.userId)
+  if (!userFound) {
+    log(`user ${auth.userId} made a request but did not exist`, 2)
+  } else {
+    const newUser = await userFound.increment("monthUsage", { by: bill })
+    return newUser.monthUsage
+  }
 }
 
 export const GenerateUserBillingBatcher = (dataLoaders, auth) =>

@@ -735,6 +735,8 @@ enum PaymentPlan {
 }
 
 type Settings {
+  # user id
+  id: ID!
   lengthAndMass: LengthAndMass!
   temperature: Temperature!
   timeFormat: TimeFormat!

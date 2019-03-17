@@ -99,6 +99,7 @@ const UserResolver = ({
         const userFound = await context.dataLoaders.userLoaderById.load(root.id)
 
         resolve({
+          id: userFound.id,
           language: userFound.settings_language,
           lengthAndMass: userFound.settings_lengthAndMass,
           temperature: userFound.settings_temperature,

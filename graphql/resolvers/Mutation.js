@@ -3489,54 +3489,24 @@ const MutationResolver = (
             environmentFound,
             context
           )
-          console.log(authorizedUsersIds)
 
           const devices = await Device.findAll({
             where: { environmentId: environmentFound.id },
           })
 
           // TODO: send deleted notifications for children
-          const deleteDevicesPromises = devices.map(async device => {
-            const deleteChild = async ([Model, subscription]) => {
-              const childrenFound = await Model.findAll({
-                where: {
-                  deviceId: device.id,
-                },
-              })
+          const unclaimDevicesPromises = devices.map(async device => {
+            await device.update({
+              muted: null,
+              environmentId: null,
+              index: null,
+              name: null,
+            })
 
-              await Promise.all(
-                childrenFound.map(async child => {
-                  await child.destroy()
-                  pubsub.publish(subscription, {
-                    [subscription]: args.id,
-                    userIds: authorizedUsersIds,
-                  })
-                })
-              )
-            }
-
-            await Promise.all(
-              [
-                [PlotNode, "plotNodeDeleted"],
-                [CategoryPlotNode, "categoryPlotNodeDeleted"],
-              ].map(deleteChild)
-            )
-
-            await Promise.all(
-              [
-                [FloatValue, "valueDeleted"],
-                [StringValue, "valueDeleted"],
-                [BooleanValue, "valueDeleted"],
-                [PlotValue, "valueDeleted"],
-                [CategoryPlotValue, "valueDeleted"],
-                [Notification, "notificationDeleted"],
-              ].map(deleteChild)
-            )
-
-            await device.destroy()
-            pubsub.publish("deviceDeleted", {
-              deviceDeleted: device.id,
-              userIds: authorizedUsersIds,
+            pubsub.publish("deviceUnclaimed", {
+              deviceUnclaimed: device.id,
+              userIds: [...authorizedUsersIds, device.producerId],
+              allowedDeviceIds: device.id,
             })
           })
 
@@ -3590,7 +3560,7 @@ const MutationResolver = (
           }
 
           await Promise.all([
-            ...deleteDevicesPromises,
+            ...unclaimDevicesPromises,
             destroyPendingEnvironmentShare(),
             destroyPendingOwnerChange(),
             deleteShareJoinTables(),
@@ -3737,46 +3707,18 @@ const MutationResolver = (
               where: { environmentId: environmentFound.id },
             })
 
-            const deleteDevicesPromises = devices.map(async device => {
-              const deleteChild = async ([Model, subscription]) => {
-                const childrenFound = await Model.findAll({
-                  where: {
-                    deviceId: device.id,
-                  },
-                })
+            const unclaimDevicesPromises = devices.map(async device => {
+              await device.update({
+                muted: null,
+                environmentId: null,
+                index: null,
+                name: null,
+              })
 
-                await Promise.all(
-                  childrenFound.map(async child => {
-                    await child.destroy()
-                    pubsub.publish(subscription, {
-                      [subscription]: child.id,
-                      userIds: authorizedUsersIds,
-                    })
-                  })
-                )
-              }
-
-              await Promise.all(
-                [
-                  [PlotNode, "plotNodeDeleted"],
-                  [CategoryPlotNode, "categoryPlotNodeDeleted"],
-                ].map(deleteChild)
-              )
-              await Promise.all(
-                [
-                  [FloatValue, "valueDeleted"],
-                  [StringValue, "valueDeleted"],
-                  [BooleanValue, "valueDeleted"],
-                  [PlotValue, "valueDeleted"],
-                  [CategoryPlotValue, "valueDeleted"],
-                  [Notification, "notificationDeleted"],
-                ].map(deleteChild)
-              )
-
-              await device.destroy()
-              pubsub.publish("deviceDeleted", {
-                deviceDeleted: device.id,
-                userIds: authorizedUsersIds,
+              pubsub.publish("deviceUnclaimed", {
+                deviceUnclaimed: device.id,
+                userIds: [...authorizedUsersIds, device.producerId],
+                allowedDeviceIds: device.id,
               })
             })
 
@@ -3833,7 +3775,7 @@ const MutationResolver = (
             }
 
             await Promise.all([
-              ...deleteDevicesPromises,
+              ...unclaimDevicesPromises,
               destroyPendingEnvironmentShare(),
               destroyPendingOwnerChange(),
               deleteShareJoinTables(),
