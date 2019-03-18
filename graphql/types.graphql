@@ -224,8 +224,6 @@ type Mutation {
   createDevice(
     deviceType: String
     firmware: String
-    producerHasAccess: Boolean!
-    producerIsBilled: Boolean!
   ): createUnclaimedDevicePayload
 
   claimDevice(
