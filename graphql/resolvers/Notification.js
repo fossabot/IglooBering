@@ -1,5 +1,4 @@
 import {
-  authenticated,
   inheritAuthorized,
   inheritAuthorizedScalarPropsResolvers,
   deviceToParent,

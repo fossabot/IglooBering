@@ -1,7 +1,5 @@
 import { authenticated, authorizationLevel, firstResolve } from "./utilities"
 
-const QUERY_COST = 1
-
 const ValueResolver = {
   __resolveType: (root, context) =>
     authenticated(

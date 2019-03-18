@@ -147,7 +147,6 @@ const mapLengthUnits = {
   mi: "mi",
   au: "au",
   ly: "ly",
-  pc: "pc",
 }
 
 const timeConversions = {

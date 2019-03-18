@@ -1,6 +1,5 @@
 import {
   authorized,
-  findAllValues,
   authorizedScalarPropsResolvers,
   deviceToParent,
   instanceToRole,

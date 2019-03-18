@@ -1,14 +1,11 @@
 import bcrypt from "bcryptjs"
-import OTP from "otp.js"
 import {
   authenticated,
   generateAuthenticationToken,
   generatePermanentAuthenticationToken,
   CreateGenericValue,
   genericValueMutation,
-  create2FSecret,
   check2FCode,
-  getPropsIfDefined,
   sendVerificationEmail,
   sendPasswordUpdatedEmail,
   sendTokenCreatedEmail,
@@ -33,7 +30,7 @@ import {
   generateDeviceAuthenticationToken,
   sendOwnerChangeAcceptedEmail,
   sendEnvironmentShareAcceptedEmail,
-  sendLogInEmail,
+  sendConfirmationEmail,
 } from "./utilities"
 const { Fido2Lib } = require("fido2-lib-clone")
 import Stripe from "stripe"
@@ -95,18 +92,28 @@ const validateCertificates = (
   passwordCertificate,
   webAuthnCertificate,
   totpCertificate,
+  emailCertificate,
   reject,
   JWT_SECRET
 ) => {
   let decodedPasswordCertificate
   let decodedWebAuthnCertificate
   let decodedTotpCertificate
+  let decodedEmailCertificate
   try {
     decodedPasswordCertificate = passwordCertificate
       ? jwt.decode(passwordCertificate, JWT_SECRET)
       : null
   } catch (e) {
     reject("Invalid, expired or malformed password certificate")
+    return false
+  }
+  try {
+    decodedEmailCertificate = emailCertificate
+      ? jwt.decode(emailCertificate, JWT_SECRET)
+      : null
+  } catch (e) {
+    reject("Invalid, expired or malformed email certificate")
     return false
   }
   try {
@@ -140,6 +147,12 @@ const validateCertificates = (
     reject("Value passed to webAuthnCertificate is not a WebAuthn certificate")
     return false
   } else if (
+    decodedEmailCertificate &&
+    decodedEmailCertificate.certificateType !== "EMAIL"
+  ) {
+    reject("Value passed to emailCertificate is not an email certificate")
+    return false
+  } else if (
     decodedTotpCertificate &&
     decodedTotpCertificate.certificateType !== "TOTP"
   ) {
@@ -150,19 +163,24 @@ const validateCertificates = (
   if (
     !decodedPasswordCertificate &&
     !decodedWebAuthnCertificate &&
-    !decodedTotpCertificate
+    !decodedTotpCertificate &&
+    !decodedEmailCertificate
   ) {
     reject("No certificate passed")
     return false
   }
 
   const userId =
-    (decodedPasswordCertificate && decodedPasswordCertificate.userId) ||
-    (decodedWebAuthnCertificate && decodedWebAuthnCertificate.userId)
+    (decodedEmailCertificate && decodedEmailCertificate.userId) ||
+    ((decodedPasswordCertificate && decodedPasswordCertificate.userId) ||
+      (decodedWebAuthnCertificate && decodedWebAuthnCertificate.userId))
+
   if (
-    (decodedWebAuthnCertificate &&
+    (decodedPasswordCertificate &&
+      decodedPasswordCertificate.userId !== userId) ||
+    ((decodedWebAuthnCertificate &&
       decodedWebAuthnCertificate.userId !== userId) ||
-    (decodedTotpCertificate && decodedTotpCertificate.userId !== userId)
+      (decodedTotpCertificate && decodedTotpCertificate.userId !== userId))
   ) {
     reject("The various certificates refer to different users")
     return false
@@ -172,6 +190,7 @@ const validateCertificates = (
     decodedPasswordCertificate,
     decodedWebAuthnCertificate,
     decodedTotpCertificate,
+    decodedEmailCertificate,
     userId,
   }
 }
@@ -208,41 +227,11 @@ const MutationResolver = (
     // and returns an access token
     logIn(root, args, context) {
       return async (resolve, reject) => {
-        if (args.emailCertificate) {
-          const loginTokenFound = await EmailLoginToken.find({
-            where: { id: args.emailCertificate },
-          })
-
-          if (!loginTokenFound) {
-            reject("Invalid, used or expired emailCertificate")
-            return
-          }
-
-          context.auth = {
-            userId: loginTokenFound.userId,
-            accessLevel: "OWNER",
-            tokenType: "TEMPORARY",
-          }
-          context.billingUpdater = GenerateUserBillingBatcher(
-            context.dataLoaders,
-            context.auth
-          )
-
-          resolve({
-            token: generateAuthenticationToken(
-              loginTokenFound.userId,
-              JWT_SECRET
-            ),
-            user: {
-              id: loginTokenFound.userId,
-            },
-          })
-
-          await loginTokenFound.destroy()
-          return
-        }
-
-        if (!args.passwordCertificate && !args.webAuthnCertificate) {
+        if (
+          !args.passwordCertificate &&
+          !args.webAuthnCertificate &&
+          !args.emailCertificate
+        ) {
           reject("No primary authentication method certificate passed")
           return
         }
@@ -252,6 +241,7 @@ const MutationResolver = (
           args.passwordCertificate,
           args.webAuthnCertificate,
           args.totpCertificate,
+          args.emailCertificate,
           reject,
           JWT_SECRET
         )
@@ -264,6 +254,7 @@ const MutationResolver = (
           decodedPasswordCertificate,
           decodedWebAuthnCertificate,
           decodedTotpCertificate,
+          decodedEmailCertificate,
           userId,
         } = validatedCertificates
 
@@ -271,6 +262,25 @@ const MutationResolver = (
         if (!userFound) {
           reject("User doesn't exist. Use `signUp` to create one")
         } else {
+          if (decodedEmailCertificate) {
+            // setting context so that the resolvers for user know that the user is authenticated
+            context.auth = {
+              userId: userFound.id,
+              accessLevel: "OWNER",
+              tokenType: "TEMPORARY",
+            }
+            context.billingUpdater = GenerateUserBillingBatcher(
+              context.dataLoaders,
+              context.auth
+            )
+
+            resolve({
+              token: generateAuthenticationToken(userId, JWT_SECRET),
+              user: userFound,
+            })
+            return
+          }
+
           const {
             primaryAuthenticationMethods,
             secondaryAuthenticationMethods,
@@ -330,7 +340,7 @@ const MutationResolver = (
         }
       }
     },
-    sendLogInEmail(root, args, context) {
+    sendConfirmationEmail(root, args, context) {
       return async (resolve, reject) => {
         const userFound = await User.find({ where: { email: args.email } })
 
@@ -341,7 +351,7 @@ const MutationResolver = (
             userId: userFound.id,
           })
 
-          sendLogInEmail(userFound.email, loginToken.id)
+          sendConfirmationEmail(userFound.email, loginToken.id, args.operation)
 
           resolve(true)
         }
@@ -376,6 +386,33 @@ const MutationResolver = (
 
           resolve(certificate)
         }
+      }
+    },
+    verifyEmailToken(root, args, context) {
+      return async (resolve, reject) => {
+        const loginTokenFound = await EmailLoginToken.find({
+          where: { id: args.token },
+        })
+
+        if (!loginTokenFound) {
+          reject("Invalid, used or expired emailCertificate")
+          return
+        }
+        const certificate = jwt.encode(
+          {
+            exp: moment()
+              .utc()
+              .add({ minutes: 15 })
+              .unix(),
+            userId: loginTokenFound.userId,
+            certificateType: "EMAIL",
+          },
+          JWT_SECRET,
+          "HS512"
+        )
+
+        await loginTokenFound.destroy()
+        resolve(certificate)
       }
     },
     verifyTotp(root, args, context) {
@@ -448,13 +485,6 @@ const MutationResolver = (
             reject("jwtChallenge is not a valid JWT")
           } else if (e.message === "No token supplied") {
             reject("No jwtChallenge supplied")
-          } else if (e.message === "Algorithm not supported") {
-            reject("jwtChallenge was not created by Igloo")
-          } else if (
-            e.message === "Algorithm not supported" ||
-            e.message === "Signature verification failed"
-          ) {
-            reject("jwtChallenge was not created by Igloo")
           } else if (
             e.message === "Algorithm not supported" ||
             e.message === "Signature verification failed"
@@ -576,6 +606,7 @@ const MutationResolver = (
             args.passwordCertificate,
             args.webAuthnCertificate,
             args.totpCertificate,
+            args.emailCertificate,
             reject,
             JWT_SECRET
           )
@@ -589,11 +620,29 @@ const MutationResolver = (
             decodedPasswordCertificate,
             decodedWebAuthnCertificate,
             decodedTotpCertificate,
+            decodedEmailCertificate,
           } = validatedCertificates
 
           if (userId !== context.auth.userId) {
             reject("Certificate user not matching authenticated user")
             return
+          }
+
+          if (decodedEmailCertificate) {
+            resolve(
+              jwt.encode(
+                {
+                  userId: userId,
+                  tokenType: args.tokenType,
+                  exp: moment()
+                    .utc()
+                    .add({ minutes: 15 })
+                    .unix(),
+                },
+                JWT_SECRET,
+                "HS512"
+              )
+            )
           }
 
           const userFound = await context.dataLoaders.userLoaderById.load(
@@ -1171,9 +1220,6 @@ const MutationResolver = (
         } else if (context.auth.userId !== pendingEnvironmentFound.receiverId) {
           reject("You are not the receiver of this environment share")
         } else {
-          // add new role
-          const parsedRole = `${pendingEnvironmentFound.role[0] +
-            pendingEnvironmentFound.role.slice(1).toLowerCase()}s`
           const environmentFound = await context.dataLoaders.environmentLoaderById.load(
             pendingEnvironmentFound.environmentId
           )
@@ -1186,7 +1232,6 @@ const MutationResolver = (
             return
           }
 
-          // await userFound[`add${Environment[parsedRole]}`](environmentFound)
           if (pendingEnvironmentFound.role === "ADMIN") {
             await EnvironmentAdmin.create({
               userId: userFound.id,

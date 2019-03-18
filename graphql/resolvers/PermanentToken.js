@@ -1,6 +1,4 @@
-import { authenticated, authorizationLevel, firstResolve } from "./utilities"
-
-const QUERY_COST = 1
+import { authenticated } from "./utilities"
 
 const PermanentTokenResolver = {
   user(root, args, context) {

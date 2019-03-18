@@ -1,5 +1,4 @@
 import {
-  authenticated,
   instanceToRole,
   authorized,
   authorizedScalarPropsResolvers,

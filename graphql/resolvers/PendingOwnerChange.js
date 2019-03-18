@@ -1,4 +1,4 @@
-import { authenticated, instanceToRole, authorizationLevel } from "./utilities"
+import { authenticated, authorizationLevel } from "./utilities"
 
 const PendingOwnerChangeResolver = ({
   User,

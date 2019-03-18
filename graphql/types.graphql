@@ -97,6 +97,14 @@ enum TokenType {
   CHANGE_AUTHENTICATION
 }
 
+enum Operation {
+  LOG_IN
+  DELETE_USER
+  CHANGE_EMAIL
+  MANAGE_PERMANENT_TOKENS
+  CHANGE_AUTHENTICATION
+}
+
 enum PrimaryAuthenticationMethod {
   PASSWORD
   WEBAUTHN
@@ -113,7 +121,8 @@ type Mutation {
   verifyPassword(email: String!, password: String!): String
   verifyWebAuthn(challengeResponse: String!, jwtChallenge: String!): String
   verifyTotp(email: String, code: String): String
-  sendLogInEmail(email: String!): Boolean
+  verifyEmailToken(token: String!): String
+  sendConfirmationEmail(email: String!, operation: Operation!): Boolean
   # Gets an authentication token
   logIn(
     passwordCertificate: String
@@ -128,6 +137,7 @@ type Mutation {
     passwordCertificate: String
     webAuthnCertificate: String
     totpCertificate: String
+    emailCertificate: String
     tokenType: TokenType!
   ): String
 

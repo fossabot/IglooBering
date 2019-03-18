@@ -3,17 +3,15 @@ import {
   findValue,
   authorized,
   deviceToParent,
-  notificationToParent,
   create2FSecret,
   inheritAuthorized,
   environmentToParent,
   valueToParent,
   authorizationLevel,
 } from "./utilities"
-import bcrypt from "bcryptjs"
 const { Fido2Lib } = require("fido2-lib-clone")
 import jwt from "jwt-simple"
-import moment, { relativeTimeRounding } from "moment"
+import moment from "moment"
 require("dotenv").config()
 
 /* istanbul ignore if */
@@ -27,17 +25,16 @@ const f2l = new Fido2Lib()
 function ab2str(buf) {
   return String.fromCharCode.apply(null, new Uint8Array(buf))
 }
-function str2ab(str) {
-  return Uint8Array.from(str, c => c.charCodeAt(0))
-}
+// function str2ab(str) {
+//   return Uint8Array.from(str, c => c.charCodeAt(0))
+// }
 
 const QueryResolver = ({ User, WebauthnKey }) => ({
   user(root, args, context) {
     return async (resolve, reject) => {
-      if(args.email && args.id){
+      if (args.email && args.id) {
         reject("Cannot pass both email and id")
-      }
-      else if (args.email) {
+      } else if (args.email) {
         const userFound = await User.find({ where: { email: args.email } })
 
         if (userFound) {

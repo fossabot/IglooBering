@@ -5,7 +5,7 @@ if (!process.env.JWT_SECRET) {
 }
 import createDataLoaders from "./dataloaders/index"
 import express from "express"
-import { graphqlExpress, graphiqlExpress } from "apollo-server-express"
+import { graphqlExpress } from "apollo-server-express"
 import bodyParser from "body-parser"
 import schema from "./graphql/schema"
 import expressJwt from "express-jwt"

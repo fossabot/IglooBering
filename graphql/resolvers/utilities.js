@@ -18,7 +18,6 @@ import uuid from "uuid"
 import stackTrace from "stack-trace"
 import OTP from "otp.js"
 import fortuna from "javascript-fortuna"
-import winston from "winston"
 import AWS from "aws-sdk"
 import UpdateBatcher from "update-batcher"
 import webpush from "web-push"
@@ -596,7 +595,7 @@ export const findValue = (context, id, userFound) => {
     })
 }
 
-const socketToDeviceMap = {}
+export const socketToDeviceMap = {}
 
 export const sendVerificationEmail = (email, userId) => {
   // TODO: use different jwt secrets?
@@ -643,10 +642,35 @@ export const sendVerificationEmail = (email, userId) => {
   )
 }
 
-export const sendLogInEmail = (email, token) => {
-  const loginLink = `https://aurora.igloo.ooo/login?certificate=${token}`
+export const sendConfirmationEmail = (email, token, operation) => {
+  const operationMap = {
+    LOG_IN: {
+      htmlBody: `Log into your account clicking this link: <a href="https://aurora.igloo.ooo/login?logInToken=${token}">LOGIN</a>`,
+      textBody: `Log into your account visiting this link: https://aurora.igloo.ooo/login?logInToken=${token}`,
+      subject: "Login Magic Link",
+    },
+    DELETE_USER: {
+      htmlBody: `You asked to delete your account, click here to confirm: <a href="https://aurora.igloo.ooo/login?deleteUserToken=${token}">LOGIN</a>`,
+      textBody: `You asked to delete your account, visit this link to confirm https://aurora.igloo.ooo/login?deleteUserToken=${token}`,
+      subject: "Delete your account",
+    },
+    CHANGE_EMAIL: {
+      htmlBody: `You asked to change your email, click here to confirm <a href="https://aurora.igloo.ooo/login?emailChangeToken=${token}">LOGIN</a>`,
+      textBody: `You asked to change your email, visit this link to confirm https://aurora.igloo.ooo/login?emailChangeToken=${token}`,
+      subject: "Email change",
+    },
+    MANAGE_PERMANENT_TOKENS: {
+      htmlBody: `You attempted to change your permanent tokens, click here to confirm <a href="https://aurora.igloo.ooo/login?managePermanentTokensToken=${token}">LOGIN</a>`,
+      textBody: `You attempted to change your permanent tokens, visit this link to confirm https://aurora.igloo.ooo/login?managePermanentTokensToken=${token}`,
+      subject: "Manage permanent tokens",
+    },
+    CHANGE_AUTHENTICATION: {
+      htmlBody: `You attempted to change your authentication factors, click here to confirm <a href="https://aurora.igloo.ooo/login?changeAuthenticationToken=${token}">LOGIN</a>`,
+      textBody: `You attempted to change your authentication factors, visit this link to confirm: https://aurora.igloo.ooo/login?changeAuthenticationToken=${token}`,
+      subject: "Change authentication",
+    },
+  }
 
-  // TODO: create a template for the email verification
   ses.sendEmail(
     {
       Source: "'Igloo' <noreply@igloo.ooo>",
@@ -655,16 +679,16 @@ export const sendLogInEmail = (email, token) => {
         Body: {
           Html: {
             Charset: "UTF-8",
-            Data: `Log into your account clicking this link: <a href="${loginLink}">LOGIN</a>`,
+            Data: operationMap[operation].htmlBody,
           },
           Text: {
             Charset: "UTF-8",
-            Data: `Log into your account visiting this link: ${loginLink}`,
+            Data: operationMap[operation].textBody,
           },
         },
         Subject: {
           Charset: "UTF-8",
-          Data: "Login Magic Link",
+          Data: operationMap[operation].subject,
         },
       },
     },
@@ -864,7 +888,7 @@ export const sendEnvironmentShareAcceptedEmail = (
         },
         Subject: {
           Charset: "UTF-8",
-          Data: "Environment ${environmentName} got accepted",
+          Data: `Environment ${environmentName} got accepted`,
         },
       },
     },
