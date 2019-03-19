@@ -65,6 +65,7 @@
     "fido2-lib": "^2.1.1",
     "fido2-lib-clone": "^2.3.0",
     "graphql": "14.0.2",
+    "graphql-cost-analysis": "^1.0.3",
     "graphql-custom-directive": "^0.2.0",
     "graphql-depth-limit": "^1.1.0",
     "graphql-playground-middleware-express": "^1.7.12",

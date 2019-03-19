@@ -32,6 +32,7 @@ import {
   increaseDeviceAccessCount,
 } from "./redis"
 import depthLimit from "graphql-depth-limit"
+import costAnalysis from "graphql-cost-analysis"
 
 const expressPlayground = require("graphql-playground-middleware-express")
   .default
@@ -223,7 +224,14 @@ app.use(
           : undefined,
         dataLoaders,
       },
-      validationRules: [depthLimit(10)],
+      validationRules: [
+        depthLimit(10),
+        costAnalysis({
+          variables: req.body.variables,
+          maximumCost: 500,
+          onComplete: console.log,
+        }),
+      ],
       tracing: process.env.NODE_ENV === "development",
     }
   })

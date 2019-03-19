@@ -2,6 +2,8 @@ scalar DateTime
 scalar Json
 scalar ID
 
+directive @cost(multipliers: [String!], complexity: Int) on FIELD_DEFINITION
+
 enum EnvironmentPicture {
   NORTHERN_LIGHTS
   DENALI
@@ -634,25 +636,25 @@ type WebauthnChallenge {
 
 type Query {
   # gets user's data
-  user(email: String, id: ID): User
+  user(email: String, id: ID): User @cost(complexity: 1)
   #  get's device's data
-  device(id: ID): Device
+  device(id: ID): Device @cost(complexity: 1)
   # get's environment's data
-  environment(id: ID!): Environment
+  environment(id: ID!): Environment @cost(complexity: 1)
   # get's value's data
-  value(id: ID!): Value
-  floatValue(id: ID!): FloatValue
-  stringValue(id: ID!): StringValue
-  booleanValue(id: ID!): BooleanValue
-  plotValue(id: ID!): PlotValue
-  categoryPlotValue(id: ID!): CategoryPlotValue
+  value(id: ID!): Value @cost(complexity: 1)
+  floatValue(id: ID!): FloatValue @cost(complexity: 1)
+  stringValue(id: ID!): StringValue @cost(complexity: 1)
+  booleanValue(id: ID!): BooleanValue @cost(complexity: 1)
+  plotValue(id: ID!): PlotValue @cost(complexity: 1)
+  categoryPlotValue(id: ID!): CategoryPlotValue @cost(complexity: 1)
 
   # get notification's data
-  notification(id: ID!): Notification
+  notification(id: ID!): Notification @cost(complexity: 1)
   # get plotNode's data
-  plotNode(id: ID!): PlotNode
+  plotNode(id: ID!): PlotNode @cost(complexity: 1)
   # get categoryPlotNode's data
-  categoryPlotNode(id: ID!): CategoryPlotNode
+  categoryPlotNode(id: ID!): CategoryPlotNode @cost(complexity: 1)
   getNewTotpSecret: TotpSecret
   # get's challenge to enable webauthn
   getWebAuthnEnableChallenge: WebauthnChallenge
@@ -772,17 +774,18 @@ type User {
     limit: Int
     offset: Int
     filter: EnvironmentFilter
-  ): [Environment!]!
+  ): [Environment!]! @cost(complexity: 1, multipliers: ["limit"])
   developerDevices(
     filter: DeveloperDeviceFilter
     limit: Int
     offset: Int
-  ): [Device!]!
+  ): [Device!]! @cost(complexity: 1, multipliers: ["limit"])
   deviceCount: Int
   valueCount: Int!
   notificationCount: Int!
   permanentTokenCount: Int!
   permanentTokens(limit: Int, offset: Int): [PermanentToken!]!
+    @cost(complexity: 1, multipliers: ["limit"])
   quietMode: Boolean
   devMode: Boolean
   monthUsage: Int
@@ -794,7 +797,9 @@ type User {
   emailIsVerified: Boolean
   settings: Settings!
   primaryAuthenticationMethods: [PrimaryAuthenticationMethod!]!
+    @cost(complexity: 1)
   secondaryAuthenticationMethods: [SecondaryAuthenticationMethod!]!
+    @cost(complexity: 1)
 }
 
 enum RoleExtended {
@@ -827,7 +832,7 @@ type Environment {
   createdAt: DateTime!
   updatedAt: DateTime!
   myRole: RoleExtended!
-  owner: User!
+  owner: User! @cost(complexity: 1)
   admins: [User!]!
   editors: [User!]!
   spectators: [User!]!
@@ -848,7 +853,7 @@ type Environment {
     filter: DeviceFilter
     sortBy: DEVICE_SORT
     sortDirection: SORT_DIRECTION
-  ): [Device!]!
+  ): [Device!]! @cost(complexity: 1, multipliers: ["limit"])
   notificationCount: Int!
   index: Int!
   muted: Boolean!
@@ -856,22 +861,22 @@ type Environment {
 
 type PendingEnvironmentShare {
   id: ID!
-  sender: User!
-  receiver: User!
+  sender: User! @cost(complexity: 1)
+  receiver: User! @cost(complexity: 1)
   role: Role!
-  environment: Environment!
+  environment: Environment! @cost(complexity: 1)
 }
 
 type PendingOwnerChange {
   id: ID!
-  sender: User!
-  receiver: User!
-  environment: Environment!
+  sender: User! @cost(complexity: 1)
+  receiver: User! @cost(complexity: 1)
+  environment: Environment! @cost(complexity: 1)
 }
 
 type PermanentToken {
   id: ID!
-  user: User!
+  user: User! @cost(complexity: 1)
   name: String!
 
   # lastUsed=null if never used
@@ -901,14 +906,15 @@ type Device {
     sortBy: VALUE_SORT
     sortDirection: SORT_DIRECTION
     filter: ValueFilter
-  ): [Value!]!
-  environment: Environment
+  ): [Value!]! @cost(complexity: 1, multipliers: ["limit"])
+  environment: Environment @cost(complexity: 1)
   notifications(
     limit: Int
     offset: Int
     filter: NotificationFilter
-  ): [Notification!]!
+  ): [Notification!]! @cost(complexity: 1, multipliers: ["limit"])
   lastNotification(filter: NotificationFilter): Notification
+    @cost(complexity: 1)
   notificationCount(filter: NotificationFilter): Int!
   online: Boolean
   signalStatus: Float
@@ -938,9 +944,9 @@ enum CardSize {
 
 type Notification {
   id: ID!
-  device: Device!
-  environment: Environment!
-  user: User!
+  device: Device! @cost(complexity: 1)
+  environment: Environment! @cost(complexity: 1)
+  user: User! @cost(complexity: 1)
   content: String!
   date: DateTime!
   read: Boolean!
@@ -948,25 +954,25 @@ type Notification {
 
 type PlotNode {
   id: ID!
-  device: Device!
-  plot: PlotValue!
-  user: User!
+  device: Device! @cost(complexity: 1)
+  plot: PlotValue! @cost(complexity: 1)
+  user: User! @cost(complexity: 1)
   timestamp: DateTime!
   value: Float!
 }
 
 type CategoryPlotNode {
   id: ID!
-  device: Device!
-  plot: CategoryPlotValue!
-  user: User!
+  device: Device! @cost(complexity: 1)
+  plot: CategoryPlotValue! @cost(complexity: 1)
+  user: User! @cost(complexity: 1)
   timestamp: DateTime!
   value: String!
 }
 
 type Map {
   id: ID!
-  deviceValue: Value!
+  deviceValue: Value! @cost(complexity: 1)
   zoom: Int!
   position: MapPosition!
   geoJSON: Json!
@@ -997,8 +1003,8 @@ type FloatValue implements Value {
   createdAt: DateTime!
   updatedAt: DateTime!
   myRole: RoleExtended!
-  device: Device!
-  environment: Environment!
+  device: Device! @cost(complexity: 1)
+  environment: Environment! @cost(complexity: 1)
   permission: ValuePermission!
   visibility: ValueVisibility!
   unitOfMeasurement: String
@@ -1018,8 +1024,8 @@ type StringValue implements Value {
   createdAt: DateTime!
   updatedAt: DateTime!
   myRole: RoleExtended!
-  device: Device!
-  environment: Environment!
+  device: Device! @cost(complexity: 1)
+  environment: Environment! @cost(complexity: 1)
   permission: ValuePermission!
   visibility: ValueVisibility!
   value: String
@@ -1035,11 +1041,12 @@ type PlotValue implements Value {
   createdAt: DateTime!
   updatedAt: DateTime!
   myRole: RoleExtended!
-  device: Device!
-  environment: Environment!
+  device: Device! @cost(complexity: 1)
+  environment: Environment! @cost(complexity: 1)
   visibility: ValueVisibility!
   unitOfMeasurement: String
   value(limit: Int, offset: Int): [PlotNode!]!
+    @cost(complexity: 1, multipliers: ["limit"])
   lastNode: PlotNode
   # used when the end-user reads or modifies the value
   precision: Float
@@ -1057,10 +1064,11 @@ type CategoryPlotValue implements Value {
   createdAt: DateTime!
   updatedAt: DateTime!
   myRole: RoleExtended!
-  device: Device!
-  environment: Environment!
+  device: Device! @cost(complexity: 1)
+  environment: Environment! @cost(complexity: 1)
   visibility: ValueVisibility!
   value(limit: Int, offset: Int): [CategoryPlotNode!]!
+    @cost(complexity: 1, multipliers: ["limit"])
   lastNode: CategoryPlotNode
   cardSize: CardSize!
   name: String
@@ -1073,8 +1081,8 @@ type BooleanValue implements Value {
   createdAt: DateTime!
   updatedAt: DateTime!
   myRole: RoleExtended!
-  device: Device!
-  environment: Environment!
+  device: Device! @cost(complexity: 1)
+  environment: Environment! @cost(complexity: 1)
   permission: ValuePermission!
   visibility: ValueVisibility!
   value: Boolean

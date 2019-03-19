@@ -1,6 +1,11 @@
 import { makeExecutableSchema } from "graphql-tools"
 import fs from "fs"
-import { DirectiveLocation, GraphQLString } from "graphql"
+import {
+  DirectiveLocation,
+  GraphQLString,
+  GraphQLInt,
+  GraphQLList,
+} from "graphql"
 import resolvers from "./resolvers"
 import {
   GraphQLCustomDirective,
