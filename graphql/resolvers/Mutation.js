@@ -1929,6 +1929,10 @@ const MutationResolver = (
         const environmentCount = await Environment.count({
           where: { ownerId: context.auth.userId },
         })
+        if (environmentCount >= 100) {
+          reject("Cannot have more than 100 environments")
+          return
+        }
         if (!userFound.emailIsVerified && environmentCount !== 0) {
           reject("Unverified users can only have one environment")
           return

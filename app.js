@@ -117,7 +117,6 @@ const FREE_USAGE_QUOTA = 100 * 1000
 app.set("trust proxy", 1)
 // Check if usage threshold was exceeded
 app.use("/graphql", async (req, res, next) => {
-  // TODO: implement anti-DDOS here
   if (await isIpBlocked(req.ip)) {
     res.send(
       JSON.stringify({
@@ -132,13 +131,15 @@ app.use("/graphql", async (req, res, next) => {
       })
     )
     return
-  } else {
-    // TODO: handle errors
-    increaseIpAccessCount(req.ip)
   }
 
-  if (!req.user) next()
-  else if (req.user.tokenType === "DEVICE_ACCESS") {
+  if (!req.user) {
+    req.billCost = cost => {
+      increaseIpAccessCount(req.ip, cost)
+    }
+
+    next()
+  } else if (req.user.tokenType === "DEVICE_ACCESS") {
     if (await isDeviceBlocked(req.user.deviceId)) {
       res.send(
         JSON.stringify({
@@ -155,11 +156,30 @@ app.use("/graphql", async (req, res, next) => {
       return
     } else {
       // TODO: handle errors
-      increaseDeviceAccessCount(req.user.deviceId)
-      next()
+      req.billCost = cost => {
+        increaseDeviceAccessCount(req.user.deviceId, cost)
+        increaseIpAccessCount(req.ip, cost)
+      }
     }
+    next()
   } else {
     const userFound = await User.find({ where: { id: req.user.userId } })
+    if (!userFound) {
+      res.send(
+        JSON.stringify({
+          data: null,
+          errors: [
+            {
+              message: "This user doesn't exist anymore",
+              path: [],
+              locations: [],
+            },
+          ],
+        })
+      )
+      return
+    }
+
     if (await isUserBlocked(userFound.id)) {
       res.send(
         JSON.stringify({
@@ -175,36 +195,10 @@ app.use("/graphql", async (req, res, next) => {
       )
       return
     } else {
-      // TODO: handle errors
-      increaseUserAccessCount(userFound.id)
-    }
-
-    if (!userFound) {
-      res.send(
-        JSON.stringify({
-          data: null,
-          errors: [
-            {
-              message: "This user doesn't exist anymore",
-              path: [],
-              locations: [],
-            },
-          ],
-        })
-      )
-      return
-    } else if (
-      userFound.paymentPlan === "FREE" &&
-      userFound.monthUsage > FREE_USAGE_QUOTA
-    ) {
-      req.user.tokenType = "SWITCH_TO_PAYING"
-    } else if (
-      (userFound.paymentPlan === "INDIVIDUAL" ||
-        userFound.paymentPlan === "BUSINESS") &&
-      userFound.usageCap &&
-      userFound.monthUsage > userFound.usageCap
-    ) {
-      req.user.tokenType = "CHANGE_USAGE_CAP"
+      req.billCost = cost => {
+        increaseUserAccessCount(userFound.id, cost)
+        increaseIpAccessCount(req.ip, cost)
+      }
     }
 
     next()
@@ -215,6 +209,8 @@ app.use(
   "/graphql",
   graphqlExpress(req => {
     const dataLoaders = createDataLoaders()
+    const MAX_COST = 500
+
     return {
       schema,
       context: {
@@ -228,8 +224,10 @@ app.use(
         depthLimit(10),
         costAnalysis({
           variables: req.body.variables,
-          maximumCost: 500,
-          onComplete: console.log,
+          maximumCost: MAX_COST,
+          onComplete: cost => {
+            if (cost < MAX_COST) req.billCost(cost)
+          },
         }),
       ],
       tracing: process.env.NODE_ENV === "development",

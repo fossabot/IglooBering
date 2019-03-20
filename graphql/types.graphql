@@ -1047,7 +1047,7 @@ type PlotValue implements Value {
   unitOfMeasurement: String
   value(limit: Int, offset: Int): [PlotNode!]!
     @cost(complexity: 1, multipliers: ["limit"])
-  lastNode: PlotNode
+  lastNode: PlotNode @cost(complexity: 1)
   # used when the end-user reads or modifies the value
   precision: Float
   min: Float
@@ -1069,7 +1069,7 @@ type CategoryPlotValue implements Value {
   visibility: ValueVisibility!
   value(limit: Int, offset: Int): [CategoryPlotNode!]!
     @cost(complexity: 1, multipliers: ["limit"])
-  lastNode: CategoryPlotNode
+  lastNode: CategoryPlotNode @cost(complexity: 1)
   cardSize: CardSize!
   name: String
   index: Int

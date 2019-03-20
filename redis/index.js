@@ -16,7 +16,7 @@ client.on("error", function(err) {
 })
 
 const BUCKET_SIZE = 5000
-const FLUSH_PER_SECOND = 100
+const FLUSH_PER_HOUR = 100
 
 let hash
 
@@ -30,7 +30,7 @@ async function isUserBlocked(userId) {
     userId,
     "leaky_bucket_user_time",
     "leaky_bucket_user",
-    FLUSH_PER_SECOND
+    FLUSH_PER_HOUR
   )
 
   if (currVal >= BUCKET_SIZE) {
@@ -54,7 +54,7 @@ async function isIpBlocked(ip) {
     ip,
     "leaky_bucket_ip_time",
     "leaky_bucket_ip",
-    FLUSH_PER_SECOND
+    FLUSH_PER_HOUR
   )
 
   if (currVal >= BUCKET_SIZE) {
@@ -78,7 +78,7 @@ async function isDeviceBlocked(deviceId) {
     deviceId,
     "leaky_bucket_device_time",
     "leaky_bucket_device",
-    FLUSH_PER_SECOND
+    FLUSH_PER_HOUR
   )
 
   if (currVal >= BUCKET_SIZE) {
