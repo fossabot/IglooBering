@@ -107,7 +107,6 @@ const UserResolver = ({
           permanentTokenCreatedEmail:
             userFound.settings_permanentTokenCreatedEmail,
         })
-        context.billingUpdater.update(QUERY_COST)
       }
     })
   },
@@ -143,9 +142,6 @@ const UserResolver = ({
         })
 
         resolve(pendingEnvironmentShares)
-        context.billingUpdater.update(
-          QUERY_COST * pendingEnvironmentShares.length
-        )
       }
     })
   },
@@ -174,7 +170,6 @@ const UserResolver = ({
         })
 
         resolve(pendingOwnerChanges)
-        context.billingUpdater.update(QUERY_COST * pendingOwnerChanges.length)
       }
     })
   },
@@ -314,7 +309,6 @@ const UserResolver = ({
         })
 
         resolve(environments)
-        context.billingUpdater.update(QUERY_COST * environments.length)
       }
     })
   },
@@ -434,7 +428,6 @@ const UserResolver = ({
         })
 
         resolve(devices)
-        context.billingUpdater.update(QUERY_COST * devices.length)
       }
     })
   },
@@ -451,7 +444,6 @@ const UserResolver = ({
         })
 
         resolve(tokens)
-        context.billingUpdater.update(QUERY_COST * tokens.length)
       }
     })
   },

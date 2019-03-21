@@ -269,10 +269,6 @@ const MutationResolver = (
               accessLevel: "OWNER",
               tokenType: "TEMPORARY",
             }
-            context.billingUpdater = GenerateUserBillingBatcher(
-              context.dataLoaders,
-              context.auth
-            )
 
             resolve({
               token: generateAuthenticationToken(userId, JWT_SECRET),
@@ -328,10 +324,6 @@ const MutationResolver = (
             accessLevel: "OWNER",
             tokenType: "TEMPORARY",
           }
-          context.billingUpdater = GenerateUserBillingBatcher(
-            context.dataLoaders,
-            context.auth
-          )
 
           resolve({
             token: generateAuthenticationToken(userId, JWT_SECRET),
@@ -763,10 +755,6 @@ const MutationResolver = (
             accessLevel: "OWNER",
             tokenType: "TEMPORARY",
           }
-          context.billingUpdater = GenerateUserBillingBatcher(
-            context.dataLoaders,
-            context.auth
-          )
 
           resolve({
             token: generateAuthenticationToken(context.auth.userId, JWT_SECRET),
@@ -995,10 +983,6 @@ const MutationResolver = (
               accessLevel: "OWNER",
               tokenType: "TEMPORARY",
             }
-            context.billingUpdater = GenerateUserBillingBatcher(
-              context.dataLoaders,
-              context.auth
-            )
 
             resolve({
               token: generateAuthenticationToken(
@@ -1119,7 +1103,6 @@ const MutationResolver = (
               },
               role: newPendingShare.role,
             })
-            context.billingUpdater.update(MUTATION_COST)
 
             touch(Environment, args.environmentId, newPendingShare.updatedAt)
 
@@ -1183,7 +1166,6 @@ const MutationResolver = (
           )
 
           resolve(newPendingEnvironmentShare)
-          context.billingUpdater.update(MUTATION_COST)
 
           touch(
             Environment,
@@ -1259,8 +1241,6 @@ const MutationResolver = (
 
           touch(Environment, environmentFound.id)
 
-          context.billingUpdater.update(MUTATION_COST)
-
           pubsub.publish("pendingEnvironmentShareAccepted", {
             pendingEnvironmentShareAccepted: payload,
             userId: userFound.id,
@@ -1323,8 +1303,6 @@ const MutationResolver = (
           resolve(pendingEnvironmentFoundId)
 
           touch(Environment, environmentFound.id)
-
-          context.billingUpdater.update(MUTATION_COST)
 
           pubsub.publish("pendingEnvironmentShareDeclined", {
             pendingEnvironmentShareDeclined: pendingEnvironmentFoundId,
@@ -1456,7 +1434,6 @@ const MutationResolver = (
                 id: newOwnerChange.environmentId,
               },
             })
-            context.billingUpdater.update(MUTATION_COST)
 
             touch(Environment, args.environmentId, newOwnerChange.updatedAt)
 
@@ -1516,8 +1493,6 @@ const MutationResolver = (
           resolve(args.pendingOwnerChangeId)
 
           touch(Environment, environmentFound.id)
-
-          context.billingUpdater.update(MUTATION_COST)
 
           pubsub.publish("pendingOwnerChangeRevoked", {
             pendingOwnerChangeRevoked: args.pendingOwnerChangeId,
@@ -1601,7 +1576,6 @@ const MutationResolver = (
           touch(Environment, environmentFound.id)
 
           await pendingOwnerChangeFound.destroy()
-          context.billingUpdater.update(MUTATION_COST)
 
           pubsub.publish("pendingOwnerChangeAccepted", {
             pendingOwnerChangeAccepted: payload,
@@ -1663,8 +1637,6 @@ const MutationResolver = (
             pendingOwnerChangeFound.environmentId
           )
           touch(Environment, args.environmentId)
-
-          context.billingUpdater.update(MUTATION_COST)
 
           pubsub.publish("pendingOwnerChangeDeclined", {
             pendingOwnerChangeDeclined: args.pendingOwnerChangeId,
@@ -1759,8 +1731,6 @@ const MutationResolver = (
               environmentUpdated: environmentFound,
               userIds: await instanceToSharedIds(environmentFound, context),
             })
-
-            context.billingUpdater.update(MUTATION_COST)
           }
         },
         environmentToParent
@@ -1818,8 +1788,6 @@ const MutationResolver = (
             environmentUpdated: environmentFound,
             userIds: await instanceToSharedIds(environmentFound, context),
           })
-
-          context.billingUpdater.update(MUTATION_COST)
         },
         environmentToParent
       )
@@ -1890,7 +1858,6 @@ const MutationResolver = (
             )
 
             resolve(environmentFound)
-            context.billingUpdater.update(MUTATION_COST)
 
             touch(Environment, args.environmentId)
 
@@ -1964,8 +1931,6 @@ const MutationResolver = (
         })
 
         resolve(resolveValue)
-
-        context.billingUpdater.update(MUTATION_COST)
       })
     },
     createDevice(root, args, context) {
@@ -1998,7 +1963,6 @@ const MutationResolver = (
           },
           userIds: [userFound.id],
         })
-        context.billingUpdater.update(MUTATION_COST)
       })
     },
     claimDevice(root, args, context) {
@@ -2079,7 +2043,6 @@ const MutationResolver = (
             resolve(resolveValue)
 
             touch(Environment, environmentFound.id, newDevice.createdAt)
-            context.billingUpdater.update(MUTATION_COST)
           },
           environmentToParent
         )(resolve, reject)
@@ -2261,8 +2224,6 @@ const MutationResolver = (
             plotNodeCreated: resolveObj,
             userIds: await instanceToSharedIds(environmentFound, context),
           })
-
-          context.billingUpdater.update(MUTATION_COST)
         },
         valueToParent
       )
@@ -2310,7 +2271,6 @@ const MutationResolver = (
             categoryPlotNodeCreated: resolveObj,
             userIds: await instanceToSharedIds(environmentFound, context),
           })
-          context.billingUpdater.update(MUTATION_COST)
         },
         valueToParent
       )
@@ -2346,7 +2306,6 @@ const MutationResolver = (
 
               // if the token used for the mutation is not a usageCap update or paymentPlan update bill it
               if (permissionRequired === undefined) {
-                context.billingUpdater.update(MUTATION_COST)
               }
               pubsub.publish("userUpdated", {
                 userUpdated: newUser.dataValues,
@@ -2416,8 +2375,6 @@ const MutationResolver = (
           try {
             sendVerificationEmail(args.newEmail, context.auth.userId)
             resolve(true)
-
-            context.billingUpdater.update(MUTATION_COST)
           } catch (e) {
             console.log(e)
             if (e.errors[0].validatorKey === "isEmail") {
@@ -2493,8 +2450,6 @@ const MutationResolver = (
             userUpdated: newUser.dataValues,
             userId: context.auth.userId,
           })
-
-          context.billingUpdater.update(MUTATION_COST)
         }
       })
     },
@@ -2524,7 +2479,6 @@ const MutationResolver = (
           })
 
           resolve(true)
-          context.billingUpdater.update(MUTATION_COST)
         }
       })
     },
@@ -2580,8 +2534,6 @@ const MutationResolver = (
               userIds: [ownerChange.senderId, ownerChange.receiverId],
             })
           })
-
-          context.billingUpdater.update(MUTATION_COST)
         },
         environmentToParent
       )
@@ -2682,7 +2634,6 @@ const MutationResolver = (
             deviceUpdated: newDevice.dataValues,
             userIds: await instanceToSharedIds(environmentFound, context),
           })
-          context.billingUpdater.update(MUTATION_COST)
         },
         deviceToParent
       )
@@ -2753,7 +2704,6 @@ const MutationResolver = (
               ...(await instanceToSharedIds(targetEnvironment, context)),
             ],
           })
-          context.billingUpdater.update(MUTATION_COST)
         },
         deviceToParent
       )
@@ -2775,7 +2725,6 @@ const MutationResolver = (
             deviceUpdated: newDevice.dataValues,
             userIds: await instanceToSharedIds(environmentFound, context),
           })
-          context.billingUpdater.update(MUTATION_COST)
         },
         deviceToParent
       )
@@ -2844,7 +2793,6 @@ const MutationResolver = (
             valueUpdated: newValue,
             userIds: await instanceToSharedIds(environmentFound, context),
           })
-          context.billingUpdater.update(MUTATION_COST)
         } else {
           reject("You are not authorized to perform this operation")
         }
@@ -3041,7 +2989,6 @@ const MutationResolver = (
             valueUpdated: { ...resolveObj, __resolveType: "FloatValue" },
             userIds: await instanceToSharedIds(environmentFound, context),
           })
-          context.billingUpdater.update(MUTATION_COST)
         },
         valueToParent
       ),
@@ -3093,8 +3040,6 @@ const MutationResolver = (
             plotNodeUpdated: resolveObj,
             userIds: await instanceToSharedIds(environmentFound, context),
           })
-
-          context.billingUpdater.update(MUTATION_COST)
         },
         valueToParent
       )
@@ -3144,8 +3089,6 @@ const MutationResolver = (
             categoryPlotNodeUpdated: resolveObj,
             userIds: await instanceToSharedIds(environmentFound, context),
           })
-
-          context.billingUpdater.update(MUTATION_COST)
         },
         valueToParent
       )
@@ -3209,8 +3152,6 @@ const MutationResolver = (
             environmentUpdated: environmentFound.dataValues,
             userIds: deviceSharedIds,
           })
-
-          context.billingUpdater.update(MUTATION_COST)
 
           if (
             !userFound.quietMode &&
@@ -3309,8 +3250,6 @@ const MutationResolver = (
             },
             userId: userFound.id,
           })
-
-          context.billingUpdater.update(MUTATION_COST)
         },
         deviceToParent
       )
@@ -3359,7 +3298,6 @@ const MutationResolver = (
             environmentUpdated: environmentFound.dataValues,
             userIds: await instanceToSharedIds(environmentFound, context),
           })
-          context.billingUpdater.update(MUTATION_COST)
         },
         deviceToParent
       )
@@ -3405,7 +3343,6 @@ const MutationResolver = (
             environmentUpdated: environmentFound.dataValues,
             userIds: authorizedUsersIds,
           })
-          context.billingUpdater.update(MUTATION_COST)
         },
         Device,
         Environment
@@ -3513,7 +3450,6 @@ const MutationResolver = (
         environmentUpdated: environmentFound.dataValues,
         userIds: authorizedUsersIds,
       })
-      context.billingUpdater.update(MUTATION_COST)
     },
     deleteEnvironment: (root, args, context) =>
       authorized(
@@ -3617,8 +3553,6 @@ const MutationResolver = (
             userIds: authorizedUsersIds,
           })
           resolve(args.id)
-
-          context.billingUpdater.update(MUTATION_COST)
         },
         environmentToParent
       ),
@@ -3670,8 +3604,6 @@ const MutationResolver = (
             plotNodeDeleted: args.id,
             userIds: authorizedUsersIds,
           })
-
-          context.billingUpdater.update(MUTATION_COST)
         },
         valueToParent
       )
@@ -3724,8 +3656,6 @@ const MutationResolver = (
             categoryPlotNodeDeleted: args.id,
             userIds: authorizedUsersIds,
           })
-
-          context.billingUpdater.update(MUTATION_COST)
         },
         valueToParent
       )

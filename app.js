@@ -215,9 +215,6 @@ app.use(
       schema,
       context: {
         auth: req.user,
-        billingUpdater: req.user
-          ? GenerateUserBillingBatcher(dataLoaders, req.user)
-          : undefined,
         dataLoaders,
       },
       validationRules: [

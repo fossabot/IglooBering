@@ -481,8 +481,7 @@ module.exports = () => {
       spectatorAdminLoaderByEnvironmentAndUserId: mockRolesDataLoader(
         mocks.MockedEnvironmentSpectator
       )
-    },
-    billingUpdater: { update: () => {} }
+    }
   };
 
   return { ...mocks, mockContext };

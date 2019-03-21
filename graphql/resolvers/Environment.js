@@ -27,10 +27,6 @@ const rolesResolver = (roleName, Environment, User) => (root, args, context) =>
       })
 
       resolve(environmentFound[roleName])
-
-      context.billingUpdater.update(
-        QUERY_COST * environmentFound[roleName].length
-      )
     },
     environmentToParent
   )
@@ -123,8 +119,6 @@ const EnvironmentResolver = ({
         resolve({
           id: environmentFound.ownerId,
         })
-
-        context.billingUpdater.update(QUERY_COST)
       },
       environmentToParent
     )
@@ -150,7 +144,9 @@ const EnvironmentResolver = ({
         args.sortDirection =
           args.sortDirection === "ASCENDING"
             ? "ASC"
-            : args.sortDirection === "DESCENDING" ? "DESC" : args.sortDirection
+            : args.sortDirection === "DESCENDING"
+            ? "DESC"
+            : args.sortDirection
 
         const sortDirection = args.sortDirection || "DESC"
 
@@ -167,8 +163,6 @@ const EnvironmentResolver = ({
         })
 
         resolve(devices)
-
-        context.billingUpdater.update(QUERY_COST * devices.length)
       },
       environmentToParent
     )
@@ -229,9 +223,6 @@ const EnvironmentResolver = ({
         })
 
         resolve(pendingEnvironmentShares)
-        context.billingUpdater.update(
-          QUERY_COST * pendingEnvironmentShares.length
-        )
       },
       environmentToParent
     )
@@ -314,7 +305,6 @@ const EnvironmentResolver = ({
         })
 
         resolve(pendingOwnerChanges)
-        context.billingUpdater.update(QUERY_COST * pendingOwnerChanges.length)
       },
       environmentToParent
     )
@@ -386,7 +376,6 @@ const EnvironmentResolver = ({
         const totalCount = notificationCounts.reduce((a, b) => a + b, 0)
 
         resolve(totalCount)
-        context.billingUpdater.update(QUERY_COST)
       },
       environmentToParent
     )

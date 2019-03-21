@@ -27,7 +27,6 @@ const UserResolver = ({ Notification, User, Device, Environment }) => ({
       1,
       async (resolve, reject, notificationFound) => {
         resolve({ id: notificationFound.userId })
-        context.billingUpdater.update(QUERY_COST)
       },
       deviceToParent
     )
@@ -43,7 +42,6 @@ const UserResolver = ({ Notification, User, Device, Environment }) => ({
       1,
       async (resolve, reject, notificationFound) => {
         resolve({ id: notificationFound.deviceId })
-        context.billingUpdater.update(QUERY_COST)
       },
       deviceToParent
     )
@@ -59,7 +57,6 @@ const UserResolver = ({ Notification, User, Device, Environment }) => ({
       1,
       async (resolve, reject, notificationFound) => {
         resolve({ id: notificationFound.environmentId })
-        context.billingUpdater.update(QUERY_COST)
       },
       deviceToParent
     )
@@ -75,7 +72,6 @@ const UserResolver = ({ Notification, User, Device, Environment }) => ({
       1,
       async (resolve, reject, notificationFound) => {
         resolve(notificationFound.notRead.indexOf(context.auth.userId) === -1)
-        context.billingUpdater.update(QUERY_COST)
       },
       deviceToParent
     )

@@ -19,7 +19,6 @@ import stackTrace from "stack-trace"
 import OTP from "otp.js"
 import fortuna from "javascript-fortuna"
 import AWS from "aws-sdk"
-import UpdateBatcher from "update-batcher"
 import webpush from "web-push"
 import { Op } from "sequelize"
 import { isNullOrUndefined } from "util"
@@ -297,7 +296,6 @@ export function CreateGenericValue(
           valueCreated: resolveObj,
           userIds: await instanceToSharedIds(environmentFound, context),
         })
-        context.billingUpdater.update(MUTATION_COST)
       },
       deviceToParent
     )
@@ -438,7 +436,6 @@ export const genericValueMutation = (
         valueUpdated: { ...resolveObj, __resolveType },
         userIds: await instanceToSharedIds(environmentFound, context),
       })
-      context.billingUpdater.update(MUTATION_COST)
     },
     valueToParent
   )
@@ -1323,11 +1320,6 @@ export const randomEnvironmentPicture = () =>
 
 export const randomUserIconColor = () =>
   randomChoice(["#43A047", "#0097A7", "#9C27B0", "#D81B60", "#FF5722"])
-
-export const updateUserBilling = (dataLoaders, auth) => async bill => {}
-
-export const GenerateUserBillingBatcher = (dataLoaders, auth) =>
-  new UpdateBatcher(updateUserBilling(dataLoaders, auth))
 
 // an environment is it's own parent
 export const environmentToParent = context => x => x

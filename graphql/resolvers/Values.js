@@ -47,7 +47,6 @@ const GenericResolver = (
       1,
       async (resolve, reject, valueFound) => {
         resolve({ id: valueFound.deviceId })
-        context.billingUpdater.update(QUERY_COST)
       },
       valueToParent,
       ["TEMPORARY", "PERMANENT", "DEVICE_ACCESS"]
@@ -61,7 +60,6 @@ const GenericResolver = (
       1,
       async (resolve, reject, valueFound) => {
         resolve({ id: valueFound.environmentId })
-        context.billingUpdater.update(QUERY_COST)
       },
       valueToParent
     ),
@@ -134,7 +132,6 @@ const PlotValueResolver = (
           order: [["id", "DESC"]],
         })
         resolve(nodes)
-        context.billingUpdater.update(QUERY_COST * nodes.length)
       },
       valueToParent,
       ["TEMPORARY", "PERMANENT", "DEVICE_ACCESS"]
@@ -152,7 +149,6 @@ const PlotValueResolver = (
           order: [["timestamp", "DESC"]],
         })
         resolve(node)
-        context.billingUpdater.update(QUERY_COST)
       },
       valueToParent,
       ["TEMPORARY", "PERMANENT", "DEVICE_ACCESS"]
@@ -189,7 +185,6 @@ const CategoryPlotValueResolver = (
         })
 
         resolve(nodes)
-        context.billingUpdater.update(QUERY_COST * nodes.length)
       },
       valueToParent,
       ["TEMPORARY", "PERMANENT", "DEVICE_ACCESS"]
@@ -209,7 +204,6 @@ const CategoryPlotValueResolver = (
         })
 
         resolve(node)
-        context.billingUpdater.update(QUERY_COST)
       },
       valueToParent,
       ["TEMPORARY", "PERMANENT", "DEVICE_ACCESS"]
@@ -249,7 +243,6 @@ const PlotNodeResolver = (
         plotValueAndParents
       ) => {
         resolve({ id: plotNodeFound.userId })
-        context.billingUpdater.update(QUERY_COST)
       },
       valueToParent
     )
@@ -271,7 +264,6 @@ const PlotNodeResolver = (
         plotValueAndParents
       ) => {
         resolve({ id: plotNodeFound.deviceId })
-        context.billingUpdater.update(QUERY_COST)
       },
       valueToParent,
       ["TEMPORARY", "PERMANENT", "DEVICE_ACCESS"]
@@ -294,7 +286,6 @@ const PlotNodeResolver = (
         plotValueAndParents
       ) => {
         resolve(plotValueFound.dataValues)
-        context.billingUpdater.update(QUERY_COST)
       },
       valueToParent,
       ["TEMPORARY", "PERMANENT", "DEVICE_ACCESS"]

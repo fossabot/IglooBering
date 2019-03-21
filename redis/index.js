@@ -15,12 +15,11 @@ client.on("error", function(err) {
   console.log("Error " + err)
 })
 
-const BUCKET_SIZE = 5000
-const FLUSH_PER_HOUR = 100
-
 let hash
 
 async function isUserBlocked(userId) {
+  const USER_BUCKET_SIZE = 13200
+  const USER_FLUSH_PER_HOUR = 600
   if (!hash) {
     hash = await script("LOAD", leakyBucketScript)
   }
@@ -30,10 +29,10 @@ async function isUserBlocked(userId) {
     userId,
     "leaky_bucket_user_time",
     "leaky_bucket_user",
-    FLUSH_PER_HOUR
+    USER_FLUSH_PER_HOUR
   )
 
-  if (currVal >= BUCKET_SIZE) {
+  if (currVal >= USER_BUCKET_SIZE) {
     return true
   } else {
     return false
@@ -45,6 +44,8 @@ function increaseUserAccessCount(userId, delta = 1) {
 }
 
 async function isIpBlocked(ip) {
+  const IP_BUCKET_SIZE = 13200
+  const IP_FLUSH_PER_HOUR = 600
   if (!hash) {
     hash = await script("LOAD", leakyBucketScript)
   }
@@ -54,10 +55,10 @@ async function isIpBlocked(ip) {
     ip,
     "leaky_bucket_ip_time",
     "leaky_bucket_ip",
-    FLUSH_PER_HOUR
+    IP_FLUSH_PER_HOUR
   )
 
-  if (currVal >= BUCKET_SIZE) {
+  if (currVal >= IP_BUCKET_SIZE) {
     return true
   } else {
     return false
@@ -69,6 +70,8 @@ function increaseIpAccessCount(ip, delta = 1) {
 }
 
 async function isDeviceBlocked(deviceId) {
+  const DEVICE_BUCKET_SIZE = 13200
+  const DEVICE_FLUSH_PER_HOUR = 600
   if (!hash) {
     hash = await script("LOAD", leakyBucketScript)
   }
@@ -78,10 +81,10 @@ async function isDeviceBlocked(deviceId) {
     deviceId,
     "leaky_bucket_device_time",
     "leaky_bucket_device",
-    FLUSH_PER_HOUR
+    DEVICE_FLUSH_PER_HOUR
   )
 
-  if (currVal >= BUCKET_SIZE) {
+  if (currVal >= DEVICE_BUCKET_SIZE) {
     return true
   } else {
     return false

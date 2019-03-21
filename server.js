@@ -47,9 +47,6 @@ httpServer.listen(GRAPHQL_PORT, () => {
           return {
             auth: decodedJwt,
             websocket,
-            billingUpdater: decodedJwt
-              ? GenerateUserBillingBatcher(dataLoaders, decodedJwt)
-              : undefined,
             dataLoaders,
           }
         } catch (e) /* istanbul ignore next */ {

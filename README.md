@@ -4,7 +4,7 @@
 
 <h1 align="center">Igloo Bering </h1>
 
-[![Language grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/IglooCloud/IglooBering.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/IglooCloud/IglooBering/context:javascript)
+[![Language grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/IglooCloud/IglooBering.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/IglooCloud/IglooBering/context:javascript) [![Build Status](https://travis-ci.org/IglooCloud/IglooBering.svg?branch=master)](https://travis-ci.org/IglooCloud/IglooBering)
 
 Bering is the back-end service of Igloo.
 

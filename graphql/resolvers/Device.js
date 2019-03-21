@@ -200,8 +200,6 @@ const DeviceResolver = ({
         })
 
         resolve(valuesFound)
-
-        context.billingUpdater.update(QUERY_COST * valuesFound.length)
       },
       deviceToParent,
       ["TEMPORARY", "PERMANENT", "DEVICE_ACCESS"]
@@ -259,10 +257,6 @@ const DeviceResolver = ({
         resolve(
           deviceFound.environmentId ? { id: deviceFound.environmentId } : null
         )
-
-        context.billingUpdater.update(
-          deviceFound.environmentId ? QUERY_COST : 0
-        )
       },
       deviceToParent
     )
@@ -286,7 +280,6 @@ const DeviceResolver = ({
         })
 
         resolve(notifications)
-        context.billingUpdater.update(QUERY_COST * notifications.length)
       },
       deviceToParent,
       ["TEMPORARY", "PERMANENT", "DEVICE_ACCESS"]
@@ -309,7 +302,6 @@ const DeviceResolver = ({
         })
 
         resolve(notificationFound)
-        context.billingUpdater.update(QUERY_COST)
       },
       deviceToParent,
       ["TEMPORARY", "PERMANENT", "DEVICE_ACCESS"]

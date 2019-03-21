@@ -39,16 +39,13 @@ const QueryResolver = ({ User, WebauthnKey }) => ({
 
         if (userFound) {
           resolve({ id: userFound.id })
-          context.billingUpdater.update(QUERY_COST)
         } else {
           reject("User not found")
         }
       } else if (args.id) {
         resolve({ id: args.id })
-        context.billingUpdater.update(QUERY_COST)
       } else if (context.auth && context.auth.userId) {
         resolve({ id: context.auth.userId })
-        context.billingUpdater.update(QUERY_COST)
       } else {
         reject("Unauthenticated user query requires email or id field")
       }
@@ -70,8 +67,6 @@ const QueryResolver = ({ User, WebauthnKey }) => ({
         1,
         async (resolve, reject, deviceFound) => {
           resolve(deviceFound.dataValues)
-
-          context.billingUpdater.update(QUERY_COST)
         },
         deviceToParent,
         ["TEMPORARY", "PERMANENT", "DEVICE_ACCESS"]
@@ -87,7 +82,6 @@ const QueryResolver = ({ User, WebauthnKey }) => ({
       1,
       async (resolve, reject, environmentFound) => {
         resolve(environmentFound.dataValues)
-        context.billingUpdater.update(QUERY_COST)
       },
       environmentToParent
     )
@@ -114,7 +108,6 @@ const QueryResolver = ({ User, WebauthnKey }) => ({
         (await authorizationLevel(environmentFound, userFound, context)) > 0
       ) {
         resolve(valueFound)
-        context.billingUpdater.update(QUERY_COST)
       } else {
         reject("You are not authorized to perform this operation")
       }
@@ -131,7 +124,6 @@ const QueryResolver = ({ User, WebauthnKey }) => ({
       1,
       async (resolve, reject, notificationFound) => {
         resolve(notificationFound)
-        context.billingUpdater.update(QUERY_COST)
       },
       deviceToParent
     )
