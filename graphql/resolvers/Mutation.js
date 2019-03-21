@@ -888,7 +888,6 @@ const MutationResolver = (
               email: args.email,
               quietMode: false,
               devMode: true, // BETA: after beta the default should be false
-              monthUsage: 0,
               paymentPlan: "FREE",
               emailIsVerified: false,
               name: args.name,
@@ -2327,9 +2326,7 @@ const MutationResolver = (
 
         const mutationFields = Object.keys(args)
         let permissionRequired
-        if (mutationFields.length === 1 && mutationFields[0] === "usageCap") {
-          permissionRequired = ["TEMPORARY", "PERMANENT", "CHANGE_USAGE_CAP"]
-        } else if (
+        if (
           mutationFields.length === 1 &&
           mutationFields[0] === "paymentPlan"
         ) {

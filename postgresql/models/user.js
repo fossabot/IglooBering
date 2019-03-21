@@ -29,14 +29,8 @@ module.exports = (queryInterface, Sequelize) => {
     stripeCustomerId: {
       type: Sequelize.STRING,
     },
-    monthUsage: {
-      type: Sequelize.INTEGER,
-    },
     paymentPlan: {
       type: PaymentPlan,
-    },
-    usageCap: {
-      type: Sequelize.INTEGER,
     },
     name: {
       type: Sequelize.STRING,

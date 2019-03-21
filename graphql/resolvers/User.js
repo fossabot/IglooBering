@@ -66,7 +66,7 @@ const UserResolver = ({
   PendingOwnerChange,
   sequelize,
 }) => ({
-  ...scalarProps(["quietMode", "monthUsage", "devMode"]),
+  ...scalarProps(["quietMode", "devMode"]),
   ...publicScalarProps([
     "email",
     "name",
@@ -80,11 +80,6 @@ const UserResolver = ({
     "TEMPORARY",
     "PERMANENT",
     "SWITCH_TO_PAYING",
-  ]),
-  usageCap: retrieveUserScalarProp("usageCap", [
-    "TEMPORARY",
-    "PERMANENT",
-    "CHANGE_USAGE_CAP",
   ]),
   settings(root, args, context) {
     return authenticated(context, async (resolve, reject) => {

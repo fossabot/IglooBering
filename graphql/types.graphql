@@ -361,7 +361,6 @@ type Mutation {
   user(
     quietMode: Boolean
     devMode: Boolean
-    usageCap: Int
     paymentPlan: PaymentPlan
     name: String
     profileIcon: String
@@ -788,9 +787,7 @@ type User {
     @cost(complexity: 1, multipliers: ["limit"])
   quietMode: Boolean
   devMode: Boolean
-  monthUsage: Int
   paymentPlan: PaymentPlan
-  usageCap: Int
   name: String
   profileIcon: String
   profileIconColor: String

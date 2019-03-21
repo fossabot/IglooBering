@@ -12,7 +12,6 @@
     "lint": "prettier **/*.js --write",
     "precommit": "lint-staged",
     "sequelize": "sequelize --config ./postgresql/config/config.json --models-path ./postgresql/models --migrations-path ./postgresql/migrations --seeders-path ./postgresql/seeders",
-    "bill": "babel-node ./monthlyBilling",
     "docs": "./node_modules/.bin/jsdoc -c jsdoc.json"
   },
   "lint-staged": {

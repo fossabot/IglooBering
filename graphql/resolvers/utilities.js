@@ -75,8 +75,6 @@ export function authenticated(
           )
         } else if (context.auth.tokenType === "SWITCH_TO_PAYING") {
           reject("You exceeded the free usage quota")
-        } else if (context.auth.tokenType === "CHANGE_USAGE_CAP") {
-          reject("You exceeded the usage cap that you set")
         } else reject("This token doesn't have the required authorizations")
       }
 }
@@ -1326,36 +1324,7 @@ export const randomEnvironmentPicture = () =>
 export const randomUserIconColor = () =>
   randomChoice(["#43A047", "#0097A7", "#9C27B0", "#D81B60", "#FF5722"])
 
-export const updateUserBilling = (dataLoaders, auth) => async bill => {
-  // bill device token queries to the producer or owner depending on producerIsBilled setting
-  if (auth.deviceId) {
-    const deviceFound = await dataLoaders.deviceLoaderById.load(auth.deviceId)
-    if (deviceFound.producerIsBilled || !deviceFound.environmentId) {
-      const userFound = await dataLoaders.userLoaderById.load(
-        deviceFound.producerId
-      )
-      const newUser = await userFound.increment("monthUsage", { by: bill })
-      return newUser.monthUsage
-    } else {
-      const environmentFound = await dataLoaders.environmentLoaderBydId.load(
-        deviceFound.environmentId
-      )
-      const userFound = await dataLoaders.userLoaderById.load(
-        environmentFound.ownerId
-      )
-      const newUser = await userFound.increment("monthUsage", { by: bill })
-      return newUser.monthUsage
-    }
-  }
-
-  const userFound = await dataLoaders.userLoaderById.load(auth.userId)
-  if (!userFound) {
-    log(`user ${auth.userId} made a request but did not exist`, 2)
-  } else {
-    const newUser = await userFound.increment("monthUsage", { by: bill })
-    return newUser.monthUsage
-  }
-}
+export const updateUserBilling = (dataLoaders, auth) => async bill => {}
 
 export const GenerateUserBillingBatcher = (dataLoaders, auth) =>
   new UpdateBatcher(updateUserBilling(dataLoaders, auth))
