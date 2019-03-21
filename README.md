@@ -2,8 +2,10 @@
   <img src="https://raw.githubusercontent.com/IglooCloud/IglooBering/master/IglooLogo.png" alt="Igloo logo" width="128"/>
 </p>
 
+<h1 align="center">Igloo Bering </h1>
 
-<h1 align="center">Igloo Bering</h1>
+[![Language grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/IglooCloud/IglooBering.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/IglooCloud/IglooBering/context:javascript)
+[![Language grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/IglooCloud/IglooBering.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/IglooCloud/IglooBering/context:javascript)
 
 Bering is the back-end service of Igloo.
 

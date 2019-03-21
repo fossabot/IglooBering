@@ -1856,9 +1856,7 @@ const MutationResolver = (
             context
           )
 
-          if (!userFound) {
-            reject("This account doesn't exist, check the email passed")
-          } else if (!role) {
+          if (!role) {
             reject("This resource isn't shared with that user")
           } else if (userFound.id === context.auth.userId) {
             reject(
