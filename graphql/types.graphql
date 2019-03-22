@@ -914,6 +914,7 @@ type Device {
     @cost(complexity: 1)
   notificationCount(filter: NotificationFilter): Int!
   online: Boolean
+  storageUsed: Int!
   signalStatus: Float
   batteryStatus: Float
   batteryCharging: Boolean

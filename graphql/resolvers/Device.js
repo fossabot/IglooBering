@@ -67,6 +67,7 @@ const DeviceResolver = ({
       "batteryStatus",
       "batteryCharging",
       "firmware",
+      "storageUsed",
     ],
     deviceToParent,
     ["TEMPORARY", "PERMANENT", "DEVICE_ACCESS"]

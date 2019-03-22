@@ -49,6 +49,9 @@ module.exports = (queryInterface, Sequelize) => {
     muted: {
       type: Sequelize.BOOLEAN,
     },
+    storageUsed: {
+      type: Sequelize.INTEGER,
+    },
   })
   Device.associate = function(models) {
     models.Environment.hasMany(Device)

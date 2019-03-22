@@ -1947,6 +1947,7 @@ const MutationResolver = (
         const newDevice = await Device.create({
           ...args,
           producerId: userFound.id,
+          storageUsed: 0,
         })
 
         const id = newDevice.id
@@ -2216,6 +2217,11 @@ const MutationResolver = (
 
           resolve(resolveObj)
 
+          const deviceFound = await Device.find({
+            where: { id: plotValueFound.deviceId },
+          })
+          deviceFound.increment({ storageUsed: 1 })
+
           touch(Environment, environmentFound.id, plotNode.createdAt)
           touch(Device, plotValueFound.deviceId, plotNode.createdAt)
           touch(PlotValue, plotValueFound.id, plotNode.createdAt)
@@ -2263,6 +2269,10 @@ const MutationResolver = (
 
           resolve(resolveObj)
 
+          const deviceFound = await Device.find({
+            where: { id: plotValueFound.deviceId },
+          })
+          deviceFound.increment({ storageUsed: 1 })
           touch(Environment, environmentFound.id, plotNode.createdAt)
           touch(Device, plotValueFound.deviceId, plotNode.createdAt)
           touch(CategoryPlotValue, plotValueFound.id, plotNode.createdAt)
@@ -3133,6 +3143,7 @@ const MutationResolver = (
 
           resolve(newNotification)
 
+          deviceFound.increment({ storageUsed: 1 })
           touch(Environment, environmentFound.id, newNotification.updatedAt)
           touch(Device, newNotification.deviceId, newNotification.updatedAt)
 
@@ -3285,6 +3296,7 @@ const MutationResolver = (
 
           // the notificationCount props are updated so send the
           // device and environment subscriptions and change updatedAt
+          deviceFound.increment({ storageUsed: -1 })
           touch(Environment, environmentFound.id)
           touch(Device, deviceFound.id)
 
@@ -3330,6 +3342,10 @@ const MutationResolver = (
           })
           resolve(args.id)
 
+          const deviceFound = await Device.find({
+            where: { id: valueFound.deviceId },
+          })
+          deviceFound.increment({ storageUsed: -1 })
           touch(Environment, environmentFound.id)
           touch(Device, valueFound.deviceId)
 
@@ -3576,6 +3592,10 @@ const MutationResolver = (
 
           resolve(args.id)
 
+          const deviceFound = await Device.find({
+            where: { id: plotNodeFound.deviceId },
+          })
+          deviceFound.increment({ storageUsed: -1 })
           touch(Environment, environmentFound.id)
           touch(Device, plotNodeFound.deviceId)
           touch(PlotValue, plotNodeFound.plotId)
@@ -3628,6 +3648,10 @@ const MutationResolver = (
 
           resolve(args.id)
 
+          const deviceFound = await Device.find({
+            where: { id: plotNodeFound.deviceId },
+          })
+          deviceFound.increment({ storageUsed: -1 })
           touch(Environment, environmentFound.id)
           touch(Device, plotNodeFound.deviceId)
           touch(CategoryPlotValue, plotNodeFound.plotId)

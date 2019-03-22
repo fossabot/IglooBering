@@ -283,6 +283,7 @@ export function CreateGenericValue(
 
         resolve(resolveObj)
 
+        deviceFound.increment({ storageUsed: 1 })
         Environment.update(
           { updatedAt: newValue.createdAt },
           { where: { id: environmentFound.id } }
