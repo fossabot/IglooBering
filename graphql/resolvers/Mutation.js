@@ -49,7 +49,7 @@ if (!process.env.JWT_SECRET) {
 }
 
 const SALT_ROUNDS = 10
-const MUTATION_COST = 2
+const MAX_STORAGE = 250000 // BETA
 
 const stripe = Stripe("sk_test_pku6xMd2Tjlv5EU4GkZHw7aS")
 
@@ -2198,6 +2198,15 @@ const MutationResolver = (
             return
           }
 
+          const deviceFound = await Device.find({
+            where: { id: plotValueFound.deviceId },
+          })
+
+          if (deviceFound.storageUsed >= MAX_STORAGE) {
+            reject("Storage space fully used")
+            return
+          }
+
           const plotNode = await PlotNode.create({
             ...args,
             timestamp: args.timestamp || new Date(),
@@ -2216,10 +2225,6 @@ const MutationResolver = (
           }
 
           resolve(resolveObj)
-
-          const deviceFound = await Device.find({
-            where: { id: plotValueFound.deviceId },
-          })
           deviceFound.increment({ storageUsed: 1 })
 
           touch(Environment, environmentFound.id, plotNode.createdAt)
@@ -2250,6 +2255,15 @@ const MutationResolver = (
             return
           }
 
+          const deviceFound = await Device.find({
+            where: { id: plotValueFound.deviceId },
+          })
+
+          if (deviceFound.storageUsed >= MAX_STORAGE) {
+            reject("Storage space fully used")
+            return
+          }
+
           const plotNode = await CategoryPlotNode.create({
             ...args,
             timestamp: args.timestamp || new Date(),
@@ -2269,9 +2283,6 @@ const MutationResolver = (
 
           resolve(resolveObj)
 
-          const deviceFound = await Device.find({
-            where: { id: plotValueFound.deviceId },
-          })
           deviceFound.increment({ storageUsed: 1 })
           touch(Environment, environmentFound.id, plotNode.createdAt)
           touch(Device, plotValueFound.deviceId, plotNode.createdAt)
@@ -3120,7 +3131,11 @@ const MutationResolver = (
           if (args.content === "" || args.content === null) {
             reject("content cannot be null or an empty string")
             return
+          } else if (deviceFound.storageUsed >= MAX_STORAGE) {
+            reject("Storage space fully used")
+            return
           }
+
           const deviceSharedIds = await instanceToSharedIds(
             environmentFound,
             context

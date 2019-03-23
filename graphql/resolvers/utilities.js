@@ -187,6 +187,8 @@ const MUTATION_COST = 2
  * @returns {PromiseExecutor} promise executor resolving the result of the query/mutation or rejecting with an error
  */
 
+const MAX_STORAGE = 250000 // BETA
+
 /**
  * generic resolver for CreateXValue mutations
  * @param {SequelizeModel} User
@@ -229,8 +231,10 @@ export function CreateGenericValue(
         if (!userFound.devMode) {
           reject("Only dev users can create values, set devMode to true")
           return
-        }
-        if (!argsChecks(args, reject)) {
+        } else if (!argsChecks(args, reject)) {
+          return
+        } else if (deviceFound.storageUsed >= MAX_STORAGE) {
+          reject("Storage space fully used")
           return
         }
 
