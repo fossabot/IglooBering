@@ -3149,14 +3149,31 @@ const MutationResolver = (
             date: args.date || new Date(),
           })
 
-          // TODO: is this stuff useful?
-          deviceFound.addNotification(newNotification)
-          newNotification.setDevice(deviceFound)
-
-          environmentFound.addNotification(newNotification)
-          newNotification.setEnvironment(environmentFound)
-
           resolve(newNotification)
+
+          // remove old notifications when total is over MAX_NOTIFICATIONS
+          const notificationCount = await Notification.count({
+            where: { deviceId: args.deviceId },
+          })
+          const MAX_NOTIFICATIONS = 100
+          if (notificationCount > MAX_NOTIFICATIONS) {
+            const excessNotifications = await Notification.findAll({
+              where: { deviceId: args.deviceId },
+              offset: MAX_NOTIFICATIONS,
+              order: [["createdAt", "DESC"]],
+              fields: ["id"],
+            })
+
+            await Notification.destroy({
+              where: {
+                id: {
+                  [Op.in]: excessNotifications.map(
+                    notification => notification.id
+                  ),
+                },
+              },
+            })
+          }
 
           deviceFound.increment({ storageUsed: 1 })
           touch(Environment, environmentFound.id, newNotification.updatedAt)
