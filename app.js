@@ -223,7 +223,7 @@ app.use(
           variables: req.body.variables,
           maximumCost: MAX_COST,
           onComplete: cost => {
-            if (cost < MAX_COST) req.billCost(cost)
+            if (cost < MAX_COST) req.billCost(cost + 1) // +1 to bill also queries and mutation without nested return values
           },
         }),
       ],
