@@ -3392,6 +3392,8 @@ const MutationResolver = (
         User,
         3,
         async (resolve, reject, deviceFound, [environmentFound], userFound) => {
+          const { environmentId } = deviceFound
+
           await deviceFound.update({
             muted: null,
             environmentId: null,
@@ -3413,6 +3415,7 @@ const MutationResolver = (
             deviceUnclaimed: args.id,
             userIds: [...authorizedUsersIds, deviceFound.producerId],
             allowedDeviceIds: deviceFound.id,
+            source: { environmentId },
           })
 
           pubsub.publish("environmentUpdated", {

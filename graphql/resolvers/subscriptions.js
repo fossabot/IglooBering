@@ -262,6 +262,12 @@ const subscriptionResolver = (pubsub, { User, Device, Environment }) => ({
     createDataLoaders,
     customFilterOnSource("environmentId")
   ),
+  deviceUnclaimed: subscriptionFilterOwnedOrShared(
+    "deviceUnclaimed",
+    pubsub,
+    createDataLoaders,
+    customFilterOnSource("environmentId")
+  ),
   environmentDeleted: subscriptionFilterOwnedOrShared(
     "environmentDeleted",
     pubsub,
