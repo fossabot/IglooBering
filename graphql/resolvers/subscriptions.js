@@ -81,6 +81,12 @@ const customFilterByField = (subscriptionName, field) => (
   { [subscriptionName]: { [field]: actual } }
 ) => (requested ? requested === actual : true)
 
+const customFilterOnSource = field => (
+  { [field]: requested },
+  context,
+  { source: { [field]: actual } }
+) => (requested ? requested === actual : true)
+
 const subscriptionResolver = (pubsub, { User, Device, Environment }) => ({
   userUpdated: {
     subscribe: (root, args, context, info) => {
@@ -241,17 +247,20 @@ const subscriptionResolver = (pubsub, { User, Device, Environment }) => ({
   notificationDeleted: subscriptionFilterOwnedOrShared(
     "notificationDeleted",
     pubsub,
-    createDataLoaders
+    createDataLoaders,
+    customFilterOnSource("deviceId")
   ),
   valueDeleted: subscriptionFilterOwnedOrShared(
     "valueDeleted",
     pubsub,
-    createDataLoaders
+    createDataLoaders,
+    customFilterOnSource("deviceId")
   ),
   deviceDeleted: subscriptionFilterOwnedOrShared(
     "deviceDeleted",
     pubsub,
-    createDataLoaders
+    createDataLoaders,
+    customFilterOnSource("environmentId")
   ),
   environmentDeleted: subscriptionFilterOwnedOrShared(
     "environmentDeleted",
@@ -278,13 +287,13 @@ const subscriptionResolver = (pubsub, { User, Device, Environment }) => ({
     "plotNodeDeleted",
     pubsub,
     createDataLoaders,
-    customFilterByField("plotNodeDeleted", "plotId")
+    customFilterOnSource("plotId")
   ),
   categoryPlotNodeDeleted: subscriptionFilterOwnedOrShared(
     "categoryPlotNodeDeleted",
     pubsub,
     createDataLoaders,
-    customFilterByField("categoryPlotNodeDeleted", "plotId")
+    customFilterOnSource("plotId")
   ),
   permanentTokenDeleted: subscriptionFilterOnlyMine(
     "permanentTokenDeleted",

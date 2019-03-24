@@ -663,15 +663,15 @@ type Query {
 
 type Subscription {
   # subscribes to device creations
-  deviceCreated(environmentId: String): Device
+  deviceCreated(environmentId: ID): Device
   # subscribes to device creations
-  deviceClaimed(environmentId: String): Device
+  deviceClaimed(environmentId: ID): Device
   # subscribes to environment creations
   environmentCreated: Environment
   # subscribes to value creations
-  valueCreated(deviceId: String): Value
+  valueCreated(deviceId: ID): Value
   # subscribes to plot node creations
-  plotNodeCreated(plotId: String): PlotNode
+  plotNodeCreated(plotId: ID): PlotNode
   # subscribes to string plot node creations
   categoryPlotNodeCreated(plotId: String): CategoryPlotNode
   #subscribes to token creations
@@ -679,7 +679,7 @@ type Subscription {
   # subscribes to notification creations
   notificationCreated: Notification
   # subscribes to device creations
-  deviceMoved(environmentId: String): Device
+  deviceMoved(environmentId: ID): Device
   # subscribes to environment shares to you
   pendingEnvironmentShareReceived: PendingEnvironmentShare
   pendingEnvironmentShareUpdated: PendingEnvironmentShare
@@ -704,27 +704,27 @@ type Subscription {
   # default id is the user making the request
   userUpdated(id: ID): User
   # subscribes to device updates
-  deviceUpdated(environmentId: String): Device
+  deviceUpdated(environmentId: ID): Device
   # subscribes to environment updates
   environmentUpdated: Environment
   # subscribes to value updates
-  valueUpdated(deviceId: String): Value
+  valueUpdated(deviceId: ID): Value
   # subscribes to plot node updates
-  plotNodeUpdated(plotId: String): PlotNode
+  plotNodeUpdated(plotId: ID): PlotNode
   # subscribes to plot node updates
-  categoryPlotNodeUpdated(plotId: String): CategoryPlotNode
+  categoryPlotNodeUpdated(plotId: ID): CategoryPlotNode
   # subscribes to notification updates
   notificationUpdated: Notification
   # subscribes to value deleted
-  valueDeleted(deviceId: String): ID
+  valueDeleted(deviceId: ID): ID
   # subscribes to plot node deletes
-  plotNodeDeleted(plotId: String): ID
+  plotNodeDeleted(plotId: ID): ID
   # subscribes to plot node deletes
-  categoryPlotNodeDeleted(plotId: String): ID
+  categoryPlotNodeDeleted(plotId: ID): ID
   # subscribes to device deletes
-  deviceDeleted(environmentId: String): ID
+  deviceDeleted(environmentId: ID): ID
   # subscribes to device unclaims
-  deviceUnclaimed(environmentId: String): ID
+  deviceUnclaimed(environmentId: ID): ID
   # subscribes to environment deletes
   environmentDeleted: ID
   # subscribes to user deletes
@@ -732,7 +732,7 @@ type Subscription {
   # subscribes to token deletes
   permanentTokenDeleted: ID
   # subscribes to notification deletes
-  notificationDeleted: ID
+  notificationDeleted(deviceId: ID): ID
   # keeps the device's status set as online
   keepOnline(deviceId: ID!): Boolean
 }

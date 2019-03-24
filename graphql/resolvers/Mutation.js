@@ -3155,7 +3155,7 @@ const MutationResolver = (
           const notificationCount = await Notification.count({
             where: { deviceId: args.deviceId },
           })
-          const MAX_NOTIFICATIONS = 100
+          const MAX_NOTIFICATIONS = 1
           if (notificationCount > MAX_NOTIFICATIONS) {
             const excessNotifications = await Notification.findAll({
               where: { deviceId: args.deviceId },
@@ -3173,6 +3173,14 @@ const MutationResolver = (
                 },
               },
             })
+
+            for (let notification of excessNotifications) {
+              pubsub.publish("notificationDeleted", {
+                notificationDeleted: notification.id,
+                userIds: deviceSharedIds,
+                source: notification,
+              })
+            }
           }
 
           deviceFound.increment({ storageUsed: 1 })
@@ -3324,6 +3332,7 @@ const MutationResolver = (
           pubsub.publish("notificationDeleted", {
             notificationDeleted: args.id,
             userIds: deviceSharedIds,
+            source: notificationFound,
           })
 
           // the notificationCount props are updated so send the
@@ -3371,6 +3380,7 @@ const MutationResolver = (
           pubsub.publish("valueDeleted", {
             valueDeleted: args.id,
             userIds: authorizedUsersIds,
+            source: valueFound,
           })
           resolve(args.id)
 
@@ -3463,8 +3473,9 @@ const MutationResolver = (
           childrenFound.map(async child => {
             await child.destroy()
             pubsub.publish(subscription, {
-              [subscription]: args.id,
+              [subscription]: child.id,
               userIds: authorizedUsersIds,
+              source: child,
             })
           })
         )
@@ -3489,6 +3500,7 @@ const MutationResolver = (
         deviceDeleted: args.id,
         userIds: authorizedUsersIds,
         allowedDeviceIds: deviceFound.id,
+        source: deviceFound,
       })
 
       resolve(args.id)
@@ -3655,6 +3667,7 @@ const MutationResolver = (
           pubsub.publish("plotNodeDeleted", {
             plotNodeDeleted: args.id,
             userIds: authorizedUsersIds,
+            source: plotNodeFound,
           })
         },
         valueToParent
@@ -3711,6 +3724,7 @@ const MutationResolver = (
           pubsub.publish("categoryPlotNodeDeleted", {
             categoryPlotNodeDeleted: args.id,
             userIds: authorizedUsersIds,
+            source: plotNodeFound,
           })
         },
         valueToParent
