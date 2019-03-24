@@ -876,7 +876,6 @@ const MutationResolver = (
               email: args.email,
               quietMode: false,
               devMode: true, // BETA: after beta the default should be false
-              paymentPlan: "FREE",
               emailIsVerified: false,
               name: args.name,
               profileIconColor: randomUserIconColor(),
@@ -2297,89 +2296,69 @@ const MutationResolver = (
       )
     },
     user(root, args, context) {
-      return (resolve, reject) => {
+      return authenticated(context, async (resolve, reject) => {
         if (args.name === null || args.name === "") {
           reject("name cannot be null or empty")
           return
         }
 
-        const mutationFields = Object.keys(args)
-        let permissionRequired
-        if (
-          mutationFields.length === 1 &&
-          mutationFields[0] === "paymentPlan"
-        ) {
-          permissionRequired = ["TEMPORARY", "PERMANENT", "SWITCH_TO_PAYING"]
-        }
+        const userFound = await context.dataLoaders.userLoaderById.load(
+          context.auth.userId
+        )
 
-        authenticated(
-          context,
-          async (resolve, reject) => {
-            const userFound = await context.dataLoaders.userLoaderById.load(
-              context.auth.userId
-            )
+        if (!userFound) {
+          reject("User doesn't exist. Use `signUp` to create one")
+        } else {
+          const newUser = await userFound.update(args)
+          resolve(newUser.dataValues)
 
-            if (!userFound) {
-              reject("User doesn't exist. Use `signUp` to create one")
-            } else {
-              const newUser = await userFound.update(args)
-              resolve(newUser.dataValues)
+          pubsub.publish("userUpdated", {
+            userUpdated: newUser.dataValues,
+            userId: context.auth.userId,
+          })
 
-              // if the token used for the mutation is not a usageCap update or paymentPlan update bill it
-              if (permissionRequired === undefined) {
-              }
-              pubsub.publish("userUpdated", {
-                userUpdated: newUser.dataValues,
-                userId: context.auth.userId,
+          if (
+            args.hasOwnProperty("name") ||
+            args.hasOwnProperty("profileIcon") ||
+            args.hasOwnProperty("profileIconColor")
+          ) {
+            const ownerChanges = await PendingOwnerChange.findAll({
+              where: {
+                [Op.or]: [
+                  { senderId: userFound.id },
+                  { receiverId: userFound.id },
+                ],
+              },
+            })
+
+            ownerChanges.map(ownerChange => {
+              pubsub.publish("pendingOwnerChangeUpdated", {
+                pendingOwnerChangeUpdated: ownerChange,
+                userIds: [ownerChange.senderId, ownerChange.receiverId],
               })
+            })
 
-              if (
-                args.hasOwnProperty("name") ||
-                args.hasOwnProperty("profileIcon") ||
-                args.hasOwnProperty("profileIconColor")
-              ) {
-                const ownerChanges = await PendingOwnerChange.findAll({
-                  where: {
-                    [Op.or]: [
-                      { senderId: userFound.id },
-                      { receiverId: userFound.id },
-                    ],
-                  },
-                })
+            const environmentShares = await PendingEnvironmentShare.findAll({
+              where: {
+                [Op.or]: [
+                  { senderId: userFound.id },
+                  { receiverId: userFound.id },
+                ],
+              },
+            })
 
-                ownerChanges.map(ownerChange => {
-                  pubsub.publish("pendingOwnerChangeUpdated", {
-                    pendingOwnerChangeUpdated: ownerChange,
-                    userIds: [ownerChange.senderId, ownerChange.receiverId],
-                  })
-                })
-
-                const environmentShares = await PendingEnvironmentShare.findAll(
-                  {
-                    where: {
-                      [Op.or]: [
-                        { senderId: userFound.id },
-                        { receiverId: userFound.id },
-                      ],
-                    },
-                  }
-                )
-
-                environmentShares.map(environmentShare => {
-                  pubsub.publish("pendingEnvironmentShareUpdated", {
-                    pendingEnvironmentShareUpdated: environmentShare,
-                    userIds: [
-                      environmentShare.senderId,
-                      environmentShare.receiverId,
-                    ],
-                  })
-                })
-              }
-            }
-          },
-          permissionRequired
-        )(resolve, reject)
-      }
+            environmentShares.map(environmentShare => {
+              pubsub.publish("pendingEnvironmentShareUpdated", {
+                pendingEnvironmentShareUpdated: environmentShare,
+                userIds: [
+                  environmentShare.senderId,
+                  environmentShare.receiverId,
+                ],
+              })
+            })
+          }
+        }
+      })
     },
     changeEmail(root, args, context) {
       return authenticated(

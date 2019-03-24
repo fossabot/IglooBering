@@ -362,7 +362,6 @@ type Mutation {
   user(
     quietMode: Boolean
     devMode: Boolean
-    paymentPlan: PaymentPlan
     name: String
     profileIcon: String
   ): User
@@ -738,12 +737,6 @@ type Subscription {
   keepOnline(deviceId: ID!): Boolean
 }
 
-enum PaymentPlan {
-  FREE
-  INDIVIDUAL
-  BUSINESS
-}
-
 type Settings {
   # user id
   id: ID!
@@ -788,7 +781,6 @@ type User {
     @cost(complexity: 1, multipliers: ["limit"])
   quietMode: Boolean
   devMode: Boolean
-  paymentPlan: PaymentPlan
   name: String
   profileIcon: String
   profileIconColor: String

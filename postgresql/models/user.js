@@ -1,6 +1,4 @@
 module.exports = (queryInterface, Sequelize) => {
-  const PaymentPlan = Sequelize.ENUM("FREE", "INDIVIDUAL", "BUSINESS")
-
   const User = queryInterface.define("user", {
     id: {
       type: Sequelize.UUID,
@@ -28,9 +26,6 @@ module.exports = (queryInterface, Sequelize) => {
     },
     stripeCustomerId: {
       type: Sequelize.STRING,
-    },
-    paymentPlan: {
-      type: PaymentPlan,
     },
     name: {
       type: Sequelize.STRING,

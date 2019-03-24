@@ -76,11 +76,6 @@ const UserResolver = ({
     "secondaryAuthenticationMethods",
     "emailIsVerified",
   ]),
-  paymentPlan: retrieveUserScalarProp("paymentPlan", [
-    "TEMPORARY",
-    "PERMANENT",
-    "SWITCH_TO_PAYING",
-  ]),
   settings(root, args, context) {
     return authenticated(context, async (resolve, reject) => {
       if (context.auth.userId !== root.id) {
