@@ -19,7 +19,7 @@ let hash
 
 async function isUserBlocked(userId) {
   const USER_BUCKET_SIZE = 13200
-  const USER_FLUSH_PER_HOUR = 600
+  const USER_FLUSH_PER_HOUR = 600 * 100 // FIXME: this is temporary
   if (!hash) {
     hash = await script("LOAD", leakyBucketScript)
   }
@@ -45,7 +45,7 @@ function increaseUserAccessCount(userId, delta = 1) {
 
 async function isIpBlocked(ip) {
   const IP_BUCKET_SIZE = 13200
-  const IP_FLUSH_PER_HOUR = 600
+  const IP_FLUSH_PER_HOUR = 600 * 100 // FIXME: this is temporary
   if (!hash) {
     hash = await script("LOAD", leakyBucketScript)
   }
@@ -71,7 +71,7 @@ function increaseIpAccessCount(ip, delta = 1) {
 
 async function isDeviceBlocked(deviceId) {
   const DEVICE_BUCKET_SIZE = 13200
-  const DEVICE_FLUSH_PER_HOUR = 600
+  const DEVICE_FLUSH_PER_HOUR = 600 * 100 // FIXME: this is temporary
   if (!hash) {
     hash = await script("LOAD", leakyBucketScript)
   }
