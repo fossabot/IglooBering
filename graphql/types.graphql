@@ -1,6 +1,7 @@
 scalar DateTime
 scalar Json
 scalar ID
+scalar PositiveInt
 
 directive @cost(multipliers: [String!], complexity: Int) on FIELD_DEFINITION
 
@@ -770,20 +771,20 @@ type User {
   environments(
     sortBy: ENVIRONMENT_SORT
     sortDirection: SORT_DIRECTION
-    limit: Int!
+    limit: PositiveInt!
     offset: Int
     filter: EnvironmentFilter
   ): [Environment!]! @cost(complexity: 1, multipliers: ["limit"])
   developerDevices(
     filter: DeveloperDeviceFilter
-    limit: Int!
+    limit: PositiveInt!
     offset: Int
   ): [Device!]! @cost(complexity: 1, multipliers: ["limit"])
   deviceCount: Int
   valueCount: Int!
   notificationCount: Int!
   permanentTokenCount: Int!
-  permanentTokens(limit: Int!, offset: Int): [PermanentToken!]!
+  permanentTokens(limit: PositiveInt!, offset: Int): [PermanentToken!]!
     @cost(complexity: 1, multipliers: ["limit"])
   quietMode: Boolean
   devMode: Boolean
@@ -845,7 +846,7 @@ type Environment {
   picture: EnvironmentPicture!
   deviceCount(filter: DeviceFilter): Int
   devices(
-    limit: Int!
+    limit: PositiveInt!
     offset: Int
     filter: DeviceFilter
     sortBy: DEVICE_SORT
@@ -898,7 +899,7 @@ type Device {
   # Custom name gave by the end-user to the device
   name: String
   values(
-    limit: Int!
+    limit: PositiveInt!
     offset: Int
     sortBy: VALUE_SORT
     sortDirection: SORT_DIRECTION
@@ -906,7 +907,7 @@ type Device {
   ): [Value!]! @cost(complexity: 1, multipliers: ["limit"])
   environment: Environment @cost(complexity: 1)
   notifications(
-    limit: Int!
+    limit: PositiveInt!
     offset: Int
     filter: NotificationFilter
   ): [Notification!]! @cost(complexity: 1, multipliers: ["limit"])
@@ -1028,7 +1029,7 @@ type PlotValue implements Value {
   environment: Environment! @cost(complexity: 1)
   visibility: ValueVisibility!
   unitOfMeasurement: String
-  value(limit: Int!, offset: Int): [PlotNode!]!
+  value(limit: PositiveInt!, offset: Int): [PlotNode!]!
     @cost(complexity: 1, multipliers: ["limit"])
   lastNode: PlotNode @cost(complexity: 1)
   # used when the end-user reads or modifies the value
@@ -1050,7 +1051,7 @@ type CategoryPlotValue implements Value {
   device: Device! @cost(complexity: 1)
   environment: Environment! @cost(complexity: 1)
   visibility: ValueVisibility!
-  value(limit: Int!, offset: Int): [CategoryPlotNode!]!
+  value(limit: PositiveInt!, offset: Int): [CategoryPlotNode!]!
     @cost(complexity: 1, multipliers: ["limit"])
   lastNode: CategoryPlotNode @cost(complexity: 1)
   cardSize: CardSize!

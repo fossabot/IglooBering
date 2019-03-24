@@ -13,6 +13,7 @@ import ValueResolvers from "./resolvers/Values"
 import PermanentTokenResolver from "./resolvers/PermanentToken"
 import DateTime from "./resolvers/DateTime"
 import IDResolver from "./resolvers/ID"
+import PositiveIntResolver from "./resolvers/PositiveInt"
 import SequelizeConnections from "../postgresql/models/index"
 import { pubsub } from "../shared"
 import { logErrorsPromise } from "./resolvers/utilities"
@@ -79,6 +80,7 @@ const wrappedResolvers = {
   DateTime: DateTime({ name: "DateTime" }),
   Json: GraphQLToolsTypes.JSON({ name: "Json" }),
   ID: IDResolver,
+  PositiveInt: PositiveIntResolver,
 }
 
 function wrapInLogger(resolverFunctions) {
