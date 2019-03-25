@@ -23,6 +23,8 @@ const parseNotificationFilter = userId => filter => {
     parsedFilter[Op.and] = filter.AND.map(parseNotificationFilter(userId))
   if (filter.hasOwnProperty("OR"))
     parsedFilter[Op.or] = filter.OR.map(parseNotificationFilter(userId))
+  if (filter.hasOwnProperty("NOT") && filter.NOT !== null)
+    parsedFilter[Op.not] = parseNotificationFilter(userId)(filter.NOT)
   if (filter.hasOwnProperty("content"))
     parsedFilter.content = parseStringFilter(filter.content)
   if (filter.hasOwnProperty("date"))
@@ -124,6 +126,11 @@ const DeviceResolver = ({
                 .filter(query => query !== "")
                 .join(" OR ")})`
             )
+          if (filter.hasOwnProperty("NOT") && filter.NOT !== null) {
+            const parsedNot = parseValueFilter(filter.NOT, table)
+            if (parsedNot) filtersStack.push(`NOT (${parsedNot})`)
+            else filtersStack.push("false")
+          }
           if (filter.hasOwnProperty("cardSize"))
             filtersStack.push(
               `(public."${table}"."cardSize" = '${filter.cardSize}')`

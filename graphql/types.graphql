@@ -563,6 +563,7 @@ type Mutation {
 input EnvironmentFilter {
   OR: [EnvironmentFilter!]
   AND: [EnvironmentFilter!]
+  NOT: EnvironmentFilter
   name: StringFilter
   muted: Boolean
 }
@@ -592,6 +593,7 @@ input DateFilter {
 input DeviceFilter {
   OR: [DeviceFilter!]
   AND: [DeviceFilter!]
+  NOT: DeviceFilter
   name: StringFilter
   online: Boolean
   signalStatus: FloatFilter
@@ -603,14 +605,16 @@ input DeviceFilter {
 }
 
 input DeveloperDeviceFilter {
-  OR: [DeviceFilter!]
-  AND: [DeviceFilter!]
+  OR: [DeveloperDeviceFilter!]
+  AND: [DeveloperDeviceFilter!]
+  NOT: DeveloperDeviceFilter
   claimed: Boolean
 }
 
 input ValueFilter {
   OR: [ValueFilter!]
   AND: [ValueFilter!]
+  NOT: ValueFilter
   name: StringFilter
   cardSize: CardSize
 }
@@ -618,6 +622,7 @@ input ValueFilter {
 input NotificationFilter {
   OR: [NotificationFilter!]
   AND: [NotificationFilter!]
+  NOT: NotificationFilter
   content: StringFilter
   date: DateFilter
   read: Boolean

@@ -57,6 +57,8 @@ const parseDeviceFilter = userId => filter => {
     parsedFilter[Op.and] = filter.AND.map(parseDeviceFilter(userId))
   if (filter.hasOwnProperty("OR"))
     parsedFilter[Op.or] = filter.OR.map(parseDeviceFilter(userId))
+  if (filter.hasOwnProperty("NOT") && filter.NOT !== null)
+    parsedFilter[Op.not] = parseDeviceFilter(userId)(filter.NOT)
   if (filter.hasOwnProperty("name"))
     parsedFilter.name = parseStringFilter(filter.name)
   if (filter.hasOwnProperty("firmware"))

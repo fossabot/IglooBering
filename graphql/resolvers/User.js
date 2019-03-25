@@ -235,6 +235,11 @@ const UserResolver = ({
                 .filter(query => query !== "")
                 .join(" AND ")})`
             )
+          if (filter.hasOwnProperty("NOT") && filter.NOT !== null) {
+            const parsedNot = parseEnvironmentFilter(filter.NOT)
+            if (parsedNot) filtersStack.push(`NOT (${parsedNot})`)
+            else filtersStack.push("false")
+          }
           if (filter.hasOwnProperty("OR"))
             filtersStack.push(
               `(${filter.OR.map(parseEnvironmentFilter)
@@ -399,9 +404,11 @@ const UserResolver = ({
 
           const parsedFilter = {}
           if (filter.hasOwnProperty("AND"))
-            parsedFilter[Op.and] = filter.AND.map(parseDeviceFilter)
+            parsedFilter[Op.and] = filter.AND.map(parseDeveloperDeviceFilter)
           if (filter.hasOwnProperty("OR"))
-            parsedFilter[Op.or] = filter.OR.map(parseDeviceFilter)
+            parsedFilter[Op.or] = filter.OR.map(parseDeveloperDeviceFilter)
+          if (filter.hasOwnProperty("NOT") && filter.NOT !== null)
+            parsedFilter[Op.not] = parseDeveloperDeviceFilter(filter.NOT)
           if (filter.hasOwnProperty("claimed")) {
             if (filter.claimed)
               parsedFilter.environmentId = {
