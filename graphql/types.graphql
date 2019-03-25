@@ -359,12 +359,7 @@ type Mutation {
   ): CategoryPlotNode
 
   # Change user's data
-  user(
-    quietMode: Boolean
-    devMode: Boolean
-    name: String
-    profileIcon: String
-  ): User
+  user(quietMode: Boolean, devMode: Boolean, name: String): User
   changeEmail(newEmail: String!): Boolean
 
   settings(
@@ -782,7 +777,6 @@ type User {
   quietMode: Boolean
   devMode: Boolean
   name: String
-  profileIcon: String
   profileIconColor: String
   emailIsVerified: Boolean
   settings: Settings!

@@ -70,7 +70,6 @@ const UserResolver = ({
   ...publicScalarProps([
     "email",
     "name",
-    "profileIcon",
     "profileIconColor",
     "primaryAuthenticationMethods",
     "secondaryAuthenticationMethods",

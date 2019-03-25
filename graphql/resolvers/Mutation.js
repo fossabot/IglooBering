@@ -2319,7 +2319,6 @@ const MutationResolver = (
 
           if (
             args.hasOwnProperty("name") ||
-            args.hasOwnProperty("profileIcon") ||
             args.hasOwnProperty("profileIconColor")
           ) {
             const ownerChanges = await PendingOwnerChange.findAll({

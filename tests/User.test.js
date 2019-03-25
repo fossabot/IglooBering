@@ -44,7 +44,7 @@ describe("User", () => {
   );
 
   let privateScalarProps = ["quietMode", "devMode"];
-  let publicScalarProps = ["email", "name", "profileIcon", "profileIconColor", "emailIsVerified"];
+  let publicScalarProps = ["email", "name", "profileIconColor", "emailIsVerified"];
 
   const scalarProps = [...privateScalarProps, ...publicScalarProps];
   for (let prop of scalarProps) {

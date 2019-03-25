@@ -30,9 +30,6 @@ module.exports = (queryInterface, Sequelize) => {
     name: {
       type: Sequelize.STRING,
     },
-    profileIcon: {
-      type: Sequelize.STRING,
-    },
     profileIconColor: {
       type: Sequelize.STRING,
     },
