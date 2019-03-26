@@ -19,7 +19,7 @@ import {
   randomUserIconColor,
   instanceToRole,
   authorizationLevel,
-  GenerateUserBillingBatcher,
+  deviceAuthorized,
   environmentToParent,
   sendEnvironmentSharedEmail,
   runInParallel,
@@ -3093,26 +3093,25 @@ const MutationResolver = (
       )
     },
     createNotification(root, args, context) {
-      return authorized(
+      return deviceAuthorized(
         args.deviceId,
         context,
-        context.dataLoaders.deviceLoaderById,
-        User,
         2,
-        async (
-          resolve,
-          reject,
-          deviceFound,
-          [_, environmentFound],
-          userFound
-        ) => {
-          if (args.content === "" || args.content === null) {
+        async (resolve, reject, deviceFound) => {
+          if (!deviceFound.environmentId) {
+            reject("Cannot create notification on unclaimed device")
+            return
+          } else if (args.content === "" || args.content === null) {
             reject("content cannot be null or an empty string")
             return
           } else if (deviceFound.storageUsed >= MAX_STORAGE) {
             reject("Storage space fully used")
             return
           }
+
+          const environmentFound = await context.dataLoaders.environmentLoaderById.load(
+            deviceFound.environmentId
+          )
 
           const deviceSharedIds = await instanceToSharedIds(
             environmentFound,
@@ -3128,6 +3127,10 @@ const MutationResolver = (
           })
 
           resolve(newNotification)
+
+          const userFound = await context.dataLoaders.userLoaderById.load(
+            context.auth.userId
+          )
 
           // remove old notifications when total is over MAX_NOTIFICATIONS
           const notificationCount = await Notification.count({
@@ -3198,8 +3201,7 @@ const MutationResolver = (
               WebPushNotification
             )
           }
-        },
-        deviceToParent
+        }
       )
     },
     notification(root, args, context) {

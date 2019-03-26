@@ -1,10 +1,11 @@
 import {
   authorized,
-  authorizedScalarPropsResolvers,
   deviceToParent,
   instanceToRole,
   parseStringFilter,
   parseDateFilter,
+  deviceAuthorized,
+  authorizedScalarPropsResolvers,
 } from "./utilities"
 import { Op } from "sequelize"
 import SqlString from "sqlstring"
@@ -43,43 +44,50 @@ const parseNotificationFilter = userId => filter => {
   return parsedFilter
 }
 
-const DeviceResolver = ({
-  Device,
-  User,
-  Environment,
-  BooleanValue,
-  FloatValue,
-  StringValue,
-  PlotValue,
-  CategoryPlotValue,
-  Notification,
-  joinTables,
-  sequelize,
-}) => ({
+export const deviceAuthorizedRetrieveScalarProp = (
+  prop,
+  acceptedTokenTypes
+) => (root, args, context) =>
+  deviceAuthorized(
+    root.id,
+    context,
+    1,
+    async (resolve, reject, resourceFound) => {
+      resolve(resourceFound[prop])
+    },
+    acceptedTokenTypes
+  )
+
+export const deviceAuthorizedScalarPropsResolvers = (
+  props,
+  acceptedTokenTypes = ["TEMPORARY", "PERMANENT", "DEVICE_ACCESS"]
+) =>
+  props.reduce((acc, prop) => {
+    acc[prop] = deviceAuthorizedRetrieveScalarProp(prop, acceptedTokenTypes)
+    return acc
+  }, {})
+
+const DeviceResolver = ({ User, Notification, sequelize }) => ({
+  ...deviceAuthorizedScalarPropsResolvers([
+    "createdAt",
+    "updatedAt",
+    "deviceType",
+    "online",
+    "signalStatus",
+    "batteryStatus",
+    "batteryCharging",
+    "firmware",
+    "storageUsed",
+  ]),
   ...authorizedScalarPropsResolvers(
     "deviceLoaderById",
-    [
-      "createdAt",
-      "updatedAt",
-      "deviceType",
-      "name",
-      "index",
-      "online",
-      "signalStatus",
-      "batteryStatus",
-      "batteryCharging",
-      "firmware",
-      "storageUsed",
-    ],
-    deviceToParent,
-    ["TEMPORARY", "PERMANENT", "DEVICE_ACCESS"]
+    ["name", "index"],
+    deviceToParent
   ),
   values(root, args, context) {
-    return authorized(
+    return deviceAuthorized(
       root.id,
       context,
-      context.dataLoaders.deviceLoaderById,
-      User,
       1,
       async (resolve, reject, deviceFound) => {
         if (
@@ -208,9 +216,7 @@ const DeviceResolver = ({
         })
 
         resolve(valuesFound)
-      },
-      deviceToParent,
-      ["TEMPORARY", "PERMANENT", "DEVICE_ACCESS"]
+      }
     )
   },
   starred(root, args, context) {
@@ -270,11 +276,9 @@ const DeviceResolver = ({
     )
   },
   notifications(root, args, context) {
-    return authorized(
+    return deviceAuthorized(
       root.id,
       context,
-      context.dataLoaders.deviceLoaderById,
-      User,
       1,
       async (resolve, reject, deviceFound) => {
         const notifications = await Notification.findAll({
@@ -288,17 +292,13 @@ const DeviceResolver = ({
         })
 
         resolve(notifications)
-      },
-      deviceToParent,
-      ["TEMPORARY", "PERMANENT", "DEVICE_ACCESS"]
+      }
     )
   },
   lastNotification(root, args, context) {
-    return authorized(
+    return deviceAuthorized(
       root.id,
       context,
-      context.dataLoaders.deviceLoaderById,
-      User,
       1,
       async (resolve, reject, deviceFound) => {
         const notificationFound = await Notification.find({
@@ -310,17 +310,13 @@ const DeviceResolver = ({
         })
 
         resolve(notificationFound)
-      },
-      deviceToParent,
-      ["TEMPORARY", "PERMANENT", "DEVICE_ACCESS"]
+      }
     )
   },
   notificationCount(root, args, context) {
-    return authorized(
+    return deviceAuthorized(
       root.id,
       context,
-      context.dataLoaders.deviceLoaderById,
-      User,
       1,
       async (resolve, reject, deviceFound) => {
         const count = await Notification.count({
@@ -331,9 +327,7 @@ const DeviceResolver = ({
         })
 
         resolve(count)
-      },
-      deviceToParent,
-      ["TEMPORARY", "PERMANENT", "DEVICE_ACCESS"]
+      }
     )
   },
   myRole(root, args, context) {
@@ -362,17 +356,9 @@ const DeviceResolver = ({
     )
   },
   qrCode(root, args, context) {
-    return authorized(
-      root.id,
-      context,
-      context.dataLoaders.deviceLoaderById,
-      User,
-      1,
-      async (resolve, reject) => {
-        resolve(new QRCode({ content: root.id }).svg())
-      },
-      deviceToParent
-    )
+    return deviceAuthorized(root.id, context, 1, async (resolve, reject) => {
+      resolve(new QRCode({ content: root.id }).svg())
+    })
   },
 })
 

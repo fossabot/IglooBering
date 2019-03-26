@@ -8,6 +8,7 @@ import {
   environmentToParent,
   valueToParent,
   authorizationLevel,
+  deviceAuthorized,
 } from "./utilities"
 const { Fido2Lib } = require("fido2-lib-clone")
 import jwt from "jwt-simple"
@@ -59,17 +60,13 @@ const QueryResolver = ({ User, WebauthnKey }) => ({
         return
       }
 
-      return authorized(
+      return deviceAuthorized(
         requestedId,
         context,
-        context.dataLoaders.deviceLoaderById,
-        User,
         1,
         async (resolve, reject, deviceFound) => {
           resolve(deviceFound.dataValues)
-        },
-        deviceToParent,
-        ["TEMPORARY", "PERMANENT", "DEVICE_ACCESS"]
+        }
       )(resolve, reject)
     }
   },

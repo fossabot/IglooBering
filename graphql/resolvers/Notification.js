@@ -1,49 +1,37 @@
 import {
   inheritAuthorized,
-  inheritAuthorizedScalarPropsResolvers,
+  deviceInheritAuthorized,
+  deviceInheritAuthorizedScalarPropsResolvers,
   deviceToParent,
 } from "./utilities"
 
-const QUERY_COST = 1
 const notificationToParent = notificationFound => notificationFound.deviceId
 
-const UserResolver = ({ Notification, User, Device, Environment }) => ({
-  ...inheritAuthorizedScalarPropsResolvers(
-    "notificationLoaderById",
-    User,
-    ["content", "date"],
-    notificationToParent,
-    "deviceLoaderById",
-    deviceToParent
-  ),
+const UserResolver = ({ User }) => ({
+  ...deviceInheritAuthorizedScalarPropsResolvers("notificationLoaderById", [
+    "content",
+    "date",
+  ]),
   user(root, args, context) {
-    return inheritAuthorized(
+    return deviceInheritAuthorized(
       root.id,
       context.dataLoaders.notificationLoaderById,
-      User,
-      notificationToParent,
       context,
-      context.dataLoaders.deviceLoaderById,
       1,
       async (resolve, reject, notificationFound) => {
         resolve({ id: notificationFound.userId })
-      },
-      deviceToParent
+      }
     )
   },
   device(root, args, context) {
-    return inheritAuthorized(
+    return deviceInheritAuthorized(
       root.id,
       context.dataLoaders.notificationLoaderById,
-      User,
-      notificationToParent,
       context,
-      context.dataLoaders.deviceLoaderById,
       1,
       async (resolve, reject, notificationFound) => {
         resolve({ id: notificationFound.deviceId })
-      },
-      deviceToParent
+      }
     )
   },
   environment(root, args, context) {

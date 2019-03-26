@@ -946,37 +946,22 @@ export function authorized(
       } else {
         const parent = await childToParent(context)(found)
 
-        if (context.auth.tokenType === "DEVICE_ACCESS") {
-          if (
-            found._modelOptions.name.singular === "device" &&
-            context.auth.deviceId === found.id
-          ) {
-            return callback(resolve, reject, found, [found, parent])
-          } else if (
-            (found._modelOptions.name.singular === "floatValue" ||
-              found._modelOptions.name.singular === "stringValue" ||
-              found._modelOptions.name.singular === "booleanValue" ||
-              found._modelOptions.name.singular === "categoryPlotValue" ||
-              found._modelOptions.name.singular === "plotValue") &&
-            context.auth.deviceId === found.deviceId
-          ) {
-            return callback(resolve, reject, found, [found, parent])
-          } else {
-            reject("You are not allowed to perform this operation")
-          }
-        } else {
-          const userFound = await context.dataLoaders.userLoaderById.load(
-            context.auth.userId
-          )
+        if (!parent) {
+          reject("You are not allowed to perform this operation")
+          return
+        }
 
-          if (
-            (await authorizationLevel(parent, userFound, context)) >=
-            authorizationRequired
-          ) {
-            return callback(resolve, reject, found, [found, parent], userFound)
-          } else {
-            reject("You are not allowed to perform this operation")
-          }
+        const userFound = await context.dataLoaders.userLoaderById.load(
+          context.auth.userId
+        )
+
+        if (
+          (await authorizationLevel(parent, userFound, context)) >=
+          authorizationRequired
+        ) {
+          return callback(resolve, reject, found, [found, parent], userFound)
+        } else {
+          reject("You are not allowed to perform this operation")
         }
       }
     },
@@ -1019,9 +1004,43 @@ export const authorizedScalarPropsResolvers = (
     return acc
   }, {})
 
+export function deviceAuthorized(
+  id,
+  context,
+  authorizationRequired,
+  callback,
+  acceptedTokenTypes = ["TEMPORARY", "PERMANENT", "DEVICE_ACCESS"]
+) {
+  return authenticated(context, async (resolve, reject) => {
+    const found = await context.dataLoaders.deviceLoaderById.load(id)
+
+    if (!found) {
+      reject("The requested resource does not exist")
+    } else if (
+      found.producerId === context.auth.userId ||
+      (context.auth.tokenType === "DEVICE_ACCESS" &&
+        found.id === context.auth.deviceId)
+    ) {
+      return callback(resolve, reject, found)
+    } else {
+      return authorized(
+        id,
+        context,
+        context.dataLoaders.deviceLoaderById,
+        null,
+        authorizationRequired,
+        callback,
+        deviceToParent,
+        acceptedTokenTypes
+      )(resolve, reject)
+    }
+  })
+}
+
 export const deviceToParent = ({
   dataLoaders: { environmentLoaderById },
 }) => async deviceFound => {
+  if (!deviceFound.environmentId) return null
   const environmentFound = await environmentLoaderById.load(
     deviceFound.environmentId
   )
@@ -1032,6 +1051,7 @@ export const deviceToParent = ({
 export const valueToParent = ({
   dataLoaders: { environmentLoaderById },
 }) => async valueFound => {
+  if (!valueFound.environmentId) return null
   const environmentFound = await environmentLoaderById.load(
     valueFound.environmentId
   )
@@ -1186,6 +1206,63 @@ export const inheritAuthorized = (
     )(resolve, reject)
   }
 }
+
+export const deviceInheritAuthorized = (
+  ownId,
+  ownLoader,
+  context,
+  authorizationRequired,
+  callback,
+  acceptedTokenTypes,
+  ownIstanceToParentId = instance => instance.deviceId
+) => async (resolve, reject) => {
+  const entityFound = await ownLoader.load(ownId)
+
+  if (!entityFound) {
+    reject("The requested resource does not exist")
+  } else {
+    return deviceAuthorized(
+      ownIstanceToParentId(entityFound),
+      context,
+      authorizationRequired,
+      (resolve, reject, parentFound, userFound) =>
+        callback(resolve, reject, entityFound, parentFound, userFound),
+      acceptedTokenTypes
+    )(resolve, reject)
+  }
+}
+
+export const deviceInheritAuthorizedRetrieveScalarProp = (
+  ownLoaderName,
+  prop,
+  acceptedTokenTypes,
+  ownIstanceToParentId = instance => instance.deviceId
+) => (root, args, context) =>
+  deviceInheritAuthorized(
+    root.id,
+    context.dataLoaders[ownLoaderName],
+    context,
+    1,
+    (resolve, reject, resourceFound) => resolve(resourceFound[prop]),
+    acceptedTokenTypes,
+    ownIstanceToParentId
+  )
+
+export const deviceInheritAuthorizedScalarPropsResolvers = (
+  ownLoaderName,
+  props,
+  acceptedTokenTypes,
+  ownIstanceToParentId = instance => instance.deviceId
+) =>
+  props.reduce((acc, prop) => {
+    acc[prop] = deviceInheritAuthorizedRetrieveScalarProp(
+      ownLoaderName,
+      prop,
+      acceptedTokenTypes,
+      ownIstanceToParentId
+    )
+    return acc
+  }, {})
 
 export const inheritAuthorizedRetrieveScalarProp = (
   ownLoaderName,
