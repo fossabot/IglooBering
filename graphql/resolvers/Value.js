@@ -35,8 +35,12 @@ const ValueResolver = {
                 const environmentFound = await context.dataLoaders.environmentLoaderById.load(
                   resourceFound.environmentId
                 )
+                const deviceFound = await context.dataLoaders.deviceLoaderById.load(
+                  resourceFound.deviceId
+                )
 
                 if (
+                  deviceFound.producerId !== context.auth.userId &&
                   (await authorizationLevel(
                     environmentFound,
                     userFound,

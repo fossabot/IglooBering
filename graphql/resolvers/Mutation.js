@@ -31,6 +31,7 @@ import {
   sendOwnerChangeAcceptedEmail,
   sendEnvironmentShareAcceptedEmail,
   sendConfirmationEmail,
+  deviceInheritAuthorized,
 } from "./utilities"
 const { Fido2Lib } = require("fido2-lib-clone")
 import Stripe from "stripe"
@@ -2179,13 +2180,12 @@ const MutationResolver = (
       }
     ),
     createPlotNode(root, args, context) {
-      return authorized(
+      return deviceInheritAuthorized(
         args.plotId,
-        context,
         context.dataLoaders.plotValueLoaderById,
-        User,
+        context,
         2,
-        async (resolve, reject, plotValueFound, [_, environmentFound]) => {
+        async (resolve, reject, plotValueFound, deviceFound) => {
           if (
             isOutOfBoundaries(
               plotValueFound.min,
@@ -2196,10 +2196,6 @@ const MutationResolver = (
             reject("Value out of boundaries")
             return
           }
-
-          const deviceFound = await Device.find({
-            where: { id: plotValueFound.deviceId },
-          })
 
           if (deviceFound.storageUsed >= MAX_STORAGE) {
             reject("Storage space fully used")
@@ -2226,26 +2222,32 @@ const MutationResolver = (
           resolve(resolveObj)
           deviceFound.increment({ storageUsed: 1 })
 
-          touch(Environment, environmentFound.id, plotNode.createdAt)
+          if (deviceFound.environmentId)
+            touch(Environment, deviceFound.environmentId, plotNode.createdAt)
           touch(Device, plotValueFound.deviceId, plotNode.createdAt)
           touch(PlotValue, plotValueFound.id, plotNode.createdAt)
 
           pubsub.publish("plotNodeCreated", {
             plotNodeCreated: resolveObj,
-            userIds: await instanceToSharedIds(environmentFound, context),
+            userIds: deviceFound.environmentId
+              ? await instanceToSharedIds(
+                  await context.dataLoaders.environmentLoaderById.load(
+                    deviceFound.environmentId
+                  ),
+                  context
+                )
+              : [],
           })
-        },
-        valueToParent
+        }
       )
     },
     createCategoryPlotNode(root, args, context) {
-      return authorized(
+      return deviceInheritAuthorized(
         args.plotId,
-        context,
         context.dataLoaders.categoryPlotValueLoaderById,
-        User,
+        context,
         2,
-        async (resolve, reject, plotValueFound, [_, environmentFound]) => {
+        async (resolve, reject, plotValueFound, deviceFound) => {
           if (
             isNotNullNorUndefined(plotValueFound.allowedValues) &&
             plotValueFound.allowedValues.indexOf(args.value)
@@ -2253,10 +2255,6 @@ const MutationResolver = (
             reject("Value not in allowedValues")
             return
           }
-
-          const deviceFound = await Device.find({
-            where: { id: plotValueFound.deviceId },
-          })
 
           if (deviceFound.storageUsed >= MAX_STORAGE) {
             reject("Storage space fully used")
@@ -2283,16 +2281,23 @@ const MutationResolver = (
           resolve(resolveObj)
 
           deviceFound.increment({ storageUsed: 1 })
-          touch(Environment, environmentFound.id, plotNode.createdAt)
+          if (deviceFound.environmentId)
+            touch(Environment, deviceFound.environmentId, plotNode.createdAt)
           touch(Device, plotValueFound.deviceId, plotNode.createdAt)
           touch(CategoryPlotValue, plotValueFound.id, plotNode.createdAt)
 
           pubsub.publish("categoryPlotNodeCreated", {
             categoryPlotNodeCreated: resolveObj,
-            userIds: await instanceToSharedIds(environmentFound, context),
+            userIds: deviceFound.environmentId
+              ? await instanceToSharedIds(
+                  await context.dataLoaders.environmentLoaderById.load(
+                    deviceFound.environmentId
+                  ),
+                  context
+                )
+              : [],
           })
-        },
-        valueToParent
+        }
       )
     },
     user(root, args, context) {

@@ -2,8 +2,10 @@ import {
   instanceToRole,
   authorized,
   authorizedScalarPropsResolvers,
+  deviceInheritAuthorized,
   valueToParent,
   inheritAuthorizedScalarPropsResolvers,
+  deviceInheritAuthorizedScalarPropsResolvers,
   inheritAuthorized,
 } from "./utilities"
 
@@ -16,40 +18,27 @@ const GenericResolver = (
   Environment,
   hasPermission = true
 ) => ({
-  ...authorizedScalarPropsResolvers(
-    loaderName,
-    [
-      "createdAt",
-      "updatedAt",
-      "visibility",
-      "cardSize",
-      "name",
-      "value",
-      "index",
-    ],
-    valueToParent,
-    ["TEMPORARY", "PERMANENT", "DEVICE_ACCESS"]
-  ),
+  ...deviceInheritAuthorizedScalarPropsResolvers(loaderName, [
+    "createdAt",
+    "updatedAt",
+    "visibility",
+    "cardSize",
+    "name",
+    "value",
+    "index",
+  ]),
   ...(hasPermission
-    ? authorizedScalarPropsResolvers(
-        loaderName,
-        ["permission"],
-        valueToParent,
-        ["TEMPORARY", "PERMANENT", "DEVICE_ACCESS"]
-      )
+    ? deviceInheritAuthorizedScalarPropsResolvers(loaderName, ["permission"])
     : []),
   device: (root, args, context) =>
-    authorized(
+    deviceInheritAuthorized(
       root.id,
-      context,
       context.dataLoaders[loaderName],
-      User,
+      context,
       1,
       async (resolve, reject, valueFound) => {
         resolve({ id: valueFound.deviceId })
-      },
-      valueToParent,
-      ["TEMPORARY", "PERMANENT", "DEVICE_ACCESS"]
+      }
     ),
   environment: (root, args, context) =>
     authorized(
@@ -86,21 +75,19 @@ const GenericResolver = (
 const BooleanValueResolver = GenericResolver
 const FloatValueResolver = (loaderName, User, Device, Environment) => ({
   ...GenericResolver(loaderName, User, Device, Environment),
-  ...authorizedScalarPropsResolvers(
-    loaderName,
-    ["unitOfMeasurement", "precision", "min", "max"],
-    valueToParent,
-    ["TEMPORARY", "PERMANENT", "DEVICE_ACCESS"]
-  ),
+  ...deviceInheritAuthorizedScalarPropsResolvers(loaderName, [
+    "unitOfMeasurement",
+    "precision",
+    "min",
+    "max",
+  ]),
 })
 const StringValueResolver = (loaderName, User, Device, Environment) => ({
   ...GenericResolver(loaderName, User, Device, Environment),
-  ...authorizedScalarPropsResolvers(
-    loaderName,
-    ["maxChars", "allowedValues"],
-    valueToParent,
-    ["TEMPORARY", "PERMANENT", "DEVICE_ACCESS"]
-  ),
+  ...deviceInheritAuthorizedScalarPropsResolvers(loaderName, [
+    "maxChars",
+    "allowedValues",
+  ]),
 })
 const PlotValueResolver = (
   loaderName,
@@ -118,11 +105,10 @@ const PlotValueResolver = (
   ),
   // overriding GenericResolver's value
   value: (root, args, context) =>
-    authorized(
+    deviceInheritAuthorized(
       root.id,
+      context.dataLoaders[loaderName],
       context,
-      context.dataLoaders.plotValueLoaderById,
-      User,
       1,
       async (resolve, reject, plotFound) => {
         const nodes = await PlotNode.findAll({
@@ -132,16 +118,13 @@ const PlotValueResolver = (
           order: [["id", "DESC"]],
         })
         resolve(nodes)
-      },
-      valueToParent,
-      ["TEMPORARY", "PERMANENT", "DEVICE_ACCESS"]
+      }
     ),
   lastNode: (root, args, context) =>
-    authorized(
+    deviceInheritAuthorized(
       root.id,
+      context.dataLoaders[loaderName],
       context,
-      context.dataLoaders.plotValueLoaderById,
-      User,
       1,
       async (resolve, reject, plotFound) => {
         const node = await PlotNode.find({
@@ -149,9 +132,7 @@ const PlotValueResolver = (
           order: [["timestamp", "DESC"]],
         })
         resolve(node)
-      },
-      valueToParent,
-      ["TEMPORARY", "PERMANENT", "DEVICE_ACCESS"]
+      }
     ),
 })
 const CategoryPlotValueResolver = (
@@ -170,11 +151,10 @@ const CategoryPlotValueResolver = (
   ),
   // overriding GenericResolver's value
   value: (root, args, context) =>
-    authorized(
+    deviceInheritAuthorized(
       root.id,
+      context.dataLoaders[loaderName],
       context,
-      context.dataLoaders.categoryPlotValueLoaderById,
-      User,
       1,
       async (resolve, reject, plotFound) => {
         const nodes = await CategoryPlotNode.findAll({
@@ -185,17 +165,13 @@ const CategoryPlotValueResolver = (
         })
 
         resolve(nodes)
-      },
-      valueToParent,
-      ["TEMPORARY", "PERMANENT", "DEVICE_ACCESS"]
+      }
     ),
-  // overriding GenericResolver's value
   lastNode: (root, args, context) =>
-    authorized(
+    deviceInheritAuthorized(
       root.id,
+      context.dataLoaders[loaderName],
       context,
-      context.dataLoaders.categoryPlotValueLoaderById,
-      User,
       1,
       async (resolve, reject, plotFound) => {
         const node = await CategoryPlotNode.find({
@@ -204,9 +180,7 @@ const CategoryPlotValueResolver = (
         })
 
         resolve(node)
-      },
-      valueToParent,
-      ["TEMPORARY", "PERMANENT", "DEVICE_ACCESS"]
+      }
     ),
 })
 
@@ -217,78 +191,41 @@ const PlotNodeResolver = (
   Device,
   Environment
 ) => ({
-  ...inheritAuthorizedScalarPropsResolvers(
-    nodeLoader,
-    User,
-    ["timestamp", "value"],
-    plotNodeFound => plotNodeFound.plotId,
-    valueLoader,
-    valueToParent,
-    ["TEMPORARY", "PERMANENT", "DEVICE_ACCESS"]
-  ),
+  ...deviceInheritAuthorizedScalarPropsResolvers(nodeLoader, [
+    "timestamp",
+    "value",
+  ]),
   user(root, args, context) {
-    return inheritAuthorized(
+    return deviceInheritAuthorized(
       root.id,
       context.dataLoaders[nodeLoader],
-      User,
-      plotNodeFound => plotNodeFound.plotId,
       context,
-      context.dataLoaders[valueLoader],
       1,
-      async (
-        resolve,
-        reject,
-        plotNodeFound,
-        plotValueFound,
-        plotValueAndParents
-      ) => {
+      async (resolve, reject, plotNodeFound) => {
         resolve({ id: plotNodeFound.userId })
-      },
-      valueToParent
+      }
     )
   },
   device(root, args, context) {
-    return inheritAuthorized(
+    return deviceInheritAuthorized(
       root.id,
       context.dataLoaders[nodeLoader],
-      User,
-      plotNodeFound => plotNodeFound.plotId,
       context,
-      context.dataLoaders[valueLoader],
       1,
-      async (
-        resolve,
-        reject,
-        plotNodeFound,
-        plotValueFound,
-        plotValueAndParents
-      ) => {
+      async (resolve, reject, plotNodeFound) => {
         resolve({ id: plotNodeFound.deviceId })
-      },
-      valueToParent,
-      ["TEMPORARY", "PERMANENT", "DEVICE_ACCESS"]
+      }
     )
   },
   plot(root, args, context) {
-    return inheritAuthorized(
+    return deviceInheritAuthorized(
       root.id,
       context.dataLoaders[nodeLoader],
-      User,
-      plotNodeFound => plotNodeFound.plotId,
       context,
-      context.dataLoaders[valueLoader],
       1,
-      async (
-        resolve,
-        reject,
-        plotNodeFound,
-        plotValueFound,
-        plotValueAndParents
-      ) => {
-        resolve(plotValueFound.dataValues)
-      },
-      valueToParent,
-      ["TEMPORARY", "PERMANENT", "DEVICE_ACCESS"]
+      async (resolve, reject, plotNodeFound) => {
+        resolve({ id: plotNodeFound.plotId })
+      }
     )
   },
 })
