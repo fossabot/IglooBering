@@ -258,95 +258,109 @@ export function CreateGenericValue(
   argsChecks = (args, reject) => true
 ) {
   return (root, args, context) =>
-    authorized(
-      args.deviceId,
-      context,
-      context.dataLoaders.deviceLoaderById,
-      User,
-      2,
-      async (
-        resolve,
-        reject,
-        deviceFound,
-        [_, environmentFound],
-        userFound
-      ) => {
-        if (!userFound.devMode) {
+    authenticated(context, async (resolve, reject) => {
+      const deviceFound = await context.dataLoaders.deviceLoaderById.load(
+        args.deviceId
+      )
+
+      if (context.auth.tokenType === "DEVICE_ACCESS") {
+        if (deviceFound.id !== context.auth.deviceId) {
+          reject("You are not allowed to perform this operation")
+          return
+        }
+      } else {
+        const userFound = await context.dataLoaders.userLoaderById.load(
+          context.auth.userId
+        )
+
+        if (userFound.id !== deviceFound.producerId) {
+          reject("You are not allowed to perform this operation")
+          return
+        } else if (!userFound.devMode) {
           reject("Only dev users can create values, set devMode to true")
           return
-        } else if (!argsChecks(args, reject)) {
-          return
-        } else if (deviceFound.storageUsed >= MAX_STORAGE) {
-          reject("Storage space fully used")
-          return
         }
+      }
 
-        if (args.name === "") {
-          reject("name cannot be an empty string")
-          return
-        }
+      if (!argsChecks(args, reject)) {
+        return
+      } else if (deviceFound.storageUsed >= MAX_STORAGE) {
+        reject("Storage space fully used")
+        return
+      }
 
-        async function calculateIndex() {
-          const valuesCountPromises = ValueModels.map(
-            async model =>
-              await model.max("index", { where: { deviceId: args.deviceId } })
-          )
-          const valuesCount = await Promise.all(valuesCountPromises)
+      if (args.name === "") {
+        reject("name cannot be an empty string")
+        return
+      }
 
-          const maxIndex = valuesCount.reduce(
-            (acc, curr) => Math.max(acc, !isNaN(curr) ? curr : 0),
-            0
-          )
-          return maxIndex + 1
-        }
+      // finds highest used index among values of that device and returns maxIndex + 1
+      async function calculateIndex() {
+        const valuesCountPromises = ValueModels.map(
+          async model =>
+            await model.max("index", { where: { deviceId: args.deviceId } })
+        )
+        const valuesCount = await Promise.all(valuesCountPromises)
 
-        const index =
-          args.index !== null &amp;&amp; args.index !== undefined
-            ? args.index
-            : await calculateIndex()
+        const maxIndex = valuesCount.reduce(
+          (acc, curr) => Math.max(acc, !isNaN(curr) ? curr : 0),
+          0
+        )
+        return maxIndex + 1
+      }
 
-        const newValue = await Model.create({
-          ...args,
-          environmentId: environmentFound.id,
-          deviceId: deviceFound.id,
-          cardSize: args.cardSize || "NORMAL",
-          visibility: isNullOrUndefined(args.visibility)
-            ? "VISIBLE"
-            : args.visibility,
-          index,
-        })
+      const index =
+        args.index !== null &amp;&amp; args.index !== undefined
+          ? args.index
+          : await calculateIndex()
 
-        await environmentFound[`add${ModelName}`](newValue)
+      const newValue = await Model.create({
+        ...args,
+        environmentId: deviceFound.environmentId,
+        deviceId: deviceFound.id,
+        cardSize: args.cardSize || "NORMAL",
+        visibility: isNullOrUndefined(args.visibility)
+          ? "VISIBLE"
+          : args.visibility,
+        index,
+      })
 
-        const resolveObj = {
-          ...newValue.dataValues,
-          user: {
-            id: newValue.userId,
-          },
-          device: {
-            id: newValue.deviceId,
-          },
-        }
+      const resolveObj = {
+        ...newValue.dataValues,
+        user: {
+          id: newValue.userId,
+        },
+        device: {
+          id: newValue.deviceId,
+        },
+      }
 
-        resolve(resolveObj)
+      resolve(resolveObj)
 
-        deviceFound.increment({ storageUsed: 1 })
+      deviceFound.increment({ storageUsed: 1 })
+      if (deviceFound.environmentId !== null) {
         Environment.update(
           { updatedAt: newValue.createdAt },
-          { where: { id: environmentFound.id } }
+          { where: { id: deviceFound.environmentId } }
         )
-        Device.update(
-          { updatedAt: newValue.createdAt },
-          { where: { id: args.deviceId } }
-        )
+      }
+      Device.update(
+        { updatedAt: newValue.createdAt },
+        { where: { id: args.deviceId } }
+      )
 
-        pubsub.publish("valueCreated", {
-          valueCreated: resolveObj,
-          userIds: await instanceToSharedIds(environmentFound, context),
-        })
-      },
-      deviceToParent
-    )
+      pubsub.publish("valueCreated", {
+        valueCreated: resolveObj,
+        userIds: deviceFound.environmentId
+          ? await instanceToSharedIds(
+              await context.dataLoaders.environmentLoaderById.load(
+                deviceFound.environmentId
+              ),
+              context
+            )
+          : [],
+      })
+    })
 }
 
 /**  logs messages colorized by priority, both to console and to `logs` file
@@ -1518,7 +1532,7 @@ export const parseDateFilter = parseFloatFilter
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Tue Mar 26 2019 16:02:19 GMT+0000 (UTC) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Wed Mar 27 2019 19:36:45 GMT+0000 (UTC) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
 <script>prettyPrint();</script>
