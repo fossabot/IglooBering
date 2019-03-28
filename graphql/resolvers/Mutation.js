@@ -3434,7 +3434,10 @@ const MutationResolver = (
       const deviceFound = await context.dataLoaders.deviceLoaderById.load(
         args.id
       )
-      if (context.auth.userId !== deviceFound.producerId) {
+      if (!deviceFound) {
+        reject("The requested resource does not exist")
+        return
+      } else if (context.auth.userId !== deviceFound.producerId) {
         reject("Only the producer can delete a device")
         return
       }
@@ -3494,7 +3497,7 @@ const MutationResolver = (
 
       resolve(args.id)
 
-      touch(Environment, environmentFound.id)
+      if (environmentFound) touch(Environment, environmentFound.id)
       pubsub.publish("environmentUpdated", {
         environmentUpdated: environmentFound.dataValues,
         userIds: authorizedUsersIds,
