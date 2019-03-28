@@ -123,7 +123,7 @@ app.use("/graphql", async (req, res, next) => {
         data: null,
         errors: [
           {
-            message: "Your ip exceeded the rate limit",
+            message: "Your IP exceeded the rate limit",
             path: [],
             locations: [],
           },

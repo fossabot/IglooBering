@@ -3445,7 +3445,9 @@ const MutationResolver = (
           )
         : null
       const authorizedUsersIds = [
-        ...(await instanceToSharedIds(environmentFound, context)),
+        ...(environmentFound
+          ? await instanceToSharedIds(environmentFound, context)
+          : []),
         deviceFound.producerId,
       ]
 
