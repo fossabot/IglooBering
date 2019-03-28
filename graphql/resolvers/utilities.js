@@ -1453,23 +1453,29 @@ export const sendPushNotification = async (
 
 export const parseStringFilter = filter => {
   const parsedFilter = {}
+  filter.hasOwnProperty = Object.prototype.hasOwnProperty
 
-  if (filter.equals) parsedFilter[Op.eq] = filter.equals
-  else if (filter.similarTo) parsedFilter[Op.regexp] = filter.similarTo
-  else if (filter.like) parsedFilter[Op.like] = filter.like
+  if (filter.hasOwnProperty("equals")) parsedFilter[Op.eq] = filter.equals
+  else if (filter.hasOwnProperty(similarTo))
+    parsedFilter[Op.regexp] = filter.similarTo
+  else if (filter.hasOwnProperty(like)) parsedFilter[Op.like] = filter.like
 
   return parsedFilter
 }
 
 export const parseFloatFilter = filter => {
   const parsedFilter = {}
+  filter.hasOwnProperty = Object.prototype.hasOwnProperty
 
-  if (filter.equals) parsedFilter[Op.eq] = filter.equals
-  else if (filter.greaterThan) parsedFilter[Op.gt] = filter.greaterThan
-  else if (filter.greaterOrEqualTo)
+  if (filter.hasOwnProperty("equals")) parsedFilter[Op.eq] = filter.equals
+  else if (filter.hasOwnProperty("greaterThan"))
+    parsedFilter[Op.gt] = filter.greaterThan
+  else if (filter.hasOwnProperty("greaterOrEqualTo"))
     parsedFilter[Op.gte] = filter.greaterOrEqualTo
-  else if (filter.lessThan) parsedFilter[Op.lt] = filter.lessThan
-  else if (filter.lessOrEqualTo) parsedFilter[Op.lte] = filter.lessOrEqualTo
+  else if (filter.hasOwnProperty("lessThan"))
+    parsedFilter[Op.lt] = filter.lessThan
+  else if (filter.hasOwnProperty("lessOrEqualTo"))
+    parsedFilter[Op.lte] = filter.lessOrEqualTo
 
   return parsedFilter
 }

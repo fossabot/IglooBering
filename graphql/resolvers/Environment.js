@@ -59,13 +59,22 @@ const parseDeviceFilter = userId => filter => {
     parsedFilter[Op.or] = filter.OR.map(parseDeviceFilter(userId))
   if (filter.hasOwnProperty("NOT") && filter.NOT !== null)
     parsedFilter[Op.not] = parseDeviceFilter(userId)(filter.NOT)
-  if (filter.hasOwnProperty("name"))
+  if (filter.hasOwnProperty("name") && Object.keys(filter.name).length !== 0)
     parsedFilter.name = parseStringFilter(filter.name)
-  if (filter.hasOwnProperty("firmware"))
+  if (
+    filter.hasOwnProperty("firmware") &&
+    Object.keys(filter.firmware).length !== 0
+  )
     parsedFilter.firmware = parseStringFilter(filter.firmware)
-  if (filter.hasOwnProperty("batteryStatus"))
+  if (
+    filter.hasOwnProperty("batteryStatus") &&
+    Object.keys(filter.batteryStatus).length !== 0
+  )
     parsedFilter.batteryStatus = parseFloatFilter(filter.batteryStatus)
-  if (filter.hasOwnProperty("signalStatus"))
+  if (
+    filter.hasOwnProperty("signalStatus") &&
+    Object.keys(filter.signalStatus).length !== 0
+  )
     parsedFilter.signalStatus = parseFloatFilter(filter.signalStatus)
   if (filter.hasOwnProperty("online")) parsedFilter.online = filter.online
   if (filter.hasOwnProperty("muted")) parsedFilter.muted = filter.muted
