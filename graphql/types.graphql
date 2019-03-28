@@ -936,7 +936,6 @@ type Notification {
   id: ID!
   device: Device! @cost(complexity: 1)
   environment: Environment! @cost(complexity: 1)
-  user: User! @cost(complexity: 1)
   content: String!
   date: DateTime!
   read: Boolean!

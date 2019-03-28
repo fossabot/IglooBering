@@ -12,17 +12,6 @@ const UserResolver = ({ User }) => ({
     "content",
     "date",
   ]),
-  user(root, args, context) {
-    return deviceInheritAuthorized(
-      root.id,
-      context.dataLoaders.notificationLoaderById,
-      context,
-      1,
-      async (resolve, reject, notificationFound) => {
-        resolve({ id: notificationFound.userId })
-      }
-    )
-  },
   device(root, args, context) {
     return deviceInheritAuthorized(
       root.id,

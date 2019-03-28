@@ -3127,7 +3127,6 @@ const MutationResolver = (
             ...args,
             environmentId: environmentFound.id,
             notRead: deviceSharedIds,
-            userId: context.auth.userId,
             date: args.date || new Date(),
           })
 

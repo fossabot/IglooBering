@@ -5,15 +5,6 @@ module.exports = (queryInterface, Sequelize) => {
       defaultValue: Sequelize.UUIDV4,
       primaryKey: true,
     },
-    userId: {
-      type: Sequelize.UUID,
-      references: {
-        model: "users", // name of Target model
-        key: "id", // key in Target model that we're referencing
-      },
-      onUpdate: "CASCADE",
-      onDelete: "SET NULL",
-    },
     environmentId: {
       type: Sequelize.UUID,
       allowNull: false,
