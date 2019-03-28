@@ -40,19 +40,6 @@ describe("Notification", () => {
   test("content is resolved correctly", testNotificationScalarProp("content"));
   test("date is resolved correctly", testNotificationScalarProp("date"));
   test("read is resolved correctly", testNotificationScalarProp("read"));
-  test("user is resolved correctly", async done => {
-    const userFound = await new Promise((resolve, reject) => {
-      NotificationResolver.user(
-        { id: "mockNotificationId" },
-        {},
-        { auth: { userId: "mockUserId", tokenType: "TEMPORARY" }, ...mockContext }
-      )(resolve, reject);
-    });
-
-    expect(userFound).toMatchObject({ id: mockNotificationData[0].userId });
-
-    done();
-  });
   test("device is resolved correctly", async done => {
     const deviceFound = await new Promise((resolve, reject) => {
       NotificationResolver.device(
@@ -83,14 +70,12 @@ describe("Notification", () => {
   test("content fails if unauthenticated", testWrongId("content"));
   test("date fails if unauthenticated", testWrongId("date"));
   test("read fails if unauthenticated", testWrongId("read"));
-  test("user fails if unauthenticated", testWrongId("user"));
   test("environment fails if unauthenticated", testWrongId("environment"));
   test("device fails if unauthenticated", testWrongId("device"));
 
   test("content fails if unauthenticated", testUnauthenticated("content"));
   test("date fails if unauthenticated", testUnauthenticated("date"));
   test("read fails if unauthenticated", testUnauthenticated("read"));
-  test("user fails if unauthenticated", testUnauthenticated("user"));
   test("environment fails if unauthenticated", testUnauthenticated("environment"));
   test("device fails if unauthenticated", testUnauthenticated("device"));
 });
