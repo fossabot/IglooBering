@@ -11,7 +11,6 @@ const ValueModel = (Sequelize, hasPermission = true) => {
     },
     environmentId: {
       type: Sequelize.UUID,
-      allowNull: false,
       references: {
         model: "environments",
         key: "id",

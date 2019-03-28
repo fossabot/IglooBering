@@ -3209,22 +3209,18 @@ const MutationResolver = (
       )
     },
     notification(root, args, context) {
-      return inheritAuthorized(
+      return deviceInheritAuthorized(
         args.id,
         context.dataLoaders.notificationLoaderById,
-        User,
-        notificationFound => notificationFound.deviceId,
         context,
-        context.dataLoaders.deviceLoaderById,
         1,
-        async (
-          resolve,
-          reject,
-          notificationFound,
-          deviceFound,
-          [_, environmentFound],
-          userFound
-        ) => {
+        async (resolve, reject, notificationFound, deviceFound, userFound) => {
+          const environmentFound = await context.dataLoaders.environmentLoaderById.load(
+            deviceFound.environmentId
+          )
+          const role =
+            environmentFound &&
+            (await instanceToRole(environmentFound, userFound, context))
           if (args.content === "" || args.content === null) {
             reject("content cannot be null or an empty string")
             return
@@ -3232,11 +3228,13 @@ const MutationResolver = (
             reject("You cannot make a mutation with only the id field")
             return
           } else if (
-            (await instanceToRole(environmentFound, userFound, context)) ===
-              "SPECTATOR" &&
+            role === "SPECTATOR" &&
             (Object.keys(args).length > 2 || !isNotNullNorUndefined(args.read))
           ) {
             reject("You are not allowed to mutate fields other than read")
+            return
+          } else if (role === null && isNotNullNorUndefined(args.read)) {
+            reject("Producer cannot change read status")
             return
           }
           const updateQuery = args
@@ -3279,12 +3277,14 @@ const MutationResolver = (
             },
             userIds: deviceSharedIds,
           })
-          pubsub.publish("userUpdated", {
-            userUpdated: {
-              id: userFound.id,
-            },
-            userId: userFound.id,
-          })
+          for (let userId of deviceSharedIds) {
+            pubsub.publish("userUpdated", {
+              userUpdated: {
+                id: userId,
+              },
+              userId: userId,
+            })
+          }
         },
         deviceToParent
       )

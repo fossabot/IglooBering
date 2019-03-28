@@ -215,109 +215,90 @@ export function CreateGenericValue(
   argsChecks = (args, reject) => true
 ) {
   return (root, args, context) =>
-    authenticated(context, async (resolve, reject) => {
-      const deviceFound = await context.dataLoaders.deviceLoaderById.load(
-        args.deviceId
-      )
-
-      if (context.auth.tokenType === "DEVICE_ACCESS") {
-        if (deviceFound.id !== context.auth.deviceId) {
-          reject("You are not allowed to perform this operation")
+    producerAuthorized(
+      args.deviceId,
+      context,
+      async (resolve, reject, deviceFound) => {
+        if (!argsChecks(args, reject)) {
+          return
+        } else if (deviceFound.storageUsed >= MAX_STORAGE) {
+          reject("Storage space fully used")
           return
         }
-      } else {
-        const userFound = await context.dataLoaders.userLoaderById.load(
-          context.auth.userId
-        )
 
-        if (userFound.id !== deviceFound.producerId) {
-          reject("You are not allowed to perform this operation")
-          return
-        } else if (!userFound.devMode) {
-          reject("Only dev users can create values, set devMode to true")
+        if (args.name === "") {
+          reject("name cannot be an empty string")
           return
         }
-      }
 
-      if (!argsChecks(args, reject)) {
-        return
-      } else if (deviceFound.storageUsed >= MAX_STORAGE) {
-        reject("Storage space fully used")
-        return
-      }
+        // finds highest used index among values of that device and returns maxIndex + 1
+        async function calculateIndex() {
+          const valuesCountPromises = ValueModels.map(
+            async model =>
+              await model.max("index", { where: { deviceId: args.deviceId } })
+          )
+          const valuesCount = await Promise.all(valuesCountPromises)
 
-      if (args.name === "") {
-        reject("name cannot be an empty string")
-        return
-      }
+          const maxIndex = valuesCount.reduce(
+            (acc, curr) => Math.max(acc, !isNaN(curr) ? curr : 0),
+            0
+          )
+          return maxIndex + 1
+        }
 
-      // finds highest used index among values of that device and returns maxIndex + 1
-      async function calculateIndex() {
-        const valuesCountPromises = ValueModels.map(
-          async model =>
-            await model.max("index", { where: { deviceId: args.deviceId } })
-        )
-        const valuesCount = await Promise.all(valuesCountPromises)
+        const index =
+          args.index !== null && args.index !== undefined
+            ? args.index
+            : await calculateIndex()
 
-        const maxIndex = valuesCount.reduce(
-          (acc, curr) => Math.max(acc, !isNaN(curr) ? curr : 0),
-          0
-        )
-        return maxIndex + 1
-      }
+        const newValue = await Model.create({
+          ...args,
+          environmentId: deviceFound.environmentId,
+          deviceId: deviceFound.id,
+          cardSize: args.cardSize || "NORMAL",
+          visibility: isNullOrUndefined(args.visibility)
+            ? "VISIBLE"
+            : args.visibility,
+          index,
+        })
 
-      const index =
-        args.index !== null && args.index !== undefined
-          ? args.index
-          : await calculateIndex()
+        const resolveObj = {
+          ...newValue.dataValues,
+          user: {
+            id: newValue.userId,
+          },
+          device: {
+            id: newValue.deviceId,
+          },
+        }
 
-      const newValue = await Model.create({
-        ...args,
-        environmentId: deviceFound.environmentId,
-        deviceId: deviceFound.id,
-        cardSize: args.cardSize || "NORMAL",
-        visibility: isNullOrUndefined(args.visibility)
-          ? "VISIBLE"
-          : args.visibility,
-        index,
-      })
+        resolve(resolveObj)
 
-      const resolveObj = {
-        ...newValue.dataValues,
-        user: {
-          id: newValue.userId,
-        },
-        device: {
-          id: newValue.deviceId,
-        },
-      }
-
-      resolve(resolveObj)
-
-      deviceFound.increment({ storageUsed: 1 })
-      if (deviceFound.environmentId !== null) {
-        Environment.update(
+        deviceFound.increment({ storageUsed: 1 })
+        if (deviceFound.environmentId !== null) {
+          Environment.update(
+            { updatedAt: newValue.createdAt },
+            { where: { id: deviceFound.environmentId } }
+          )
+        }
+        Device.update(
           { updatedAt: newValue.createdAt },
-          { where: { id: deviceFound.environmentId } }
+          { where: { id: args.deviceId } }
         )
-      }
-      Device.update(
-        { updatedAt: newValue.createdAt },
-        { where: { id: args.deviceId } }
-      )
 
-      pubsub.publish("valueCreated", {
-        valueCreated: resolveObj,
-        userIds: deviceFound.environmentId
-          ? await instanceToSharedIds(
-              await context.dataLoaders.environmentLoaderById.load(
-                deviceFound.environmentId
-              ),
-              context
-            )
-          : [],
-      })
-    })
+        pubsub.publish("valueCreated", {
+          valueCreated: resolveObj,
+          userIds: deviceFound.environmentId
+            ? await instanceToSharedIds(
+                await context.dataLoaders.environmentLoaderById.load(
+                  deviceFound.environmentId
+                ),
+                context
+              )
+            : [],
+        })
+      }
+    )
 }
 
 /**  logs messages colorized by priority, both to console and to `logs` file
@@ -411,13 +392,12 @@ export const genericValueMutation = (
   Environment,
   checkArgs = (args, valueFound, reject) => true
 ) => (root, args, context) =>
-  authorized(
+  deviceInheritAuthorized(
     args.id,
-    context,
     context.dataLoaders[childLoaderName],
-    User,
+    context,
     2,
-    async (resolve, reject, valueFound, [_, environmentFound]) => {
+    async (resolve, reject, valueFound, environmentFound) => {
       if (!checkArgs(args, valueFound, reject)) return
       if (args.value === null) {
         reject("value cannot be null")
@@ -455,8 +435,7 @@ export const genericValueMutation = (
         valueUpdated: { ...resolveObj, __resolveType },
         userIds: await instanceToSharedIds(environmentFound, context),
       })
-    },
-    valueToParent
+    }
   )
 
 export const create2FSecret = user => {
@@ -1030,10 +1009,16 @@ export function deviceAuthorized(
 
     if (!found) {
       reject("The requested resource does not exist")
+    } else if (found.producerId === context.auth.userId) {
+      return callback(
+        resolve,
+        reject,
+        found,
+        await context.dataLoaders.userLoaderById.load(context.auth.userId)
+      )
     } else if (
-      found.producerId === context.auth.userId ||
-      (context.auth.tokenType === "DEVICE_ACCESS" &&
-        found.id === context.auth.deviceId)
+      context.auth.tokenType === "DEVICE_ACCESS" &&
+      found.id === context.auth.deviceId
     ) {
       return callback(resolve, reject, found)
     } else {
@@ -1047,6 +1032,23 @@ export function deviceAuthorized(
         deviceToParent,
         acceptedTokenTypes
       )(resolve, reject)
+    }
+  })
+}
+export function producerAuthorized(id, context, callback) {
+  return authenticated(context, async (resolve, reject) => {
+    const found = await context.dataLoaders.deviceLoaderById.load(id)
+
+    if (!found) {
+      reject("The requested resource does not exist")
+    } else if (
+      found.producerId === context.auth.userId ||
+      (context.auth.tokenType === "DEVICE_ACCESS" &&
+        found.id === context.auth.deviceId)
+    ) {
+      return callback(resolve, reject, found)
+    } else {
+      reject("You are not allowed to perform this operation")
     }
   })
 }
@@ -1143,6 +1145,7 @@ export const authorizedValue = (
   })
 
 export const instanceToRole = async (instance, userFound, context) => {
+  if (!userFound) return null
   const roleLevel = await authorizationLevel(instance, userFound, context)
 
   switch (roleLevel) {
