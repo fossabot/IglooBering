@@ -62,7 +62,7 @@ const isOutOfBoundaries = (min, max, value) => {
 }
 
 const touch = async (Model, id, updatedAt = new Date()) =>
-  await Model.update({ updatedAt }, { where: { id } }) // FIXME: updated at is always set to current date by sequelize
+  await Model.update({ updatedAt }, { where: { id }, silent: true }) // FIXME: updated at is always set to current date by sequelize
 
 function ab2str(buf) {
   return String.fromCharCode.apply(null, new Uint8Array(buf))
