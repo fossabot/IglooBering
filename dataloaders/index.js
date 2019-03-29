@@ -23,7 +23,7 @@ import { Op } from "sequelize"
 
 const genericLoadById = Model => async keys => {
   const instancesFound = await Model.findAll({
-    where: { id: { [Op.in]: keys } },
+    where: { id: { [Op.in]: keys.filter(key => key !== null) } },
   })
 
   const findInstanceWithId = id => {

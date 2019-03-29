@@ -97,12 +97,13 @@ const PlotValueResolver = (
   PlotNode
 ) => ({
   ...GenericResolver(loaderName, User, Device, Environment, false),
-  ...authorizedScalarPropsResolvers(
-    loaderName,
-    ["unitOfMeasurement", "precision", "min", "max", "threshold"],
-    valueToParent,
-    ["TEMPORARY", "PERMANENT", "DEVICE_ACCESS"]
-  ),
+  ...deviceInheritAuthorizedScalarPropsResolvers(loaderName, [
+    "unitOfMeasurement",
+    "precision",
+    "min",
+    "max",
+    "threshold",
+  ]),
   // overriding GenericResolver's value
   value: (root, args, context) =>
     deviceInheritAuthorized(
@@ -143,12 +144,7 @@ const CategoryPlotValueResolver = (
   CategoryPlotNode
 ) => ({
   ...GenericResolver(loaderName, User, Device, Environment, false),
-  ...authorizedScalarPropsResolvers(
-    loaderName,
-    ["allowedValues"],
-    valueToParent,
-    ["TEMPORARY", "PERMANENT", "DEVICE_ACCESS"]
-  ),
+  ...deviceInheritAuthorizedScalarPropsResolvers(loaderName, ["allowedValues"]),
   // overriding GenericResolver's value
   value: (root, args, context) =>
     deviceInheritAuthorized(

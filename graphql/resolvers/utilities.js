@@ -1075,24 +1075,11 @@ export const valueToParent = ({
   return environmentFound
 }
 
-export const authorizedValue = (
-  id,
-  context,
-  Values,
-  User,
-  authorizationRequired,
-  callbackFunc,
-  Device,
-  Environment
-) =>
+export const authorizedValue = (id, context, Values, callbackFunc) =>
   authenticated(context, async (resolve, reject) => {
     const NOT_ALLOWED = "You are not allowed to perform this operation"
     const NOT_EXIST = "The requested resource does not exist"
     const models = Object.values(Values)
-
-    const userFound = await context.dataLoaders.userLoaderById.load(
-      context.auth.userId
-    )
 
     const findPromises = models.map(async Model => {
       const resourceFound = await Model.find({
@@ -1102,18 +1089,22 @@ export const authorizedValue = (
       if (!resourceFound) {
         throw new Error(NOT_EXIST)
       } else {
-        const environmentFound = await Environment.find({
-          where: { id: resourceFound.environmentId },
-        })
+        const environmentFound = await context.dataLoaders.environmentLoaderById.load(
+          resourceFound.environmentId
+        )
+        const deviceFound = await context.dataLoaders.deviceLoaderById.load(
+          resourceFound.deviceId
+        )
 
         if (
-          (await authorizationLevel(environmentFound, userFound, context)) <
-          authorizationRequired
+          deviceFound.producerId === context.auth.userId ||
+          (context.auth.tokenType === "DEVICE_ACCESS" &&
+            deviceFound.id === context.auth.deviceId)
         ) {
-          throw new Error(NOT_ALLOWED)
-        } else {
           resourceFound.Model = Model
-          return [resourceFound, environmentFound]
+          return [resourceFound, deviceFound, environmentFound]
+        } else {
+          throw new Error(NOT_ALLOWED)
         }
       }
     })
@@ -1139,8 +1130,8 @@ export const authorizedValue = (
       resolve,
       reject,
       resourcesFound[0],
-      resourcesFound,
-      userFound
+      resourcesFound[1],
+      resourcesFound[2]
     )
   })
 

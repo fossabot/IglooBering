@@ -2997,21 +2997,15 @@ const MutationResolver = (
         valueToParent
       ),
     plotNode(root, args, context) {
-      return inheritAuthorized(
+      return deviceInheritAuthorized(
         args.id,
         context.dataLoaders.plotNodeLoaderById,
-        User,
-        plotNodeFound => plotNodeFound.plotId,
         context,
-        context.dataLoaders.plotValueLoaderById,
         2,
-        async (
-          resolve,
-          reject,
-          plotNodeFound,
-          plotValueFound,
-          [_, environmentFound]
-        ) => {
+        async (resolve, reject, plotNodeFound, deviceFound) => {
+          const plotValueFound = await context.dataLoaders.plotValueLoaderById.load(
+            plotNodeFound.plotId
+          )
           if (Object.keys(args).length === 1) {
             reject("You cannot make a mutation with only the id field")
             return
@@ -3036,34 +3030,39 @@ const MutationResolver = (
           }
           resolve(resolveObj)
 
-          touch(Environment, environmentFound.id, newNode.updatedAt)
+          const environmentFound = deviceFound.environmentId
+            ? await context.dataLoaders.environmentLoaderById.load(
+                deviceFound.environmentId
+              )
+            : null
+
+          if (environmentFound)
+            touch(Environment, environmentFound.id, newNode.updatedAt)
           touch(Device, plotValueFound.deviceId, newNode.updatedAt)
           touch(PlotValue, plotValueFound.id, newNode.updatedAt)
 
           pubsub.publish("plotNodeUpdated", {
             plotNodeUpdated: resolveObj,
-            userIds: await instanceToSharedIds(environmentFound, context),
+            userIds: environmentFound
+              ? [
+                  deviceFound.producerId,
+                  ...(await instanceToSharedIds(environmentFound, context)),
+                ]
+              : [deviceFound.producerId],
           })
-        },
-        valueToParent
+        }
       )
     },
     categoryPlotNode(root, args, context) {
-      return inheritAuthorized(
+      return deviceInheritAuthorized(
         args.id,
         context.dataLoaders.categoryPlotNodeLoaderById,
-        User,
-        plotNodeFound => plotNodeFound.plotId,
         context,
-        context.dataLoaders.categoryPlotValueLoaderById,
         2,
-        async (
-          resolve,
-          reject,
-          plotNodeFound,
-          plotValueFound,
-          [_, environmentFound]
-        ) => {
+        async (resolve, reject, plotNodeFound, deviceFound) => {
+          const plotValueFound = await context.dataLoaders.categoryPlotValueLoaderById.load(
+            plotNodeFound.plotId
+          )
           if (Object.keys(args).length === 1) {
             reject("You cannot make a mutation with only the id field")
             return
@@ -3085,16 +3084,27 @@ const MutationResolver = (
           }
           resolve(resolveObj)
 
-          touch(Environment, environmentFound.id, newNode.updatedAt)
-          touch(Device, plotValueFound.deviceId, newNode.updatedAt)
-          touch(CategoryPlotValue, plotValueFound.id, newNode.updatedAt)
+          const environmentFound = deviceFound.environmentId
+            ? await context.dataLoaders.environmentLoaderById.load(
+                deviceFound.environmentId
+              )
+            : null
+
+          if (environmentFound)
+            touch(Environment, environmentFound.id, newNode.updatedAt)
+          touch(Device, deviceFound.id, newNode.updatedAt)
+          touch(CategoryPlotValue, plotNodeFound.plotId, newNode.updatedAt)
 
           pubsub.publish("categoryPlotNodeUpdated", {
             categoryPlotNodeUpdated: resolveObj,
-            userIds: await instanceToSharedIds(environmentFound, context),
+            userIds: environmentFound
+              ? [
+                  deviceFound.producerId,
+                  ...(await instanceToSharedIds(environmentFound, context)),
+                ]
+              : [deviceFound.producerId],
           })
-        },
-        valueToParent
+        }
       )
     },
     createNotification(root, args, context) {
@@ -3290,23 +3300,17 @@ const MutationResolver = (
       )
     },
     deleteNotification(root, args, context) {
-      return inheritAuthorized(
+      return deviceInheritAuthorized(
         args.id,
         context.dataLoaders.notificationLoaderById,
-        User,
-        notificationFound => notificationFound.deviceId,
         context,
-        context.dataLoaders.deviceLoaderById,
         2,
-        async (
-          resolve,
-          reject,
-          notificationFound,
-          deviceFound,
-          [_, environmentFound]
-        ) => {
+        async (resolve, reject, notificationFound, deviceFound) => {
           await notificationFound.destroy()
 
+          const environmentFound = await context.dataLoaders.environmentLoaderById.load(
+            deviceFound.environmentId
+          )
           resolve(args.id)
 
           const deviceSharedIds = await instanceToSharedIds(
@@ -3350,13 +3354,13 @@ const MutationResolver = (
           PlotValue,
           CategoryPlotValue,
         },
-        User,
-        3,
-        async (resolve, reject, valueFound, [_, environmentFound]) => {
-          const authorizedUsersIds = await instanceToSharedIds(
-            environmentFound,
-            context
-          )
+        async (resolve, reject, valueFound, deviceFound, environmentFound) => {
+          const authorizedUsersIds = environmentFound
+            ? [
+                deviceFound.producerId,
+                ...(await instanceToSharedIds(environmentFound, context)),
+              ]
+            : [deviceFound.producerId]
 
           // TODO: if value is plot remove nodes
           await valueFound.destroy()
@@ -3368,11 +3372,8 @@ const MutationResolver = (
           })
           resolve(args.id)
 
-          const deviceFound = await Device.find({
-            where: { id: valueFound.deviceId },
-          })
           deviceFound.increment({ storageUsed: -1 })
-          touch(Environment, environmentFound.id)
+          if (environmentFound) touch(Environment, environmentFound.id)
           touch(Device, valueFound.deviceId)
 
           pubsub.publish("deviceUpdated", {
@@ -3381,13 +3382,13 @@ const MutationResolver = (
             },
             userIds: authorizedUsersIds,
           })
-          pubsub.publish("environmentUpdated", {
-            environmentUpdated: environmentFound.dataValues,
-            userIds: authorizedUsersIds,
-          })
-        },
-        Device,
-        Environment
+          if (environmentFound) {
+            pubsub.publish("environmentUpdated", {
+              environmentUpdated: environmentFound.dataValues,
+              userIds: authorizedUsersIds,
+            })
+          }
+        }
       ),
     unclaimDevice: (root, args, context) =>
       authorized(
@@ -3609,37 +3610,30 @@ const MutationResolver = (
         environmentToParent
       ),
     deletePlotNode(root, args, context) {
-      return inheritAuthorized(
+      return deviceInheritAuthorized(
         args.id,
         context.dataLoaders.plotNodeLoaderById,
-        User,
-        plotNodeFound => plotNodeFound.plotId,
         context,
-        context.dataLoaders.plotValueLoaderById,
         2,
-        async (
-          resolve,
-          reject,
-          plotNodeFound,
-          plotValueFound,
-          [_, environmentFound]
-        ) => {
+        async (resolve, reject, plotNodeFound, deviceFound) => {
           await plotNodeFound.destroy()
 
           resolve(args.id)
 
-          const deviceFound = await Device.find({
-            where: { id: plotNodeFound.deviceId },
-          })
+          const environmentFound = await context.dataLoaders.environmentLoaderById.load(
+            deviceFound.environmentId
+          )
           deviceFound.increment({ storageUsed: -1 })
-          touch(Environment, environmentFound.id)
+          if (environmentFound) touch(Environment, environmentFound.id)
           touch(Device, plotNodeFound.deviceId)
           touch(PlotValue, plotNodeFound.plotId)
 
-          const authorizedUsersIds = await instanceToSharedIds(
-            environmentFound,
-            context
-          )
+          const authorizedUsersIds = environmentFound
+            ? [
+                deviceFound.producerId,
+                ...(await instanceToSharedIds(environmentFound, context)),
+              ]
+            : [deviceFound.producerId]
           pubsub.publish("valueUpdated", {
             valueUpdated: {
               id: plotNodeFound.plotId,
@@ -3652,51 +3646,45 @@ const MutationResolver = (
             },
             userIds: authorizedUsersIds,
           })
-          pubsub.publish("environmentUpdated", {
-            environmentUpdated: environmentFound.dataValues,
-            userIds: authorizedUsersIds,
-          })
+          if (environmentFound) {
+            pubsub.publish("environmentUpdated", {
+              environmentUpdated: environmentFound.dataValues,
+              userIds: authorizedUsersIds,
+            })
+          }
           pubsub.publish("plotNodeDeleted", {
             plotNodeDeleted: args.id,
             userIds: authorizedUsersIds,
             source: plotNodeFound,
           })
-        },
-        valueToParent
+        }
       )
     },
     deleteCategoryPlotNode(root, args, context) {
-      return inheritAuthorized(
+      return deviceInheritAuthorized(
         args.id,
-        plotValueLoaderById.categoryPlotNodeLoaderById,
-        User,
-        plotNodeFound => plotNodeFound.plotId,
+        context.dataLoaders.categoryPlotNodeLoaderById,
         context,
-        context.dataLoaders.categoryPlotValueLoaderById,
         2,
-        async (
-          resolve,
-          reject,
-          plotNodeFound,
-          plotValueFound,
-          [_, environmentFound]
-        ) => {
+        async (resolve, reject, plotNodeFound, deviceFound) => {
           await plotNodeFound.destroy()
 
           resolve(args.id)
 
-          const deviceFound = await Device.find({
-            where: { id: plotNodeFound.deviceId },
-          })
+          const environmentFound = await context.dataLoaders.environmentLoaderById.load(
+            deviceFound.environmentId
+          )
           deviceFound.increment({ storageUsed: -1 })
           touch(Environment, environmentFound.id)
           touch(Device, plotNodeFound.deviceId)
           touch(CategoryPlotValue, plotNodeFound.plotId)
 
-          const authorizedUsersIds = await instanceToSharedIds(
-            environmentFound,
-            context
-          )
+          const authorizedUsersIds = environmentFound
+            ? [
+                deviceFound.producerId,
+                ...(await instanceToSharedIds(environmentFound, context)),
+              ]
+            : [deviceFound.producerId]
           pubsub.publish("valueUpdated", {
             valueUpdated: {
               id: plotNodeFound.plotId,
@@ -3709,17 +3697,18 @@ const MutationResolver = (
             },
             userIds: authorizedUsersIds,
           })
-          pubsub.publish("environmentUpdated", {
-            environmentUpdated: environmentFound.dataValues,
-            userIds: authorizedUsersIds,
-          })
+          if (environmentFound) {
+            pubsub.publish("environmentUpdated", {
+              environmentUpdated: environmentFound.dataValues,
+              userIds: authorizedUsersIds,
+            })
+          }
           pubsub.publish("categoryPlotNodeDeleted", {
             categoryPlotNodeDeleted: args.id,
             userIds: authorizedUsersIds,
             source: plotNodeFound,
           })
-        },
-        valueToParent
+        }
       )
     },
     deleteUser: (root, args, context) =>
