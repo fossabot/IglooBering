@@ -3417,6 +3417,23 @@ const MutationResolver = (
             context
           )
 
+          const notificationsFound = await Notification.findAll({
+            where: {
+              deviceId: args.id,
+            },
+          })
+
+          await Promise.all(
+            notificationsFound.map(async notification => {
+              await notification.destroy()
+              pubsub.publish("notificationDeleted", {
+                notificationDeleted: notification.id,
+                userIds: authorizedUsersIds,
+                source: notification,
+              })
+            })
+          )
+
           pubsub.publish("deviceUnclaimed", {
             deviceUnclaimed: args.id,
             userIds: [...authorizedUsersIds, deviceFound.producerId],
