@@ -67,6 +67,11 @@ const parseDeviceFilter = userId => filter => {
   )
     parsedFilter.firmware = parseStringFilter(filter.firmware)
   if (
+    filter.hasOwnProperty("deviceType") &&
+    Object.keys(filter.deviceType).length !== 0
+  )
+    parsedFilter.deviceType = parseStringFilter(filter.deviceType)
+  if (
     filter.hasOwnProperty("batteryStatus") &&
     Object.keys(filter.batteryStatus).length !== 0
   )

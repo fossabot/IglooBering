@@ -143,6 +143,10 @@ const DeviceResolver = ({ User, Notification, sequelize }) => ({
             filtersStack.push(
               `(public."${table}"."cardSize" = '${filter.cardSize}')`
             )
+          if (filter.hasOwnProperty("visibility"))
+            filtersStack.push(
+              `(public."${table}"."visibility" = '${filter.visibility}')`
+            )
           if (filter.hasOwnProperty("name"))
             filtersStack.push(
               parseRawStringFilter(filter.name, `public."${table}"."name"`)

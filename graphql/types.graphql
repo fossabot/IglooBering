@@ -602,6 +602,7 @@ input DeviceFilter {
   firmware: StringFilter
   muted: Boolean
   starred: Boolean
+  deviceType: StringFilter
 }
 
 input DeveloperDeviceFilter {
@@ -617,6 +618,7 @@ input ValueFilter {
   NOT: ValueFilter
   name: StringFilter
   cardSize: CardSize
+  visibility: ValueVisibility
 }
 
 input NotificationFilter {

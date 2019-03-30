@@ -1471,9 +1471,9 @@ export const parseStringFilter = filter => {
   filter.hasOwnProperty = Object.prototype.hasOwnProperty
 
   if (filter.hasOwnProperty("equals")) parsedFilter[Op.eq] = filter.equals
-  else if (filter.hasOwnProperty(similarTo))
+  else if (filter.hasOwnProperty("similarTo"))
     parsedFilter[Op.regexp] = filter.similarTo
-  else if (filter.hasOwnProperty(like)) parsedFilter[Op.like] = filter.like
+  else if (filter.hasOwnProperty("like")) parsedFilter[Op.like] = filter.like
 
   return parsedFilter
 }

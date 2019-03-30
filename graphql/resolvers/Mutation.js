@@ -3190,7 +3190,7 @@ const MutationResolver = (
           const notificationCount = await Notification.count({
             where: { deviceId: args.deviceId },
           })
-          const MAX_NOTIFICATIONS = 1
+          const MAX_NOTIFICATIONS = 100
           if (notificationCount > MAX_NOTIFICATIONS) {
             const excessNotifications = await Notification.findAll({
               where: { deviceId: args.deviceId },
