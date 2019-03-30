@@ -3355,9 +3355,13 @@ const MutationResolver = (
           )
           resolve(args.id)
 
+          const environmentSharedUsers = await instanceToSharedIds(
+            environmentFound,
+            context
+          )
           const deviceSharedIds = [
             deviceFound.producerId,
-            ...(await instanceToSharedIds(environmentFound, context)),
+            ...environmentSharedUsers,
           ]
           pubsub.publish("notificationDeleted", {
             notificationDeleted: args.id,
@@ -3383,6 +3387,12 @@ const MutationResolver = (
             environmentUpdated: environmentFound.dataValues,
             userIds: await instanceToSharedIds(environmentFound, context),
           })
+          for (let userId of environmentSharedUsers) {
+            pubsub.publish("userUpdated", {
+              userUpdated: { id: userId },
+              userId: userId,
+            })
+          }
         }
       )
     },

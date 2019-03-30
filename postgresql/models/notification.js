@@ -5,14 +5,6 @@ module.exports = (queryInterface, Sequelize) => {
       defaultValue: Sequelize.UUIDV4,
       primaryKey: true,
     },
-    environmentId: {
-      type: Sequelize.UUID,
-      allowNull: false,
-      references: {
-        model: "environments",
-        key: "id",
-      },
-    },
     deviceId: {
       type: Sequelize.UUID,
       allowNull: false,
@@ -36,9 +28,6 @@ module.exports = (queryInterface, Sequelize) => {
   Notification.associate = function(models) {
     models.Device.hasMany(Notification)
     Notification.belongsTo(models.Device)
-
-    models.Environment.hasMany(Notification)
-    Notification.belongsTo(models.Environment)
   }
   return Notification
 }
