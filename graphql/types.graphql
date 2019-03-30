@@ -665,7 +665,7 @@ type Subscription {
   # subscribes to device creations
   deviceCreated(environmentId: ID): Device
   # subscribes to device creations
-  deviceClaimed(environmentId: ID): Device
+  deviceClaimed(environmentId: ID, id: ID): Device
   # subscribes to environment creations
   environmentCreated: Environment
   # subscribes to value creations
@@ -679,7 +679,7 @@ type Subscription {
   # subscribes to notification creations
   notificationCreated: Notification
   # subscribes to device creations
-  deviceMoved(environmentId: ID): Device
+  deviceMoved(environmentId: ID, id: ID): Device
   # subscribes to environment shares to you
   pendingEnvironmentShareReceived: PendingEnvironmentShare
   pendingEnvironmentShareUpdated: PendingEnvironmentShare
@@ -704,35 +704,35 @@ type Subscription {
   # default id is the user making the request
   userUpdated(id: ID): User
   # subscribes to device updates
-  deviceUpdated(environmentId: ID): Device
+  deviceUpdated(environmentId: ID, id: ID): Device
   # subscribes to environment updates
-  environmentUpdated: Environment
+  environmentUpdated(id: ID): Environment
   # subscribes to value updates
-  valueUpdated(deviceId: ID): Value
+  valueUpdated(deviceId: ID, id: ID): Value
   # subscribes to plot node updates
-  plotNodeUpdated(plotId: ID): PlotNode
+  plotNodeUpdated(plotId: ID, id: ID): PlotNode
   # subscribes to plot node updates
-  categoryPlotNodeUpdated(plotId: ID): CategoryPlotNode
+  categoryPlotNodeUpdated(plotId: ID, id: ID): CategoryPlotNode
   # subscribes to notification updates
-  notificationUpdated: Notification
+  notificationUpdated(deviceId: ID, id: ID): Notification
   # subscribes to value deleted
-  valueDeleted(deviceId: ID): ID
+  valueDeleted(deviceId: ID, id: ID): ID
   # subscribes to plot node deletes
-  plotNodeDeleted(plotId: ID): ID
+  plotNodeDeleted(plotId: ID, id: ID): ID
   # subscribes to plot node deletes
-  categoryPlotNodeDeleted(plotId: ID): ID
+  categoryPlotNodeDeleted(plotId: ID, id: ID): ID
   # subscribes to device deletes
-  deviceDeleted(environmentId: ID): ID
+  deviceDeleted(environmentId: ID, id: ID): ID
   # subscribes to device unclaims
-  deviceUnclaimed(environmentId: ID): ID
+  deviceUnclaimed(environmentId: ID, id: ID): ID
   # subscribes to environment deletes
-  environmentDeleted: ID
+  environmentDeleted(id: ID): ID
   # subscribes to user deletes
   userDeleted(id: ID): ID
   # subscribes to token deletes
   permanentTokenDeleted: ID
   # subscribes to notification deletes
-  notificationDeleted(deviceId: ID): ID
+  notificationDeleted(deviceId: ID, id: ID): ID
   # keeps the device's status set as online
   keepOnline(deviceId: ID!): Boolean
 }

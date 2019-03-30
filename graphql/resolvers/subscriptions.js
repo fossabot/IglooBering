@@ -81,6 +81,24 @@ const customFilterByField = (subscriptionName, field) => (
   { [subscriptionName]: { [field]: actual } }
 ) => (requested ? requested === actual : true)
 
+const customFilterByFields = (subscriptionName, ...fields) => (
+  args,
+  context,
+  payload
+) =>
+  fields.reduce(
+    (acc, curr) =>
+      acc &&
+      customFilterByField(subscriptionName, curr)(args, context, payload),
+    true
+  )
+
+const customFiltersOnSource = (...fields) => (args, context, payload) =>
+  fields.reduce(
+    (acc, curr) => acc && customFilterOnSource(curr)(args, context, payload),
+    true
+  )
+
 const customFilterOnSource = field => (
   { [field]: requested },
   context,
@@ -168,25 +186,25 @@ const subscriptionResolver = (pubsub, { User, Device, Environment }) => ({
     "deviceCreated",
     pubsub,
     createDataLoaders,
-    customFilterByField("deviceCreated", "environmentId")
+    customFilterByFields("deviceCreated", "environmentId")
   ),
   deviceClaimed: subscriptionFilterOwnedOrShared(
     "deviceClaimed",
     pubsub,
     createDataLoaders,
-    customFilterByField("deviceClaimed", "environmentId")
+    customFilterByFields("deviceClaimed", "environmentId", "id")
   ),
   deviceMoved: subscriptionFilterOwnedOrShared(
     "deviceMoved",
     pubsub,
     createDataLoaders,
-    customFilterByField("deviceMoved", "environmentId")
+    customFilterByFields("deviceMoved", "environmentId", "id")
   ),
   valueCreated: subscriptionFilterOwnedOrShared(
     "valueCreated",
     pubsub,
     createDataLoaders,
-    customFilterByField("valueCreated", "deviceId")
+    customFilterByFields("valueCreated", "deviceId")
   ),
   permanentTokenCreated: subscriptionFilterOnlyMine(
     "permanentTokenCreated",
@@ -197,13 +215,13 @@ const subscriptionResolver = (pubsub, { User, Device, Environment }) => ({
     "plotNodeCreated",
     pubsub,
     createDataLoaders,
-    customFilterByField("plotNodeCreated", "plotId")
+    customFilterByFields("plotNodeCreated", "plotId")
   ),
   categoryPlotNodeCreated: subscriptionFilterOwnedOrShared(
     "categoryPlotNodeCreated",
     pubsub,
     createDataLoaders,
-    customFilterByField("categoryPlotNodeCreated", "plotId")
+    customFilterByFields("categoryPlotNodeCreated", "plotId")
   ),
   notificationCreated: subscriptionFilterOwnedOrShared(
     "notificationCreated",
@@ -214,64 +232,67 @@ const subscriptionResolver = (pubsub, { User, Device, Environment }) => ({
     "deviceUpdated",
     pubsub,
     createDataLoaders,
-    customFilterByField("deviceUpdated", "environmentId")
+    customFilterByFields("deviceUpdated", "environmentId", "id")
   ),
   environmentUpdated: subscriptionFilterOwnedOrShared(
     "environmentUpdated",
     pubsub,
-    createDataLoaders
+    createDataLoaders,
+    customFilterByFields("environmentUpdated", "id")
   ),
   valueUpdated: subscriptionFilterOwnedOrShared(
     "valueUpdated",
     pubsub,
     createDataLoaders,
-    customFilterByField("valueUpdated", "deviceId")
+    customFilterByFields("valueUpdated", "deviceId", "id")
   ),
   plotNodeUpdated: subscriptionFilterOwnedOrShared(
     "plotNodeUpdated",
     pubsub,
     createDataLoaders,
-    customFilterByField("plotNodeUpdated", "plotId")
+    customFilterByFields("plotNodeUpdated", "plotId", "id")
   ),
   categoryPlotNodeUpdated: subscriptionFilterOwnedOrShared(
     "categoryPlotNodeUpdated",
     pubsub,
     createDataLoaders,
-    customFilterByField("categoryPlotNodeUpdated", "plotId")
+    customFilterByFields("categoryPlotNodeUpdated", "plotId", "id")
   ),
   notificationUpdated: subscriptionFilterOwnedOrShared(
     "notificationUpdated",
     pubsub,
-    createDataLoaders
+    createDataLoaders,
+    customFilterByFields("notificationUpdated", "deviceId", "id")
   ),
   notificationDeleted: subscriptionFilterOwnedOrShared(
     "notificationDeleted",
     pubsub,
     createDataLoaders,
-    customFilterOnSource("deviceId")
+    customFiltersOnSource("deviceId", "id")
   ),
   valueDeleted: subscriptionFilterOwnedOrShared(
     "valueDeleted",
     pubsub,
     createDataLoaders,
-    customFilterOnSource("deviceId")
+    customFiltersOnSource("deviceId", "id")
   ),
   deviceDeleted: subscriptionFilterOwnedOrShared(
     "deviceDeleted",
     pubsub,
     createDataLoaders,
-    customFilterOnSource("environmentId")
+    customFiltersOnSource("environmentId", "id")
   ),
   deviceUnclaimed: subscriptionFilterOwnedOrShared(
     "deviceUnclaimed",
     pubsub,
     createDataLoaders,
-    customFilterOnSource("environmentId")
+    customFiltersOnSource("environmentId", "id")
   ),
   environmentDeleted: subscriptionFilterOwnedOrShared(
     "environmentDeleted",
     pubsub,
-    createDataLoaders
+    createDataLoaders,
+    customFiltersOnSource("id")
   ),
   userDeleted: {
     subscribe: (root, args, context, info) => {
@@ -293,13 +314,13 @@ const subscriptionResolver = (pubsub, { User, Device, Environment }) => ({
     "plotNodeDeleted",
     pubsub,
     createDataLoaders,
-    customFilterOnSource("plotId")
+    customFiltersOnSource("plotId", "id")
   ),
   categoryPlotNodeDeleted: subscriptionFilterOwnedOrShared(
     "categoryPlotNodeDeleted",
     pubsub,
     createDataLoaders,
-    customFilterOnSource("plotId")
+    customFiltersOnSource("plotId", "id")
   ),
   permanentTokenDeleted: subscriptionFilterOnlyMine(
     "permanentTokenDeleted",
