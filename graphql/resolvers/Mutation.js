@@ -2631,6 +2631,25 @@ const MutationResolver = (
             )
           }
 
+          // forbid starring more than MAX_STARRED devices
+          if (
+            deviceFound.starred.indexOf(context.auth.userId) === -1 &&
+            args.starred === true
+          ) {
+            const starredCount = await Device.count({
+              where: {
+                environmentId: deviceFound.environmentId,
+                starred: { [Op.contains]: [context.auth.userId] },
+              },
+            })
+
+            const MAX_STARRED = 5
+            if (starredCount >= MAX_STARRED) {
+              reject(`Cannot have more than ${MAX_STARRED} starred devices`)
+              return
+            }
+          }
+
           const updateQuery = args
 
           if (updateQuery.starred === true) {
