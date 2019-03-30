@@ -2775,60 +2775,43 @@ const MutationResolver = (
       )
     },
     value(root, args, context) {
-      return authenticated(context, async (resolve, reject) => {
-        if (args.name === null || args.name === "") {
-          reject("name cannot be null or an empty string")
-          return
-        } else if (Object.keys(args).length === 1) {
-          reject("You cannot make a mutation with only the id field")
-          return
-        } else if (args.unitOfMeasurement === "") {
-          reject(
-            "unitOfMeasurement cannot be an empty string, pass null instead"
-          )
-          return
-        }
-
-        const userFound = await context.dataLoaders.userLoaderById.load(
-          context.auth.userId
-        )
-
-        let valueFound
-        try {
-          valueFound = await findValue(context, args.id, userFound)
-        } catch (e) {
-          if (e.message === "The requested resource does not exist") {
-            reject(e)
+      return authorizedValue(
+        args.id,
+        context,
+        {
+          FloatValue,
+          StringValue,
+          BooleanValue,
+          PlotValue,
+          CategoryPlotValue,
+        },
+        async (resolve, reject, valueFound, deviceFound, environmentFound) => {
+          const valueType = valueFound._modelOptions.name.singular
+          if (args.name === null || args.name === "") {
+            reject("name cannot be null or an empty string")
             return
+          } else if (Object.keys(args).length === 1) {
+            reject("You cannot make a mutation with only the id field")
+            return
+          } else if (args.unitOfMeasurement === "") {
+            reject(
+              "unitOfMeasurement cannot be an empty string, pass null instead"
+            )
+            return
+          } else if (valueType === "floatValue" && args.cardSize === "LARGE") {
+            reject("FloatValue cannot have cardSize set to LARGE")
+            return false
           }
 
-          throw e
-        }
-        const environmentFound = await valueToParent(context)(valueFound)
-
-        const valueType = valueFound._modelOptions.name.singular
-        const expectedNewValue = {
-          ...valueFound,
-          ...args,
-        }
-        if (
-          valueType === "floatValue" &&
-          expectedNewValue.cardSize === "LARGE"
-        ) {
-          reject("FloatValue cannot have cardSize set to LARGE")
-          return false
-        }
-
-        if (
-          (await authorizationLevel(environmentFound, userFound, context)) > 0
-        ) {
           const newValue = await valueFound.update(args)
           resolve(newValue)
 
-          Environment.update(
-            { updatedAt: newValue.updatedAt },
-            { where: { id: environmentFound.id } }
-          )
+          if (environmentFound) {
+            Environment.update(
+              { updatedAt: newValue.updatedAt },
+              { where: { id: environmentFound.id } }
+            )
+          }
           Device.update(
             { updatedAt: newValue.updatedAt },
             { where: { id: valueFound.deviceId } }
@@ -2836,12 +2819,16 @@ const MutationResolver = (
 
           pubsub.publish("valueUpdated", {
             valueUpdated: newValue,
-            userIds: await instanceToSharedIds(environmentFound, context),
+            userIds: environmentFound
+              ? [
+                  deviceFound.producerId,
+                  ...(await instanceToSharedIds(environmentFound, context)),
+                ]
+              : [deviceFound.producerId],
+            allowedDeviceIds: [deviceFound.id],
           })
-        } else {
-          reject("You are not authorized to perform this operation")
         }
-      })
+      )
     },
     floatValue: genericValueMutation(
       "floatValueLoaderById",
@@ -2993,13 +2980,12 @@ const MutationResolver = (
       Environment
     ),
     atomicUpdateFloat: (root, args, context) =>
-      authorized(
+      deviceInheritAuthorized(
         args.id,
-        context,
         context.dataLoaders.floatValueLoaderById,
-        User,
+        context,
         2,
-        async (resolve, reject, valueFound, [_, environmentFound]) => {
+        async (resolve, reject, valueFound, deviceFound) => {
           if (
             isOutOfBoundaries(
               valueFound.min,
@@ -3021,10 +3007,18 @@ const MutationResolver = (
           }
           resolve(resolveObj)
 
-          Environment.update(
-            { updatedAt: newValue.updatedAt },
-            { where: { id: environmentFound.id } }
-          )
+          const environmentFound =
+            deviceFound.environmentId &&
+            (await context.dataLoaders.environmentLoaderById.load(
+              deviceFound.environmentId
+            ))
+
+          if (environmentFound) {
+            Environment.update(
+              { updatedAt: newValue.updatedAt },
+              { where: { id: environmentFound.id } }
+            )
+          }
           Device.update(
             { updatedAt: newValue.updatedAt },
             { where: { id: newValue.deviceId } }
@@ -3032,10 +3026,15 @@ const MutationResolver = (
 
           pubsub.publish("valueUpdated", {
             valueUpdated: { ...resolveObj, __resolveType: "FloatValue" },
-            userIds: await instanceToSharedIds(environmentFound, context),
+            userIds: environmentFound
+              ? [
+                  deviceFound.producerId,
+                  ...(await instanceToSharedIds(environmentFound, context)),
+                ]
+              : [deviceFound.producerId],
+            allowedDeviceIds: [deviceFound.id],
           })
-        },
-        valueToParent
+        }
       ),
     plotNode(root, args, context) {
       return deviceInheritAuthorized(
@@ -3090,6 +3089,7 @@ const MutationResolver = (
                   ...(await instanceToSharedIds(environmentFound, context)),
                 ]
               : [deviceFound.producerId],
+            allowedDeviceIds: [deviceFound.id],
           })
         }
       )
@@ -3144,6 +3144,7 @@ const MutationResolver = (
                   ...(await instanceToSharedIds(environmentFound, context)),
                 ]
               : [deviceFound.producerId],
+            allowedDeviceIds: [deviceFound.id],
           })
         }
       )
@@ -3214,6 +3215,7 @@ const MutationResolver = (
               pubsub.publish("notificationDeleted", {
                 notificationDeleted: notification.id,
                 userIds: deviceSharedIds,
+                allowedDeviceIds: [deviceFound.id],
                 source: notification,
               })
             }
@@ -3343,6 +3345,7 @@ const MutationResolver = (
           pubsub.publish("notificationDeleted", {
             notificationDeleted: args.id,
             userIds: deviceSharedIds,
+            allowedDeviceIds: [deviceFound.id],
             source: notificationFound,
           })
 
@@ -3392,6 +3395,7 @@ const MutationResolver = (
             valueDeleted: args.id,
             userIds: authorizedUsersIds,
             source: valueFound,
+            allowedDeviceIds: [deviceFound.id],
           })
           resolve(args.id)
 
@@ -3453,6 +3457,7 @@ const MutationResolver = (
               pubsub.publish("notificationDeleted", {
                 notificationDeleted: notification.id,
                 userIds: authorizedUsersIds,
+                allowedDeviceIds: [deviceFound.id],
                 source: notification,
               })
             })
@@ -3461,7 +3466,7 @@ const MutationResolver = (
           pubsub.publish("deviceUnclaimed", {
             deviceUnclaimed: args.id,
             userIds: [...authorizedUsersIds, deviceFound.producerId],
-            allowedDeviceIds: deviceFound.id,
+            allowedDeviceIds: [deviceFound.id],
             source: { environmentId },
           })
 
@@ -3510,6 +3515,7 @@ const MutationResolver = (
               [subscription]: child.id,
               userIds: authorizedUsersIds,
               source: child,
+              allowedDeviceIds: [deviceFound.id],
             })
           })
         )
@@ -3533,7 +3539,7 @@ const MutationResolver = (
       pubsub.publish("deviceDeleted", {
         deviceDeleted: args.id,
         userIds: authorizedUsersIds,
-        allowedDeviceIds: deviceFound.id,
+        allowedDeviceIds: [deviceFound.id],
         source: deviceFound,
       })
 
@@ -3580,7 +3586,7 @@ const MutationResolver = (
             pubsub.publish("deviceUnclaimed", {
               deviceUnclaimed: device.id,
               userIds: [...authorizedUsersIds, device.producerId],
-              allowedDeviceIds: device.id,
+              allowedDeviceIds: [device.id],
             })
           })
 
@@ -3682,6 +3688,7 @@ const MutationResolver = (
               id: plotNodeFound.plotId,
             },
             userIds: authorizedUsersIds,
+            allowedDeviceIds: [deviceFound.id],
           })
           pubsub.publish("deviceUpdated", {
             deviceUpdated: {
@@ -3700,6 +3707,7 @@ const MutationResolver = (
             plotNodeDeleted: args.id,
             userIds: authorizedUsersIds,
             source: plotNodeFound,
+            allowedDeviceIds: [deviceFound.id],
           })
         }
       )
@@ -3736,6 +3744,7 @@ const MutationResolver = (
               id: plotNodeFound.plotId,
             },
             userIds: authorizedUsersIds,
+            allowedDeviceIds: [deviceFound.id],
           })
           pubsub.publish("deviceUpdated", {
             deviceUpdated: {
@@ -3754,6 +3763,7 @@ const MutationResolver = (
             categoryPlotNodeDeleted: args.id,
             userIds: authorizedUsersIds,
             source: plotNodeFound,
+            allowedDeviceIds: [deviceFound.id],
           })
         }
       )
@@ -3790,7 +3800,7 @@ const MutationResolver = (
               pubsub.publish("deviceUnclaimed", {
                 deviceUnclaimed: device.id,
                 userIds: [...authorizedUsersIds, device.producerId],
-                allowedDeviceIds: device.id,
+                allowedDeviceIds: [device.id],
               })
             })
 
