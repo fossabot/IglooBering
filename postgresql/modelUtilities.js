@@ -9,13 +9,6 @@ const ValueModel = (Sequelize, hasPermission = true) => {
       defaultValue: Sequelize.UUIDV4,
       primaryKey: true,
     },
-    environmentId: {
-      type: Sequelize.UUID,
-      references: {
-        model: "environments",
-        key: "id",
-      },
-    },
     deviceId: {
       type: Sequelize.UUID,
       allowNull: false,

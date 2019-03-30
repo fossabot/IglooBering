@@ -935,7 +935,6 @@ enum CardSize {
 type Notification {
   id: ID!
   device: Device! @cost(complexity: 1)
-  environment: Environment! @cost(complexity: 1)
   content: String!
   date: DateTime!
   read: Boolean!
@@ -965,7 +964,6 @@ interface Value {
   updatedAt: DateTime!
   myRole: RoleExtended!
   device: Device!
-  environment: Environment!
   visibility: ValueVisibility!
   cardSize: CardSize!
   name: String
@@ -978,7 +976,6 @@ type FloatValue implements Value {
   updatedAt: DateTime!
   myRole: RoleExtended!
   device: Device! @cost(complexity: 1)
-  environment: Environment! @cost(complexity: 1)
   permission: ValuePermission!
   visibility: ValueVisibility!
   unitOfMeasurement: String
@@ -999,7 +996,6 @@ type StringValue implements Value {
   updatedAt: DateTime!
   myRole: RoleExtended!
   device: Device! @cost(complexity: 1)
-  environment: Environment! @cost(complexity: 1)
   permission: ValuePermission!
   visibility: ValueVisibility!
   value: String
@@ -1016,7 +1012,6 @@ type PlotValue implements Value {
   updatedAt: DateTime!
   myRole: RoleExtended!
   device: Device! @cost(complexity: 1)
-  environment: Environment! @cost(complexity: 1)
   visibility: ValueVisibility!
   unitOfMeasurement: String
   value(limit: PositiveInt!, offset: Int): [PlotNode!]!
@@ -1039,7 +1034,6 @@ type CategoryPlotValue implements Value {
   updatedAt: DateTime!
   myRole: RoleExtended!
   device: Device! @cost(complexity: 1)
-  environment: Environment! @cost(complexity: 1)
   visibility: ValueVisibility!
   value(limit: PositiveInt!, offset: Int): [CategoryPlotNode!]!
     @cost(complexity: 1, multipliers: ["limit"])
@@ -1056,7 +1050,6 @@ type BooleanValue implements Value {
   updatedAt: DateTime!
   myRole: RoleExtended!
   device: Device! @cost(complexity: 1)
-  environment: Environment! @cost(complexity: 1)
   permission: ValuePermission!
   visibility: ValueVisibility!
   value: Boolean

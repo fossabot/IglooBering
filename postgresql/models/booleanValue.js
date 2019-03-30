@@ -10,7 +10,6 @@ module.exports = (queryInterface, Sequelize) => {
 
   BooleanValue.associate = function(models) {
     models.Device.hasMany(BooleanValue)
-    models.Environment.hasMany(BooleanValue)
   }
   return BooleanValue
 }

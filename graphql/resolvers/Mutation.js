@@ -14,7 +14,6 @@ import {
   authorizedValue,
   instanceToSharedIds,
   inheritAuthorized,
-  valueToParent,
   randomEnvironmentPicture,
   randomUserIconColor,
   instanceToRole,
@@ -3177,7 +3176,6 @@ const MutationResolver = (
 
           const newNotification = await Notification.create({
             ...args,
-            environmentId: environmentFound.id,
             notRead: deviceSharedIds,
             date: args.date || new Date(),
           })

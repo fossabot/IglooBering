@@ -22,7 +22,6 @@ module.exports = (queryInterface, Sequelize) => {
 
   PlotValue.associate = function(models) {
     models.Device.hasMany(PlotValue)
-    models.Environment.hasMany(PlotValue)
   }
   return PlotValue
 }

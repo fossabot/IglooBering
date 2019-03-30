@@ -22,7 +22,6 @@ module.exports = (queryInterface, Sequelize) => {
 
   FloatValue.associate = function(models) {
     models.Device.hasMany(FloatValue)
-    models.Environment.hasMany(FloatValue)
   }
   return FloatValue
 }

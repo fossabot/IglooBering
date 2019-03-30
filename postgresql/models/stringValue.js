@@ -16,7 +16,6 @@ module.exports = (queryInterface, Sequelize) => {
 
   StringValue.associate = function(models) {
     models.Device.hasMany(StringValue)
-    models.Environment.hasMany(StringValue)
   }
   return StringValue
 }

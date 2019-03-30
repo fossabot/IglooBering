@@ -253,7 +253,6 @@ export function CreateGenericValue(
 
         const newValue = await Model.create({
           ...args,
-          environmentId: deviceFound.environmentId,
           deviceId: deviceFound.id,
           cardSize: args.cardSize || "NORMAL",
           visibility: isNullOrUndefined(args.visibility)
@@ -1074,12 +1073,11 @@ export const deviceToParent = ({
 }
 
 export const valueToParent = ({
-  dataLoaders: { environmentLoaderById },
+  dataLoaders: { environmentLoaderById, deviceLoaderById },
 }) => async valueFound => {
-  if (!valueFound.environmentId) return null
-  const environmentFound = await environmentLoaderById.load(
-    valueFound.environmentId
-  )
+  const environmentId = await deviceLoaderById.load(valueFound.deviceId)
+  if (!environmentId) return null
+  const environmentFound = await environmentLoaderById.load(environmentId)
 
   return environmentFound
 }

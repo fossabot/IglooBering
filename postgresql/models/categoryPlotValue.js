@@ -10,7 +10,6 @@ module.exports = (queryInterface, Sequelize) => {
 
   CategoryPlotValue.associate = function(models) {
     models.Device.hasMany(CategoryPlotValue)
-    models.Environment.hasMany(CategoryPlotValue)
   }
   return CategoryPlotValue
 }

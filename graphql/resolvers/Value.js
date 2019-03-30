@@ -32,11 +32,11 @@ const ValueResolver = {
                 const userFound = await context.dataLoaders.userLoaderById.load(
                   context.auth.userId
                 )
-                const environmentFound = await context.dataLoaders.environmentLoaderById.load(
-                  resourceFound.environmentId
-                )
                 const deviceFound = await context.dataLoaders.deviceLoaderById.load(
                   resourceFound.deviceId
+                )
+                const environmentFound = await context.dataLoaders.environmentLoaderById.load(
+                  deviceFound.environmentId
                 )
 
                 if (

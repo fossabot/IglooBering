@@ -23,21 +23,6 @@ const UserResolver = ({ User }) => ({
       }
     )
   },
-  environment(root, args, context) {
-    return inheritAuthorized(
-      root.id,
-      context.dataLoaders.notificationLoaderById,
-      User,
-      notificationToParent,
-      context,
-      context.dataLoaders.deviceLoaderById,
-      1,
-      async (resolve, reject, notificationFound) => {
-        resolve({ id: notificationFound.environmentId })
-      },
-      deviceToParent
-    )
-  },
   read(root, args, context) {
     return inheritAuthorized(
       root.id,
