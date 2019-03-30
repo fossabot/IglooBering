@@ -1,6 +1,6 @@
 import {
   socketToDeviceMap,
-  authorized,
+  deviceAuthorized,
   deviceToParent,
   logErrorsPromise,
   instanceToSharedIds,
@@ -39,39 +39,39 @@ const subscriptionFilterOwnedOrShared = (
   customFilter = () => true
 ) => ({
   subscribe: (root, args, context, info) => {
-    if (context.auth) {
-      if (context.auth.userId) {
-        const myUserId = context.auth.userId
-        return withFilter(
-          () => pubsub.asyncIterator(subscriptionName),
-          payload => {
-            context.dataLoaders = createDataLoaders()
-
-            return (
-              payload.userIds.indexOf(myUserId) !== -1 &&
-              customFilter(args, context, payload)
-            )
-          }
-        )(root, args, context, info)
-      } else if (context.auth.tokenType === "DEVICE_ACCESS") {
-        const authDeviceId = context.auth.deviceId
-        return withFilter(
-          () => pubsub.asyncIterator(subscriptionName),
-          payload => {
-            context.dataLoaders = createDataLoaders()
-
-            return (
-              payload.allowedDeviceIds &&
-              payload.allowedDeviceIds.indexOf(authDeviceId) !== -1 &&
-              customFilter(args, context, payload)
-            )
-          }
-        )(root, args, context, info)
-      } else {
-        throw new Error("No authorization token")
-      }
+    if (!context.auth) {
+      throw new Error("No authorization token")
     }
-    throw new Error("No authorization token")
+    if (context.auth.userId) {
+      const myUserId = context.auth.userId
+      return withFilter(
+        () => pubsub.asyncIterator(subscriptionName),
+        payload => {
+          context.dataLoaders = createDataLoaders()
+
+          return (
+            payload.userIds.indexOf(myUserId) !== -1 &&
+            customFilter(args, context, payload)
+          )
+        }
+      )(root, args, context, info)
+    } else if (context.auth.tokenType === "DEVICE_ACCESS") {
+      const authDeviceId = context.auth.deviceId
+      return withFilter(
+        () => pubsub.asyncIterator(subscriptionName),
+        payload => {
+          context.dataLoaders = createDataLoaders()
+
+          return (
+            payload.allowedDeviceIds &&
+            payload.allowedDeviceIds.indexOf(authDeviceId) !== -1 &&
+            customFilter(args, context, payload)
+          )
+        }
+      )(root, args, context, info)
+    } else {
+      throw new Error("No authorization token")
+    }
   },
 })
 
@@ -309,19 +309,28 @@ const subscriptionResolver = (pubsub, { User, Device, Environment }) => ({
   keepOnline: {
     subscribe: (root, args, context) =>
       logErrorsPromise(
-        authorized(
+        deviceAuthorized(
           args.deviceId,
           context,
-          context.dataLoaders.deviceLoaderById,
-          User,
           2,
-          async (resolve, reject, deviceFound, [_, environmentFound]) => {
+          async (resolve, reject, deviceFound, userFound) => {
+            const environmentFound =
+              deviceFound.environmentId &&
+              (await context.dataLoaders.environmentLoaderById.load(
+                deviceFound.environmentId
+              ))
             const newDevice = await deviceFound.update({ online: true })
-            const userIds = await instanceToSharedIds(environmentFound, context)
+            const userIds = environmentFound
+              ? [
+                  newDevice.producerId,
+                  ...(await instanceToSharedIds(environmentFound, context)),
+                ]
+              : [newDevice.producerId]
 
             pubsub.publish("deviceUpdated", {
               deviceUpdated: newDevice.dataValues,
               userIds,
+              allowedDeviceIds: [newDevice.id],
             })
 
             socketToDeviceMap[context.websocket] = {
@@ -330,8 +339,7 @@ const subscriptionResolver = (pubsub, { User, Device, Environment }) => ({
             }
 
             resolve(pubsub.asyncIterator("bogusIterator")) // this iterator will never send any data
-          },
-          deviceToParent
+          }
         )
       ),
   },

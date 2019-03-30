@@ -2230,13 +2230,17 @@ const MutationResolver = (
           pubsub.publish("plotNodeCreated", {
             plotNodeCreated: resolveObj,
             userIds: deviceFound.environmentId
-              ? await instanceToSharedIds(
-                  await context.dataLoaders.environmentLoaderById.load(
-                    deviceFound.environmentId
-                  ),
-                  context
-                )
-              : [],
+              ? [
+                  deviceFound.producerId,
+                  ...(await instanceToSharedIds(
+                    await context.dataLoaders.environmentLoaderById.load(
+                      deviceFound.environmentId
+                    ),
+                    context
+                  )),
+                ]
+              : [deviceFound.producerId],
+            allowedDeviceIds: [deviceFound.id],
           })
         }
       )
@@ -2289,13 +2293,17 @@ const MutationResolver = (
           pubsub.publish("categoryPlotNodeCreated", {
             categoryPlotNodeCreated: resolveObj,
             userIds: deviceFound.environmentId
-              ? await instanceToSharedIds(
-                  await context.dataLoaders.environmentLoaderById.load(
-                    deviceFound.environmentId
-                  ),
-                  context
-                )
-              : [],
+              ? [
+                  deviceFound.producerId,
+                  ...(await instanceToSharedIds(
+                    await context.dataLoaders.environmentLoaderById.load(
+                      deviceFound.environmentId
+                    ),
+                    context
+                  )),
+                ]
+              : [deviceFound.producerId],
+            allowedDeviceIds: [deviceFound.id],
           })
         }
       )
@@ -2543,23 +2551,23 @@ const MutationResolver = (
       )
     },
     device(root, args, context) {
-      return authorized(
+      return deviceAuthorized(
         args.id,
         context,
-        context.dataLoaders.deviceLoaderById,
-        User,
         1,
-        async (
-          resolve,
-          reject,
-          deviceFound,
-          [_, environmentFound],
-          userFound
-        ) => {
+        async (resolve, reject, deviceFound, userFound) => {
+          const environmentFound = deviceFound.environmentId
+            ? await context.dataLoaders.environmentLoaderById.load(
+                deviceFound.environmentId
+              )
+            : null
+          const myRole =
+            environmentFound && userFound
+              ? await instanceToRole(environmentFound, userFound, context)
+              : null
           // users with read only access can only star a device
           if (
-            (await instanceToRole(environmentFound, userFound, context)) ===
-              "SPECTATOR" &&
+            myRole == "SPECTATOR" &&
             (Object.keys(args).length > 2 ||
               !isNotNullNorUndefined(args.starred))
           ) {
@@ -2590,12 +2598,20 @@ const MutationResolver = (
             reject("You cannot make a mutation with only the id field")
             return
           } else if (
-            (environmentFound.muted || userFound.quietMode) &&
+            ((environmentFound && environmentFound.muted) ||
+              userFound.quietMode) &&
             isNotNullNorUndefined(args.muted)
           ) {
             reject(
               "Cannot change muted at device level when it is enabled at environment level or quietMode is enabled at user level"
             )
+            return
+          } else if (
+            myRole === null &&
+            (isNotNullNorUndefined(args.muted) ||
+              isNotNullNorUndefined(args.starred))
+          ) {
+            reject("You are not authorized to change muted or starred value")
             return
           }
 
@@ -2632,14 +2648,20 @@ const MutationResolver = (
           const newDevice = await deviceFound.update(updateQuery)
           resolve(newDevice.dataValues)
 
-          touch(Environment, environmentFound.id, newDevice.updatedAt)
+          if (environmentFound)
+            touch(Environment, environmentFound.id, newDevice.updatedAt)
 
           pubsub.publish("deviceUpdated", {
             deviceUpdated: newDevice.dataValues,
-            userIds: await instanceToSharedIds(environmentFound, context),
+            userIds: environmentFound
+              ? [
+                  newDevice.producerId,
+                  ...(await instanceToSharedIds(environmentFound, context)),
+                ]
+              : [newDevice.producerID],
+            allowedDeviceIds: [newDevice.id],
           })
-        },
-        deviceToParent
+        }
       )
     },
     moveDevice(root, args, context) {
@@ -2713,24 +2735,43 @@ const MutationResolver = (
       )
     },
     resetOnlineState(root, args, context) {
-      return authorized(
-        args.deviceId,
+      let id
+      if (!args.deviceId && context.auth.tokenType !== "DEVICE_ACCESS") {
+        reject("You need to pass a deviceId")
+      } else if (!args.deviceId) {
+        id = context.auth.deviceId
+      } else {
+        id = args.deviceId
+      }
+
+      return deviceAuthorized(
+        id,
         context,
-        context.dataLoaders.deviceLoaderById,
-        User,
         2,
-        async (resolve, reject, deviceFound, [_, environmentFound]) => {
+        async (resolve, reject, deviceFound) => {
           const newDevice = await deviceFound.update({ online: null })
           resolve(newDevice.dataValues)
 
-          touch(Environment, environmentFound.id, newDevice.updatedAt)
+          const environmentFound =
+            deviceFound.environmentId &&
+            (await context.dataLoaders.environmentLoaderById.load(
+              deviceFound.environmentId
+            ))
+
+          if (environmentFound)
+            touch(Environment, environmentFound.id, newDevice.updatedAt)
 
           pubsub.publish("deviceUpdated", {
             deviceUpdated: newDevice.dataValues,
-            userIds: await instanceToSharedIds(environmentFound, context),
+            userIds: environmentFound
+              ? [
+                  newDevice.producerId,
+                  ...(await instanceToSharedIds(environmentFound, context)),
+                ]
+              : [newDevice.producerID],
+            allowedDeviceIds: [deviceFound.id],
           })
-        },
-        deviceToParent
+        }
       )
     },
     value(root, args, context) {
@@ -3128,10 +3169,10 @@ const MutationResolver = (
             deviceFound.environmentId
           )
 
-          const deviceSharedIds = await instanceToSharedIds(
-            environmentFound,
-            context
-          )
+          const deviceSharedIds = [
+            deviceFound.producerId,
+            ...(await instanceToSharedIds(environmentFound, context)),
+          ]
 
           const newNotification = await Notification.create({
             ...args,
@@ -3185,6 +3226,7 @@ const MutationResolver = (
           pubsub.publish("notificationCreated", {
             notificationCreated: newNotification,
             userIds: deviceSharedIds,
+            allowedDeviceIds: [deviceFound.id],
           })
 
           // the notificationCount props are updated so send the device and environment subscriptions
@@ -3193,6 +3235,7 @@ const MutationResolver = (
               id: newNotification.deviceId,
             },
             userIds: deviceSharedIds,
+            allowedDeviceIds: [deviceFound.id],
           })
           pubsub.publish("environmentUpdated", {
             environmentUpdated: environmentFound.dataValues,
@@ -3267,36 +3310,16 @@ const MutationResolver = (
           touch(Environment, environmentFound.id, newNotification.updatedAt)
           touch(Device, newNotification.deviceId, newNotification.updatedAt)
 
-          const deviceSharedIds = await instanceToSharedIds(
-            environmentFound,
-            context
-          )
+          const deviceSharedIds = [
+            deviceFound.producerId,
+            ...(await instanceToSharedIds(environmentFound, context)),
+          ]
           pubsub.publish("notificationUpdated", {
             notificationUpdated: newNotification,
             userIds: deviceSharedIds,
+            allowedDeviceIds: [deviceFound.id],
           })
-          pubsub.publish("deviceUpdated", {
-            deviceUpdated: {
-              id: newNotification.deviceId,
-            },
-            userIds: deviceSharedIds,
-          })
-          pubsub.publish("environmentUpdated", {
-            environmentUpdated: {
-              id: environmentFound.id,
-            },
-            userIds: deviceSharedIds,
-          })
-          for (let userId of deviceSharedIds) {
-            pubsub.publish("userUpdated", {
-              userUpdated: {
-                id: userId,
-              },
-              userId: userId,
-            })
-          }
-        },
-        deviceToParent
+        }
       )
     },
     deleteNotification(root, args, context) {
@@ -3313,10 +3336,10 @@ const MutationResolver = (
           )
           resolve(args.id)
 
-          const deviceSharedIds = await instanceToSharedIds(
-            environmentFound,
-            context
-          )
+          const deviceSharedIds = [
+            deviceFound.producerId,
+            ...(await instanceToSharedIds(environmentFound, context)),
+          ]
           pubsub.publish("notificationDeleted", {
             notificationDeleted: args.id,
             userIds: deviceSharedIds,
@@ -3334,13 +3357,13 @@ const MutationResolver = (
               id: deviceFound.id,
             },
             userIds: deviceSharedIds,
+            allowedDeviceIds: [deviceFound.id],
           })
           pubsub.publish("environmentUpdated", {
             environmentUpdated: environmentFound.dataValues,
             userIds: await instanceToSharedIds(environmentFound, context),
           })
-        },
-        deviceToParent
+        }
       )
     },
     deleteValue: (root, args, context) =>
@@ -3381,6 +3404,7 @@ const MutationResolver = (
               id: valueFound.deviceId,
             },
             userIds: authorizedUsersIds,
+            allowedDeviceIds: [deviceFound.id],
           })
           if (environmentFound) {
             pubsub.publish("environmentUpdated", {
@@ -3637,9 +3661,11 @@ const MutationResolver = (
 
           resolve(args.id)
 
-          const environmentFound = await context.dataLoaders.environmentLoaderById.load(
-            deviceFound.environmentId
-          )
+          const environmentFound =
+            deviceFound.environmentId &&
+            (await context.dataLoaders.environmentLoaderById.load(
+              deviceFound.environmentId
+            ))
           deviceFound.increment({ storageUsed: -1 })
           if (environmentFound) touch(Environment, environmentFound.id)
           touch(Device, plotNodeFound.deviceId)
@@ -3662,6 +3688,7 @@ const MutationResolver = (
               id: plotNodeFound.deviceId,
             },
             userIds: authorizedUsersIds,
+            allowedDeviceIds: [deviceFound.id],
           })
           if (environmentFound) {
             pubsub.publish("environmentUpdated", {
@@ -3688,9 +3715,11 @@ const MutationResolver = (
 
           resolve(args.id)
 
-          const environmentFound = await context.dataLoaders.environmentLoaderById.load(
-            deviceFound.environmentId
-          )
+          const environmentFound =
+            deviceFound.environmentId &&
+            (await context.dataLoaders.environmentLoaderById.load(
+              deviceFound.environmentId
+            ))
           deviceFound.increment({ storageUsed: -1 })
           touch(Environment, environmentFound.id)
           touch(Device, plotNodeFound.deviceId)
@@ -3713,6 +3742,7 @@ const MutationResolver = (
               id: plotNodeFound.deviceId,
             },
             userIds: authorizedUsersIds,
+            allowedDeviceIds: [deviceFound.producerId],
           })
           if (environmentFound) {
             pubsub.publish("environmentUpdated", {

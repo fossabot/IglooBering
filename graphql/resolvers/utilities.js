@@ -21,7 +21,7 @@ import fortuna from "javascript-fortuna"
 import AWS from "aws-sdk"
 import webpush from "web-push"
 import { Op } from "sequelize"
-import { isNullOrUndefined } from "util"
+import { isNullOrUndefined, isNull } from "util"
 
 webpush.setVapidDetails(
   "http://igloo.witlab.io/",
@@ -289,13 +289,17 @@ export function CreateGenericValue(
         pubsub.publish("valueCreated", {
           valueCreated: resolveObj,
           userIds: deviceFound.environmentId
-            ? await instanceToSharedIds(
-                await context.dataLoaders.environmentLoaderById.load(
-                  deviceFound.environmentId
-                ),
-                context
-              )
-            : [],
+            ? [
+                deviceFound.producerId,
+                ...(await instanceToSharedIds(
+                  await context.dataLoaders.environmentLoaderById.load(
+                    deviceFound.environmentId
+                  ),
+                  context
+                )),
+              ]
+            : [deviceFound.producerId],
+          allowedDeviceIds: [deviceFound.id],
         })
       }
     )
@@ -1001,39 +1005,44 @@ export function deviceAuthorized(
   id,
   context,
   authorizationRequired,
-  callback,
+  callback = (resolve, reject, found, userFound) => {},
   acceptedTokenTypes = ["TEMPORARY", "PERMANENT", "DEVICE_ACCESS"]
 ) {
-  return authenticated(context, async (resolve, reject) => {
-    const found = await context.dataLoaders.deviceLoaderById.load(id)
+  return authenticated(
+    context,
+    async (resolve, reject) => {
+      const found = await context.dataLoaders.deviceLoaderById.load(id)
 
-    if (!found) {
-      reject("The requested resource does not exist")
-    } else if (found.producerId === context.auth.userId) {
-      return callback(
-        resolve,
-        reject,
-        found,
-        await context.dataLoaders.userLoaderById.load(context.auth.userId)
-      )
-    } else if (
-      context.auth.tokenType === "DEVICE_ACCESS" &&
-      found.id === context.auth.deviceId
-    ) {
-      return callback(resolve, reject, found)
-    } else {
-      return authorized(
-        id,
-        context,
-        context.dataLoaders.deviceLoaderById,
-        null,
-        authorizationRequired,
-        callback,
-        deviceToParent,
-        acceptedTokenTypes
-      )(resolve, reject)
-    }
-  })
+      if (!found) {
+        reject("The requested resource does not exist")
+      } else if (found.producerId === context.auth.userId) {
+        return callback(
+          resolve,
+          reject,
+          found,
+          await context.dataLoaders.userLoaderById.load(context.auth.userId)
+        )
+      } else if (
+        context.auth.tokenType === "DEVICE_ACCESS" &&
+        found.id === context.auth.deviceId
+      ) {
+        return callback(resolve, reject, found, null)
+      } else {
+        return authorized(
+          id,
+          context,
+          context.dataLoaders.disNulleviceLoaderById,
+          null,
+          authorizationRequired,
+          (resolve, reject, found, _, userFound) =>
+            callback(resolve, reject, found, userFound),
+          deviceToParent,
+          acceptedTokenTypes
+        )(resolve, reject)
+      }
+    },
+    acceptedTokenTypes
+  )
 }
 export function producerAuthorized(id, context, callback) {
   return authenticated(context, async (resolve, reject) => {

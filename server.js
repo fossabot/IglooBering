@@ -69,6 +69,7 @@ httpServer.listen(GRAPHQL_PORT, () => {
           pubsub.publish("deviceUpdated", {
             deviceUpdated: { id: deviceId },
             userIds,
+            allowedDeviceIds: [deviceId],
           })
         }
       },

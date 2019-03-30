@@ -415,7 +415,7 @@ type Mutation {
 
   moveDevice(deviceId: ID!, newEnvironmentId: ID!): Device
 
-  resetOnlineState(deviceId: ID!): Device
+  resetOnlineState(deviceId: ID): Device
 
   # changes floatValue's data
   floatValue(
