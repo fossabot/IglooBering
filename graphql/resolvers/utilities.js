@@ -1015,7 +1015,7 @@ export function deviceAuthorized(
         return authorized(
           id,
           context,
-          context.dataLoaders.disNulleviceLoaderById,
+          context.dataLoaders.deviceLoaderById,
           null,
           authorizationRequired,
           (resolve, reject, found, _, userFound) =>

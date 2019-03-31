@@ -74,39 +74,8 @@ describe("FloatValue", () => {
 
     expect(deviceFound).toMatchObject({ id: mockFloatValueData[0].deviceId });
   });
-  test("environment is resolved correctly", async () => {
-    const environmentFound = await new Promise((resolve, reject) => {
-      FloatValueResolver.environment(
-        { id: "mockFloatValueId" },
-        {},
-        { auth: { userId: "mockUserId", tokenType: "TEMPORARY" }, ...mockContext }
-      )(resolve, reject);
-    });
 
-    expect(environmentFound).toMatchObject({ id: "mockEnvironmentId" });
-  });
-  test("myRole is resolved correctly", async () => {
-    const roleFound = await new Promise((resolve, reject) => {
-      FloatValueResolver.myRole(
-        { id: "mockFloatValueId" },
-        {},
-        { auth: { userId: "mockUserId", tokenType: "TEMPORARY" }, ...mockContext }
-      )(resolve, reject);
-    });
-
-    expect(roleFound).toEqual("OWNER");
-    const roleFound2 = await new Promise((resolve, reject) => {
-      FloatValueResolver.myRole(
-        { id: "mockFloatValueId" },
-        {},
-        { auth: { userId: "mockUserId3", tokenType: "TEMPORARY" }, ...mockContext }
-      )(resolve, reject);
-    });
-
-    expect(roleFound2).toEqual("ADMIN");
-  });
-
-  const allProps = [...scalarProps, "device", "environment", "myRole"];
+  const allProps = [...scalarProps, "device"];
 
   allProps.forEach(prop => {
     test(`${prop} fails if unauthenticated`, testFloatValueUnauthenticated(prop));

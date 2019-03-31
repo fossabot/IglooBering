@@ -70,39 +70,8 @@ describe("BooleanValue", () => {
 
     expect(deviceFound).toMatchObject({ id: mockBooleanValueData[0].deviceId });
   });
-  test("environment is resolved correctly", async () => {
-    const environmentFound = await new Promise((resolve, reject) => {
-      BooleanValueResolver.environment(
-        { id: "mockBooleanValueId" },
-        {},
-        { auth: { userId: "mockUserId", tokenType: "TEMPORARY" }, ...mockContext }
-      )(resolve, reject);
-    });
 
-    expect(environmentFound).toMatchObject({ id: "mockEnvironmentId" });
-  });
-  test("myRole is resolved correctly", async () => {
-    const roleFound = await new Promise((resolve, reject) => {
-      BooleanValueResolver.myRole(
-        { id: "mockBooleanValueId" },
-        {},
-        { auth: { userId: "mockUserId", tokenType: "TEMPORARY" }, ...mockContext }
-      )(resolve, reject);
-    });
-
-    expect(roleFound).toEqual("OWNER");
-    const roleFound2 = await new Promise((resolve, reject) => {
-      BooleanValueResolver.myRole(
-        { id: "mockBooleanValueId" },
-        {},
-        { auth: { userId: "mockUserId3", tokenType: "TEMPORARY" }, ...mockContext }
-      )(resolve, reject);
-    });
-
-    expect(roleFound2).toEqual("ADMIN");
-  });
-
-  const allProps = [...scalarProps, "device", "environment", "myRole"];
+  const allProps = [...scalarProps, "device"];
 
   allProps.forEach(prop => {
     test(`${prop} fails if unauthenticated`, testBooleanValueUnauthenticated(prop));

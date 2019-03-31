@@ -53,29 +53,13 @@ describe("Notification", () => {
 
     done();
   });
-  test("environment is resolved correctly", async done => {
-    const environmentFound = await new Promise((resolve, reject) => {
-      NotificationResolver.environment(
-        { id: "mockNotificationId" },
-        {},
-        { auth: { userId: "mockUserId", tokenType: "TEMPORARY" }, ...mockContext }
-      )(resolve, reject);
-    });
-
-    expect(environmentFound).toMatchObject({ id: mockNotificationData[0].environmentId });
-
-    done();
-  });
-
   test("content fails if unauthenticated", testWrongId("content"));
   test("date fails if unauthenticated", testWrongId("date"));
   test("read fails if unauthenticated", testWrongId("read"));
-  test("environment fails if unauthenticated", testWrongId("environment"));
   test("device fails if unauthenticated", testWrongId("device"));
 
   test("content fails if unauthenticated", testUnauthenticated("content"));
   test("date fails if unauthenticated", testUnauthenticated("date"));
   test("read fails if unauthenticated", testUnauthenticated("read"));
-  test("environment fails if unauthenticated", testUnauthenticated("environment"));
   test("device fails if unauthenticated", testUnauthenticated("device"));
 });

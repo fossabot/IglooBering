@@ -275,8 +275,6 @@ const UserResolver = ({
         const whereQuery = parseEnvironmentFilter(args.filter)
         const allowedRoles = parseRoleFilter(args.filter.myRole)
 
-        console.log(allowedRoles)
-
         const limitQuery = args.limit
           ? args.offset
             ? `LIMIT ${args.limit} OFFSET ${args.offset}`

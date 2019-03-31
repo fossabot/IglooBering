@@ -75,17 +75,6 @@ describe("PlotValue", () => {
 
     expect(deviceFound).toMatchObject({ id: mockPlotValueData[0].deviceId });
   });
-  test("environment is resolved correctly", async () => {
-    const environmentFound = await new Promise((resolve, reject) => {
-      PlotValueResolver.environment(
-        { id: "mockPlotValueId" },
-        {},
-        { auth: { userId: "mockUserId", tokenType: "TEMPORARY" }, ...mockContext }
-      )(resolve, reject);
-    });
-
-    expect(environmentFound).toMatchObject({ id: "mockEnvironmentId" });
-  });
   test("value is resolved correctly", async () => {
     const valueFound = await new Promise((resolve, reject) => {
       PlotValueResolver.value(
@@ -113,28 +102,8 @@ describe("PlotValue", () => {
 
     expect(nodeFound.id).toEqual("mockPlotNodeId2");
   });
-  test("myRole is resolved correctly", async () => {
-    const roleFound = await new Promise((resolve, reject) => {
-      PlotValueResolver.myRole(
-        { id: "mockPlotValueId" },
-        {},
-        { auth: { userId: "mockUserId", tokenType: "TEMPORARY" }, ...mockContext }
-      )(resolve, reject);
-    });
 
-    expect(roleFound).toEqual("OWNER");
-    const roleFound2 = await new Promise((resolve, reject) => {
-      PlotValueResolver.myRole(
-        { id: "mockPlotValueId" },
-        {},
-        { auth: { userId: "mockUserId3", tokenType: "TEMPORARY" }, ...mockContext }
-      )(resolve, reject);
-    });
-
-    expect(roleFound2).toEqual("ADMIN");
-  });
-
-  const allProps = [...scalarProps, "device", "environment", "myRole", "value", "lastNode"];
+  const allProps = [...scalarProps, "device", "value", "lastNode"];
 
   allProps.forEach(prop => {
     test(`${prop} fails if unauthenticated`, testPlotValueUnauthenticated(prop));

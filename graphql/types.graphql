@@ -963,7 +963,6 @@ type PlotNode {
   id: ID!
   device: Device! @cost(complexity: 1)
   plot: PlotValue! @cost(complexity: 1)
-  user: User! @cost(complexity: 1)
   timestamp: DateTime!
   value: Float!
 }
@@ -972,7 +971,6 @@ type CategoryPlotNode {
   id: ID!
   device: Device! @cost(complexity: 1)
   plot: CategoryPlotValue! @cost(complexity: 1)
-  user: User! @cost(complexity: 1)
   timestamp: DateTime!
   value: String!
 }
@@ -981,7 +979,6 @@ interface Value {
   id: ID!
   createdAt: DateTime!
   updatedAt: DateTime!
-  myRole: RoleExtended!
   device: Device!
   visibility: ValueVisibility!
   cardSize: CardSize!
@@ -993,7 +990,6 @@ type FloatValue implements Value {
   id: ID!
   createdAt: DateTime!
   updatedAt: DateTime!
-  myRole: RoleExtended!
   device: Device! @cost(complexity: 1)
   permission: ValuePermission!
   visibility: ValueVisibility!
@@ -1013,7 +1009,6 @@ type StringValue implements Value {
   id: ID!
   createdAt: DateTime!
   updatedAt: DateTime!
-  myRole: RoleExtended!
   device: Device! @cost(complexity: 1)
   permission: ValuePermission!
   visibility: ValueVisibility!
@@ -1029,7 +1024,6 @@ type PlotValue implements Value {
   id: ID!
   createdAt: DateTime!
   updatedAt: DateTime!
-  myRole: RoleExtended!
   device: Device! @cost(complexity: 1)
   visibility: ValueVisibility!
   unitOfMeasurement: String
@@ -1051,7 +1045,6 @@ type CategoryPlotValue implements Value {
   id: ID!
   createdAt: DateTime!
   updatedAt: DateTime!
-  myRole: RoleExtended!
   device: Device! @cost(complexity: 1)
   visibility: ValueVisibility!
   value(limit: PositiveInt!, offset: Int): [CategoryPlotNode!]!
@@ -1067,7 +1060,6 @@ type BooleanValue implements Value {
   id: ID!
   createdAt: DateTime!
   updatedAt: DateTime!
-  myRole: RoleExtended!
   device: Device! @cost(complexity: 1)
   permission: ValuePermission!
   visibility: ValueVisibility!
