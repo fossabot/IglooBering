@@ -64,7 +64,7 @@ import fortuna from "javascript-fortuna"
 import AWS from "aws-sdk"
 import webpush from "web-push"
 import { Op } from "sequelize"
-import { isNullOrUndefined } from "util"
+import { isNullOrUndefined, isNull } from "util"
 
 webpush.setVapidDetails(
   "http://igloo.witlab.io/",
@@ -296,7 +296,6 @@ export function CreateGenericValue(
 
         const newValue = await Model.create({
           ...args,
-          environmentId: deviceFound.environmentId,
           deviceId: deviceFound.id,
           cardSize: args.cardSize || "NORMAL",
           visibility: isNullOrUndefined(args.visibility)
@@ -332,13 +331,17 @@ export function CreateGenericValue(
         pubsub.publish("valueCreated", {
           valueCreated: resolveObj,
           userIds: deviceFound.environmentId
-            ? await instanceToSharedIds(
-                await context.dataLoaders.environmentLoaderById.load(
-                  deviceFound.environmentId
-                ),
-                context
-              )
-            : [],
+            ? [
+                deviceFound.producerId,
+                ...(await instanceToSharedIds(
+                  await context.dataLoaders.environmentLoaderById.load(
+                    deviceFound.environmentId
+                  ),
+                  context
+                )),
+              ]
+            : [deviceFound.producerId],
+          allowedDeviceIds: [deviceFound.id],
         })
       }
     )
@@ -592,7 +595,7 @@ export const findAllValues = (
 }
 
 // try refactoring this with firstResolve
-export const findValue = (context, id, userFound) => {
+export const findValue = (id, context) => {
   const {
     booleanValueLoaderById,
     floatValueLoaderById,
@@ -613,22 +616,7 @@ export const findValue = (context, id, userFound) => {
     stringValue,
     plotValue,
     categoryPlotValue,
-  ])
-    .then(values => values.reduce((acc, val) => val || acc, null))
-    .then(async value => {
-      if (!value) throw new Error("The requested resource does not exist")
-      else {
-        const environmentFound = await environmentLoaderById.load(
-          value.environmentId
-        )
-
-        if (
-          (await authorizationLevel(environmentFound, userFound, context)) &lt; 1
-        ) {
-          throw new Error("You are not allowed to perform this operation")
-        } else return value
-      }
-    })
+  ]).then(values => values.reduce((acc, val) => val || acc, null))
 }
 
 export const socketToDeviceMap = {}
@@ -1044,39 +1032,44 @@ export function deviceAuthorized(
   id,
   context,
   authorizationRequired,
-  callback,
+  callback = (resolve, reject, found, userFound) => {},
   acceptedTokenTypes = ["TEMPORARY", "PERMANENT", "DEVICE_ACCESS"]
 ) {
-  return authenticated(context, async (resolve, reject) => {
-    const found = await context.dataLoaders.deviceLoaderById.load(id)
+  return authenticated(
+    context,
+    async (resolve, reject) => {
+      const found = await context.dataLoaders.deviceLoaderById.load(id)
 
-    if (!found) {
-      reject("The requested resource does not exist")
-    } else if (found.producerId === context.auth.userId) {
-      return callback(
-        resolve,
-        reject,
-        found,
-        await context.dataLoaders.userLoaderById.load(context.auth.userId)
-      )
-    } else if (
-      context.auth.tokenType === "DEVICE_ACCESS" &amp;&amp;
-      found.id === context.auth.deviceId
-    ) {
-      return callback(resolve, reject, found)
-    } else {
-      return authorized(
-        id,
-        context,
-        context.dataLoaders.deviceLoaderById,
-        null,
-        authorizationRequired,
-        callback,
-        deviceToParent,
-        acceptedTokenTypes
-      )(resolve, reject)
-    }
-  })
+      if (!found) {
+        reject("The requested resource does not exist")
+      } else if (found.producerId === context.auth.userId) {
+        return callback(
+          resolve,
+          reject,
+          found,
+          await context.dataLoaders.userLoaderById.load(context.auth.userId)
+        )
+      } else if (
+        context.auth.tokenType === "DEVICE_ACCESS" &amp;&amp;
+        found.id === context.auth.deviceId
+      ) {
+        return callback(resolve, reject, found, null)
+      } else {
+        return authorized(
+          id,
+          context,
+          context.dataLoaders.deviceLoaderById,
+          null,
+          authorizationRequired,
+          (resolve, reject, found, _, userFound) =>
+            callback(resolve, reject, found, userFound),
+          deviceToParent,
+          acceptedTokenTypes
+        )(resolve, reject)
+      }
+    },
+    acceptedTokenTypes
+  )
 }
 export function producerAuthorized(id, context, callback) {
   return authenticated(context, async (resolve, reject) => {
@@ -1108,75 +1101,73 @@ export const deviceToParent = ({
 }
 
 export const valueToParent = ({
-  dataLoaders: { environmentLoaderById },
+  dataLoaders: { environmentLoaderById, deviceLoaderById },
 }) => async valueFound => {
-  if (!valueFound.environmentId) return null
-  const environmentFound = await environmentLoaderById.load(
-    valueFound.environmentId
-  )
+  const environmentId = await deviceLoaderById.load(valueFound.deviceId)
+  if (!environmentId) return null
+  const environmentFound = await environmentLoaderById.load(environmentId)
 
   return environmentFound
 }
 
-export const authorizedValue = (id, context, Values, callbackFunc) =>
-  authenticated(context, async (resolve, reject) => {
-    const NOT_ALLOWED = "You are not allowed to perform this operation"
-    const NOT_EXIST = "The requested resource does not exist"
-    const models = Object.values(Values)
+export const producerAuthorizedValue = (
+  id,
+  context,
+  callbackFunc = (
+    resolve,
+    reject,
+    valueFound,
+    deviceFound,
+    environmentFound
+  ) => {}
+) => async (resolve, reject) => {
+  const valueFound = await findValue(id, context)
+  if (!valueFound) {
+    reject("The requested resource does not exist")
+  }
 
-    const findPromises = models.map(async Model => {
-      const resourceFound = await Model.find({
-        where: { id },
-      })
+  return producerAuthorized(
+    valueFound.deviceId,
+    context,
+    async (resolve, reject, deviceFound) => {
+      const environmentFound =
+        deviceFound.environmentId &amp;&amp;
+        (await context.dataLoaders.environmentLoaderById.load(
+          deviceFound.environmentId
+        ))
 
-      if (!resourceFound) {
-        throw new Error(NOT_EXIST)
-      } else {
-        const environmentFound = await context.dataLoaders.environmentLoaderById.load(
-          resourceFound.environmentId
-        )
-        const deviceFound = await context.dataLoaders.deviceLoaderById.load(
-          resourceFound.deviceId
-        )
-
-        if (
-          deviceFound.producerId === context.auth.userId ||
-          (context.auth.tokenType === "DEVICE_ACCESS" &amp;&amp;
-            deviceFound.id === context.auth.deviceId)
-        ) {
-          resourceFound.Model = Model
-          return [resourceFound, deviceFound, environmentFound]
-        } else {
-          throw new Error(NOT_ALLOWED)
-        }
-      }
-    })
-    // race all the models to find the looked for id, if a value is found
-    // it is returned otherwise the correct error is returned
-    const resourcesFound = await firstResolve(findPromises).catch(e => {
-      // choose the correct error, because normally most models
-      // will reject with NOT_EXIST, simply because the value
-      // looked for is of another type
-
-      reject(
-        e.reduce(
-          (acc, val) =>
-            acc === NOT_ALLOWED || val === NOT_ALLOWED
-              ? NOT_ALLOWED
-              : NOT_EXIST,
-          NOT_EXIST
-        )
+      return callbackFunc(
+        resolve,
+        reject,
+        valueFound,
+        deviceFound,
+        environmentFound
       )
-    })
+    }
+  )(resolve, reject)
+}
 
-    return callbackFunc(
-      resolve,
-      reject,
-      resourcesFound[0],
-      resourcesFound[1],
-      resourcesFound[2]
-    )
-  })
+export const valueAuthorized = (
+  id,
+  context,
+  authorizationRequired,
+  callback = (resolve, reject, valueFound, deviceFound, userFound) => {},
+  acceptedTokenTypes
+) => async (resolve, reject) => {
+  const valueFound = await findValue(id, context)
+  if (!valueFound) {
+    reject("The requested resource does not exist")
+  }
+
+  return deviceAuthorized(
+    valueFound.deviceId,
+    context,
+    authorizationRequired,
+    (resolve, reject, deviceFound, userFound) =>
+      callback(resolve, reject, valueFound, deviceFound, userFound),
+    acceptedTokenTypes
+  )(resolve, reject)
+}
 
 export const instanceToRole = async (instance, userFound, context) => {
   if (!userFound) return null
@@ -1493,9 +1484,9 @@ export const parseStringFilter = filter => {
   filter.hasOwnProperty = Object.prototype.hasOwnProperty
 
   if (filter.hasOwnProperty("equals")) parsedFilter[Op.eq] = filter.equals
-  else if (filter.hasOwnProperty(similarTo))
+  else if (filter.hasOwnProperty("similarTo"))
     parsedFilter[Op.regexp] = filter.similarTo
-  else if (filter.hasOwnProperty(like)) parsedFilter[Op.like] = filter.like
+  else if (filter.hasOwnProperty("like")) parsedFilter[Op.like] = filter.like
 
   return parsedFilter
 }
@@ -1532,7 +1523,7 @@ export const parseDateFilter = parseFloatFilter
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Fri Mar 29 2019 19:51:47 GMT+0000 (UTC) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Sun Mar 31 2019 10:48:10 GMT+0000 (UTC) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
 <script>prettyPrint();</script>
