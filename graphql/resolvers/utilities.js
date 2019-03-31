@@ -1060,7 +1060,7 @@ export const deviceToParent = ({
 export const valueToParent = ({
   dataLoaders: { environmentLoaderById, deviceLoaderById },
 }) => async valueFound => {
-  const environmentId = await deviceLoaderById.load(valueFound.deviceId)
+  const { environmentId } = await deviceLoaderById.load(valueFound.deviceId)
   if (!environmentId) return null
   const environmentFound = await environmentLoaderById.load(environmentId)
 

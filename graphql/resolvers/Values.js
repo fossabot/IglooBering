@@ -40,6 +40,24 @@ const GenericResolver = (
         resolve({ id: valueFound.deviceId })
       }
     ),
+  myRole: (root, args, context) =>
+    authorized(
+      root.id,
+      context,
+      context.dataLoaders[loaderName],
+      User,
+      1,
+      async (resolve, reject, valueFound, [_, environmentFound], userFound) => {
+        const myRole = await instanceToRole(
+          environmentFound,
+          userFound,
+          context
+        )
+
+        resolve(myRole)
+      },
+      valueToParent
+    ),
 })
 
 const BooleanValueResolver = GenericResolver
