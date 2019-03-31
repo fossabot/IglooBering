@@ -560,6 +560,21 @@ type Mutation {
   deleteCategoryPlotNode(id: ID!): ID
 }
 
+input EnvironmentFilterExtended {
+  OR: [EnvironmentFilter!]
+  AND: [EnvironmentFilter!]
+  NOT: EnvironmentFilter
+  name: StringFilter
+  muted: Boolean
+  myRole: RoleFilter
+}
+
+input RoleFilter {
+  is: RoleExtended
+  isNot: RoleExtended
+  containedIn: [RoleExtended!]
+}
+
 input EnvironmentFilter {
   OR: [EnvironmentFilter!]
   AND: [EnvironmentFilter!]
@@ -768,7 +783,7 @@ type User {
     sortDirection: SORT_DIRECTION
     limit: PositiveInt!
     offset: Int
-    filter: EnvironmentFilter
+    filter: EnvironmentFilterExtended
   ): [Environment!]! @cost(complexity: 1, multipliers: ["limit"])
   developerDevices(
     filter: DeveloperDeviceFilter

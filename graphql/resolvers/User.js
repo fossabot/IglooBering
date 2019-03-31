@@ -258,7 +258,24 @@ const UserResolver = ({
           return filtersStack.filter(query => query !== "").join(" AND ")
         }
 
+        function parseRoleFilter(filter) {
+          let allowedRoles = ["OWNER", "ADMIN", "EDITOR", "SPECTATOR"]
+          if (!filter) return allowedRoles
+
+          filter.hasOwnProperty = Object.prototype.hasOwnProperty
+          if (filter.hasOwnProperty("is")) allowedRoles = [filter.is]
+          else if (filter.hasOwnProperty("isNot"))
+            allowedRoles = allowedRoles.filter(role => role !== filter.isNot)
+          else if (filter.hasOwnProperty("containedIn"))
+            allowedRoles = filter.containedIn
+
+          return allowedRoles
+        }
+
         const whereQuery = parseEnvironmentFilter(args.filter)
+        const allowedRoles = parseRoleFilter(args.filter.myRole)
+
+        console.log(allowedRoles)
 
         const limitQuery = args.limit
           ? args.offset
@@ -281,15 +298,44 @@ const UserResolver = ({
           FROM
             public."users" 
             
-            LEFT JOIN public."environmentAdmins" ON public."environmentAdmins"."userId" = public."users".id
-            LEFT JOIN public."environmentEditors" ON public."environmentEditors"."userId" = public."users".id
-            LEFT JOIN public."environmentSpectators" ON public."environmentSpectators"."userId" = public."users".id
+            ${
+              allowedRoles.indexOf("ADMIN") !== -1
+                ? `LEFT JOIN public."environmentAdmins" ON public."environmentAdmins"."userId" = public."users".id`
+                : ""
+            }
+            ${
+              allowedRoles.indexOf("EDITOR") !== -1
+                ? `LEFT JOIN public."environmentEditors" ON public."environmentEditors"."userId" = public."users".id`
+                : ""
+            }
+            ${
+              allowedRoles.indexOf("SPECTATOR") !== -1
+                ? `LEFT JOIN public."environmentSpectators" ON public."environmentSpectators"."userId" = public."users".id`
+                : ""
+            }
           
             LEFT JOIN public."environments" ON 
-              public."environments"."ownerId" = public."users".id OR
-              public."environments"."id" = public."environmentAdmins"."environmentId" OR
-              public."environments"."id" = public."environmentEditors"."environmentId" OR
-              public."environments"."id" = public."environmentSpectators"."environmentId"
+            ${
+              allowedRoles.indexOf("OWNER") !== -1
+                ? `public."environments"."ownerId" = public."users".id OR`
+                : ""
+            }
+            ${
+              allowedRoles.indexOf("ADMIN") !== -1
+                ? `public."environments"."id" = public."environmentAdmins"."environmentId" OR`
+                : ""
+            }
+            ${
+              allowedRoles.indexOf("EDITOR") !== -1
+                ? `public."environments"."id" = public."environmentEditors"."environmentId" OR`
+                : ""
+            }
+            ${
+              allowedRoles.indexOf("SPECTATOR") !== -1
+                ? `public."environments"."id" = public."environmentSpectators"."environmentId" OR`
+                : ""
+            }
+              false
           
           WHERE
             (public."users".id = '${context.auth.userId}')
