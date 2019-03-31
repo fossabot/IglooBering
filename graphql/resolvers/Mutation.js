@@ -11,7 +11,8 @@ import {
   sendTokenCreatedEmail,
   authorized,
   deviceToParent,
-  authorizedValue,
+  producerAuthorizedValue,
+  valueAuthorized,
   instanceToSharedIds,
   inheritAuthorized,
   randomEnvironmentPicture,
@@ -2793,16 +2794,10 @@ const MutationResolver = (
       )
     },
     value(root, args, context) {
-      return authorizedValue(
+      return valueAuthorized(
         args.id,
         context,
-        {
-          FloatValue,
-          StringValue,
-          BooleanValue,
-          PlotValue,
-          CategoryPlotValue,
-        },
+        2,
         async (resolve, reject, valueFound, deviceFound, environmentFound) => {
           const valueType = valueFound._modelOptions.name.singular
           if (args.name === null || args.name === "") {
@@ -2825,15 +2820,9 @@ const MutationResolver = (
           resolve(newValue)
 
           if (environmentFound) {
-            Environment.update(
-              { updatedAt: newValue.updatedAt },
-              { where: { id: environmentFound.id } }
-            )
+            touch(Environment, environmentFound.id, newValue.updatedAt)
           }
-          Device.update(
-            { updatedAt: newValue.updatedAt },
-            { where: { id: valueFound.deviceId } }
-          )
+          touch(Device, valueFound.deviceId, newValue.updatedAt)
 
           pubsub.publish("valueUpdated", {
             valueUpdated: newValue,
@@ -3397,16 +3386,9 @@ const MutationResolver = (
       )
     },
     deleteValue: (root, args, context) =>
-      authorizedValue(
+      producerAuthorizedValue(
         args.id,
         context,
-        {
-          FloatValue,
-          StringValue,
-          BooleanValue,
-          PlotValue,
-          CategoryPlotValue,
-        },
         async (resolve, reject, valueFound, deviceFound, environmentFound) => {
           const authorizedUsersIds = environmentFound
             ? [
@@ -3415,7 +3397,39 @@ const MutationResolver = (
               ]
             : [deviceFound.producerId]
 
-          // TODO: if value is plot remove nodes
+          // remove linked plotNodes
+          const plotNodesFound = await PlotNode.findAll({
+            where: { plotId: args.id },
+          })
+          const categoryPlotNodesFound = await CategoryPlotNode.findAll({
+            where: { plotId: args.id },
+          })
+
+          const plotNodePromises = plotNodesFound.map(async plotNode => {
+            plotNode.destroy()
+
+            pubsub.publish("plotNodeDeleted", {
+              plotNodeDeleted: plotNode.id,
+              userIds: authorizedUsersIds,
+              source: plotNode,
+              allowedDeviceIds: [deviceFound.id],
+            })
+          })
+          const categoryPlotNodePromises = categoryPlotNodesFound.map(
+            async plotNode => {
+              plotNode.destroy()
+
+              pubsub.publish("categoryPlotNodeDeleted", {
+                categoryPlotNodeDeleted: plotNode.id,
+                userIds: authorizedUsersIds,
+                source: plotNode,
+                allowedDeviceIds: [deviceFound.id],
+              })
+            }
+          )
+
+          await Promise.all([...plotNodePromises, ...categoryPlotNodePromises])
+
           await valueFound.destroy()
 
           pubsub.publish("valueDeleted", {

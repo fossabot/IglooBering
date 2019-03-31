@@ -552,7 +552,7 @@ export const findAllValues = (
 }
 
 // try refactoring this with firstResolve
-export const findValue = (context, id, userFound) => {
+export const findValue = (id, context) => {
   const {
     booleanValueLoaderById,
     floatValueLoaderById,
@@ -573,22 +573,7 @@ export const findValue = (context, id, userFound) => {
     stringValue,
     plotValue,
     categoryPlotValue,
-  ])
-    .then(values => values.reduce((acc, val) => val || acc, null))
-    .then(async value => {
-      if (!value) throw new Error("The requested resource does not exist")
-      else {
-        const environmentFound = await environmentLoaderById.load(
-          value.environmentId
-        )
-
-        if (
-          (await authorizationLevel(environmentFound, userFound, context)) < 1
-        ) {
-          throw new Error("You are not allowed to perform this operation")
-        } else return value
-      }
-    })
+  ]).then(values => values.reduce((acc, val) => val || acc, null))
 }
 
 export const socketToDeviceMap = {}
@@ -1082,10 +1067,9 @@ export const valueToParent = ({
   return environmentFound
 }
 
-export const authorizedValue = (
+export const producerAuthorizedValue = (
   id,
   context,
-  Values,
   callbackFunc = (
     resolve,
     reject,
@@ -1093,68 +1077,54 @@ export const authorizedValue = (
     deviceFound,
     environmentFound
   ) => {}
-) =>
-  authenticated(context, async (resolve, reject) => {
-    const NOT_ALLOWED = "You are not allowed to perform this operation"
-    const NOT_EXIST = "The requested resource does not exist"
-    const models = Object.values(Values)
+) => async (resolve, reject) => {
+  const valueFound = await findValue(id, context)
+  if (!valueFound) {
+    reject("The requested resource does not exist")
+  }
 
-    const findPromises = models.map(async Model => {
-      const resourceFound = await Model.find({
-        where: { id },
-      })
+  return producerAuthorized(
+    valueFound.deviceId,
+    context,
+    async (resolve, reject, deviceFound) => {
+      const environmentFound =
+        deviceFound.environmentId &&
+        (await context.dataLoaders.environmentLoaderById.load(
+          deviceFound.environmentId
+        ))
 
-      if (!resourceFound) {
-        throw new Error(NOT_EXIST)
-      } else {
-        const environmentFound = await context.dataLoaders.environmentLoaderById.load(
-          resourceFound.environmentId
-        )
-        const deviceFound = await context.dataLoaders.deviceLoaderById.load(
-          resourceFound.deviceId
-        )
+      return callbackFunc(
+        resolve,
+        reject,
+        valueFound,
+        deviceFound,
+        environmentFound
+      )
+    }
+  )(resolve, reject)
+}
 
-        if (
-          deviceFound.producerId === context.auth.userId ||
-          (context.auth.tokenType === "DEVICE_ACCESS" &&
-            deviceFound.id === context.auth.deviceId)
-        ) {
-          resourceFound.Model = Model
-          return [resourceFound, deviceFound, environmentFound]
-        } else {
-          throw new Error(NOT_ALLOWED)
-        }
-      }
-    })
+export const valueAuthorized = (
+  id,
+  context,
+  authorizationRequired,
+  callback = (resolve, reject, valueFound, deviceFound, userFound) => {},
+  acceptedTokenTypes
+) => async (resolve, reject) => {
+  const valueFound = await findValue(id, context)
+  if (!valueFound) {
+    reject("The requested resource does not exist")
+  }
 
-    // race all the models to find the looked for id, if a value is found
-    // it is returned otherwise the correct error is returned
-    firstResolve(findPromises)
-      .then(resourcesFound => {
-        callbackFunc(
-          resolve,
-          reject,
-          resourcesFound[0],
-          resourcesFound[1],
-          resourcesFound[2]
-        )
-      })
-      .catch(e => {
-        // choose the correct error, because normally most models
-        // will reject with NOT_EXIST, simply because the value
-        // looked for is of another type
-
-        reject(
-          e.reduce(
-            (acc, val) =>
-              acc === NOT_ALLOWED || val === NOT_ALLOWED
-                ? NOT_ALLOWED
-                : NOT_EXIST,
-            NOT_EXIST
-          )
-        )
-      })
-  })
+  return deviceAuthorized(
+    valueFound.deviceId,
+    context,
+    authorizationRequired,
+    (resolve, reject, deviceFound, userFound) =>
+      callback(resolve, reject, valueFound, deviceFound, userFound),
+    acceptedTokenTypes
+  )(resolve, reject)
+}
 
 export const instanceToRole = async (instance, userFound, context) => {
   if (!userFound) return null
