@@ -9,6 +9,8 @@ import {
   valueToParent,
   authorizationLevel,
   deviceAuthorized,
+  valueAuthorized,
+  deviceInheritAuthorized,
 } from "./utilities"
 const { Fido2Lib } = require("fido2-lib-clone")
 import jwt from "jwt-simple"
@@ -84,75 +86,101 @@ const QueryResolver = ({ User, WebauthnKey }) => ({
     )
   },
   value(root, args, context) {
-    return authenticated(context, async (resolve, reject) => {
-      const userFound = await context.dataLoaders.userLoaderById.load(
-        context.auth.userId
-      )
-      let valueFound
-      try {
-        valueFound = await findValue(context, args.id, userFound)
-      } catch (e) {
-        if (e.message === "The requested resource does not exist") {
-          reject(e)
-          return
-        }
-
-        throw e
-      }
-      const environmentFound = await valueToParent(context)(valueFound)
-
-      if (
-        (await authorizationLevel(environmentFound, userFound, context)) > 0
-      ) {
+    return valueAuthorized(
+      args.id,
+      context,
+      1,
+      async (resolve, reject, valueFound) => {
         resolve(valueFound)
-      } else {
-        reject("You are not authorized to perform this operation")
       }
-    })
+    )
+  },
+  floatValue(root, args, context) {
+    return deviceInheritAuthorized(
+      args.id,
+      context.dataLoaders.floatValueLoaderById,
+      context,
+      1,
+      async (resolve, reject, valueFound) => {
+        resolve(valueFound)
+      }
+    )
+  },
+  stringValue(root, args, context) {
+    return deviceInheritAuthorized(
+      args.id,
+      context.dataLoaders.stringValueLoaderById,
+      context,
+      1,
+      async (resolve, reject, valueFound) => {
+        resolve(valueFound)
+      }
+    )
+  },
+  booleanValue(root, args, context) {
+    return deviceInheritAuthorized(
+      args.id,
+      context.dataLoaders.booleanValueLoaderById,
+      context,
+      1,
+      async (resolve, reject, valueFound) => {
+        resolve(valueFound)
+      }
+    )
+  },
+  plotValue(root, args, context) {
+    return deviceInheritAuthorized(
+      args.id,
+      context.dataLoaders.plotValueLoaderById,
+      context,
+      1,
+      async (resolve, reject, valueFound) => {
+        resolve(valueFound)
+      }
+    )
+  },
+  categoryPlotValue(root, args, context) {
+    return deviceInheritAuthorized(
+      args.id,
+      context.dataLoaders.categoryPlotValueLoaderById,
+      context,
+      1,
+      async (resolve, reject, valueFound) => {
+        resolve(valueFound)
+      }
+    )
   },
   notification(root, args, context) {
-    return inheritAuthorized(
+    return deviceInheritAuthorized(
       args.id,
       context.dataLoaders.notificationLoaderById,
-      User,
-      notificationFound => notificationFound.deviceId,
       context,
-      context.dataLoaders.deviceLoaderById,
       1,
       async (resolve, reject, notificationFound) => {
         resolve(notificationFound)
-      },
-      deviceToParent
+      }
     )
   },
   plotNode(root, args, context) {
-    return inheritAuthorized(
+    return deviceInheritAuthorized(
       args.id,
       context.dataLoaders.plotNodeLoaderById,
-      User,
-      plotNodeFound => plotNodeFound.plotId,
       context,
-      context.dataLoaders.plotValueLoaderById,
       1,
       async (resolve, reject, plotNodeFound) => {
         resolve(plotNodeFound)
-      },
-      valueToParent
+      }
     )
   },
   categoryPlotNode(root, args, context) {
-    return inheritAuthorized(
+    return deviceInheritAuthorized(
       args.id,
       context.dataLoaders.categoryPlotNodeLoaderById,
-      User,
-      plotNodeFound => plotNodeFound.plotId,
       context,
-      context.dataLoaders.categoryPlotValueLoaderById,
       1,
       async (resolve, reject, plotNodeFound) => {
         resolve(plotNodeFound)
-      },
-      valueToParent
+      }
     )
   },
   getNewTotpSecret(root, args, context) {
