@@ -104,6 +104,7 @@ const EnvironmentResolver = ({
   joinTables,
   PendingEnvironmentShare,
   PendingOwnerChange,
+  sequelize,
 }) => ({
   ...authorizedScalarPropsResolvers(
     "environmentLoaderById",
@@ -392,6 +393,24 @@ const EnvironmentResolver = ({
         const totalCount = notificationCounts.reduce((a, b) => a + b, 0)
 
         resolve(totalCount)
+      },
+      environmentToParent
+    )
+  },
+  uniqueDeviceTypeCount(root, args, context) {
+    return authorized(
+      root.id,
+      context,
+      context.dataLoaders.environmentLoaderById,
+      User,
+      1,
+      async (resolve, reject, environmentFound) => {
+        const query = `SELECT count(DISTINCT("device"."deviceType")) AS "count" FROM "devices" AS "device" WHERE "device"."environmentId" = '${
+          environmentFound.id
+        }'`
+        const rawCount = await sequelize.query(query)
+
+        resolve(rawCount[0][0].count)
       },
       environmentToParent
     )

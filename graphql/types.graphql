@@ -845,6 +845,7 @@ type Environment {
     sortBy: DEVICE_SORT
     sortDirection: SORT_DIRECTION
   ): [Device!]! @cost(complexity: 1, multipliers: ["limit"])
+  uniqueDeviceTypeCount: Int!
   notificationCount: Int!
   index: Int!
   muted: Boolean!
