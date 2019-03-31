@@ -845,7 +845,8 @@ type Environment {
     sortBy: DEVICE_SORT
     sortDirection: SORT_DIRECTION
   ): [Device!]! @cost(complexity: 1, multipliers: ["limit"])
-  uniqueDeviceTypeCount: Int!
+  # array of unique [deviceType, firmware] pairs
+  uniqueFirmwares: [[String!]!]!
   notificationCount: Int!
   index: Int!
   muted: Boolean!

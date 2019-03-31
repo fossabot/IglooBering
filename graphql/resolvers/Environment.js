@@ -397,7 +397,7 @@ const EnvironmentResolver = ({
       environmentToParent
     )
   },
-  uniqueDeviceTypeCount(root, args, context) {
+  uniqueFirmwares(root, args, context) {
     return authorized(
       root.id,
       context,
@@ -405,12 +405,17 @@ const EnvironmentResolver = ({
       User,
       1,
       async (resolve, reject, environmentFound) => {
-        const query = `SELECT count(DISTINCT("device"."deviceType")) AS "count" FROM "devices" AS "device" WHERE "device"."environmentId" = '${
+        const query = `SELECT DISTINCT("device"."deviceType", "device"."firmware") FROM "devices" AS "device" WHERE "device"."environmentId" = '${
           environmentFound.id
         }'`
-        const rawCount = await sequelize.query(query)
+        const rawResponse = await sequelize.query(query)
 
-        resolve(rawCount[0][0].count)
+        function splitPair(pairStr) {
+          return pairStr.substring(1, pairStr.length - 1).split(",")
+        }
+        const parsedRes = rawResponse[0].map(({ row }) => splitPair(row))
+
+        resolve(parsedRes)
       },
       environmentToParent
     )
