@@ -67,7 +67,16 @@ export const deviceAuthorizedScalarPropsResolvers = (
     return acc
   }, {})
 
-const DeviceResolver = ({ User, Notification, sequelize }) => ({
+const DeviceResolver = ({
+  User,
+  Notification,
+  FloatValue,
+  StringValue,
+  BooleanValue,
+  PlotValue,
+  CategoryPlotValue,
+  sequelize,
+}) => ({
   ...deviceAuthorizedScalarPropsResolvers([
     "createdAt",
     "updatedAt",
@@ -84,6 +93,40 @@ const DeviceResolver = ({ User, Notification, sequelize }) => ({
     ["name", "index"],
     deviceToParent
   ),
+  valueCount(root, args, context) {
+    return deviceAuthorized(
+      root.id,
+      context,
+      1,
+      async (resolve, reject, deviceFound) => {
+        const floatCount = FloatValue.count({
+          where: { deviceId: deviceFound.id },
+        })
+        const stringCount = StringValue.count({
+          where: { deviceId: deviceFound.id },
+        })
+        const booleanCount = BooleanValue.count({
+          where: { deviceId: deviceFound.id },
+        })
+        const plotCount = PlotValue.count({
+          where: { deviceId: deviceFound.id },
+        })
+        const categoryPlotCount = CategoryPlotValue.count({
+          where: { deviceId: deviceFound.id },
+        })
+
+        const totalCount = await Promise.all([
+          floatCount,
+          stringCount,
+          booleanCount,
+          plotCount,
+          categoryPlotCount,
+        ]).then(arr => arr.reduce((a, b) => a + b, 0))
+
+        resolve(totalCount)
+      }
+    )
+  },
   values(root, args, context) {
     return deviceAuthorized(
       root.id,

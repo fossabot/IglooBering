@@ -92,6 +92,19 @@ const PlotValueResolver = (
     "max",
     "threshold",
   ]),
+  nodeCount: (root, args, context) =>
+    deviceInheritAuthorized(
+      root.id,
+      context.dataLoaders[loaderName],
+      context,
+      1,
+      async (resolve, reject, plotFound) => {
+        const count = await PlotNode.count({
+          where: { plotId: plotFound.id },
+        })
+        resolve(count)
+      }
+    ),
   // overriding GenericResolver's value
   value: (root, args, context) =>
     deviceInheritAuthorized(
@@ -133,6 +146,19 @@ const CategoryPlotValueResolver = (
 ) => ({
   ...GenericResolver(loaderName, User, Device, Environment, false),
   ...deviceInheritAuthorizedScalarPropsResolvers(loaderName, ["allowedValues"]),
+  nodeCount: (root, args, context) =>
+    deviceInheritAuthorized(
+      root.id,
+      context.dataLoaders[loaderName],
+      context,
+      1,
+      async (resolve, reject, plotFound) => {
+        const count = await CategoryPlotNode.count({
+          where: { plotId: plotFound.id },
+        })
+        resolve(count)
+      }
+    ),
   // overriding GenericResolver's value
   value: (root, args, context) =>
     deviceInheritAuthorized(

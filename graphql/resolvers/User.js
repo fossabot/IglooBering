@@ -104,28 +104,6 @@ const UserResolver = ({
       }
     })
   },
-  deviceCount(root, args, context) {
-    return authenticated(context, async (resolve, reject) => {
-      if (context.auth.userId !== root.id) {
-        reject("You are not allowed to perform this operation")
-      } else {
-        //TODO: use a count instead
-        const devicesInheritedByEnvironments = await getAll(
-          Environment,
-          User,
-          root.id,
-          [{ model: Device }]
-        )
-
-        const devices = devicesInheritedByEnvironments.reduce(
-          (acc, curr) => [...acc, ...curr.devices],
-          []
-        )
-
-        resolve(devices.length)
-      }
-    })
-  },
   pendingEnvironmentShares(root, args, context) {
     return authenticated(context, async (resolve, reject) => {
       if (context.auth.userId !== root.id) {
@@ -133,6 +111,9 @@ const UserResolver = ({
       } else {
         const pendingEnvironmentShares = await PendingEnvironmentShare.findAll({
           where: { receiverId: context.auth.userId },
+          limit: args.limit,
+          offset: args.offset,
+          order: [["id", "DESC"]],
         })
 
         resolve(pendingEnvironmentShares)
@@ -161,6 +142,9 @@ const UserResolver = ({
       } else {
         const pendingOwnerChanges = await PendingOwnerChange.findAll({
           where: { receiverId: context.auth.userId },
+          limit: args.limit,
+          offset: args.offset,
+          order: [["id", "DESC"]],
         })
 
         resolve(pendingOwnerChanges)
@@ -389,50 +373,18 @@ const UserResolver = ({
       }
     })
   },
-  valueCount(root, args, context) {
+  developerDeviceCount(root, args, context) {
     return authenticated(context, async (resolve, reject) => {
       if (context.auth.userId !== root.id) {
         reject("You are not allowed to perform this operation")
       } else {
-        // TODO: use a count instead
-        const valueModels = [
-          FloatValue,
-          StringValue,
-          BooleanValue,
-          PlotValue,
-          CategoryPlotValue,
-        ]
+        const devices = await Device.count({
+          where: {
+            producerId: root.id,
+          },
+        })
 
-        const valuesInheritedFromEnvironments = await getAll(
-          Environment,
-          User,
-          root.id,
-          [
-            {
-              model: Device,
-              include: valueModels.map(Model => ({ model: Model })),
-            },
-          ]
-        )
-        const flattenedAllValues = valuesInheritedFromEnvironments.reduce(
-          (acc, curr) => [
-            ...acc,
-            ...curr.devices.reduce(
-              (acc, device) => [
-                ...acc,
-                ...device.floatValues,
-                ...device.stringValues,
-                ...device.booleanValues,
-                ...device.plotValues,
-                ...device.categoryPlotValues,
-              ],
-              []
-            ),
-          ],
-          []
-        )
-
-        resolve(flattenedAllValues.length)
+        resolve(devices)
       }
     })
   },

@@ -1422,17 +1422,19 @@ export const sendPushNotification = async (
   })
 
   notificationSubscriptions.map(notificationSubscription =>
-    webpush.sendNotification(
-      {
-        endpoint: notificationSubscription.endpoint,
-        expirationTime: notificationSubscription.expirationTime,
-        keys: {
-          p256dh: notificationSubscription.p256dh,
-          auth: notificationSubscription.auth,
+    webpush
+      .sendNotification(
+        {
+          endpoint: notificationSubscription.endpoint,
+          expirationTime: notificationSubscription.expirationTime,
+          keys: {
+            p256dh: notificationSubscription.p256dh,
+            auth: notificationSubscription.auth,
+          },
         },
-      },
-      JSON.stringify(payload)
-    )
+        JSON.stringify(payload)
+      )
+      .catch(console.log)
   )
 }
 

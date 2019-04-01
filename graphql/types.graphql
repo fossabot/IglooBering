@@ -774,9 +774,13 @@ type User {
   id: ID!
   email: String!
   pendingEnvironmentShareCount: Int!
-  pendingEnvironmentShares: [PendingEnvironmentShare!]! @cost(complexity: 1)
+  pendingEnvironmentShares(
+    limit: PositiveInt!
+    offset: Int
+  ): [PendingEnvironmentShare!]! @cost(complexity: 1, multipliers: ["limit"])
   pendingOwnerChangeCount: Int!
-  pendingOwnerChanges: [PendingOwnerChange!]! @cost(complexity: 1)
+  pendingOwnerChanges(limit: PositiveInt!, offset: Int): [PendingOwnerChange!]!
+    @cost(complexity: 1, multipliers: ["limit"])
   environmentCount: Int!
   environments(
     sortBy: ENVIRONMENT_SORT
@@ -785,13 +789,12 @@ type User {
     offset: Int
     filter: EnvironmentFilterExtended
   ): [Environment!]! @cost(complexity: 1, multipliers: ["limit"])
+  developerDeviceCount: Int!
   developerDevices(
     filter: DeveloperDeviceFilter
     limit: PositiveInt!
     offset: Int
   ): [Device!]! @cost(complexity: 1, multipliers: ["limit"])
-  deviceCount: Int
-  valueCount: Int!
   notificationCount: Int!
   permanentTokenCount: Int!
   permanentTokens(limit: PositiveInt!, offset: Int): [PermanentToken!]!
@@ -908,6 +911,7 @@ type Device {
   deviceType: String
   # Custom name gave by the end-user to the device
   name: String
+  valueCount: Int
   values(
     limit: PositiveInt!
     offset: Int
@@ -1031,6 +1035,7 @@ type PlotValue implements Value {
   visibility: ValueVisibility!
   myRole: RoleExtended!
   unitOfMeasurement: String
+  nodeCount: Int
   value(limit: PositiveInt!, offset: Int): [PlotNode!]!
     @cost(complexity: 1, multipliers: ["limit"])
   lastNode: PlotNode @cost(complexity: 1)
@@ -1052,6 +1057,7 @@ type CategoryPlotValue implements Value {
   device: Device! @cost(complexity: 1)
   visibility: ValueVisibility!
   myRole: RoleExtended!
+  nodeCount: Int
   value(limit: PositiveInt!, offset: Int): [CategoryPlotNode!]!
     @cost(complexity: 1, multipliers: ["limit"])
   lastNode: CategoryPlotNode @cost(complexity: 1)
