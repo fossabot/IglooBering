@@ -73,9 +73,6 @@ describe("User", () => {
 
     done();
   });
-  test.skip("deviceCount is resolved correctly", async done => {
-    //TODO: need implementation of includes in the mock search
-  });
   test.skip("environments is resolved correctly", async done => {
     //TODO: need implementation of includes in the mock search
   });
@@ -83,12 +80,6 @@ describe("User", () => {
     //TODO: need implementation of includes in the mock search
   });
   test.skip("notificationCount is resolved correctly", async done => {
-    //TODO: need implementation of includes in the mock search
-  });
-  test.skip("valueCount is resolved correctly", async done => {
-    //TODO: need implementation of includes in the mock search
-  });
-  test.skip("valueCount is resolved correctly", async done => {
     //TODO: need implementation of includes in the mock search
   });
   test("pendingEnvironmentShares is resolved correctly", async done => {
@@ -229,7 +220,6 @@ describe("User", () => {
   const authorizedProps = [
     ...privateScalarProps,
     "settings",
-    "deviceCount",
     "pendingEnvironmentShares",
     "pendingEnvironmentShareCount",
     "pendingOwnerChanges",
@@ -237,7 +227,6 @@ describe("User", () => {
     "environmentCount",
     "environments",
     "notificationCount",
-    "valueCount",
     "permanentTokens",
     "permanentTokenCount"
   ];

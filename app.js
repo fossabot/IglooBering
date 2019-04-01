@@ -118,18 +118,21 @@ app.set("trust proxy", 1)
 // Check if usage threshold was exceeded
 app.use("/graphql", async (req, res, next) => {
   if (await isIpBlocked(req.ip)) {
-    res.send(
-      JSON.stringify({
-        data: null,
-        errors: [
-          {
-            message: "Your IP exceeded the rate limit",
-            path: [],
-            locations: [],
-          },
-        ],
-      })
-    )
+    res
+      .status(429)
+      .header("Retry-After", 10)
+      .send(
+        JSON.stringify({
+          data: null,
+          errors: [
+            {
+              message: "Your IP exceeded the rate limit",
+              path: [],
+              locations: [],
+            },
+          ],
+        })
+      )
     return
   }
 
@@ -141,18 +144,21 @@ app.use("/graphql", async (req, res, next) => {
     next()
   } else if (req.user.tokenType === "DEVICE_ACCESS") {
     if (await isDeviceBlocked(req.user.deviceId)) {
-      res.send(
-        JSON.stringify({
-          data: null,
-          errors: [
-            {
-              message: "Your device exceeded the rate limit",
-              path: [],
-              locations: [],
-            },
-          ],
-        })
-      )
+      res
+        .status(429)
+        .header("Retry-After", 10)
+        .send(
+          JSON.stringify({
+            data: null,
+            errors: [
+              {
+                message: "Your device exceeded the rate limit",
+                path: [],
+                locations: [],
+              },
+            ],
+          })
+        )
       return
     } else {
       // TODO: handle errors
@@ -181,18 +187,21 @@ app.use("/graphql", async (req, res, next) => {
     }
 
     if (await isUserBlocked(userFound.id)) {
-      res.send(
-        JSON.stringify({
-          data: null,
-          errors: [
-            {
-              message: "Your user exceeded the rate limit",
-              path: [],
-              locations: [],
-            },
-          ],
-        })
-      )
+      res
+        .status(429)
+        .header("Retry-After", 10)
+        .send(
+          JSON.stringify({
+            data: null,
+            errors: [
+              {
+                message: "Your user exceeded the rate limit",
+                path: [],
+                locations: [],
+              },
+            ],
+          })
+        )
       return
     } else {
       req.billCost = cost => {
