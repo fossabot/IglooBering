@@ -251,7 +251,7 @@ type Mutation {
     deviceId: ID!
     # whether the value should be READ_ONLY or READ_WRITE in Igloo Aurora
     permission: ValuePermission!
-    # whether the value should be VISIBLE, HIDDEN or INVISIBLE in Igloo Aurora
+    # whether the value should be VISIBLE or INVISIBLE in Igloo Aurora
     visibility: ValueVisibility
     # additional details about the value
     unitOfMeasurement: String
@@ -273,7 +273,7 @@ type Mutation {
     deviceId: ID!
     # whether the value should be READ_ONLY or READ_WRITE in Igloo Aurora
     permission: ValuePermission!
-    # whether the value should be VISIBLE, HIDDEN or INVISIBLE in Igloo Aurora
+    # whether the value should be VISIBLE or INVISIBLE in Igloo Aurora
     visibility: ValueVisibility
     value: String
     # max length of the string
@@ -293,7 +293,7 @@ type Mutation {
     deviceId: ID!
     # whether the value should be READ_ONLY or READ_WRITE in Igloo Aurora
     permission: ValuePermission!
-    # whether the value should be VISIBLE, HIDDEN or INVISIBLE in Igloo Aurora
+    # whether the value should be VISIBLE or INVISIBLE in Igloo Aurora
     visibility: ValueVisibility
     value: Boolean
     # name of the value, displayed in Igloo Aurora
@@ -307,7 +307,7 @@ type Mutation {
   createPlotValue(
     # device owning the value
     deviceId: ID!
-    # whether the value should be VISIBLE, HIDDEN or INVISIBLE in Igloo Aurora
+    # whether the value should be VISIBLE or INVISIBLE in Igloo Aurora
     visibility: ValueVisibility
     # additional details about the value
     unitOfMeasurement: String
@@ -338,7 +338,7 @@ type Mutation {
   createCategoryPlotValue(
     # device owning the value
     deviceId: ID!
-    # whether the value should be VISIBLE, HIDDEN or INVISIBLE in Igloo Aurora
+    # whether the value should be VISIBLE or INVISIBLE in Igloo Aurora
     visibility: ValueVisibility
     # name of the value, displayed in Igloo Aurora
     name: String!
@@ -423,7 +423,7 @@ type Mutation {
     id: ID!
     # whether the value should be READ_ONLY or READ_WRITE in Igloo Aurora
     permission: ValuePermission
-    # whether the value should be VISIBLE, HIDDEN or INVISIBLE in Igloo Aurora
+    # whether the value should be VISIBLE or INVISIBLE in Igloo Aurora
     visibility: ValueVisibility
     # additional details about the value
     unitOfMeasurement: String
@@ -447,7 +447,7 @@ type Mutation {
     id: ID!
     # whether the value should be READ_ONLY or READ_WRITE in Igloo Aurora
     permission: ValuePermission
-    # whether the value should be VISIBLE, HIDDEN or INVISIBLE in Igloo Aurora
+    # whether the value should be VISIBLE or INVISIBLE in Igloo Aurora
     visibility: ValueVisibility
     value: String
     # max length of the string
@@ -467,7 +467,7 @@ type Mutation {
     id: ID!
     # whether the value should be READ_ONLY or READ_WRITE in Igloo Aurora
     permission: ValuePermission
-    # whether the value should be VISIBLE, HIDDEN or INVISIBLE in Igloo Aurora
+    # whether the value should be VISIBLE or INVISIBLE in Igloo Aurora
     visibility: ValueVisibility
     value: Boolean
     # name of the value, displayed in Igloo Aurora
@@ -481,7 +481,7 @@ type Mutation {
   plotValue(
     # value id
     id: ID!
-    # whether the value should be VISIBLE, HIDDEN or INVISIBLE in Igloo Aurora
+    # whether the value should be VISIBLE or INVISIBLE in Igloo Aurora
     visibility: ValueVisibility
     # additional details about the value
     unitOfMeasurement: String
@@ -512,7 +512,7 @@ type Mutation {
   categoryPlotValue(
     # value id
     id: ID!
-    # whether the value should be VISIBLE, HIDDEN or INVISIBLE in Igloo Aurora
+    # whether the value should be VISIBLE or INVISIBLE in Igloo Aurora
     visibility: ValueVisibility
     # name of the value, displayed in Igloo Aurora
     name: String
@@ -945,7 +945,6 @@ enum ValuePermission {
 
 enum ValueVisibility {
   VISIBLE
-  HIDDEN
   INVISIBLE
 }
 
