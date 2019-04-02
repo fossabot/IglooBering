@@ -2,6 +2,7 @@ scalar DateTime
 scalar Json
 scalar ID
 scalar PositiveInt
+scalar Upload
 
 directive @cost(multipliers: [String!], complexity: Int) on FIELD_DEFINITION
 
@@ -244,6 +245,8 @@ type Mutation {
     content: String! # optional if you want to change the date # date: DateTime
     date: DateTime
   ): Notification
+
+  uploadFile(file: Upload): Boolean
 
   # Creates a new FloatValue
   createFloatValue(

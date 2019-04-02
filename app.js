@@ -11,8 +11,8 @@ import schema from "./graphql/schema"
 import expressJwt from "express-jwt"
 import cors from "cors"
 import webpush from "web-push"
-import { pipeStreamToS3, getObjectOwner } from "./s3helpers"
 import Busboy from "connect-busboy"
+import { graphqlUploadExpress } from "graphql-upload"
 import AWS from "aws-sdk"
 import path from "path"
 import {
@@ -116,6 +116,10 @@ const FREE_USAGE_QUOTA = 100 * 1000
 
 app.set("trust proxy", 1)
 // Check if usage threshold was exceeded
+app.use(
+  "/graphql",
+  graphqlUploadExpress({ maxFileSize: 10000000, maxFiles: 10 })
+)
 app.use("/graphql", async (req, res, next) => {
   if (await isIpBlocked(req.ip)) {
     res

@@ -33,6 +33,7 @@ import {
   sendConfirmationEmail,
   deviceInheritAuthorized,
 } from "./utilities"
+import { pipeStreamToS3, getObjectOwner } from "./s3helpers"
 const { Fido2Lib } = require("fido2-lib-clone")
 import Stripe from "stripe"
 import moment from "moment"
@@ -40,6 +41,10 @@ import jwt from "jwt-simple"
 import zxcvbn from "zxcvbn"
 import { Op } from "sequelize"
 import QRCode from "qrcode-svg"
+import AWS from "aws-sdk"
+
+AWS.config.update({ region: "eu-west-1" })
+const s3 = new AWS.S3()
 
 const f2l = new Fido2Lib()
 
@@ -3155,6 +3160,24 @@ const MutationResolver = (
           })
         }
       )
+    },
+    uploadFile(root, args, context) {
+      return authenticated(context, async (resolve, reject) => {
+        const { filename, mimetype, createReadStream } = await args.file
+        const stream = createReadStream()
+
+        const newFile = await pipeStreamToS3(
+          s3,
+          process.env.BUCKET_NAME,
+          stream,
+          filename,
+          context.auth.userId
+        )
+
+        console.log(filename, mimetype, newFile)
+        // Promisify the stream and store the file, then…
+        resolve(true)
+      })
     },
     createNotification(root, args, context) {
       return deviceAuthorized(

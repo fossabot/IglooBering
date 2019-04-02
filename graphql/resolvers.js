@@ -17,6 +17,7 @@ import PositiveIntResolver from "./resolvers/PositiveInt"
 import SequelizeConnections from "../postgresql/models/index"
 import { pubsub } from "../shared"
 import { logErrorsPromise } from "./resolvers/utilities"
+import { GraphQLUpload } from "graphql-upload"
 
 require("dotenv").config()
 
@@ -81,6 +82,7 @@ const wrappedResolvers = {
   Json: GraphQLToolsTypes.JSON({ name: "Json" }),
   ID: IDResolver,
   PositiveInt: PositiveIntResolver,
+  Upload: GraphQLUpload,
 }
 
 function wrapInLogger(resolverFunctions) {
