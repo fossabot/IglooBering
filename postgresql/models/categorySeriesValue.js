@@ -1,15 +1,15 @@
 const { ValueModel } = require("../modelUtilities")
 
 module.exports = (queryInterface, Sequelize) => {
-  const CategoryPlotValue = queryInterface.define("categoryPlotValue", {
+  const CategorySeriesValue = queryInterface.define("categorySeriesValue", {
     ...ValueModel(Sequelize, false),
     allowedValues: {
       type: Sequelize.ARRAY(Sequelize.STRING),
     },
   })
 
-  CategoryPlotValue.associate = function(models) {
-    models.Device.hasMany(CategoryPlotValue)
+  CategorySeriesValue.associate = function(models) {
+    models.Device.hasMany(CategorySeriesValue)
   }
-  return CategoryPlotValue
+  return CategorySeriesValue
 }

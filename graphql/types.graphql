@@ -306,8 +306,8 @@ type Mutation {
     index: Int
   ): BooleanValue
 
-  # Creates a new PlotValue
-  createPlotValue(
+  # Creates a new FloatSeriesValue
+  createFloatSeriesValue(
     # device owning the value
     deviceId: ID!
     # whether the value should be VISIBLE or INVISIBLE in Igloo Aurora
@@ -326,19 +326,19 @@ type Mutation {
     # alert threshold, values above the threshold will be displayed in red in Igloo Aurora
     threshold: Float
     index: Int
-  ): PlotValue
+  ): FloatSeriesValue
 
-  # Creates a new node in a plot
-  createPlotNode(
-    # id of the parent plot
-    plotId: ID!
+  # Creates a new node in a series
+  createFloatSeriesNode(
+    # id of the parent series
+    seriesId: ID!
     # default is now
     timestamp: DateTime
     value: Float!
-  ): PlotNode
+  ): FloatSeriesNode
 
-  # Creates a new PlotValue
-  createCategoryPlotValue(
+  # Creates a new FloatSeriesValue
+  createCategorySeriesValue(
     # device owning the value
     deviceId: ID!
     # whether the value should be VISIBLE or INVISIBLE in Igloo Aurora
@@ -350,16 +350,16 @@ type Mutation {
     # allowed labels
     allowedValues: [String!]
     index: Int
-  ): CategoryPlotValue
+  ): CategorySeriesValue
 
-  # Creates a new node in a plot
-  createCategoryPlotNode(
-    # id of the parent plot
-    plotId: ID!
+  # Creates a new node in a series
+  createCategorySeriesNode(
+    # id of the parent series
+    seriesId: ID!
     # default is now
     timestamp: DateTime
     value: String!
-  ): CategoryPlotNode
+  ): CategorySeriesNode
 
   # Change user's data
   user(quietMode: Boolean, devMode: Boolean, name: String): User
@@ -480,8 +480,8 @@ type Mutation {
     index: Int
   ): BooleanValue
 
-  # changes plotValue's data
-  plotValue(
+  # changes floatSeriesValue's data
+  floatSeriesValue(
     # value id
     id: ID!
     # whether the value should be VISIBLE or INVISIBLE in Igloo Aurora
@@ -499,20 +499,20 @@ type Mutation {
     # alert threshold, values above the threshold will be displayed in red in Igloo Aurora
     threshold: Float
     index: Int
-  ): PlotValue
+  ): FloatSeriesValue
 
-  # change plotNode's data
-  plotNode(
+  # change floatSeriesNode's data
+  floatSeriesNode(
     # node's id
     id: ID!
     # node's value
     value: Float
     # node's timestamp
     timestamp: DateTime
-  ): PlotNode
+  ): FloatSeriesNode
 
-  # changes CategoryPlotValue's data
-  categoryPlotValue(
+  # changes CategorySeriesValue's data
+  categorySeriesValue(
     # value id
     id: ID!
     # whether the value should be VISIBLE or INVISIBLE in Igloo Aurora
@@ -524,17 +524,17 @@ type Mutation {
     # allowed labels
     allowedValues: [String!]
     index: Int
-  ): PlotValue
+  ): FloatSeriesValue
 
-  # change CategoryPlotNode's data
-  categoryPlotNode(
+  # change CategorySeriesNode's data
+  categorySeriesNode(
     # node's id
     id: ID!
     # node's value
     value: String
     # node's timestamp
     timestamp: DateTime
-  ): CategoryPlotNode
+  ): CategorySeriesNode
 
   # change notification's data
   notification(
@@ -557,10 +557,10 @@ type Mutation {
   deleteEnvironment(id: ID!): ID
   # delte user
   deleteUser: ID
-  # delte plot node
-  deletePlotNode(id: ID!): ID
-  # delte string plot node
-  deleteCategoryPlotNode(id: ID!): ID
+  # delte series node
+  deleteFloatSeriesNode(id: ID!): ID
+  # delte string series node
+  deleteCategorySeriesNode(id: ID!): ID
 }
 
 input EnvironmentFilterExtended {
@@ -665,15 +665,15 @@ type Query {
   floatValue(id: ID!): FloatValue
   stringValue(id: ID!): StringValue
   booleanValue(id: ID!): BooleanValue
-  plotValue(id: ID!): PlotValue
-  categoryPlotValue(id: ID!): CategoryPlotValue
+  floatSeriesValue(id: ID!): FloatSeriesValue
+  categorySeriesValue(id: ID!): CategorySeriesValue
 
   # get notification's data
   notification(id: ID!): Notification
-  # get plotNode's data
-  plotNode(id: ID!): PlotNode
-  # get categoryPlotNode's data
-  categoryPlotNode(id: ID!): CategoryPlotNode
+  # get floatSeriesNode's data
+  floatSeriesNode(id: ID!): FloatSeriesNode
+  # get categorySeriesNode's data
+  categorySeriesNode(id: ID!): CategorySeriesNode
   getNewTotpSecret: TotpSecret
   # get's challenge to enable webauthn
   getWebAuthnEnableChallenge: WebauthnChallenge
@@ -690,10 +690,10 @@ type Subscription {
   environmentCreated: Environment
   # subscribes to value creations
   valueCreated(deviceId: ID): Value
-  # subscribes to plot node creations
-  plotNodeCreated(plotId: ID): PlotNode
-  # subscribes to string plot node creations
-  categoryPlotNodeCreated(plotId: String): CategoryPlotNode
+  # subscribes to series node creations
+  floatSeriesNodeCreated(seriesId: ID): FloatSeriesNode
+  # subscribes to string series node creations
+  categorySeriesNodeCreated(seriesId: String): CategorySeriesNode
   #subscribes to token creations
   permanentTokenCreated: PermanentToken
   # subscribes to notification creations
@@ -729,18 +729,18 @@ type Subscription {
   environmentUpdated(id: ID): Environment
   # subscribes to value updates
   valueUpdated(deviceId: ID, id: ID): Value
-  # subscribes to plot node updates
-  plotNodeUpdated(plotId: ID, id: ID): PlotNode
-  # subscribes to plot node updates
-  categoryPlotNodeUpdated(plotId: ID, id: ID): CategoryPlotNode
+  # subscribes to series node updates
+  floatSeriesNodeUpdated(seriesId: ID, id: ID): FloatSeriesNode
+  # subscribes to series node updates
+  categorySeriesNodeUpdated(seriesId: ID, id: ID): CategorySeriesNode
   # subscribes to notification updates
   notificationUpdated(deviceId: ID, id: ID): Notification
   # subscribes to value deleted
   valueDeleted(deviceId: ID, id: ID): ID
-  # subscribes to plot node deletes
-  plotNodeDeleted(plotId: ID, id: ID): ID
-  # subscribes to plot node deletes
-  categoryPlotNodeDeleted(plotId: ID, id: ID): ID
+  # subscribes to series node deletes
+  floatSeriesNodeDeleted(seriesId: ID, id: ID): ID
+  # subscribes to series node deletes
+  categorySeriesNodeDeleted(seriesId: ID, id: ID): ID
   # subscribes to device deletes
   deviceDeleted(environmentId: ID, id: ID): ID
   # subscribes to device unclaims
@@ -965,18 +965,18 @@ type Notification {
   read: Boolean!
 }
 
-type PlotNode {
+type FloatSeriesNode {
   id: ID!
   device: Device! @cost(complexity: 1)
-  plot: PlotValue! @cost(complexity: 1)
+  series: FloatSeriesValue! @cost(complexity: 1)
   timestamp: DateTime!
   value: Float!
 }
 
-type CategoryPlotNode {
+type CategorySeriesNode {
   id: ID!
   device: Device! @cost(complexity: 1)
-  plot: CategoryPlotValue! @cost(complexity: 1)
+  series: CategorySeriesValue! @cost(complexity: 1)
   timestamp: DateTime!
   value: String!
 }
@@ -1029,7 +1029,7 @@ type StringValue implements Value {
   allowedValues: [String!]
 }
 
-type PlotValue implements Value {
+type FloatSeriesValue implements Value {
   id: ID!
   createdAt: DateTime!
   updatedAt: DateTime!
@@ -1038,9 +1038,9 @@ type PlotValue implements Value {
   myRole: RoleExtended!
   unitOfMeasurement: String
   nodeCount: Int
-  value(limit: PositiveInt!, offset: Int): [PlotNode!]!
+  value(limit: PositiveInt!, offset: Int): [FloatSeriesNode!]!
     @cost(complexity: 1, multipliers: ["limit"])
-  lastNode: PlotNode @cost(complexity: 1)
+  lastNode: FloatSeriesNode @cost(complexity: 1)
   # used when the end-user reads or modifies the value
   precision: Float
   min: Float
@@ -1052,7 +1052,7 @@ type PlotValue implements Value {
   threshold: Float
 }
 
-type CategoryPlotValue implements Value {
+type CategorySeriesValue implements Value {
   id: ID!
   createdAt: DateTime!
   updatedAt: DateTime!
@@ -1060,9 +1060,9 @@ type CategoryPlotValue implements Value {
   visibility: ValueVisibility!
   myRole: RoleExtended!
   nodeCount: Int
-  value(limit: PositiveInt!, offset: Int): [CategoryPlotNode!]!
+  value(limit: PositiveInt!, offset: Int): [CategorySeriesNode!]!
     @cost(complexity: 1, multipliers: ["limit"])
-  lastNode: CategoryPlotNode @cost(complexity: 1)
+  lastNode: CategorySeriesNode @cost(complexity: 1)
   cardSize: CardSize!
   name: String
   index: Int

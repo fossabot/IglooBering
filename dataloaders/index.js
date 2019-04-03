@@ -3,7 +3,7 @@ import {
   Environment,
   Device,
   BooleanValue,
-  CategoryPlotValue,
+  CategorySeriesValue,
   EnvironmentAdmin,
   EnvironmentEditor,
   EnvironmentSpectator,
@@ -12,9 +12,9 @@ import {
   PendingEnvironmentShare,
   PendingOwnerChange,
   PermanentToken,
-  PlotNode,
-  PlotValue,
-  CategoryPlotNode,
+  SeriesNode,
+  FloatSeriesValue,
+  CategorySeriesNode,
   StringValue,
   WebPushSubscription,
 } from "../postgresql/models"
@@ -90,7 +90,7 @@ const loadUsersByIds = genericLoadById(User)
 const loadEnvironmentsByIds = genericLoadById(Environment)
 const loadDevicesByIds = genericLoadById(Device)
 const loadBooleanValuesByIds = genericLoadById(BooleanValue)
-const loadCategoryPlotValuesByIds = genericLoadById(CategoryPlotValue)
+const loadCategorySeriesValuesByIds = genericLoadById(CategorySeriesValue)
 const loadEnvironmentAdminsByIds = genericLoadById(EnvironmentAdmin)
 const loadEnvironmentEditorsByIds = genericLoadById(EnvironmentEditor)
 const loadEnvironmentSpectatorsByIds = genericLoadById(EnvironmentSpectator)
@@ -101,9 +101,9 @@ const loadPendingEnvironmentSharesByIds = genericLoadById(
 )
 const loadPendingOwnerChangesByIds = genericLoadById(PendingOwnerChange)
 const loadPermanentTokensByIds = genericLoadById(PermanentToken)
-const loadPlotNodesByIds = genericLoadById(PlotNode)
-const loadPlotValuesByIds = genericLoadById(PlotValue)
-const loadcategoryPlotNodesByIds = genericLoadById(CategoryPlotNode)
+const loadSeriesNodesByIds = genericLoadById(SeriesNode)
+const loadFloatSeriesValuesByIds = genericLoadById(FloatSeriesValue)
+const loadcategorySeriesNodesByIds = genericLoadById(CategorySeriesNode)
 const loadStringValuesByIds = genericLoadById(StringValue)
 const loadWebPushSubscriptionsByIds = genericLoadById(WebPushSubscription)
 
@@ -135,7 +135,7 @@ module.exports = () => ({
   environmentLoaderById: new DataLoader(loadEnvironmentsByIds),
   deviceLoaderById: new DataLoader(loadDevicesByIds),
   booleanValueLoaderById: new DataLoader(loadBooleanValuesByIds),
-  categoryPlotValueLoaderById: new DataLoader(loadCategoryPlotValuesByIds),
+  categorySeriesValueLoaderById: new DataLoader(loadCategorySeriesValuesByIds),
   environmentAdminLoaderById: new DataLoader(loadEnvironmentAdminsByIds),
   environmentEditorLoaderById: new DataLoader(loadEnvironmentEditorsByIds),
   environmentSpectatorLoaderById: new DataLoader(
@@ -148,9 +148,9 @@ module.exports = () => ({
   ),
   pendingOwnerChangeLoaderById: new DataLoader(loadPendingOwnerChangesByIds),
   permanentTokenLoaderById: new DataLoader(loadPermanentTokensByIds),
-  plotNodeLoaderById: new DataLoader(loadPlotNodesByIds),
-  plotValueLoaderById: new DataLoader(loadPlotValuesByIds),
-  categoryPlotNodeLoaderById: new DataLoader(loadcategoryPlotNodesByIds),
+  floatSeriesNodeLoaderById: new DataLoader(loadSeriesNodesByIds),
+  floatSeriesValueLoaderById: new DataLoader(loadFloatSeriesValuesByIds),
+  categorySeriesNodeLoaderById: new DataLoader(loadcategorySeriesNodesByIds),
   stringValueLoaderById: new DataLoader(loadStringValuesByIds),
   webPushSubscriptionLoaderById: new DataLoader(loadWebPushSubscriptionsByIds),
 

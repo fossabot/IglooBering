@@ -10,9 +10,10 @@ const ValueResolver = {
 
         const dataLoaderMap = {
           BooleanValue: context.dataLoaders.booleanValueLoaderById,
-          CategoryPlotValue: context.dataLoaders.categoryPlotValueLoaderById,
+          CategorySeriesValue:
+            context.dataLoaders.categorySeriesValueLoaderById,
           FloatValue: context.dataLoaders.floatValueLoaderById,
-          PlotValue: context.dataLoaders.plotValueLoaderById,
+          FloatSeriesValue: context.dataLoaders.floatSeriesValueLoaderById,
           StringValue: context.dataLoaders.stringValueLoaderById,
         }
         const dataLoaders = Object.values(dataLoaderMap)

@@ -37,26 +37,26 @@ describe("Value", () => {
     expect(resolveTypeFound).toEqual("BooleanValue");
     done();
   });
-  test("__resolveType is resolved correctly for PlotValue", async done => {
+  test("__resolveType is resolved correctly for FloatSeriesValue", async done => {
     const resolveTypeFound = await new Promise((resolve, reject) =>
       ValueResolver.__resolveType(
-        { id: "mockPlotValueId" },
+        { id: "mockFloatSeriesValueId" },
         { auth: { userId: "mockUserId", tokenType: "TEMPORARY" }, ...mockContext }
       )(resolve, reject)
     );
 
-    expect(resolveTypeFound).toEqual("PlotValue");
+    expect(resolveTypeFound).toEqual("FloatSeriesValue");
     done();
   });
-  test("__resolveType is resolved correctly for CategoryPlotValue", async done => {
+  test("__resolveType is resolved correctly for CategorySeriesValue", async done => {
     const resolveTypeFound = await new Promise((resolve, reject) =>
       ValueResolver.__resolveType(
-        { id: "mockCategoryPlotValueId" },
+        { id: "mockCategorySeriesValueId" },
         { auth: { userId: "mockUserId", tokenType: "TEMPORARY" }, ...mockContext }
       )(resolve, reject)
     );
 
-    expect(resolveTypeFound).toEqual("CategoryPlotValue");
+    expect(resolveTypeFound).toEqual("CategorySeriesValue");
     done();
   });
 

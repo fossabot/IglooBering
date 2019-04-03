@@ -11,39 +11,39 @@ const {
   MockedEnvironment,
   MockedDevice,
   MockedUser,
-  MockedPlotValue,
-  MockedPlotNode,
-  mockPlotValueData,
+  MockedFloatSeriesValue,
+  MockedFloatSeriesNode,
+  mockSeriesValueData,
   mockContext
 } = MocksGenerator();
 
-const { PlotValue: PlotValueResolver } = ValuesResolverFactory(
+const { FloatSeriesValue: FloatSeriesValueResolver } = ValuesResolverFactory(
   {
-    PlotValue: MockedPlotValue,
-    PlotNode: MockedPlotNode
+    FloatSeriesValue: MockedFloatSeriesValue,
+    FloatSeriesNode: MockedFloatSeriesNode
   },
   MockedUser,
   MockedDevice,
   MockedEnvironment
 );
 
-describe("PlotValue", () => {
-  const testPlotValueScalarProp = testScalarProp(
-    PlotValueResolver,
-    { id: "mockPlotValueId" },
-    mockPlotValueData[0]
+describe("FloatSeriesValue", () => {
+  const testSeriesValueScalarProp = testScalarProp(
+    FloatSeriesValueResolver,
+    { id: "mockFloatSeriesValueId" },
+    mockSeriesValueData[0]
   );
-  const testPlotValueUnauthenticated = unauthenticatedShouldFail(PlotValueResolver, {
-    id: "mockPlotValueId"
+  const testSeriesValueUnauthenticated = unauthenticatedShouldFail(FloatSeriesValueResolver, {
+    id: "mockFloatSeriesValueId"
   });
-  const testPlotValueNotAuthorized = notAuthorizedShouldFail(
-    PlotValueResolver,
-    { id: "mockPlotValueId" },
+  const testSeriesValueNotAuthorized = notAuthorizedShouldFail(
+    FloatSeriesValueResolver,
+    { id: "mockFloatSeriesValueId" },
     { auth: { userId: "mockUserId4", tokenType: "TEMPORARY" }, ...mockContext }
   );
-  const testPlotValueWrongId = wrongIdShouldFail(
-    PlotValueResolver,
-    { id: "wrongPlotValueId" },
+  const testSeriesValueWrongId = wrongIdShouldFail(
+    FloatSeriesValueResolver,
+    { id: "wrongSeriesValueId" },
     { auth: { userId: "mockUserId", tokenType: "TEMPORARY" }, ...mockContext }
   );
 
@@ -62,23 +62,23 @@ describe("PlotValue", () => {
   ];
 
   scalarProps.forEach(prop =>
-    test(`${prop} is resolved correctly by sender`, testPlotValueScalarProp(prop))
+    test(`${prop} is resolved correctly by sender`, testSeriesValueScalarProp(prop))
   );
   test("device is resolved correctly", async () => {
     const deviceFound = await new Promise((resolve, reject) => {
-      PlotValueResolver.device(
-        { id: "mockPlotValueId" },
+      FloatSeriesValueResolver.device(
+        { id: "mockFloatSeriesValueId" },
         {},
         { auth: { userId: "mockUserId", tokenType: "TEMPORARY" }, ...mockContext }
       )(resolve, reject);
     });
 
-    expect(deviceFound).toMatchObject({ id: mockPlotValueData[0].deviceId });
+    expect(deviceFound).toMatchObject({ id: mockSeriesValueData[0].deviceId });
   });
   test("value is resolved correctly", async () => {
     const valueFound = await new Promise((resolve, reject) => {
-      PlotValueResolver.value(
-        { id: "mockPlotValueId" },
+      FloatSeriesValueResolver.value(
+        { id: "mockFloatSeriesValueId" },
         {},
         { auth: { userId: "mockUserId", tokenType: "TEMPORARY" }, ...mockContext }
       )(resolve, reject);
@@ -86,28 +86,28 @@ describe("PlotValue", () => {
 
     expect(valueFound.length).toEqual(3);
     const valueIds = valueFound.map(value => value.id);
-    expect(valueIds).toContain("mockPlotNodeId");
-    expect(valueIds).toContain("mockPlotNodeId2");
-    expect(valueIds).toContain("mockPlotNodeId3");
+    expect(valueIds).toContain("mockFloatSeriesNodeId");
+    expect(valueIds).toContain("mockFloatSeriesNodeId2");
+    expect(valueIds).toContain("mockFloatSeriesNodeId3");
   });
   // TODO: implement order in mocks
   test.skip("lastNode is resolved correctly", async () => {
     const nodeFound = await new Promise((resolve, reject) => {
-      PlotValueResolver.lastNode(
-        { id: "mockPlotValueId" },
+      FloatSeriesValueResolver.lastNode(
+        { id: "mockFloatSeriesValueId" },
         {},
         { auth: { userId: "mockUserId", tokenType: "TEMPORARY" }, ...mockContext }
       )(resolve, reject);
     });
 
-    expect(nodeFound.id).toEqual("mockPlotNodeId2");
+    expect(nodeFound.id).toEqual("mockFloatSeriesNodeId2");
   });
 
   const allProps = [...scalarProps, "device", "value", "lastNode"];
 
   allProps.forEach(prop => {
-    test(`${prop} fails if unauthenticated`, testPlotValueUnauthenticated(prop));
-    test(`${prop} fails if not authorized`, testPlotValueNotAuthorized(prop));
-    test(`${prop} fails if wrong id`, testPlotValueWrongId(prop));
+    test(`${prop} fails if unauthenticated`, testSeriesValueUnauthenticated(prop));
+    test(`${prop} fails if not authorized`, testSeriesValueNotAuthorized(prop));
+    test(`${prop} fails if wrong id`, testSeriesValueWrongId(prop));
   });
 });

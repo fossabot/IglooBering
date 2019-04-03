@@ -211,17 +211,17 @@ const subscriptionResolver = (pubsub, { User, Device, Environment }) => ({
     pubsub,
     createDataLoaders
   ),
-  plotNodeCreated: subscriptionFilterOwnedOrShared(
-    "plotNodeCreated",
+  floatSeriesNodeCreated: subscriptionFilterOwnedOrShared(
+    "floatSeriesNodeCreated",
     pubsub,
     createDataLoaders,
-    customFilterByFields("plotNodeCreated", "plotId")
+    customFilterByFields("floatSeriesNodeCreated", "seriesId")
   ),
-  categoryPlotNodeCreated: subscriptionFilterOwnedOrShared(
-    "categoryPlotNodeCreated",
+  categorySeriesNodeCreated: subscriptionFilterOwnedOrShared(
+    "categorySeriesNodeCreated",
     pubsub,
     createDataLoaders,
-    customFilterByFields("categoryPlotNodeCreated", "plotId")
+    customFilterByFields("categorySeriesNodeCreated", "seriesId")
   ),
   notificationCreated: subscriptionFilterOwnedOrShared(
     "notificationCreated",
@@ -246,17 +246,17 @@ const subscriptionResolver = (pubsub, { User, Device, Environment }) => ({
     createDataLoaders,
     customFilterByFields("valueUpdated", "deviceId", "id")
   ),
-  plotNodeUpdated: subscriptionFilterOwnedOrShared(
-    "plotNodeUpdated",
+  floatSeriesNodeUpdated: subscriptionFilterOwnedOrShared(
+    "floatSeriesNodeUpdated",
     pubsub,
     createDataLoaders,
-    customFilterByFields("plotNodeUpdated", "plotId", "id")
+    customFilterByFields("floatSeriesNodeUpdated", "seriesId", "id")
   ),
-  categoryPlotNodeUpdated: subscriptionFilterOwnedOrShared(
-    "categoryPlotNodeUpdated",
+  categorySeriesNodeUpdated: subscriptionFilterOwnedOrShared(
+    "categorySeriesNodeUpdated",
     pubsub,
     createDataLoaders,
-    customFilterByFields("categoryPlotNodeUpdated", "plotId", "id")
+    customFilterByFields("categorySeriesNodeUpdated", "seriesId", "id")
   ),
   notificationUpdated: subscriptionFilterOwnedOrShared(
     "notificationUpdated",
@@ -310,17 +310,17 @@ const subscriptionResolver = (pubsub, { User, Device, Environment }) => ({
       throw new Error("No authorization token")
     },
   },
-  plotNodeDeleted: subscriptionFilterOwnedOrShared(
-    "plotNodeDeleted",
+  floatSeriesNodeDeleted: subscriptionFilterOwnedOrShared(
+    "floatSeriesNodeDeleted",
     pubsub,
     createDataLoaders,
-    customFiltersOnSource("plotId", "id")
+    customFiltersOnSource("seriesId", "id")
   ),
-  categoryPlotNodeDeleted: subscriptionFilterOwnedOrShared(
-    "categoryPlotNodeDeleted",
+  categorySeriesNodeDeleted: subscriptionFilterOwnedOrShared(
+    "categorySeriesNodeDeleted",
     pubsub,
     createDataLoaders,
-    customFiltersOnSource("plotId", "id")
+    customFiltersOnSource("seriesId", "id")
   ),
   permanentTokenDeleted: subscriptionFilterOnlyMine(
     "permanentTokenDeleted",

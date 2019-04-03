@@ -210,10 +210,10 @@ const MutationResolver = (
     FloatValue,
     StringValue,
     BooleanValue,
-    PlotValue,
-    PlotNode,
-    CategoryPlotValue,
-    CategoryPlotNode,
+    FloatSeriesValue,
+    FloatSeriesNode,
+    CategorySeriesValue,
+    CategorySeriesNode,
     Notification,
     PendingEnvironmentShare,
     PendingOwnerChange,
@@ -2060,7 +2060,13 @@ const MutationResolver = (
       Environment,
       FloatValue,
       "FloatValue",
-      [FloatValue, StringValue, BooleanValue, PlotValue, CategoryPlotValue],
+      [
+        FloatValue,
+        StringValue,
+        BooleanValue,
+        FloatSeriesValue,
+        CategorySeriesValue,
+      ],
       pubsub,
       (args, reject) => {
         if (
@@ -2091,7 +2097,13 @@ const MutationResolver = (
       Environment,
       StringValue,
       "StringValue",
-      [FloatValue, StringValue, BooleanValue, PlotValue, CategoryPlotValue],
+      [
+        FloatValue,
+        StringValue,
+        BooleanValue,
+        FloatSeriesValue,
+        CategorySeriesValue,
+      ],
       pubsub,
       (args, reject) => {
         if (isNotNullNorUndefined(args.maxChars) && args.maxChars <= 0) {
@@ -2128,7 +2140,13 @@ const MutationResolver = (
       Environment,
       BooleanValue,
       "BooleanValue",
-      [FloatValue, StringValue, BooleanValue, PlotValue, CategoryPlotValue],
+      [
+        FloatValue,
+        StringValue,
+        BooleanValue,
+        FloatSeriesValue,
+        CategorySeriesValue,
+      ],
       pubsub,
       (args, reject) => {
         if (args.cardSize !== "NORMAL") {
@@ -2139,13 +2157,19 @@ const MutationResolver = (
         return true
       }
     ),
-    createPlotValue: CreateGenericValue(
+    createFloatSeriesValue: CreateGenericValue(
       User,
       Device,
       Environment,
-      PlotValue,
-      "PlotValue",
-      [FloatValue, StringValue, BooleanValue, PlotValue, CategoryPlotValue],
+      FloatSeriesValue,
+      "FloatSeriesValue",
+      [
+        FloatValue,
+        StringValue,
+        BooleanValue,
+        FloatSeriesValue,
+        CategorySeriesValue,
+      ],
       pubsub,
       (args, reject) => {
         if (
@@ -2164,13 +2188,19 @@ const MutationResolver = (
         return true
       }
     ),
-    createCategoryPlotValue: CreateGenericValue(
+    createCategorySeriesValue: CreateGenericValue(
       User,
       Device,
       Environment,
-      CategoryPlotValue,
-      "CategoryPlotValue",
-      [FloatValue, StringValue, BooleanValue, PlotValue, CategoryPlotValue],
+      CategorySeriesValue,
+      "CategorySeriesValue",
+      [
+        FloatValue,
+        StringValue,
+        BooleanValue,
+        FloatSeriesValue,
+        CategorySeriesValue,
+      ],
       pubsub,
       (args, reject) => {
         if (
@@ -2184,17 +2214,17 @@ const MutationResolver = (
         return true
       }
     ),
-    createPlotNode(root, args, context) {
+    createFloatSeriesNode(root, args, context) {
       return deviceInheritAuthorized(
-        args.plotId,
-        context.dataLoaders.plotValueLoaderById,
+        args.seriesId,
+        context.dataLoaders.floatSeriesValueLoaderById,
         context,
         2,
-        async (resolve, reject, plotValueFound, deviceFound) => {
+        async (resolve, reject, floatSeriesValueFound, deviceFound) => {
           if (
             isOutOfBoundaries(
-              plotValueFound.min,
-              plotValueFound.max,
+              floatSeriesValueFound.min,
+              floatSeriesValueFound.max,
               args.value
             )
           ) {
@@ -2207,33 +2237,45 @@ const MutationResolver = (
             return
           }
 
-          const plotNode = await PlotNode.create({
+          const floatSeriesNode = await FloatSeriesNode.create({
             ...args,
             timestamp: args.timestamp || new Date(),
-            deviceId: plotValueFound.deviceId,
+            deviceId: floatSeriesValueFound.deviceId,
             userId: context.auth.userId,
           })
 
-          plotNode.setPlot(plotValueFound)
-          plotValueFound.addPlotNode(plotNode)
+          floatSeriesNode.setSeries(floatSeriesValueFound)
+          floatSeriesValueFound.addFloatSeriesNode(floatSeriesNode)
 
           const resolveObj = {
-            ...plotNode.dataValues,
-            user: { id: plotNode.userId },
-            device: { id: plotNode.deviceId },
-            plot: { id: plotNode.plotId },
+            ...floatSeriesNode.dataValues,
+            user: { id: floatSeriesNode.userId },
+            device: { id: floatSeriesNode.deviceId },
+            series: { id: floatSeriesNode.seriesId },
           }
 
           resolve(resolveObj)
           deviceFound.increment({ storageUsed: 1 })
 
           if (deviceFound.environmentId)
-            touch(Environment, deviceFound.environmentId, plotNode.createdAt)
-          touch(Device, plotValueFound.deviceId, plotNode.createdAt)
-          touch(PlotValue, plotValueFound.id, plotNode.createdAt)
+            touch(
+              Environment,
+              deviceFound.environmentId,
+              floatSeriesNode.createdAt
+            )
+          touch(
+            Device,
+            floatSeriesValueFound.deviceId,
+            floatSeriesNode.createdAt
+          )
+          touch(
+            FloatSeriesValue,
+            floatSeriesValueFound.id,
+            floatSeriesNode.createdAt
+          )
 
-          pubsub.publish("plotNodeCreated", {
-            plotNodeCreated: resolveObj,
+          pubsub.publish("floatSeriesNodeCreated", {
+            floatSeriesNodeCreated: resolveObj,
             userIds: deviceFound.environmentId
               ? [
                   deviceFound.producerId,
@@ -2250,16 +2292,16 @@ const MutationResolver = (
         }
       )
     },
-    createCategoryPlotNode(root, args, context) {
+    createCategorySeriesNode(root, args, context) {
       return deviceInheritAuthorized(
-        args.plotId,
-        context.dataLoaders.categoryPlotValueLoaderById,
+        args.seriesId,
+        context.dataLoaders.categorySeriesValueLoaderById,
         context,
         2,
-        async (resolve, reject, plotValueFound, deviceFound) => {
+        async (resolve, reject, floatSeriesValueFound, deviceFound) => {
           if (
-            isNotNullNorUndefined(plotValueFound.allowedValues) &&
-            plotValueFound.allowedValues.indexOf(args.value)
+            isNotNullNorUndefined(floatSeriesValueFound.allowedValues) &&
+            floatSeriesValueFound.allowedValues.indexOf(args.value)
           ) {
             reject("Value not in allowedValues")
             return
@@ -2270,33 +2312,45 @@ const MutationResolver = (
             return
           }
 
-          const plotNode = await CategoryPlotNode.create({
+          const floatSeriesNode = await CategorySeriesNode.create({
             ...args,
             timestamp: args.timestamp || new Date(),
-            deviceId: plotValueFound.deviceId,
+            deviceId: floatSeriesValueFound.deviceId,
             userId: context.auth.userId,
           })
 
-          plotNode.setPlot(plotValueFound)
-          plotValueFound.addCategoryPlotNode(plotNode)
+          floatSeriesNode.setSeries(floatSeriesValueFound)
+          floatSeriesValueFound.addCategorySeriesNode(floatSeriesNode)
 
           const resolveObj = {
-            ...plotNode.dataValues,
-            user: { id: plotNode.userId },
-            device: { id: plotNode.deviceId },
-            plot: { id: plotNode.plotId },
+            ...floatSeriesNode.dataValues,
+            user: { id: floatSeriesNode.userId },
+            device: { id: floatSeriesNode.deviceId },
+            series: { id: floatSeriesNode.seriesId },
           }
 
           resolve(resolveObj)
 
           deviceFound.increment({ storageUsed: 1 })
           if (deviceFound.environmentId)
-            touch(Environment, deviceFound.environmentId, plotNode.createdAt)
-          touch(Device, plotValueFound.deviceId, plotNode.createdAt)
-          touch(CategoryPlotValue, plotValueFound.id, plotNode.createdAt)
+            touch(
+              Environment,
+              deviceFound.environmentId,
+              floatSeriesNode.createdAt
+            )
+          touch(
+            Device,
+            floatSeriesValueFound.deviceId,
+            floatSeriesNode.createdAt
+          )
+          touch(
+            CategorySeriesValue,
+            floatSeriesValueFound.id,
+            floatSeriesNode.createdAt
+          )
 
-          pubsub.publish("categoryPlotNodeCreated", {
-            categoryPlotNodeCreated: resolveObj,
+          pubsub.publish("categorySeriesNodeCreated", {
+            categorySeriesNodeCreated: resolveObj,
             userIds: deviceFound.environmentId
               ? [
                   deviceFound.producerId,
@@ -2728,8 +2782,8 @@ const MutationResolver = (
             BooleanValue,
             FloatValue,
             StringValue,
-            PlotValue,
-            CategoryPlotValue,
+            FloatSeriesValue,
+            CategorySeriesValue,
             Notification,
           ]
 
@@ -2965,9 +3019,9 @@ const MutationResolver = (
         return true
       }
     ),
-    plotValue: genericValueMutation(
-      "plotValueLoaderById",
-      "PlotValue",
+    floatSeriesValue: genericValueMutation(
+      "floatSeriesValueLoaderById",
+      "FloatSeriesValue",
       pubsub,
       User,
       Device,
@@ -2983,9 +3037,9 @@ const MutationResolver = (
         return true
       }
     ),
-    categoryPlotValue: genericValueMutation(
-      "categoryPlotValueLoaderById",
-      "CategoryPlotValue",
+    categorySeriesValue: genericValueMutation(
+      "categorySeriesValueLoaderById",
+      "CategorySeriesValue",
       pubsub,
       User,
       Device,
@@ -3048,23 +3102,23 @@ const MutationResolver = (
           })
         }
       ),
-    plotNode(root, args, context) {
+    floatSeriesNode(root, args, context) {
       return deviceInheritAuthorized(
         args.id,
-        context.dataLoaders.plotNodeLoaderById,
+        context.dataLoaders.floatSeriesNodeLoaderById,
         context,
         2,
-        async (resolve, reject, plotNodeFound, deviceFound) => {
-          const plotValueFound = await context.dataLoaders.plotValueLoaderById.load(
-            plotNodeFound.plotId
+        async (resolve, reject, floatSeriesNodeFound, deviceFound) => {
+          const floatSeriesValueFound = await context.dataLoaders.floatSeriesValueLoaderById.load(
+            floatSeriesNodeFound.seriesId
           )
           if (Object.keys(args).length === 1) {
             reject("You cannot make a mutation with only the id field")
             return
           } else if (
             isOutOfBoundaries(
-              plotValueFound.min,
-              plotValueFound.max,
+              floatSeriesValueFound.min,
+              floatSeriesValueFound.max,
               args.value
             )
           ) {
@@ -3072,13 +3126,13 @@ const MutationResolver = (
             return
           }
 
-          const newNode = await plotNodeFound.update(args)
+          const newNode = await floatSeriesNodeFound.update(args)
 
           const resolveObj = {
             ...newNode.dataValues,
             user: { id: newNode.dataValues.userId },
             device: { id: newNode.dataValues.deviceId },
-            plot: { id: newNode.dataValues.plotId },
+            series: { id: newNode.dataValues.seriesId },
           }
           resolve(resolveObj)
 
@@ -3090,11 +3144,11 @@ const MutationResolver = (
 
           if (environmentFound)
             touch(Environment, environmentFound.id, newNode.updatedAt)
-          touch(Device, plotValueFound.deviceId, newNode.updatedAt)
-          touch(PlotValue, plotValueFound.id, newNode.updatedAt)
+          touch(Device, floatSeriesValueFound.deviceId, newNode.updatedAt)
+          touch(FloatSeriesValue, floatSeriesValueFound.id, newNode.updatedAt)
 
-          pubsub.publish("plotNodeUpdated", {
-            plotNodeUpdated: resolveObj,
+          pubsub.publish("floatSeriesNodeUpdated", {
+            floatSeriesNodeUpdated: resolveObj,
             userIds: environmentFound
               ? [
                   deviceFound.producerId,
@@ -3106,34 +3160,34 @@ const MutationResolver = (
         }
       )
     },
-    categoryPlotNode(root, args, context) {
+    categorySeriesNode(root, args, context) {
       return deviceInheritAuthorized(
         args.id,
-        context.dataLoaders.categoryPlotNodeLoaderById,
+        context.dataLoaders.categorySeriesNodeLoaderById,
         context,
         2,
-        async (resolve, reject, plotNodeFound, deviceFound) => {
-          const plotValueFound = await context.dataLoaders.categoryPlotValueLoaderById.load(
-            plotNodeFound.plotId
+        async (resolve, reject, floatSeriesNodeFound, deviceFound) => {
+          const floatSeriesValueFound = await context.dataLoaders.categorySeriesValueLoaderById.load(
+            floatSeriesNodeFound.seriesId
           )
           if (Object.keys(args).length === 1) {
             reject("You cannot make a mutation with only the id field")
             return
           } else if (
-            isNotNullNorUndefined(plotValueFound.allowedValues) &&
+            isNotNullNorUndefined(floatSeriesValueFound.allowedValues) &&
             args.value !== undefined &&
-            plotValueFound.allowedValues.indexOf(args.value)
+            floatSeriesValueFound.allowedValues.indexOf(args.value)
           ) {
             reject("value not in allowedValues")
             return
           }
-          const newNode = await plotNodeFound.update(args)
+          const newNode = await floatSeriesNodeFound.update(args)
 
           const resolveObj = {
             ...newNode.dataValues,
             user: { id: newNode.dataValues.userId },
             device: { id: newNode.dataValues.deviceId },
-            plot: { id: newNode.dataValues.plotId },
+            series: { id: newNode.dataValues.seriesId },
           }
           resolve(resolveObj)
 
@@ -3146,10 +3200,14 @@ const MutationResolver = (
           if (environmentFound)
             touch(Environment, environmentFound.id, newNode.updatedAt)
           touch(Device, deviceFound.id, newNode.updatedAt)
-          touch(CategoryPlotValue, plotNodeFound.plotId, newNode.updatedAt)
+          touch(
+            CategorySeriesValue,
+            floatSeriesNodeFound.seriesId,
+            newNode.updatedAt
+          )
 
-          pubsub.publish("categoryPlotNodeUpdated", {
-            categoryPlotNodeUpdated: resolveObj,
+          pubsub.publish("categorySeriesNodeUpdated", {
+            categorySeriesNodeUpdated: resolveObj,
             userIds: environmentFound
               ? [
                   deviceFound.producerId,
@@ -3420,38 +3478,43 @@ const MutationResolver = (
               ]
             : [deviceFound.producerId]
 
-          // remove linked plotNodes
-          const plotNodesFound = await PlotNode.findAll({
-            where: { plotId: args.id },
+          // remove linked floatSeriesNodes
+          const floatSeriesNodesFound = await FloatSeriesNode.findAll({
+            where: { seriesId: args.id },
           })
-          const categoryPlotNodesFound = await CategoryPlotNode.findAll({
-            where: { plotId: args.id },
+          const categorySeriesNodesFound = await CategorySeriesNode.findAll({
+            where: { seriesId: args.id },
           })
 
-          const plotNodePromises = plotNodesFound.map(async plotNode => {
-            plotNode.destroy()
+          const floatSeriesNodePromises = floatSeriesNodesFound.map(
+            async floatSeriesNode => {
+              floatSeriesNode.destroy()
 
-            pubsub.publish("plotNodeDeleted", {
-              plotNodeDeleted: plotNode.id,
-              userIds: authorizedUsersIds,
-              source: plotNode,
-              allowedDeviceIds: [deviceFound.id],
-            })
-          })
-          const categoryPlotNodePromises = categoryPlotNodesFound.map(
-            async plotNode => {
-              plotNode.destroy()
-
-              pubsub.publish("categoryPlotNodeDeleted", {
-                categoryPlotNodeDeleted: plotNode.id,
+              pubsub.publish("floatSeriesNodeDeleted", {
+                floatSeriesNodeDeleted: floatSeriesNode.id,
                 userIds: authorizedUsersIds,
-                source: plotNode,
+                source: floatSeriesNode,
+                allowedDeviceIds: [deviceFound.id],
+              })
+            }
+          )
+          const categorySeriesNodePromises = categorySeriesNodesFound.map(
+            async floatSeriesNode => {
+              floatSeriesNode.destroy()
+
+              pubsub.publish("categorySeriesNodeDeleted", {
+                categorySeriesNodeDeleted: floatSeriesNode.id,
+                userIds: authorizedUsersIds,
+                source: floatSeriesNode,
                 allowedDeviceIds: [deviceFound.id],
               })
             }
           )
 
-          await Promise.all([...plotNodePromises, ...categoryPlotNodePromises])
+          await Promise.all([
+            ...floatSeriesNodePromises,
+            ...categorySeriesNodePromises,
+          ])
 
           await valueFound.destroy()
 
@@ -3590,10 +3653,10 @@ const MutationResolver = (
           [FloatValue, "valueDeleted"],
           [StringValue, "valueDeleted"],
           [BooleanValue, "valueDeleted"],
-          [PlotValue, "valueDeleted"],
-          [CategoryPlotValue, "valueDeleted"],
-          [PlotNode, "plotNodeDeleted"],
-          [CategoryPlotNode, "categoryPlotNodeDeleted"],
+          [FloatSeriesValue, "valueDeleted"],
+          [CategorySeriesValue, "valueDeleted"],
+          [FloatSeriesNode, "floatSeriesNodeDeleted"],
+          [CategorySeriesNode, "categorySeriesNodeDeleted"],
           [Notification, "notificationDeleted"],
         ].map(deleteChild)
       )
@@ -3720,14 +3783,14 @@ const MutationResolver = (
         },
         environmentToParent
       ),
-    deletePlotNode(root, args, context) {
+    deleteFloatSeriesNode(root, args, context) {
       return deviceInheritAuthorized(
         args.id,
-        context.dataLoaders.plotNodeLoaderById,
+        context.dataLoaders.floatSeriesNodeLoaderById,
         context,
         2,
-        async (resolve, reject, plotNodeFound, deviceFound) => {
-          await plotNodeFound.destroy()
+        async (resolve, reject, floatSeriesNodeFound, deviceFound) => {
+          await floatSeriesNodeFound.destroy()
 
           resolve(args.id)
 
@@ -3738,8 +3801,8 @@ const MutationResolver = (
             ))
           deviceFound.increment({ storageUsed: -1 })
           if (environmentFound) touch(Environment, environmentFound.id)
-          touch(Device, plotNodeFound.deviceId)
-          touch(PlotValue, plotNodeFound.plotId)
+          touch(Device, floatSeriesNodeFound.deviceId)
+          touch(FloatSeriesValue, floatSeriesNodeFound.seriesId)
 
           const authorizedUsersIds = environmentFound
             ? [
@@ -3749,14 +3812,14 @@ const MutationResolver = (
             : [deviceFound.producerId]
           pubsub.publish("valueUpdated", {
             valueUpdated: {
-              id: plotNodeFound.plotId,
+              id: floatSeriesNodeFound.seriesId,
             },
             userIds: authorizedUsersIds,
             allowedDeviceIds: [deviceFound.id],
           })
           pubsub.publish("deviceUpdated", {
             deviceUpdated: {
-              id: plotNodeFound.deviceId,
+              id: floatSeriesNodeFound.deviceId,
             },
             userIds: authorizedUsersIds,
             allowedDeviceIds: [deviceFound.id],
@@ -3767,23 +3830,23 @@ const MutationResolver = (
               userIds: authorizedUsersIds,
             })
           }
-          pubsub.publish("plotNodeDeleted", {
-            plotNodeDeleted: args.id,
+          pubsub.publish("floatSeriesNodeDeleted", {
+            floatSeriesNodeDeleted: args.id,
             userIds: authorizedUsersIds,
-            source: plotNodeFound,
+            source: floatSeriesNodeFound,
             allowedDeviceIds: [deviceFound.id],
           })
         }
       )
     },
-    deleteCategoryPlotNode(root, args, context) {
+    deleteCategorySeriesNode(root, args, context) {
       return deviceInheritAuthorized(
         args.id,
-        context.dataLoaders.categoryPlotNodeLoaderById,
+        context.dataLoaders.categorySeriesNodeLoaderById,
         context,
         2,
-        async (resolve, reject, plotNodeFound, deviceFound) => {
-          await plotNodeFound.destroy()
+        async (resolve, reject, floatSeriesNodeFound, deviceFound) => {
+          await floatSeriesNodeFound.destroy()
 
           resolve(args.id)
 
@@ -3794,8 +3857,8 @@ const MutationResolver = (
             ))
           deviceFound.increment({ storageUsed: -1 })
           touch(Environment, environmentFound.id)
-          touch(Device, plotNodeFound.deviceId)
-          touch(CategoryPlotValue, plotNodeFound.plotId)
+          touch(Device, floatSeriesNodeFound.deviceId)
+          touch(CategorySeriesValue, floatSeriesNodeFound.seriesId)
 
           const authorizedUsersIds = environmentFound
             ? [
@@ -3805,14 +3868,14 @@ const MutationResolver = (
             : [deviceFound.producerId]
           pubsub.publish("valueUpdated", {
             valueUpdated: {
-              id: plotNodeFound.plotId,
+              id: floatSeriesNodeFound.seriesId,
             },
             userIds: authorizedUsersIds,
             allowedDeviceIds: [deviceFound.id],
           })
           pubsub.publish("deviceUpdated", {
             deviceUpdated: {
-              id: plotNodeFound.deviceId,
+              id: floatSeriesNodeFound.deviceId,
             },
             userIds: authorizedUsersIds,
             allowedDeviceIds: [deviceFound.producerId],
@@ -3823,10 +3886,10 @@ const MutationResolver = (
               userIds: authorizedUsersIds,
             })
           }
-          pubsub.publish("categoryPlotNodeDeleted", {
-            categoryPlotNodeDeleted: args.id,
+          pubsub.publish("categorySeriesNodeDeleted", {
+            categorySeriesNodeDeleted: args.id,
             userIds: authorizedUsersIds,
-            source: plotNodeFound,
+            source: floatSeriesNodeFound,
             allowedDeviceIds: [deviceFound.id],
           })
         }

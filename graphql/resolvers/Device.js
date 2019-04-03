@@ -73,8 +73,8 @@ const DeviceResolver = ({
   FloatValue,
   StringValue,
   BooleanValue,
-  PlotValue,
-  CategoryPlotValue,
+  FloatSeriesValue,
+  CategorySeriesValue,
   sequelize,
 }) => ({
   ...deviceAuthorizedScalarPropsResolvers([
@@ -108,10 +108,10 @@ const DeviceResolver = ({
         const booleanCount = BooleanValue.count({
           where: { deviceId: deviceFound.id },
         })
-        const plotCount = PlotValue.count({
+        const seriesCount = FloatSeriesValue.count({
           where: { deviceId: deviceFound.id },
         })
-        const categoryPlotCount = CategoryPlotValue.count({
+        const categorySeriesCount = CategorySeriesValue.count({
           where: { deviceId: deviceFound.id },
         })
 
@@ -119,8 +119,8 @@ const DeviceResolver = ({
           floatCount,
           stringCount,
           booleanCount,
-          plotCount,
-          categoryPlotCount,
+          seriesCount,
+          categorySeriesCount,
         ]).then(arr => arr.reduce((a, b) => a + b, 0))
 
         resolve(totalCount)
@@ -233,19 +233,19 @@ const DeviceResolver = ({
           "stringValues"
         )}
         UNION
-        SELECT public."categoryPlotValues".id ${additionalSelect(
-          "categoryPlotValues"
-        )} FROM public."categoryPlotValues"
-          WHERE public."categoryPlotValues"."deviceId" = '${
+        SELECT public."categorySeriesValues".id ${additionalSelect(
+          "categorySeriesValues"
+        )} FROM public."categorySeriesValues"
+          WHERE public."categorySeriesValues"."deviceId" = '${
             root.id
-          }' ${whereQuery("categoryPlotValues")}
+          }' ${whereQuery("categorySeriesValues")}
         UNION
-        SELECT public."plotValues".id ${additionalSelect(
-          "plotValues"
-        )} FROM public."plotValues"
-          WHERE public."plotValues"."deviceId" = '${root.id}' ${whereQuery(
-          "plotValues"
-        )}
+        SELECT public."floatSeriesValues".id ${additionalSelect(
+          "floatSeriesValues"
+        )} FROM public."floatSeriesValues"
+          WHERE public."floatSeriesValues"."deviceId" = '${
+            root.id
+          }' ${whereQuery("floatSeriesValues")}
         UNION
         SELECT public."booleanValues".id ${additionalSelect(
           "booleanValues"

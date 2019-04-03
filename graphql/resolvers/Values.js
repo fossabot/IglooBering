@@ -77,12 +77,12 @@ const StringValueResolver = (loaderName, User, Device, Environment) => ({
     "allowedValues",
   ]),
 })
-const PlotValueResolver = (
+const FloatSeriesValueResolver = (
   loaderName,
   User,
   Device,
   Environment,
-  PlotNode
+  FloatSeriesNode
 ) => ({
   ...GenericResolver(loaderName, User, Device, Environment, false),
   ...deviceInheritAuthorizedScalarPropsResolvers(loaderName, [
@@ -98,9 +98,9 @@ const PlotValueResolver = (
       context.dataLoaders[loaderName],
       context,
       1,
-      async (resolve, reject, plotFound) => {
-        const count = await PlotNode.count({
-          where: { plotId: plotFound.id },
+      async (resolve, reject, seriesFound) => {
+        const count = await FloatSeriesNode.count({
+          where: { seriesId: seriesFound.id },
         })
         resolve(count)
       }
@@ -112,9 +112,9 @@ const PlotValueResolver = (
       context.dataLoaders[loaderName],
       context,
       1,
-      async (resolve, reject, plotFound) => {
-        const nodes = await PlotNode.findAll({
-          where: { plotId: plotFound.id },
+      async (resolve, reject, seriesFound) => {
+        const nodes = await FloatSeriesNode.findAll({
+          where: { seriesId: seriesFound.id },
           limit: args.limit,
           offset: args.offset,
           order: [["id", "DESC"]],
@@ -128,21 +128,21 @@ const PlotValueResolver = (
       context.dataLoaders[loaderName],
       context,
       1,
-      async (resolve, reject, plotFound) => {
-        const node = await PlotNode.find({
-          where: { plotId: plotFound.id },
+      async (resolve, reject, seriesFound) => {
+        const node = await FloatSeriesNode.find({
+          where: { seriesId: seriesFound.id },
           order: [["timestamp", "DESC"]],
         })
         resolve(node)
       }
     ),
 })
-const CategoryPlotValueResolver = (
+const CategorySeriesValueResolver = (
   loaderName,
   User,
   Device,
   Environment,
-  CategoryPlotNode
+  CategorySeriesNode
 ) => ({
   ...GenericResolver(loaderName, User, Device, Environment, false),
   ...deviceInheritAuthorizedScalarPropsResolvers(loaderName, ["allowedValues"]),
@@ -152,9 +152,9 @@ const CategoryPlotValueResolver = (
       context.dataLoaders[loaderName],
       context,
       1,
-      async (resolve, reject, plotFound) => {
-        const count = await CategoryPlotNode.count({
-          where: { plotId: plotFound.id },
+      async (resolve, reject, seriesFound) => {
+        const count = await CategorySeriesNode.count({
+          where: { seriesId: seriesFound.id },
         })
         resolve(count)
       }
@@ -166,9 +166,9 @@ const CategoryPlotValueResolver = (
       context.dataLoaders[loaderName],
       context,
       1,
-      async (resolve, reject, plotFound) => {
-        const nodes = await CategoryPlotNode.findAll({
-          where: { plotId: plotFound.id },
+      async (resolve, reject, seriesFound) => {
+        const nodes = await CategorySeriesNode.findAll({
+          where: { seriesId: seriesFound.id },
           limit: args.limit,
           offset: args.offset,
           order: [["id", "DESC"]],
@@ -183,9 +183,9 @@ const CategoryPlotValueResolver = (
       context.dataLoaders[loaderName],
       context,
       1,
-      async (resolve, reject, plotFound) => {
-        const node = await CategoryPlotNode.find({
-          where: { plotId: plotFound.id },
+      async (resolve, reject, seriesFound) => {
+        const node = await CategorySeriesNode.find({
+          where: { seriesId: seriesFound.id },
           order: [["timestamp", "DESC"]],
         })
 
@@ -194,7 +194,7 @@ const CategoryPlotValueResolver = (
     ),
 })
 
-const PlotNodeResolver = (
+const FloatSeriesNodeResolver = (
   nodeLoader,
   valueLoader,
   User,
@@ -211,19 +211,19 @@ const PlotNodeResolver = (
       context.dataLoaders[nodeLoader],
       context,
       1,
-      async (resolve, reject, plotNodeFound) => {
-        resolve({ id: plotNodeFound.deviceId })
+      async (resolve, reject, floatSeriesNodeFound) => {
+        resolve({ id: floatSeriesNodeFound.deviceId })
       }
     )
   },
-  plot(root, args, context) {
+  series(root, args, context) {
     return deviceInheritAuthorized(
       root.id,
       context.dataLoaders[nodeLoader],
       context,
       1,
-      async (resolve, reject, plotNodeFound) => {
-        resolve({ id: plotNodeFound.plotId })
+      async (resolve, reject, floatSeriesNodeFound) => {
+        resolve({ id: floatSeriesNodeFound.seriesId })
       }
     )
   },
@@ -234,10 +234,10 @@ export default (
     BooleanValue,
     FloatValue,
     StringValue,
-    PlotValue,
-    PlotNode,
-    CategoryPlotValue,
-    CategoryPlotNode,
+    FloatSeriesValue,
+    FloatSeriesNode,
+    CategorySeriesValue,
+    CategorySeriesNode,
   },
   User,
   Device,
@@ -261,30 +261,30 @@ export default (
     Device,
     Environment
   ),
-  PlotValue: PlotValueResolver(
-    "plotValueLoaderById",
+  FloatSeriesValue: FloatSeriesValueResolver(
+    "floatSeriesValueLoaderById",
     User,
     Device,
     Environment,
-    PlotNode
+    FloatSeriesNode
   ),
-  PlotNode: PlotNodeResolver(
-    "plotNodeLoaderById",
-    "plotValueLoaderById",
+  FloatSeriesNode: FloatSeriesNodeResolver(
+    "floatSeriesNodeLoaderById",
+    "floatSeriesValueLoaderById",
     User,
     Device,
     Environment
   ),
-  CategoryPlotValue: CategoryPlotValueResolver(
-    "categoryPlotValueLoaderById",
+  CategorySeriesValue: CategorySeriesValueResolver(
+    "categorySeriesValueLoaderById",
     User,
     Device,
     Environment,
-    CategoryPlotNode
+    CategorySeriesNode
   ),
-  CategoryPlotNode: PlotNodeResolver(
-    "categoryPlotNodeLoaderById",
-    "categoryPlotValueLoaderById",
+  CategorySeriesNode: FloatSeriesNodeResolver(
+    "categorySeriesNodeLoaderById",
+    "categorySeriesValueLoaderById",
     User,
     Device,
     Environment

@@ -494,28 +494,34 @@ export const firstResolve = promises =>
 
 // FIXME: doesn't check if the user has the authorizations needed
 export const findAllValues = (
-  { BooleanValue, FloatValue, StringValue, PlotValue, CategoryPlotValue },
+  {
+    BooleanValue,
+    FloatValue,
+    StringValue,
+    FloatSeriesValue,
+    CategorySeriesValue,
+  },
   query
 ) => {
   const booleanValues = BooleanValue.findAll(query)
   const floatValues = FloatValue.findAll(query)
   const stringValues = StringValue.findAll(query)
-  const plotValues = PlotValue.findAll(query)
-  const categoryPlotValues = CategoryPlotValue.findAll(query)
+  const floatSeriesValues = FloatSeriesValue.findAll(query)
+  const categorySeriesValues = CategorySeriesValue.findAll(query)
 
   return Promise.all([
     booleanValues,
     floatValues,
     stringValues,
-    plotValues,
-    categoryPlotValues,
+    floatSeriesValues,
+    categorySeriesValues,
   ]).then(
     ([
       booleanValues,
       floatValues,
       stringValues,
-      plotValues,
-      categoryPlotValues,
+      floatSeriesValues,
+      categorySeriesValues,
     ]) => [
       ...booleanValues.map(value => ({
         ...value.dataValues,
@@ -535,17 +541,17 @@ export const findAllValues = (
         device: { id: value.dataValues.deviceId },
         __resolveType: "StringValue",
       })),
-      ...plotValues.map(value => ({
+      ...floatSeriesValues.map(value => ({
         ...value.dataValues,
         owner: { id: value.dataValues.ownerId },
         device: { id: value.dataValues.deviceId },
-        __resolveType: "PlotValue",
+        __resolveType: "FloatSeriesValue",
       })),
-      ...categoryPlotValues.map(value => ({
+      ...categorySeriesValues.map(value => ({
         ...value.dataValues,
         owner: { id: value.dataValues.ownerId },
         device: { id: value.dataValues.deviceId },
-        __resolveType: "CategoryPlotValue",
+        __resolveType: "CategorySeriesValue",
       })),
     ]
   )
@@ -557,22 +563,22 @@ export const findValue = (id, context) => {
     booleanValueLoaderById,
     floatValueLoaderById,
     stringValueLoaderById,
-    plotValueLoaderById,
-    categoryPlotValueLoaderById,
+    floatSeriesValueLoaderById,
+    categorySeriesValueLoaderById,
     environmentLoaderById,
   } = context.dataLoaders
   const booleanValue = booleanValueLoaderById.load(id)
   const floatValue = floatValueLoaderById.load(id)
   const stringValue = stringValueLoaderById.load(id)
-  const plotValue = plotValueLoaderById.load(id)
-  const categoryPlotValue = categoryPlotValueLoaderById.load(id)
+  const floatSeriesValue = floatSeriesValueLoaderById.load(id)
+  const categorySeriesValue = categorySeriesValueLoaderById.load(id)
 
   return Promise.all([
     booleanValue,
     floatValue,
     stringValue,
-    plotValue,
-    categoryPlotValue,
+    floatSeriesValue,
+    categorySeriesValue,
   ]).then(values => values.reduce((acc, val) => val || acc, null))
 }
 

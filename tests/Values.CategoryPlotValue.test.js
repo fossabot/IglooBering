@@ -11,42 +11,42 @@ const {
   MockedEnvironment,
   MockedDevice,
   MockedUser,
-  MockedCategoryPlotValue,
-  MockedCategoryPlotNode,
-  mockCategoryPlotValueData,
+  MockedCategorySeriesValue,
+  MockedCategorySeriesNode,
+  mockCategorySeriesValueData,
   mockContext
 } = MocksGenerator();
 
-const { CategoryPlotValue: CategoryPlotValueResolver } = ValuesResolverFactory(
+const { CategorySeriesValue: CategorySeriesValueResolver } = ValuesResolverFactory(
   {
-    CategoryPlotValue: MockedCategoryPlotValue,
-    CategoryPlotNode: MockedCategoryPlotNode
+    CategorySeriesValue: MockedCategorySeriesValue,
+    CategorySeriesNode: MockedCategorySeriesNode
   },
   MockedUser,
   MockedDevice,
   MockedEnvironment
 );
 
-describe("CategoryPlotValue", () => {
-  const testCategoryPlotValueScalarProp = testScalarProp(
-    CategoryPlotValueResolver,
-    { id: "mockCategoryPlotValueId" },
-    mockCategoryPlotValueData[0]
+describe("CategorySeriesValue", () => {
+  const testCategorySeriesValueScalarProp = testScalarProp(
+    CategorySeriesValueResolver,
+    { id: "mockCategorySeriesValueId" },
+    mockCategorySeriesValueData[0]
   );
-  const testCategoryPlotValueUnauthenticated = unauthenticatedShouldFail(
-    CategoryPlotValueResolver,
+  const testCategorySeriesValueUnauthenticated = unauthenticatedShouldFail(
+    CategorySeriesValueResolver,
     {
-      id: "mockCategoryPlotValueId"
+      id: "mockCategorySeriesValueId"
     }
   );
-  const testCategoryPlotValueNotAuthorized = notAuthorizedShouldFail(
-    CategoryPlotValueResolver,
-    { id: "mockCategoryPlotValueId" },
+  const testCategorySeriesValueNotAuthorized = notAuthorizedShouldFail(
+    CategorySeriesValueResolver,
+    { id: "mockCategorySeriesValueId" },
     { auth: { userId: "mockUserId4", tokenType: "TEMPORARY" }, ...mockContext }
   );
-  const testCategoryPlotValueWrongId = wrongIdShouldFail(
-    CategoryPlotValueResolver,
-    { id: "wrongCategoryPlotValueId" },
+  const testCategorySeriesValueWrongId = wrongIdShouldFail(
+    CategorySeriesValueResolver,
+    { id: "wrongCategorySeriesValueId" },
     { auth: { userId: "mockUserId", tokenType: "TEMPORARY" }, ...mockContext }
   );
 
@@ -61,23 +61,23 @@ describe("CategoryPlotValue", () => {
   ];
 
   scalarProps.forEach(prop =>
-    test(`${prop} is resolved correctly by sender`, testCategoryPlotValueScalarProp(prop))
+    test(`${prop} is resolved correctly by sender`, testCategorySeriesValueScalarProp(prop))
   );
   test("device is resolved correctly", async () => {
     const deviceFound = await new Promise((resolve, reject) => {
-      CategoryPlotValueResolver.device(
-        { id: "mockCategoryPlotValueId" },
+      CategorySeriesValueResolver.device(
+        { id: "mockCategorySeriesValueId" },
         {},
         { auth: { userId: "mockUserId", tokenType: "TEMPORARY" }, ...mockContext }
       )(resolve, reject);
     });
 
-    expect(deviceFound).toMatchObject({ id: mockCategoryPlotValueData[0].deviceId });
+    expect(deviceFound).toMatchObject({ id: mockCategorySeriesValueData[0].deviceId });
   });
   test("value is resolved correctly", async () => {
     const valueFound = await new Promise((resolve, reject) => {
-      CategoryPlotValueResolver.value(
-        { id: "mockCategoryPlotValueId" },
+      CategorySeriesValueResolver.value(
+        { id: "mockCategorySeriesValueId" },
         {},
         { auth: { userId: "mockUserId", tokenType: "TEMPORARY" }, ...mockContext }
       )(resolve, reject);
@@ -85,27 +85,27 @@ describe("CategoryPlotValue", () => {
 
     expect(valueFound.length).toEqual(3);
     const valueIds = valueFound.map(value => value.id);
-    expect(valueIds).toContain("mockCategoryPlotNodeId");
-    expect(valueIds).toContain("mockCategoryPlotNodeId2");
-    expect(valueIds).toContain("mockCategoryPlotNodeId3");
+    expect(valueIds).toContain("mockCategorySeriesNodeId");
+    expect(valueIds).toContain("mockCategorySeriesNodeId2");
+    expect(valueIds).toContain("mockCategorySeriesNodeId3");
   });
   // TODO: implement order in mocks
   test.skip("lastNode is resolved correctly", async () => {
     const nodeFound = await new Promise((resolve, reject) => {
-      CategoryPlotValueResolver.lastNode(
-        { id: "mockPlotValueId" },
+      CategorySeriesValueResolver.lastNode(
+        { id: "mockFloatSeriesValueId" },
         {},
         { auth: { userId: "mockUserId", tokenType: "TEMPORARY" }, ...mockContext }
       )(resolve, reject);
     });
-    expect(nodeFound.id).toEqual("mockCategoryPlotNodeId2");
+    expect(nodeFound.id).toEqual("mockCategorySeriesNodeId2");
   });
 
   const allProps = [...scalarProps, "device", "value", "lastNode"];
 
   allProps.forEach(prop => {
-    test(`${prop} fails if unauthenticated`, testCategoryPlotValueUnauthenticated(prop));
-    test(`${prop} fails if not authorized`, testCategoryPlotValueNotAuthorized(prop));
-    test(`${prop} fails if wrong id`, testCategoryPlotValueWrongId(prop));
+    test(`${prop} fails if unauthenticated`, testCategorySeriesValueUnauthenticated(prop));
+    test(`${prop} fails if not authorized`, testCategorySeriesValueNotAuthorized(prop));
+    test(`${prop} fails if wrong id`, testCategorySeriesValueWrongId(prop));
   });
 });

@@ -1,5 +1,5 @@
 module.exports = (queryInterface, Sequelize) => {
-  const CategoryPlotNode = queryInterface.define("categoryPlotNode", {
+  const FloatSeriesNode = queryInterface.define("floatSeriesNode", {
     id: {
       type: Sequelize.UUID,
       defaultValue: Sequelize.UUIDV4,
@@ -21,16 +21,16 @@ module.exports = (queryInterface, Sequelize) => {
         key: "id",
       },
     },
-    plotId: {
+    seriesId: {
       type: Sequelize.UUID,
       allowNull: false,
       references: {
-        model: "categoryPlotValues",
+        model: "floatSeriesValues",
         key: "id",
       },
     },
     value: {
-      type: Sequelize.STRING,
+      type: Sequelize.FLOAT,
       allowNull: false,
     },
     timestamp: {
@@ -39,9 +39,9 @@ module.exports = (queryInterface, Sequelize) => {
     },
   })
 
-  CategoryPlotNode.associate = function(models) {
-    CategoryPlotNode.belongsTo(models.CategoryPlotValue, { as: "plot" })
-    models.CategoryPlotValue.hasMany(CategoryPlotNode, { foreignKey: "plotId" })
+  FloatSeriesNode.associate = function(models) {
+    FloatSeriesNode.belongsTo(models.FloatSeriesValue, { as: "series" })
+    models.FloatSeriesValue.hasMany(FloatSeriesNode, { foreignKey: "seriesId" })
   }
-  return CategoryPlotNode
+  return FloatSeriesNode
 }

@@ -247,9 +247,9 @@ module.exports = () => {
       value: true
     }
   ];
-  const mockPlotValueData = [
+  const mockSeriesValueData = [
     {
-      id: "mockPlotValueId",
+      id: "mockFloatSeriesValueId",
       environmentId: "mockEnvironmentId",
       deviceId: "mockDeviceId",
       visibility: "VISIBLE",
@@ -263,9 +263,9 @@ module.exports = () => {
       unitOfMeasurement: "C"
     }
   ];
-  const mockCategoryPlotValueData = [
+  const mockCategorySeriesValueData = [
     {
-      id: "mockCategoryPlotValueId",
+      id: "mockCategorySeriesValueId",
       environmentId: "mockEnvironmentId",
       deviceId: "mockDeviceId",
       visibility: "VISIBLE",
@@ -275,54 +275,54 @@ module.exports = () => {
       allowedValues: ["test", "test2"]
     }
   ];
-  const mockPlotNodeData = [
+  const mockFloatSeriesNodeData = [
     {
-      id: "mockPlotNodeId",
+      id: "mockFloatSeriesNodeId",
       userId: "mockUserId",
       deviceId: "mockDeviceId",
-      plotId: "mockPlotValueId",
+      seriesId: "mockFloatSeriesValueId",
       value: 1,
       timestamp: "2018-11-19T17:42:05.045Z"
     },
     {
-      id: "mockPlotNodeId2",
+      id: "mockFloatSeriesNodeId2",
       userId: "mockUserId",
       deviceId: "mockDeviceId",
-      plotId: "mockPlotValueId",
+      seriesId: "mockFloatSeriesValueId",
       value: 1,
       timestamp: "2018-13-19T17:42:05.045Z"
     },
     {
-      id: "mockPlotNodeId3",
+      id: "mockFloatSeriesNodeId3",
       userId: "mockUserId",
       deviceId: "mockDeviceId",
-      plotId: "mockPlotValueId",
+      seriesId: "mockFloatSeriesValueId",
       value: 1,
       timestamp: "2018-12-19T17:42:05.045Z"
     }
   ];
-  const mockCategoryPlotNodeData = [
+  const mockCategorySeriesNodeData = [
     {
-      id: "mockCategoryPlotNodeId",
+      id: "mockCategorySeriesNodeId",
       userId: "mockUserId",
       deviceId: "mockDeviceId",
-      plotId: "mockCategoryPlotValueId",
+      seriesId: "mockCategorySeriesValueId",
       value: 1,
       timestamp: "2018-11-19T17:42:05.045Z"
     },
     {
-      id: "mockCategoryPlotNodeId2",
+      id: "mockCategorySeriesNodeId2",
       userId: "mockUserId",
       deviceId: "mockDeviceId",
-      plotId: "mockCategoryPlotValueId",
+      seriesId: "mockCategorySeriesValueId",
       value: 1,
       timestamp: "2018-13-19T17:42:05.045Z"
     },
     {
-      id: "mockCategoryPlotNodeId3",
+      id: "mockCategorySeriesNodeId3",
       userId: "mockUserId",
       deviceId: "mockDeviceId",
-      plotId: "mockCategoryPlotValueId",
+      seriesId: "mockCategorySeriesValueId",
       value: 1,
       timestamp: "2018-12-19T17:42:05.045Z"
     }
@@ -426,14 +426,14 @@ module.exports = () => {
     mockStringValueData,
     MockedBooleanValue: MockedModel(mockBooleanValueData),
     mockBooleanValueData,
-    MockedPlotValue: MockedModel(mockPlotValueData),
-    mockPlotValueData,
-    MockedCategoryPlotValue: MockedModel(mockCategoryPlotValueData),
-    mockCategoryPlotValueData,
-    MockedPlotNode: MockedModel(mockPlotNodeData),
-    mockPlotNodeData,
-    MockedCategoryPlotNode: MockedModel(mockCategoryPlotNodeData),
-    mockCategoryPlotNodeData
+    MockedFloatSeriesValue: MockedModel(mockSeriesValueData),
+    mockSeriesValueData,
+    MockedCategorySeriesValue: MockedModel(mockCategorySeriesValueData),
+    mockCategorySeriesValueData,
+    MockedFloatSeriesNode: MockedModel(mockFloatSeriesNodeData),
+    mockFloatSeriesNodeData,
+    MockedCategorySeriesNode: MockedModel(mockCategorySeriesNodeData),
+    mockCategorySeriesNodeData
   };
 
   const mockDataLoader = MockedModel => ({
@@ -459,10 +459,10 @@ module.exports = () => {
       floatValueLoaderById: mockDataLoader(mocks.MockedFloatValue),
       stringValueLoaderById: mockDataLoader(mocks.MockedStringValue),
       booleanValueLoaderById: mockDataLoader(mocks.MockedBooleanValue),
-      plotValueLoaderById: mockDataLoader(mocks.MockedPlotValue),
-      plotNodeLoaderById: mockDataLoader(mocks.MockedPlotNode),
-      categoryPlotNodeLoaderById: mockDataLoader(mocks.MockedCategoryPlotNode),
-      categoryPlotValueLoaderById: mockDataLoader(mocks.MockedCategoryPlotValue),
+      seriesValueLoaderById: mockDataLoader(mocks.MockedFloatSeriesValue),
+      floatSeriesNodeLoaderById: mockDataLoader(mocks.MockedFloatSeriesNode),
+      categorySeriesNodeLoaderById: mockDataLoader(mocks.MockedCategorySeriesNode),
+      categorySeriesValueLoaderById: mockDataLoader(mocks.MockedCategorySeriesValue),
       permanentTokenLoaderById: mockDataLoader(mocks.MockedPermanentToken),
       pendingEnvironmentShareLoaderById: mockDataLoader(mocks.MockedPendingEnvironmentShare),
       pendingOwnerChangeLoaderById: mockDataLoader(mocks.MockedPendingOwnerChange),

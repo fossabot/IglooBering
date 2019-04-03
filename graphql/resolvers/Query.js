@@ -128,10 +128,10 @@ const QueryResolver = ({ User, WebauthnKey }) => ({
       }
     )
   },
-  plotValue(root, args, context) {
+  floatSeriesValue(root, args, context) {
     return deviceInheritAuthorized(
       args.id,
-      context.dataLoaders.plotValueLoaderById,
+      context.dataLoaders.floatSeriesValueLoaderById,
       context,
       1,
       async (resolve, reject, valueFound) => {
@@ -139,10 +139,10 @@ const QueryResolver = ({ User, WebauthnKey }) => ({
       }
     )
   },
-  categoryPlotValue(root, args, context) {
+  categorySeriesValue(root, args, context) {
     return deviceInheritAuthorized(
       args.id,
-      context.dataLoaders.categoryPlotValueLoaderById,
+      context.dataLoaders.categorySeriesValueLoaderById,
       context,
       1,
       async (resolve, reject, valueFound) => {
@@ -161,25 +161,25 @@ const QueryResolver = ({ User, WebauthnKey }) => ({
       }
     )
   },
-  plotNode(root, args, context) {
+  floatSeriesNode(root, args, context) {
     return deviceInheritAuthorized(
       args.id,
-      context.dataLoaders.plotNodeLoaderById,
+      context.dataLoaders.floatSeriesNodeLoaderById,
       context,
       1,
-      async (resolve, reject, plotNodeFound) => {
-        resolve(plotNodeFound)
+      async (resolve, reject, floatSeriesNodeFound) => {
+        resolve(floatSeriesNodeFound)
       }
     )
   },
-  categoryPlotNode(root, args, context) {
+  categorySeriesNode(root, args, context) {
     return deviceInheritAuthorized(
       args.id,
-      context.dataLoaders.categoryPlotNodeLoaderById,
+      context.dataLoaders.categorySeriesNodeLoaderById,
       context,
       1,
-      async (resolve, reject, plotNodeFound) => {
-        resolve(plotNodeFound)
+      async (resolve, reject, floatSeriesNodeFound) => {
+        resolve(floatSeriesNodeFound)
       }
     )
   },
