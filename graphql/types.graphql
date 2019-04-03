@@ -246,7 +246,8 @@ type Mutation {
     date: DateTime
   ): Notification
 
-  uploadFile(file: Upload): Boolean
+  # uploads file to the FileValue specified by id
+  uploadFileValue(id: ID!, file: Upload): Boolean
 
   # Creates a new FloatValue
   createFloatValue(
@@ -269,6 +270,21 @@ type Mutation {
     cardSize: CardSize
     index: Int
   ): FloatValue
+
+  # Creates a new FileValue
+  createFileValue(
+    # device owning the value
+    deviceId: ID!
+    # whether the value should be READ_ONLY or READ_WRITE in Igloo Aurora
+    permission: ValuePermission!
+    # whether the value should be VISIBLE or INVISIBLE in Igloo Aurora
+    visibility: ValueVisibility
+    # name of the value, displayed in Igloo Aurora
+    name: String!
+    # tile size in Igloo Aurora
+    cardSize: CardSize
+    index: Int
+  ): FileValue
 
   # Creates a StringValue
   createStringValue(
@@ -480,6 +496,21 @@ type Mutation {
     index: Int
   ): BooleanValue
 
+  # changes booleanValue's data
+  fileValue(
+    # value id
+    id: ID!
+    # whether the value should be READ_ONLY or READ_WRITE in Igloo Aurora
+    permission: ValuePermission
+    # whether the value should be VISIBLE or INVISIBLE in Igloo Aurora
+    visibility: ValueVisibility
+    # name of the value, displayed in Igloo Aurora
+    name: String
+    # tile size in Igloo Aurora
+    cardSize: CardSize
+    index: Int
+  ): FileValue
+
   # changes floatSeriesValue's data
   floatSeriesValue(
     # value id
@@ -663,6 +694,7 @@ type Query {
   # get's value's data
   value(id: ID!): Value
   floatValue(id: ID!): FloatValue
+  fileValue(id: ID!): FileValue
   stringValue(id: ID!): StringValue
   booleanValue(id: ID!): BooleanValue
   floatSeriesValue(id: ID!): FloatSeriesValue
@@ -991,6 +1023,23 @@ interface Value {
   cardSize: CardSize!
   name: String
   index: Int
+}
+
+type FileValue implements Value {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  device: Device!
+  permission: ValuePermission!
+  visibility: ValueVisibility!
+  myRole: RoleExtended!
+  cardSize: CardSize!
+  name: String
+  index: Int
+  # url of the file
+  value: String
+  fileName: String
+  mimeType: String
 }
 
 type FloatValue implements Value {

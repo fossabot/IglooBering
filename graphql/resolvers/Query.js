@@ -106,6 +106,17 @@ const QueryResolver = ({ User, WebauthnKey }) => ({
       }
     )
   },
+  fileValue(root, args, context) {
+    return deviceInheritAuthorized(
+      args.id,
+      context.dataLoaders.fileValueLoaderById,
+      context,
+      1,
+      async (resolve, reject, valueFound) => {
+        resolve(valueFound)
+      }
+    )
+  },
   stringValue(root, args, context) {
     return deviceInheritAuthorized(
       args.id,

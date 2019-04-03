@@ -205,11 +205,9 @@ const MAX_STORAGE = 250000 // BETA
  * @memberof Utilities
  */
 export function CreateGenericValue(
-  User,
   Device,
   Environment,
   Model,
-  ModelName,
   ValueModels,
   pubsub,
   argsChecks = (args, reject) => true
@@ -565,6 +563,7 @@ export const findValue = (id, context) => {
     stringValueLoaderById,
     floatSeriesValueLoaderById,
     categorySeriesValueLoaderById,
+    fileValueLoaderById,
     environmentLoaderById,
   } = context.dataLoaders
   const booleanValue = booleanValueLoaderById.load(id)
@@ -572,6 +571,7 @@ export const findValue = (id, context) => {
   const stringValue = stringValueLoaderById.load(id)
   const floatSeriesValue = floatSeriesValueLoaderById.load(id)
   const categorySeriesValue = categorySeriesValueLoaderById.load(id)
+  const fileValue = fileValueLoaderById.load(id)
 
   return Promise.all([
     booleanValue,
@@ -579,6 +579,7 @@ export const findValue = (id, context) => {
     stringValue,
     floatSeriesValue,
     categorySeriesValue,
+    fileValue,
   ]).then(values => values.reduce((acc, val) => val || acc, null))
 }
 

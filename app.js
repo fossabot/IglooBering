@@ -283,30 +283,6 @@ app.post("/webPushSubscribe", async (req, res) => {
 AWS.config.update({ region: "eu-west-1" })
 const s3 = new AWS.S3()
 
-app.post("/fileupload", Busboy(), async (req, res) => {
-  if (req.user) {
-    req.pipe(req.busboy)
-
-    req.busboy.on("error", err => {
-      console.log(err)
-    })
-
-    req.busboy.on("file", async (fieldname, file, filename) => {
-      const extension = path.extname(filename)
-      const newObject = await pipeStreamToS3(
-        s3,
-        process.env.BUCKET_NAME,
-        file,
-        extension,
-        req.user.userId
-      )
-      res.send(newObject.key)
-    })
-  } else {
-    res.status(401).send("Missing valid authentication token")
-  }
-})
-
 app.get("/file/:file", async (req, res) => {
   if (req.user) {
     const getParams = {
@@ -314,9 +290,8 @@ app.get("/file/:file", async (req, res) => {
       Key: req.params.file,
     }
 
-    const objectOwner = await getObjectOwner(s3, getParams)
-
-    if (objectOwner === req.user.userId) {
+    //TODO: implement file authorization
+    if (true) {
       s3.getObject(getParams)
         .createReadStream()
         .pipe(res)

@@ -36,7 +36,7 @@ const {
   FloatValue,
   StringValue,
   FloatSeriesValue,
-  SeriesNode,
+  FloatSeriesNode,
   WebPushNotification,
   CategorySeriesNode,
   CategorySeriesValue,
@@ -60,12 +60,7 @@ const resolvers = {
   Value: ValueResolver,
   ...ValueResolvers(
     {
-      BooleanValue,
-      FloatValue,
-      StringValue,
-      FloatSeriesValue,
-      SeriesNode,
-      CategorySeriesValue,
+      FloatSeriesNode,
       CategorySeriesNode,
     },
     User,

@@ -222,6 +222,7 @@ const MutationResolver = (
     EnvironmentSpectator,
     WebauthnKey,
     EmailLoginToken,
+    FileValue,
   },
   WebPushNotification,
   pubsub,
@@ -2055,16 +2056,15 @@ const MutationResolver = (
       }
     },
     createFloatValue: CreateGenericValue(
-      User,
       Device,
       Environment,
       FloatValue,
-      "FloatValue",
       [
         FloatValue,
         StringValue,
         BooleanValue,
         FloatSeriesValue,
+        FileValue,
         CategorySeriesValue,
       ],
       pubsub,
@@ -2092,16 +2092,15 @@ const MutationResolver = (
       }
     ),
     createStringValue: CreateGenericValue(
-      User,
       Device,
       Environment,
       StringValue,
-      "StringValue",
       [
         FloatValue,
         StringValue,
         BooleanValue,
         FloatSeriesValue,
+        FileValue,
         CategorySeriesValue,
       ],
       pubsub,
@@ -2135,15 +2134,14 @@ const MutationResolver = (
       }
     ),
     createBooleanValue: CreateGenericValue(
-      User,
       Device,
       Environment,
       BooleanValue,
-      "BooleanValue",
       [
         FloatValue,
         StringValue,
         BooleanValue,
+        FileValue,
         FloatSeriesValue,
         CategorySeriesValue,
       ],
@@ -2157,17 +2155,33 @@ const MutationResolver = (
         return true
       }
     ),
-    createFloatSeriesValue: CreateGenericValue(
-      User,
+    createFileValue: CreateGenericValue(
       Device,
       Environment,
-      FloatSeriesValue,
-      "FloatSeriesValue",
+      FileValue,
       [
         FloatValue,
         StringValue,
         BooleanValue,
         FloatSeriesValue,
+        FileValue,
+        CategorySeriesValue,
+      ],
+      pubsub,
+      (args, reject) => {
+        return true
+      }
+    ),
+    createFloatSeriesValue: CreateGenericValue(
+      Device,
+      Environment,
+      FloatSeriesValue,
+      [
+        FloatValue,
+        StringValue,
+        BooleanValue,
+        FloatSeriesValue,
+        FileValue,
         CategorySeriesValue,
       ],
       pubsub,
@@ -2189,17 +2203,16 @@ const MutationResolver = (
       }
     ),
     createCategorySeriesValue: CreateGenericValue(
-      User,
       Device,
       Environment,
       CategorySeriesValue,
-      "CategorySeriesValue",
       [
         FloatValue,
         StringValue,
         BooleanValue,
         FloatSeriesValue,
         CategorySeriesValue,
+        FileValue,
       ],
       pubsub,
       (args, reject) => {
@@ -3019,6 +3032,14 @@ const MutationResolver = (
         return true
       }
     ),
+    fileValue: genericValueMutation(
+      "fileValueLoaderById",
+      "FileValue",
+      pubsub,
+      User,
+      Device,
+      Environment
+    ),
     floatSeriesValue: genericValueMutation(
       "floatSeriesValueLoaderById",
       "FloatSeriesValue",
@@ -3219,23 +3240,33 @@ const MutationResolver = (
         }
       )
     },
-    uploadFile(root, args, context) {
-      return authenticated(context, async (resolve, reject) => {
-        const { filename, mimetype, createReadStream } = await args.file
-        const stream = createReadStream()
+    uploadFileValue(root, args, context) {
+      return deviceInheritAuthorized(
+        args.id,
+        context.dataLoaders.fileValueLoaderById,
+        context,
+        2,
+        async (resolve, reject, valueFound) => {
+          const { filename, mimetype, createReadStream } = await args.file
+          const stream = createReadStream()
 
-        const newFile = await pipeStreamToS3(
-          s3,
-          process.env.BUCKET_NAME,
-          stream,
-          filename,
-          context.auth.userId
-        )
+          const newFile = await pipeStreamToS3(
+            s3,
+            process.env.BUCKET_NAME,
+            stream,
+            valueFound.id,
+            context.auth.userId
+          )
 
-        console.log(filename, mimetype, newFile)
-        // Promisify the stream and store the file, then…
-        resolve(true)
-      })
+          await valueFound.update({
+            fileName: filename,
+            mimeType: mimetype,
+            value: newFile.Location,
+          })
+
+          resolve(true)
+        }
+      )
     },
     createNotification(root, args, context) {
       return deviceAuthorized(

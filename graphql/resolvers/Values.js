@@ -1,3 +1,4 @@
+require("dotenv").config()
 import {
   instanceToRole,
   authorized,
@@ -69,6 +70,24 @@ const FloatValueResolver = (loaderName, User, Device, Environment) => ({
     "min",
     "max",
   ]),
+})
+const FileValueResolver = (loaderName, User, Device, Environment) => ({
+  ...GenericResolver(loaderName, User, Device, Environment),
+  ...deviceInheritAuthorizedScalarPropsResolvers(loaderName, [
+    "mimeType",
+    "fileName",
+  ]),
+  // overriding GenericResolver's value
+  value: (root, args, context) =>
+    deviceInheritAuthorized(
+      root.id,
+      context.dataLoaders[loaderName],
+      context,
+      1,
+      async (resolve, reject, fileFound) => {
+        resolve(`https://${process.env.BASE_URL}/file/${fileFound.id}`)
+      }
+    ),
 })
 const StringValueResolver = (loaderName, User, Device, Environment) => ({
   ...GenericResolver(loaderName, User, Device, Environment),
@@ -230,15 +249,7 @@ const FloatSeriesNodeResolver = (
 })
 
 export default (
-  {
-    BooleanValue,
-    FloatValue,
-    StringValue,
-    FloatSeriesValue,
-    FloatSeriesNode,
-    CategorySeriesValue,
-    CategorySeriesNode,
-  },
+  { FloatSeriesNode, CategorySeriesNode },
   User,
   Device,
   Environment
@@ -251,6 +262,12 @@ export default (
   ),
   FloatValue: FloatValueResolver(
     "floatValueLoaderById",
+    User,
+    Device,
+    Environment
+  ),
+  FileValue: FileValueResolver(
+    "fileValueLoaderById",
     User,
     Device,
     Environment

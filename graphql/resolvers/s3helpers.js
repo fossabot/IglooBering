@@ -31,19 +31,6 @@ async function pipeStreamToS3(s3, bucketName, stream, id, userId) {
   return newObject
 }
 
-function getObjectOwner(s3, getParams) {
-  return new Promise((resolve, reject) => {
-    s3.headObject(getParams, (err, data) => {
-      if (err) {
-        reject(err)
-      } else {
-        resolve(data.Metadata.userid)
-      }
-    })
-  })
-}
-
 module.exports = {
   pipeStreamToS3,
-  getObjectOwner,
 }

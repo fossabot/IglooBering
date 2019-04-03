@@ -12,7 +12,8 @@ import {
   PendingEnvironmentShare,
   PendingOwnerChange,
   PermanentToken,
-  SeriesNode,
+  FloatSeriesNode,
+  FileValue,
   FloatSeriesValue,
   CategorySeriesNode,
   StringValue,
@@ -95,13 +96,14 @@ const loadEnvironmentAdminsByIds = genericLoadById(EnvironmentAdmin)
 const loadEnvironmentEditorsByIds = genericLoadById(EnvironmentEditor)
 const loadEnvironmentSpectatorsByIds = genericLoadById(EnvironmentSpectator)
 const loadFloatValuesByIds = genericLoadById(FloatValue)
+const loadFileValuesByIds = genericLoadById(FileValue)
 const loadNotificationsByIds = genericLoadById(Notification)
 const loadPendingEnvironmentSharesByIds = genericLoadById(
   PendingEnvironmentShare
 )
 const loadPendingOwnerChangesByIds = genericLoadById(PendingOwnerChange)
 const loadPermanentTokensByIds = genericLoadById(PermanentToken)
-const loadSeriesNodesByIds = genericLoadById(SeriesNode)
+const loadSeriesNodesByIds = genericLoadById(FloatSeriesNode)
 const loadFloatSeriesValuesByIds = genericLoadById(FloatSeriesValue)
 const loadcategorySeriesNodesByIds = genericLoadById(CategorySeriesNode)
 const loadStringValuesByIds = genericLoadById(StringValue)
@@ -142,6 +144,7 @@ module.exports = () => ({
     loadEnvironmentSpectatorsByIds
   ),
   floatValueLoaderById: new DataLoader(loadFloatValuesByIds),
+  fileValueLoaderById: new DataLoader(loadFileValuesByIds),
   notificationLoaderById: new DataLoader(loadNotificationsByIds),
   pendingEnvironmentShareLoaderById: new DataLoader(
     loadPendingEnvironmentSharesByIds

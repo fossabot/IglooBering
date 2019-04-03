@@ -15,6 +15,7 @@ const ValueResolver = {
           FloatValue: context.dataLoaders.floatValueLoaderById,
           FloatSeriesValue: context.dataLoaders.floatSeriesValueLoaderById,
           StringValue: context.dataLoaders.stringValueLoaderById,
+          FileValue: context.dataLoaders.fileValueLoaderById,
         }
         const dataLoaders = Object.values(dataLoaderMap)
         const __resolveTypes = Object.keys(dataLoaderMap)
@@ -36,9 +37,11 @@ const ValueResolver = {
                 const deviceFound = await context.dataLoaders.deviceLoaderById.load(
                   resourceFound.deviceId
                 )
-                const environmentFound = await context.dataLoaders.environmentLoaderById.load(
-                  deviceFound.environmentId
-                )
+                const environmentFound =
+                  deviceFound.environmentId &&
+                  (await context.dataLoaders.environmentLoaderById.load(
+                    deviceFound.environmentId
+                  ))
 
                 if (
                   deviceFound.producerId !== context.auth.userId &&
