@@ -21,7 +21,10 @@ import {
   User,
 } from "./postgresql/models/index"
 import jwt from "jwt-simple"
-import { GenerateUserBillingBatcher } from "./graphql/resolvers/utilities"
+import {
+  GenerateUserBillingBatcher,
+  deviceInheritAuthorized,
+} from "./graphql/resolvers/utilities"
 import { pubsub } from "./shared"
 import {
   isUserBlocked,
@@ -33,6 +36,8 @@ import {
 } from "./redis"
 import depthLimit from "graphql-depth-limit"
 import costAnalysis from "graphql-cost-analysis"
+const validator = require("is-my-uuid-valid")
+const validateUUID = validator({})
 
 const expressPlayground = require("graphql-playground-middleware-express")
   .default
@@ -284,19 +289,38 @@ AWS.config.update({ region: "eu-west-1" })
 const s3 = new AWS.S3()
 
 app.get("/file/:file", async (req, res) => {
+  if (!validateUUID(req.params.file)) {
+    res.status(400).send("Invalid ID passed")
+  }
   if (req.user) {
     const getParams = {
       Bucket: process.env.BUCKET_NAME,
       Key: req.params.file,
     }
 
-    //TODO: implement file authorization
-    if (true) {
+    const context = {
+      dataLoaders: createDataLoaders(),
+      auth: req.user,
+    }
+
+    try {
+      await new Promise((resolve, reject) =>
+        deviceInheritAuthorized(
+          req.params.file,
+          context.dataLoaders.fileValueLoaderById,
+          context,
+          1,
+          (resolve, reject, valueFound) => {
+            resolve(true)
+          }
+        )(resolve, reject)
+      )
+
       s3.getObject(getParams)
         .createReadStream()
         .pipe(res)
-    } else {
-      res.status(401).send("You are not authorized to read this file")
+    } catch (e) {
+      res.status(401).send(e)
     }
   } else {
     res.status(401).send("Missing valid authentication token")
