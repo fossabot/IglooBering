@@ -699,6 +699,9 @@ type Query {
   booleanValue(id: ID!): BooleanValue
   floatSeriesValue(id: ID!): FloatSeriesValue
   categorySeriesValue(id: ID!): CategorySeriesValue
+  pendingEnvironmentShare(id: ID!): PendingEnvironmentShare
+  pendingOwnerChange(id: ID!): PendingOwnerChange
+  permanentToken(id: ID!): PermanentToken
 
   # get notification's data
   notification(id: ID!): Notification

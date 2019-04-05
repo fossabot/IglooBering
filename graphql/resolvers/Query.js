@@ -161,6 +161,81 @@ const QueryResolver = ({ User, WebauthnKey }) => ({
       }
     )
   },
+  permanentToken(root, args, context) {
+    return authenticated(context, async (resolve, reject) => {
+      const databaseToken = await context.dataLoaders.permanentTokenLoaderById.load(
+        args.id
+      )
+
+      if (!databaseToken) {
+        reject("The requested resource does not exist")
+      } else if (databaseToken.userId !== context.auth.userId) {
+        reject("You are not allowed to perform this operation")
+      } else {
+        resolve(databaseToken)
+      }
+    })
+  },
+  pendingEnvironmentShare(root, args, context) {
+    return authenticated(context, async (resolve, reject) => {
+      const pendingEnvironmentFound = await context.dataLoaders.pendingEnvironmentShareLoaderById.find(
+        args.id
+      )
+
+      const findSharedEnvironment = () =>
+        context.dataLoaders.environmentLoaderById.load(
+          pendingEnvironmentFound.environmentId
+        )
+
+      const findUser = () =>
+        context.dataLoaders.userLoaderById.load(context.auth.userId)
+
+      if (!pendingEnvironmentFound) {
+        reject("The requested resource does not exist")
+      } else if (
+        context.auth.userId !== pendingEnvironmentFound.receiverId &&
+        context.auth.userId !== pendingEnvironmentFound.senderId &&
+        (await instanceToRole(
+          await findSharedEnvironment(),
+          await findUser(),
+          context
+        )) === null
+      ) {
+        reject("You are not allowed to perform this operation")
+      } else {
+        resolve(pendingEnvironmentFound)
+      }
+    })
+  },
+  pendingOwnerChange(root, args, context) {
+    return authenticated(context, async (resolve, reject) => {
+      const pendingOwnerChange = await await context.dataLoaders.pendingOwnerChangeLoaderById.find(
+        args.id
+      )
+
+      const findSharedEnvironment = () =>
+        context.dataLoaders.environmentLoaderById.load(
+          pendingOwnerChange.environmentId
+        )
+      const findUser = () =>
+        context.dataLoaders.userLoaderById.load(context.auth.userId)
+
+      if (!pendingOwnerChange) {
+        reject("The requested resource does not exist")
+      } else if (
+        context.auth.userId !== pendingOwnerChange.receiverId &&
+        (await authorizationLevel(
+          await findSharedEnvironment(),
+          await findUser(),
+          context
+        )) < 3
+      ) {
+        reject("You are not allowed to perform this operation")
+      } else {
+        resolve(pendingOwnerChange)
+      }
+    })
+  },
   notification(root, args, context) {
     return deviceInheritAuthorized(
       args.id,
