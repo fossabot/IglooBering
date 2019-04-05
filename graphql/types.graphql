@@ -721,7 +721,7 @@ type Subscription {
   # subscribes to environment creations
   environmentCreated: Environment
   # subscribes to value creations
-  valueCreated(deviceId: ID): Value
+  valueCreated(deviceId: ID, visibility: ValueVisibility): Value
   # subscribes to series node creations
   floatSeriesNodeCreated(seriesId: ID): FloatSeriesNode
   # subscribes to string series node creations
@@ -760,7 +760,7 @@ type Subscription {
   # subscribes to environment updates
   environmentUpdated(id: ID): Environment
   # subscribes to value updates
-  valueUpdated(deviceId: ID, id: ID): Value
+  valueUpdated(deviceId: ID, id: ID, visibility: ValueVisibility): Value
   # subscribes to series node updates
   floatSeriesNodeUpdated(seriesId: ID, id: ID): FloatSeriesNode
   # subscribes to series node updates
@@ -768,7 +768,7 @@ type Subscription {
   # subscribes to notification updates
   notificationUpdated(deviceId: ID, id: ID): Notification
   # subscribes to value deleted
-  valueDeleted(deviceId: ID, id: ID): ID
+  valueDeleted(deviceId: ID, id: ID, visibility: ValueVisibility): ID
   # subscribes to series node deletes
   floatSeriesNodeDeleted(seriesId: ID, id: ID): ID
   # subscribes to series node deletes
