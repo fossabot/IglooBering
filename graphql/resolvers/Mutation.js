@@ -42,6 +42,7 @@ import zxcvbn from "zxcvbn"
 import { Op } from "sequelize"
 import QRCode from "qrcode-svg"
 import AWS from "aws-sdk"
+import crypto from "crypto"
 
 AWS.config.update({ region: "eu-west-1" })
 const s3 = new AWS.S3()
@@ -1954,14 +1955,16 @@ const MutationResolver = (
           ...args,
           producerId: userFound.id,
           storageUsed: 0,
+          claimCode: crypto.randomBytes(8).toString("hex"),
         })
 
         const id = newDevice.id
 
         resolve({
           id,
+          claimCode: id + "|" + newDevice.claimCode,
           jwtToken: generateDeviceAuthenticationToken(newDevice.id, JWT_SECRET),
-          qrCode: new QRCode({ content: id }).svg(),
+          qrCode: new QRCode({ content: id + "|" + newDevice.claimCode }).svg(),
         })
 
         pubsub.publish("deviceCreated", {
@@ -2002,14 +2005,21 @@ const MutationResolver = (
             if (!userFound.emailIsVerified && deviceCount !== 0) {
               reject("Unverified users can only have one device")
               return
+            } else if (args.claimCode.split("|").length !== 2) {
+              reject("claimCode not valid")
+              return
             }
 
+            const [id, claimCode] = args.claimCode.split("|")
             const deviceFound = await Device.find({
-              where: { id: args.deviceId },
+              where: { id: id },
             })
 
             if (!deviceFound) {
               reject("The requested resource does not exist")
+              return
+            } else if (deviceFound.claimCode !== claimCode) {
+              reject("claimCode is not correct")
               return
             }
 
@@ -3595,7 +3605,10 @@ const MutationResolver = (
 
           resolve({
             id: deviceFound.id,
-            qrCode: new QRCode({ content: deviceFound.id }).svg(),
+            claimCode: deviceFound.id + "|" + deviceFound.claimCode,
+            qrCode: new QRCode({
+              content: deviceFound.id + "|" + deviceFound.claimCode,
+            }).svg(),
           })
 
           const authorizedUsersIds = await instanceToSharedIds(

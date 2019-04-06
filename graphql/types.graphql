@@ -49,11 +49,13 @@ type acceptPendingOwnerChangePayload {
 
 type createUnclaimedDevicePayload {
   id: ID!
+  claimCode: String!
   qrCode: String!
   jwtToken: String!
 }
 type unclaimDevicePayload {
   id: ID!
+  claimCode: String!
   qrCode: String!
 }
 
@@ -231,7 +233,7 @@ type Mutation {
   ): createUnclaimedDevicePayload
 
   claimDevice(
-    deviceId: ID!
+    claimCode: String!
     name: String!
     index: Int
     environmentId: ID!

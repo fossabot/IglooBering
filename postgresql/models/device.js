@@ -52,6 +52,9 @@ module.exports = (queryInterface, Sequelize) => {
     storageUsed: {
       type: Sequelize.INTEGER,
     },
+    claimCode: {
+      type: Sequelize.STRING,
+    },
   })
   Device.associate = function(models) {
     models.Environment.hasMany(Device)
