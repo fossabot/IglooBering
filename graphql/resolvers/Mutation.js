@@ -3809,6 +3809,7 @@ const MutationResolver = (
           pubsub.publish("environmentDeleted", {
             environmentDeleted: args.id,
             userIds: authorizedUsersIds,
+            source: environmentFound,
           })
           resolve(args.id)
         },
@@ -4026,6 +4027,7 @@ const MutationResolver = (
             pubsub.publish("environmentDeleted", {
               environmentDeleted: environmentFound.id,
               userIds: authorizedUsersIds,
+              source: environmentFound,
             })
           }
 
