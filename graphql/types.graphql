@@ -1092,7 +1092,7 @@ type FloatSeriesValue implements Value {
   myRole: RoleExtended!
   unitOfMeasurement: String
   nodeCount: Int
-  value(limit: PositiveInt!, offset: Int): [FloatSeriesNode!]!
+  nodes(limit: PositiveInt!, offset: Int): [FloatSeriesNode!]!
     @cost(complexity: 1, multipliers: ["limit"])
   lastNode: FloatSeriesNode @cost(complexity: 1)
   # used when the end-user reads or modifies the value
@@ -1114,7 +1114,7 @@ type CategorySeriesValue implements Value {
   visibility: ValueVisibility!
   myRole: RoleExtended!
   nodeCount: Int
-  value(limit: PositiveInt!, offset: Int): [CategorySeriesNode!]!
+  nodes(limit: PositiveInt!, offset: Int): [CategorySeriesNode!]!
     @cost(complexity: 1, multipliers: ["limit"])
   lastNode: CategorySeriesNode @cost(complexity: 1)
   cardSize: CardSize!
