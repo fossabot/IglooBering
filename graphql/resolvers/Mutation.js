@@ -1962,9 +1962,9 @@ const MutationResolver = (
 
         resolve({
           id,
-          claimCode: id + "|" + newDevice.claimCode,
+          claimCode: id + "-" + newDevice.claimCode,
           jwtToken: generateDeviceAuthenticationToken(newDevice.id, JWT_SECRET),
-          qrCode: new QRCode({ content: id + "|" + newDevice.claimCode }).svg(),
+          qrCode: new QRCode({ content: id + "-" + newDevice.claimCode }).svg(),
         })
 
         pubsub.publish("deviceCreated", {
@@ -2005,12 +2005,17 @@ const MutationResolver = (
             if (!userFound.emailIsVerified && deviceCount !== 0) {
               reject("Unverified users can only have one device")
               return
-            } else if (args.claimCode.split("|").length !== 2) {
+            } else if (args.claimCode.split("-").length !== 6) {
               reject("claimCode not valid")
               return
             }
 
-            const [id, claimCode] = args.claimCode.split("|")
+            const claimCode = args.claimCode.split("-")[5]
+            const id = args.claimCode.substring(
+              0,
+              args.claimCode.length - claimCode.length - 1
+            )
+
             const deviceFound = await Device.find({
               where: { id: id },
             })
@@ -3605,9 +3610,9 @@ const MutationResolver = (
 
           resolve({
             id: deviceFound.id,
-            claimCode: deviceFound.id + "|" + deviceFound.claimCode,
+            claimCode: deviceFound.id + "-" + deviceFound.claimCode,
             qrCode: new QRCode({
-              content: deviceFound.id + "|" + deviceFound.claimCode,
+              content: deviceFound.id + "-" + deviceFound.claimCode,
             }).svg(),
           })
 

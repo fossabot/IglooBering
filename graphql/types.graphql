@@ -1010,6 +1010,16 @@ type FloatSeriesNode {
   value: Float!
 }
 
+type FileSeriesNode {
+  id: ID!
+  device: Device! @cost(complexity: 1)
+  series: FileSeriesValue! @cost(complexity: 1)
+  timestamp: DateTime!
+  value: String!
+  mimeType: String!
+  fileName: String!
+}
+
 type CategorySeriesNode {
   id: ID!
   device: Device! @cost(complexity: 1)
@@ -1121,6 +1131,23 @@ type CategorySeriesValue implements Value {
   name: String
   index: Int
   allowedValues: [String!]
+}
+
+type FileSeriesValue implements Value {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  device: Device! @cost(complexity: 1)
+  visibility: ValueVisibility!
+  myRole: RoleExtended!
+  nodeCount: Int
+  nodes(limit: PositiveInt!, offset: Int): [FileSeriesNode!]!
+    @cost(complexity: 1, multipliers: ["limit"])
+  lastNode: FileSeriesNode @cost(complexity: 1)
+  cardSize: CardSize!
+  name: String
+  index: Int
+  allowedMimeTypes: [String!]
 }
 
 type BooleanValue implements Value {
