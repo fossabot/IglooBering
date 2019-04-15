@@ -139,7 +139,7 @@ const FloatSeriesValueResolver = (
           where: { seriesId: seriesFound.id },
           limit: args.limit,
           offset: args.offset,
-          order: [["id", "DESC"]],
+          order: [["timestamp", "DESC"]],
         })
         resolve(nodes)
       }
@@ -193,7 +193,7 @@ const CategorySeriesValueResolver = (
           where: { seriesId: seriesFound.id },
           limit: args.limit,
           offset: args.offset,
-          order: [["id", "DESC"]],
+          order: [["timestamp", "DESC"]],
         })
 
         resolve(nodes)
