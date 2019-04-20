@@ -1,7 +1,7 @@
 scalar DateTime
 scalar Json
 scalar ID
-scalar PositiveInt
+scalar NaturalNumber
 scalar Upload
 
 directive @cost(multipliers: [String!], complexity: Int) on FIELD_DEFINITION
@@ -822,29 +822,31 @@ type User {
   email: String!
   pendingEnvironmentShareCount: Int!
   pendingEnvironmentShares(
-    limit: PositiveInt!
+    limit: NaturalNumber!
     offset: Int
   ): [PendingEnvironmentShare!]! @cost(complexity: 1, multipliers: ["limit"])
   pendingOwnerChangeCount: Int!
-  pendingOwnerChanges(limit: PositiveInt!, offset: Int): [PendingOwnerChange!]!
-    @cost(complexity: 1, multipliers: ["limit"])
+  pendingOwnerChanges(
+    limit: NaturalNumber!
+    offset: Int
+  ): [PendingOwnerChange!]! @cost(complexity: 1, multipliers: ["limit"])
   environmentCount: Int!
   environments(
     sortBy: ENVIRONMENT_SORT
     sortDirection: SORT_DIRECTION
-    limit: PositiveInt!
+    limit: NaturalNumber!
     offset: Int
     filter: EnvironmentFilterExtended
   ): [Environment!]! @cost(complexity: 1, multipliers: ["limit"])
   developerDeviceCount: Int!
   developerDevices(
     filter: DeveloperDeviceFilter
-    limit: PositiveInt!
+    limit: NaturalNumber!
     offset: Int
   ): [Device!]! @cost(complexity: 1, multipliers: ["limit"])
   notificationCount: Int!
   permanentTokenCount: Int!
-  permanentTokens(limit: PositiveInt!, offset: Int): [PermanentToken!]!
+  permanentTokens(limit: NaturalNumber!, offset: Int): [PermanentToken!]!
     @cost(complexity: 1, multipliers: ["limit"])
   quietMode: Boolean
   devMode: Boolean
@@ -890,29 +892,31 @@ type Environment {
   myRole: RoleExtended!
   owner: User! @cost(complexity: 1)
   adminCount: Int
-  admins(limit: PositiveInt!, offset: Int): [User!]! @cost(complexity: 1)
+  admins(limit: NaturalNumber!, offset: Int): [User!]! @cost(complexity: 1)
   editorCount: Int
-  editors(limit: PositiveInt!, offset: Int): [User!]! @cost(complexity: 1)
+  editors(limit: NaturalNumber!, offset: Int): [User!]! @cost(complexity: 1)
   spectatorCount: Int
-  spectators(limit: PositiveInt!, offset: Int): [User!]! @cost(complexity: 1)
+  spectators(limit: NaturalNumber!, offset: Int): [User!]! @cost(complexity: 1)
   # returns null only if you don't have admin rights
   pendingEnvironmentShareCount: Int
   # returns null only if you don't have admin rights
   pendingEnvironmentShares(
-    limit: PositiveInt!
+    limit: NaturalNumber!
     offset: Int
     filter: EnvironmentShareFilter
   ): [PendingEnvironmentShare!] @cost(complexity: 1)
   # returns null only if you don't have admin rights
   pendingOwnerChangeCount: Int
   # returns null only if you don't have admin rights
-  pendingOwnerChanges(limit: PositiveInt!, offset: Int): [PendingOwnerChange!]
-    @cost(complexity: 1)
+  pendingOwnerChanges(
+    limit: NaturalNumber!
+    offset: Int
+  ): [PendingOwnerChange!] @cost(complexity: 1)
   name: String!
   picture: EnvironmentPicture!
   deviceCount(filter: DeviceFilter): Int
   devices(
-    limit: PositiveInt!
+    limit: NaturalNumber!
     offset: Int
     filter: DeviceFilter
     sortBy: DEVICE_SORT
@@ -968,7 +972,7 @@ type Device {
   name: String
   valueCount: Int
   values(
-    limit: PositiveInt!
+    limit: NaturalNumber!
     offset: Int
     sortBy: VALUE_SORT
     sortDirection: SORT_DIRECTION
@@ -976,7 +980,7 @@ type Device {
   ): [Value!]! @cost(complexity: 1, multipliers: ["limit"])
   environment: Environment @cost(complexity: 1)
   notifications(
-    limit: PositiveInt!
+    limit: NaturalNumber!
     offset: Int
     filter: NotificationFilter
   ): [Notification!]! @cost(complexity: 1, multipliers: ["limit"])
@@ -1117,7 +1121,7 @@ type FloatSeriesValue implements Value {
   myRole: RoleExtended!
   unitOfMeasurement: String
   nodeCount: Int
-  nodes(limit: PositiveInt!, offset: Int): [FloatSeriesNode!]!
+  nodes(limit: NaturalNumber!, offset: Int): [FloatSeriesNode!]!
     @cost(complexity: 1, multipliers: ["limit"])
   lastNode: FloatSeriesNode @cost(complexity: 1)
   # used when the end-user reads or modifies the value
@@ -1139,7 +1143,7 @@ type CategorySeriesValue implements Value {
   visibility: ValueVisibility!
   myRole: RoleExtended!
   nodeCount: Int
-  nodes(limit: PositiveInt!, offset: Int): [CategorySeriesNode!]!
+  nodes(limit: NaturalNumber!, offset: Int): [CategorySeriesNode!]!
     @cost(complexity: 1, multipliers: ["limit"])
   lastNode: CategorySeriesNode @cost(complexity: 1)
   cardSize: CardSize!
@@ -1156,7 +1160,7 @@ type FileSeriesValue implements Value {
   visibility: ValueVisibility!
   myRole: RoleExtended!
   nodeCount: Int
-  nodes(limit: PositiveInt!, offset: Int): [FileSeriesNode!]!
+  nodes(limit: NaturalNumber!, offset: Int): [FileSeriesNode!]!
     @cost(complexity: 1, multipliers: ["limit"])
   lastNode: FileSeriesNode @cost(complexity: 1)
   cardSize: CardSize!
