@@ -331,8 +331,29 @@ const EnvironmentResolver = ({
           return
         }
 
+        function parseEnvironmentShareFilter(filter) {
+          if (!filter) return {}
+          const parsedFilter = {}
+          filter.hasOwnProperty = Object.prototype.hasOwnProperty
+
+          if (filter.hasOwnProperty("AND"))
+            parsedFilter[Op.and] = filter.AND.map(parseEnvironmentShareFilter)
+          if (filter.hasOwnProperty("OR"))
+            parsedFilter[Op.or] = filter.OR.map(parseEnvironmentShareFilter)
+          if (filter.hasOwnProperty("NOT") && filter.NOT !== null)
+            parsedFilter[Op.not] = parseEnvironmentShareFilter(filter.NOT)
+          if (filter.hasOwnProperty("role")) parsedFilter.role = filter.role
+
+          return parsedFilter
+        }
+
         const pendingEnvironmentShares = await PendingEnvironmentShare.findAll({
-          where: { environmentId: root.id },
+          where: {
+            ...parseEnvironmentShareFilter(args.filter),
+            environmentId: root.id,
+          },
+          limit: args.limit,
+          offset: args.offset,
         })
 
         resolve(pendingEnvironmentShares)
@@ -353,12 +374,12 @@ const EnvironmentResolver = ({
         )
 
         /*
-            users without admin authorization don't have access to pendingEnvironmentShares,
+            users without admin authorization don't have access to pendingEnvironmentShareCount,
             instead of throwing error we return null to allow queries like
             {
               user{
                   environments{
-                    pendingEnvironmentShares{ id }
+                    pendingEnvironmentShareCount
                   }
               }
             }
@@ -415,6 +436,8 @@ const EnvironmentResolver = ({
 
         const pendingOwnerChanges = await PendingOwnerChange.findAll({
           where: { environmentId: root.id },
+          limit: args.limit,
+          offset: args.offset,
         })
 
         resolve(pendingOwnerChanges)

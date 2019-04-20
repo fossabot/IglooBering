@@ -656,6 +656,13 @@ input DeviceFilter {
   deviceType: StringFilter
 }
 
+input EnvironmentShareFilter {
+  OR: [EnvironmentShareFilter!]
+  AND: [EnvironmentShareFilter!]
+  NOT: EnvironmentShareFilter
+  role: Role
+}
+
 input DeveloperDeviceFilter {
   OR: [DeveloperDeviceFilter!]
   AND: [DeveloperDeviceFilter!]
@@ -891,11 +898,16 @@ type Environment {
   # returns null only if you don't have admin rights
   pendingEnvironmentShareCount: Int
   # returns null only if you don't have admin rights
-  pendingEnvironmentShares: [PendingEnvironmentShare!] @cost(complexity: 1)
+  pendingEnvironmentShares(
+    limit: PositiveInt!
+    offset: Int
+    filter: EnvironmentShareFilter
+  ): [PendingEnvironmentShare!] @cost(complexity: 1)
   # returns null only if you don't have admin rights
   pendingOwnerChangeCount: Int
   # returns null only if you don't have admin rights
-  pendingOwnerChanges: [PendingOwnerChange!] @cost(complexity: 1)
+  pendingOwnerChanges(limit: PositiveInt!, offset: Int): [PendingOwnerChange!]
+    @cost(complexity: 1)
   name: String!
   picture: EnvironmentPicture!
   deviceCount(filter: DeviceFilter): Int
