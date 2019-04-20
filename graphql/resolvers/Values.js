@@ -127,7 +127,6 @@ const FloatSeriesValueResolver = (
         resolve(count)
       }
     ),
-  // overriding GenericResolver's value
   nodes: (root, args, context) =>
     deviceInheritAuthorized(
       root.id,
@@ -181,7 +180,6 @@ const CategorySeriesValueResolver = (
         resolve(count)
       }
     ),
-  // overriding GenericResolver's value
   nodes: (root, args, context) =>
     deviceInheritAuthorized(
       root.id,

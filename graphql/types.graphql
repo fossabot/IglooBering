@@ -882,9 +882,12 @@ type Environment {
   updatedAt: DateTime!
   myRole: RoleExtended!
   owner: User! @cost(complexity: 1)
-  admins: [User!]! @cost(complexity: 1)
-  editors: [User!]! @cost(complexity: 1)
-  spectators: [User!]! @cost(complexity: 1)
+  adminCount: Int
+  admins(limit: PositiveInt!, offset: Int): [User!]! @cost(complexity: 1)
+  editorCount: Int
+  editors(limit: PositiveInt!, offset: Int): [User!]! @cost(complexity: 1)
+  spectatorCount: Int
+  spectators(limit: PositiveInt!, offset: Int): [User!]! @cost(complexity: 1)
   # returns null only if you don't have admin rights
   pendingEnvironmentShareCount: Int
   # returns null only if you don't have admin rights

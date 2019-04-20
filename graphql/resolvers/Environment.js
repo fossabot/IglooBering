@@ -13,24 +13,6 @@ import { Op } from "sequelize"
 const QUERY_COST = 1
 const isNotNullNorUndefined = value => value !== undefined && value !== null
 
-const rolesResolver = (roleName, Environment, User) => (root, args, context) =>
-  authorized(
-    root.id,
-    context,
-    context.dataLoaders.environmentLoaderById,
-    User,
-    1,
-    async (resolve, reject, found) => {
-      const environmentFound = await Environment.find({
-        where: { id: root.id },
-        include: [{ model: User, as: roleName }],
-      })
-
-      resolve(environmentFound[roleName])
-    },
-    environmentToParent
-  )
-
 const retrievePublicEnvironmentScalarProp = (Environment, prop) => (
   root,
   args,
@@ -99,6 +81,9 @@ const parseDeviceFilter = userId => filter => {
 const EnvironmentResolver = ({
   User,
   Environment,
+  EnvironmentAdmin,
+  EnvironmentEditor,
+  EnvironmentSpectator,
   Device,
   Notification,
   joinTables,
@@ -140,9 +125,120 @@ const EnvironmentResolver = ({
       environmentToParent
     )
   },
-  admins: rolesResolver("admin", Environment, User),
-  editors: rolesResolver("editor", Environment, User),
-  spectators: rolesResolver("spectator", Environment, User),
+  adminCount(root, args, context) {
+    return authorized(
+      root.id,
+      context,
+      context.dataLoaders.environmentLoaderById,
+      User,
+      1,
+      async (resolve, reject, found) => {
+        const count = await EnvironmentAdmin.count({
+          where: { environmentId: root.id },
+        })
+
+        resolve(count)
+      },
+      environmentToParent
+    )
+  },
+  admins(root, args, context) {
+    return authorized(
+      root.id,
+      context,
+      context.dataLoaders.environmentLoaderById,
+      User,
+      1,
+      async (resolve, reject, found) => {
+        const admins = await EnvironmentAdmin.findAll({
+          where: { environmentId: root.id },
+          limit: args.limit,
+          offset: args.offset,
+        })
+
+        const users = admins.map(admin => ({ id: admin.userId }))
+
+        resolve(users)
+      },
+      environmentToParent
+    )
+  },
+  editorCount(root, args, context) {
+    return authorized(
+      root.id,
+      context,
+      context.dataLoaders.environmentLoaderById,
+      User,
+      1,
+      async (resolve, reject, found) => {
+        const count = await EnvironmentEditor.count({
+          where: { environmentId: root.id },
+        })
+
+        resolve(count)
+      },
+      environmentToParent
+    )
+  },
+  editors(root, args, context) {
+    return authorized(
+      root.id,
+      context,
+      context.dataLoaders.environmentLoaderById,
+      User,
+      1,
+      async (resolve, reject, found) => {
+        const editors = await EnvironmentEditor.findAll({
+          where: { environmentId: root.id },
+          limit: args.limit,
+          offset: args.offset,
+        })
+
+        const users = editors.map(editor => ({ id: editor.userId }))
+
+        resolve(users)
+      },
+      environmentToParent
+    )
+  },
+  spectatorCount(root, args, context) {
+    return authorized(
+      root.id,
+      context,
+      context.dataLoaders.environmentLoaderById,
+      User,
+      1,
+      async (resolve, reject, found) => {
+        const count = await EnvironmentSpectator.count({
+          where: { environmentId: root.id },
+        })
+
+        resolve(count)
+      },
+      environmentToParent
+    )
+  },
+  spectators(root, args, context) {
+    return authorized(
+      root.id,
+      context,
+      context.dataLoaders.environmentLoaderById,
+      User,
+      1,
+      async (resolve, reject, found) => {
+        const spectators = await EnvironmentSpectator.findAll({
+          where: { environmentId: root.id },
+          limit: args.limit,
+          offset: args.offset,
+        })
+
+        const users = spectators.map(spectator => ({ id: spectator.userId }))
+
+        resolve(users)
+      },
+      environmentToParent
+    )
+  },
   devices(root, args, context) {
     return authorized(
       root.id,
