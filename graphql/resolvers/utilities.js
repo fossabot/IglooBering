@@ -253,9 +253,8 @@ export function CreateGenericValue(
           ...args,
           deviceId: deviceFound.id,
           cardSize: args.cardSize || "NORMAL",
-          visibility: isNullOrUndefined(args.visibility)
-            ? "VISIBLE"
-            : args.visibility,
+          private: args.private || false,
+          hidden: args.hidden || false,
           index,
         })
 
@@ -393,7 +392,7 @@ export const genericValueMutation = (
   Environment,
   checkArgs = (args, valueFound, reject) => true
 ) => (root, args, context) =>
-  deviceInheritAuthorized(
+  deviceInheritValueAuthorized(
     args.id,
     context.dataLoaders[childLoaderName],
     context,
@@ -1237,6 +1236,50 @@ export const deviceInheritAuthorized = (
     )(resolve, reject)
   }
 }
+
+export const deviceInheritValueAuthorized = (
+  ownId,
+  ownLoader,
+  context,
+  authorizationRequired,
+  callback,
+  acceptedTokenTypes
+) => async (resolve, reject) => {
+  const found = await ownLoader.load(ownId)
+
+  if (!found) {
+    reject("The requested resource does not exist")
+  } else if (found.private) {
+    return producerAuthorized(ownId, context, callback)(resolve, reject)
+  } else {
+    return deviceInheritAuthorized(
+      ownId,
+      ownLoader,
+      context,
+      authorizationRequired,
+      callback,
+      acceptedTokenTypes
+    )(resolve, reject)
+  }
+}
+
+export const deviceInheritValueAuthorizedScalarPropsResolvers = (
+  ownLoaderName,
+  props,
+  acceptedTokenTypes
+) =>
+  props.reduce((acc, prop) => {
+    acc[prop] = (root, args, context) =>
+      deviceInheritValueAuthorized(
+        root.id,
+        context.dataLoaders[ownLoaderName],
+        context,
+        1,
+        (resolve, reject, resourceFound) => resolve(resourceFound[prop]),
+        acceptedTokenTypes
+      )
+    return acc
+  }, {})
 
 export const deviceInheritAuthorizedRetrieveScalarProp = (
   ownLoaderName,

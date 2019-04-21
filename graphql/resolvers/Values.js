@@ -4,9 +4,11 @@ import {
   authorized,
   authorizedScalarPropsResolvers,
   deviceInheritAuthorized,
+  deviceInheritValueAuthorized,
   valueToParent,
   inheritAuthorizedScalarPropsResolvers,
   deviceInheritAuthorizedScalarPropsResolvers,
+  deviceInheritValueAuthorizedScalarPropsResolvers,
   inheritAuthorized,
 } from "./utilities"
 
@@ -20,22 +22,25 @@ const GenericResolver = (
   hasPermission = true,
   hasValue = true
 ) => ({
-  ...deviceInheritAuthorizedScalarPropsResolvers(loaderName, [
+  ...deviceInheritValueAuthorizedScalarPropsResolvers(loaderName, [
     "createdAt",
     "updatedAt",
-    "visibility",
+    "private",
+    "hidden",
     "cardSize",
     "name",
     "index",
   ]),
   ...(hasPermission
-    ? deviceInheritAuthorizedScalarPropsResolvers(loaderName, ["permission"])
+    ? deviceInheritValueAuthorizedScalarPropsResolvers(loaderName, [
+        "permission",
+      ])
     : []),
-  ...(hasPermission
-    ? deviceInheritAuthorizedScalarPropsResolvers(loaderName, ["value"])
+  ...(hasValue
+    ? deviceInheritValueAuthorizedScalarPropsResolvers(loaderName, ["value"])
     : []),
   device: (root, args, context) =>
-    deviceInheritAuthorized(
+    deviceInheritValueAuthorized(
       root.id,
       context.dataLoaders[loaderName],
       context,
@@ -67,7 +72,7 @@ const GenericResolver = (
 const BooleanValueResolver = GenericResolver
 const FloatValueResolver = (loaderName, User, Device, Environment) => ({
   ...GenericResolver(loaderName, User, Device, Environment),
-  ...deviceInheritAuthorizedScalarPropsResolvers(loaderName, [
+  ...deviceInheritValueAuthorizedScalarPropsResolvers(loaderName, [
     "unitOfMeasurement",
     "precision",
     "min",
@@ -76,13 +81,13 @@ const FloatValueResolver = (loaderName, User, Device, Environment) => ({
 })
 const FileValueResolver = (loaderName, User, Device, Environment) => ({
   ...GenericResolver(loaderName, User, Device, Environment),
-  ...deviceInheritAuthorizedScalarPropsResolvers(loaderName, [
+  ...deviceInheritValueAuthorizedScalarPropsResolvers(loaderName, [
     "mimeType",
     "fileName",
   ]),
   // overriding GenericResolver's value
   value: (root, args, context) =>
-    deviceInheritAuthorized(
+    deviceInheritValueAuthorized(
       root.id,
       context.dataLoaders[loaderName],
       context,
@@ -94,7 +99,7 @@ const FileValueResolver = (loaderName, User, Device, Environment) => ({
 })
 const StringValueResolver = (loaderName, User, Device, Environment) => ({
   ...GenericResolver(loaderName, User, Device, Environment),
-  ...deviceInheritAuthorizedScalarPropsResolvers(loaderName, [
+  ...deviceInheritValueAuthorizedScalarPropsResolvers(loaderName, [
     "maxChars",
     "allowedValues",
   ]),
@@ -107,7 +112,7 @@ const FloatSeriesValueResolver = (
   FloatSeriesNode
 ) => ({
   ...GenericResolver(loaderName, User, Device, Environment, false, false),
-  ...deviceInheritAuthorizedScalarPropsResolvers(loaderName, [
+  ...deviceInheritValueAuthorizedScalarPropsResolvers(loaderName, [
     "unitOfMeasurement",
     "precision",
     "min",
@@ -115,7 +120,7 @@ const FloatSeriesValueResolver = (
     "threshold",
   ]),
   nodeCount: (root, args, context) =>
-    deviceInheritAuthorized(
+    deviceInheritValueAuthorized(
       root.id,
       context.dataLoaders[loaderName],
       context,
@@ -128,7 +133,7 @@ const FloatSeriesValueResolver = (
       }
     ),
   nodes: (root, args, context) =>
-    deviceInheritAuthorized(
+    deviceInheritValueAuthorized(
       root.id,
       context.dataLoaders[loaderName],
       context,
@@ -144,7 +149,7 @@ const FloatSeriesValueResolver = (
       }
     ),
   lastNode: (root, args, context) =>
-    deviceInheritAuthorized(
+    deviceInheritValueAuthorized(
       root.id,
       context.dataLoaders[loaderName],
       context,
@@ -166,9 +171,11 @@ const CategorySeriesValueResolver = (
   CategorySeriesNode
 ) => ({
   ...GenericResolver(loaderName, User, Device, Environment, false, false),
-  ...deviceInheritAuthorizedScalarPropsResolvers(loaderName, ["allowedValues"]),
+  ...deviceInheritValueAuthorizedScalarPropsResolvers(loaderName, [
+    "allowedValues",
+  ]),
   nodeCount: (root, args, context) =>
-    deviceInheritAuthorized(
+    deviceInheritValueAuthorized(
       root.id,
       context.dataLoaders[loaderName],
       context,
@@ -181,7 +188,7 @@ const CategorySeriesValueResolver = (
       }
     ),
   nodes: (root, args, context) =>
-    deviceInheritAuthorized(
+    deviceInheritValueAuthorized(
       root.id,
       context.dataLoaders[loaderName],
       context,
@@ -198,7 +205,7 @@ const CategorySeriesValueResolver = (
       }
     ),
   lastNode: (root, args, context) =>
-    deviceInheritAuthorized(
+    deviceInheritValueAuthorized(
       root.id,
       context.dataLoaders[loaderName],
       context,
@@ -214,13 +221,7 @@ const CategorySeriesValueResolver = (
     ),
 })
 
-const FloatSeriesNodeResolver = (
-  nodeLoader,
-  valueLoader,
-  User,
-  Device,
-  Environment
-) => ({
+const NodeResolver = (nodeLoader, valueLoader, User, Device, Environment) => ({
   ...deviceInheritAuthorizedScalarPropsResolvers(nodeLoader, [
     "timestamp",
     "value",
@@ -286,7 +287,7 @@ export default (
     Environment,
     FloatSeriesNode
   ),
-  FloatSeriesNode: FloatSeriesNodeResolver(
+  FloatSeriesNode: NodeResolver(
     "floatSeriesNodeLoaderById",
     "floatSeriesValueLoaderById",
     User,
@@ -300,7 +301,7 @@ export default (
     Environment,
     CategorySeriesNode
   ),
-  CategorySeriesNode: FloatSeriesNodeResolver(
+  CategorySeriesNode: NodeResolver(
     "categorySeriesNodeLoaderById",
     "categorySeriesValueLoaderById",
     User,

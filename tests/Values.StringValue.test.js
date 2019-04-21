@@ -48,7 +48,8 @@ describe("StringValue", () => {
   const scalarProps = [
     "createdAt",
     "updatedAt",
-    "visibility",
+    "private",
+    "hidden",
     "cardSize",
     "name",
     "value",

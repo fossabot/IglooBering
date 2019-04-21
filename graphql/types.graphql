@@ -258,7 +258,8 @@ type Mutation {
     # whether the value should be READ_ONLY or READ_WRITE in Igloo Aurora
     permission: ValuePermission!
     # whether the value should be VISIBLE or INVISIBLE in Igloo Aurora
-    visibility: ValueVisibility
+    private: Boolean
+    hidden: Boolean
     # additional details about the value
     unitOfMeasurement: String
     value: Float
@@ -280,7 +281,8 @@ type Mutation {
     # whether the value should be READ_ONLY or READ_WRITE in Igloo Aurora
     permission: ValuePermission!
     # whether the value should be VISIBLE or INVISIBLE in Igloo Aurora
-    visibility: ValueVisibility
+    private: Boolean
+    hidden: Boolean
     # name of the value, displayed in Igloo Aurora
     name: String!
     # tile size in Igloo Aurora
@@ -295,7 +297,8 @@ type Mutation {
     # whether the value should be READ_ONLY or READ_WRITE in Igloo Aurora
     permission: ValuePermission!
     # whether the value should be VISIBLE or INVISIBLE in Igloo Aurora
-    visibility: ValueVisibility
+    private: Boolean
+    hidden: Boolean
     value: String
     # max length of the string
     maxChars: Int
@@ -315,7 +318,8 @@ type Mutation {
     # whether the value should be READ_ONLY or READ_WRITE in Igloo Aurora
     permission: ValuePermission!
     # whether the value should be VISIBLE or INVISIBLE in Igloo Aurora
-    visibility: ValueVisibility
+    private: Boolean
+    hidden: Boolean
     value: Boolean
     # name of the value, displayed in Igloo Aurora
     name: String!
@@ -329,7 +333,8 @@ type Mutation {
     # device owning the value
     deviceId: ID!
     # whether the value should be VISIBLE or INVISIBLE in Igloo Aurora
-    visibility: ValueVisibility
+    private: Boolean
+    hidden: Boolean
     # additional details about the value
     unitOfMeasurement: String
     # used when the end-user reads or modifies the value
@@ -360,7 +365,8 @@ type Mutation {
     # device owning the value
     deviceId: ID!
     # whether the value should be VISIBLE or INVISIBLE in Igloo Aurora
-    visibility: ValueVisibility
+    private: Boolean
+    hidden: Boolean
     # name of the value, displayed in Igloo Aurora
     name: String!
     # tile size in Igloo Aurora
@@ -428,7 +434,8 @@ type Mutation {
 
   value(
     id: ID!
-    visibility: ValueVisibility
+    private: Boolean
+    hidden: Boolean
     cardSize: CardSize
     name: String
     index: Int
@@ -445,7 +452,8 @@ type Mutation {
     # whether the value should be READ_ONLY or READ_WRITE in Igloo Aurora
     permission: ValuePermission
     # whether the value should be VISIBLE or INVISIBLE in Igloo Aurora
-    visibility: ValueVisibility
+    private: Boolean
+    hidden: Boolean
     # additional details about the value
     unitOfMeasurement: String
     value: Float
@@ -469,7 +477,8 @@ type Mutation {
     # whether the value should be READ_ONLY or READ_WRITE in Igloo Aurora
     permission: ValuePermission
     # whether the value should be VISIBLE or INVISIBLE in Igloo Aurora
-    visibility: ValueVisibility
+    private: Boolean
+    hidden: Boolean
     value: String
     # max length of the string
     maxChars: Int
@@ -489,7 +498,8 @@ type Mutation {
     # whether the value should be READ_ONLY or READ_WRITE in Igloo Aurora
     permission: ValuePermission
     # whether the value should be VISIBLE or INVISIBLE in Igloo Aurora
-    visibility: ValueVisibility
+    private: Boolean
+    hidden: Boolean
     value: Boolean
     # name of the value, displayed in Igloo Aurora
     name: String
@@ -505,7 +515,8 @@ type Mutation {
     # whether the value should be READ_ONLY or READ_WRITE in Igloo Aurora
     permission: ValuePermission
     # whether the value should be VISIBLE or INVISIBLE in Igloo Aurora
-    visibility: ValueVisibility
+    private: Boolean
+    hidden: Boolean
     # name of the value, displayed in Igloo Aurora
     name: String
     # tile size in Igloo Aurora
@@ -518,7 +529,8 @@ type Mutation {
     # value id
     id: ID!
     # whether the value should be VISIBLE or INVISIBLE in Igloo Aurora
-    visibility: ValueVisibility
+    private: Boolean
+    hidden: Boolean
     # additional details about the value
     unitOfMeasurement: String
     # used when the end-user reads or modifies the value
@@ -549,7 +561,8 @@ type Mutation {
     # value id
     id: ID!
     # whether the value should be VISIBLE or INVISIBLE in Igloo Aurora
-    visibility: ValueVisibility
+    private: Boolean
+    hidden: Boolean
     # name of the value, displayed in Igloo Aurora
     name: String
     # tile size in Igloo Aurora
@@ -676,7 +689,8 @@ input ValueFilter {
   NOT: ValueFilter
   name: StringFilter
   cardSize: CardSize
-  visibility: ValueVisibility
+  private: Boolean
+  hidden: Boolean
 }
 
 input NotificationFilter {
@@ -733,7 +747,7 @@ type Subscription {
   # subscribes to environment creations
   environmentCreated: Environment
   # subscribes to value creations
-  valueCreated(deviceId: ID, visibility: ValueVisibility): Value
+  valueCreated(deviceId: ID, hidden: Boolean): Value
   # subscribes to series node creations
   floatSeriesNodeCreated(seriesId: ID): FloatSeriesNode
   # subscribes to string series node creations
@@ -772,7 +786,7 @@ type Subscription {
   # subscribes to environment updates
   environmentUpdated(id: ID): Environment
   # subscribes to value updates
-  valueUpdated(deviceId: ID, id: ID, visibility: ValueVisibility): Value
+  valueUpdated(deviceId: ID, id: ID, hidden: Boolean): Value
   # subscribes to series node updates
   floatSeriesNodeUpdated(seriesId: ID, id: ID): FloatSeriesNode
   # subscribes to series node updates
@@ -780,7 +794,7 @@ type Subscription {
   # subscribes to notification updates
   notificationUpdated(deviceId: ID, id: ID): Notification
   # subscribes to value deleted
-  valueDeleted(deviceId: ID, id: ID, visibility: ValueVisibility): ID
+  valueDeleted(deviceId: ID, id: ID, hidden: Boolean): ID
   # subscribes to series node deletes
   floatSeriesNodeDeleted(seriesId: ID, id: ID): ID
   # subscribes to series node deletes
@@ -1002,11 +1016,6 @@ enum ValuePermission {
   READ_WRITE
 }
 
-enum ValueVisibility {
-  VISIBLE
-  INVISIBLE
-}
-
 enum CardSize {
   NORMAL
   WIDE
@@ -1052,7 +1061,8 @@ interface Value {
   createdAt: DateTime!
   updatedAt: DateTime!
   device: Device!
-  visibility: ValueVisibility!
+  private: Boolean!
+  hidden: Boolean!
   myRole: RoleExtended!
   cardSize: CardSize!
   name: String
@@ -1065,7 +1075,8 @@ type FileValue implements Value {
   updatedAt: DateTime!
   device: Device!
   permission: ValuePermission!
-  visibility: ValueVisibility!
+  private: Boolean!
+  hidden: Boolean!
   myRole: RoleExtended!
   cardSize: CardSize!
   name: String
@@ -1082,7 +1093,8 @@ type FloatValue implements Value {
   updatedAt: DateTime!
   device: Device! @cost(complexity: 1)
   permission: ValuePermission!
-  visibility: ValueVisibility!
+  private: Boolean!
+  hidden: Boolean!
   myRole: RoleExtended!
   unitOfMeasurement: String
   # tagged
@@ -1102,7 +1114,8 @@ type StringValue implements Value {
   updatedAt: DateTime!
   device: Device! @cost(complexity: 1)
   permission: ValuePermission!
-  visibility: ValueVisibility!
+  private: Boolean!
+  hidden: Boolean!
   myRole: RoleExtended!
   value: String
   maxChars: Int
@@ -1117,7 +1130,8 @@ type FloatSeriesValue implements Value {
   createdAt: DateTime!
   updatedAt: DateTime!
   device: Device! @cost(complexity: 1)
-  visibility: ValueVisibility!
+  private: Boolean!
+  hidden: Boolean!
   myRole: RoleExtended!
   unitOfMeasurement: String
   nodeCount: Int
@@ -1140,7 +1154,8 @@ type CategorySeriesValue implements Value {
   createdAt: DateTime!
   updatedAt: DateTime!
   device: Device! @cost(complexity: 1)
-  visibility: ValueVisibility!
+  private: Boolean!
+  hidden: Boolean!
   myRole: RoleExtended!
   nodeCount: Int
   nodes(limit: NaturalNumber!, offset: Int): [CategorySeriesNode!]!
@@ -1157,7 +1172,8 @@ type FileSeriesValue implements Value {
   createdAt: DateTime!
   updatedAt: DateTime!
   device: Device! @cost(complexity: 1)
-  visibility: ValueVisibility!
+  private: Boolean!
+  hidden: Boolean!
   myRole: RoleExtended!
   nodeCount: Int
   nodes(limit: NaturalNumber!, offset: Int): [FileSeriesNode!]!
@@ -1175,7 +1191,8 @@ type BooleanValue implements Value {
   updatedAt: DateTime!
   device: Device! @cost(complexity: 1)
   permission: ValuePermission!
-  visibility: ValueVisibility!
+  private: Boolean!
+  hidden: Boolean!
   myRole: RoleExtended!
   value: Boolean
   cardSize: CardSize!

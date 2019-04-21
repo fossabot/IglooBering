@@ -186,9 +186,13 @@ const DeviceResolver = ({
             filtersStack.push(
               `(public."${table}"."cardSize" = '${filter.cardSize}')`
             )
-          if (filter.hasOwnProperty("visibility"))
+          if (filter.hasOwnProperty("private"))
             filtersStack.push(
-              `(public."${table}"."visibility" = '${filter.visibility}')`
+              `(public."${table}"."private" = '${filter.private}')`
+            )
+          if (filter.hasOwnProperty("hidden"))
+            filtersStack.push(
+              `(public."${table}"."hidden" = '${filter.hidden}')`
             )
           if (filter.hasOwnProperty("name"))
             filtersStack.push(

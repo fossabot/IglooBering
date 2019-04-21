@@ -204,7 +204,7 @@ const subscriptionResolver = (pubsub, { User, Device, Environment }) => ({
     "valueCreated",
     pubsub,
     createDataLoaders,
-    customFilterByFields("valueCreated", "deviceId", "visibility")
+    customFilterByFields("valueCreated", "deviceId", "hidden")
   ),
   permanentTokenCreated: subscriptionFilterOnlyMine(
     "permanentTokenCreated",
@@ -244,7 +244,7 @@ const subscriptionResolver = (pubsub, { User, Device, Environment }) => ({
     "valueUpdated",
     pubsub,
     createDataLoaders,
-    customFilterByFields("valueUpdated", "deviceId", "id", "visibility")
+    customFilterByFields("valueUpdated", "deviceId", "id", "hidden")
   ),
   floatSeriesNodeUpdated: subscriptionFilterOwnedOrShared(
     "floatSeriesNodeUpdated",
@@ -274,7 +274,7 @@ const subscriptionResolver = (pubsub, { User, Device, Environment }) => ({
     "valueDeleted",
     pubsub,
     createDataLoaders,
-    customFiltersOnSource("deviceId", "id", "visibility")
+    customFiltersOnSource("deviceId", "id", "hidden")
   ),
   deviceDeleted: subscriptionFilterOwnedOrShared(
     "deviceDeleted",

@@ -1,6 +1,5 @@
 const ValueModel = (Sequelize, hasPermission = true) => {
   const ValuePermission = Sequelize.ENUM("READ_ONLY", "READ_WRITE")
-  const ValueVisibility = Sequelize.ENUM("VISIBLE", "INVISIBLE")
   const cardSize = Sequelize.ENUM("NORMAL", "WIDE", "TALL", "LARGE")
 
   return {
@@ -24,8 +23,13 @@ const ValueModel = (Sequelize, hasPermission = true) => {
           },
         }
       : {}),
-    visibility: {
-      type: ValueVisibility,
+    hidden: {
+      type: Sequelize.BOOLEAN,
+      defaultValue: false,
+    },
+    private: {
+      type: Sequelize.BOOLEAN,
+      defaultValue: false,
     },
     cardSize: {
       type: cardSize,

@@ -48,7 +48,8 @@ describe("FloatValue", () => {
   const scalarProps = [
     "createdAt",
     "updatedAt",
-    "visibility",
+    "private",
+    "hidden",
     "cardSize",
     "name",
     "value",

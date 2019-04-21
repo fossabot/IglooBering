@@ -50,7 +50,8 @@ describe("FloatSeriesValue", () => {
   const scalarProps = [
     "createdAt",
     "updatedAt",
-    "visibility",
+    "private",
+    "hidden",
     "cardSize",
     "name",
     "index",
