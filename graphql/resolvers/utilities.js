@@ -227,6 +227,12 @@ export function CreateGenericValue(
         if (args.name === "") {
           reject("name cannot be an empty string")
           return
+        } else if (args.private === null) {
+          reject("Cannot set private to null")
+          return
+        } else if (args.hidden === null) {
+          reject("Cannot set hidden to null")
+          return
         }
 
         // finds highest used index among values of that device and returns maxIndex + 1
@@ -408,6 +414,12 @@ export const genericValueMutation = (
       } else if (Object.keys(args).length === 1) {
         reject("You cannot make a mutation with only the id field")
         return
+      } else if (args.private === null) {
+        reject("Cannot set private to null")
+        return
+      } else if (args.hidden === null) {
+        reject("Cannot set hidden to null")
+        return
       }
 
       const newValue = await valueFound.update(args)
@@ -435,7 +447,9 @@ export const genericValueMutation = (
         valueUpdated: { ...resolveObj, __resolveType },
         userIds: await instanceToSharedIds(environmentFound, context),
       })
-    }
+    },
+    undefined,
+    args.private !== undefined ? 3 : 2
   )
 
 export const create2FSecret = user => {
@@ -1243,13 +1257,18 @@ export const deviceInheritValueAuthorized = (
   context,
   authorizationRequired,
   callback,
-  acceptedTokenTypes
+  acceptedTokenTypes,
+  accessLevel = 1 // 1 = READ, 2 = READ and WRITE, 3 = PRODUCER
 ) => async (resolve, reject) => {
   const found = await ownLoader.load(ownId)
 
   if (!found) {
     reject("The requested resource does not exist")
-  } else if (found.private) {
+  } else if (
+    found.private ||
+    (accessLevel > 1 && found.permission === "READ_ONLY") ||
+    accessLevel > 2
+  ) {
     return producerAuthorized(ownId, context, callback)(resolve, reject)
   } else {
     return deviceInheritAuthorized(
