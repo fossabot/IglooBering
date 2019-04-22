@@ -920,12 +920,7 @@ type Environment {
     filter: EnvironmentShareFilter
   ): [PendingEnvironmentShare!] @cost(complexity: 1)
   # returns null only if you don't have admin rights
-  pendingOwnerChangeCount: Int
-  # returns null only if you don't have admin rights
-  pendingOwnerChanges(
-    limit: NaturalNumber!
-    offset: Int
-  ): [PendingOwnerChange!] @cost(complexity: 1)
+  pendingOwnerChange: PendingOwnerChange
   name: String!
   picture: EnvironmentPicture!
   deviceCount(filter: DeviceFilter): Int

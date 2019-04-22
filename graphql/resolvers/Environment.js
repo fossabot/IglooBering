@@ -403,7 +403,7 @@ const EnvironmentResolver = ({
       environmentToParent
     )
   },
-  pendingOwnerChanges(root, args, context) {
+  pendingOwnerChange(root, args, context) {
     return authorized(
       root.id,
       context,
@@ -434,53 +434,13 @@ const EnvironmentResolver = ({
           return
         }
 
-        const pendingOwnerChanges = await PendingOwnerChange.findAll({
+        const pendingOwnerChange = await PendingOwnerChange.find({
           where: { environmentId: root.id },
           limit: args.limit,
           offset: args.offset,
         })
 
-        resolve(pendingOwnerChanges)
-      },
-      environmentToParent
-    )
-  },
-  pendingOwnerChangeCount(root, args, context) {
-    return authorized(
-      root.id,
-      context,
-      context.dataLoaders.environmentLoaderById,
-      User,
-      1,
-      async (resolve, reject, environmentFound) => {
-        const userFound = await context.dataLoaders.userLoaderById.load(
-          context.auth.userId
-        )
-
-        /*
-            users without admin authorization don't have access to pendingOwnerShare,
-            instead of throwing error we return null to allow queries like
-            {
-              user{
-                  environments{
-                    pendingEnvironmentShares{ id }
-                  }
-              }
-            }
-            also for users that don't have admin access to all of their environments
-          */
-        if (
-          (await authorizationLevel(environmentFound, userFound, context)) < 3
-        ) {
-          resolve(null)
-          return
-        }
-
-        const pendingOwnerChangeCount = await PendingOwnerChange.count({
-          where: { environmentId: root.id },
-        })
-
-        resolve(pendingOwnerChangeCount)
+        resolve(pendingOwnerChange)
       },
       environmentToParent
     )
