@@ -4,7 +4,9 @@
   "description": "Backend for the igloo platform",
   "scripts": {
     "dev": "nodemon ./server.js --exec babel-node --inspect -e js,graphql,env,lua",
-    "start": "npm run compile && npm run sequelize db:migrate && pm2-runtime ./compiled/server.js",
+    "build": "npm run compile && npm run sequelize db:migrate ",
+    "prestart": "npm run build",
+    "start": "node ./compiled/server.js",
     "compile": "babel server.js app.js shared.js -d compiled --source-maps && babel postgresql -d compiled/postgresql --source-maps && babel redis -d compiled/redis --source-maps && babel graphql -d compiled/graphql --source-maps && babel dataloaders -d compiled/dataloaders --source-maps",
     "test": "jest --c=jest.config.json",
     "posttest": "npm run docs",
