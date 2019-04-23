@@ -4,7 +4,8 @@
 
 <h1 align="center">Igloo Bering </h1>
 
-[![Language grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/IglooCloud/IglooBering.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/IglooCloud/IglooBering/context:javascript) [![Build Status](https://travis-ci.org/IglooCloud/IglooBering.svg?branch=master)](https://travis-ci.org/IglooCloud/IglooBering)
+[![Language grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/IglooCloud/IglooBering.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/IglooCloud/IglooBering/context:javascript) [![Build Status](https://travis-ci.org/IglooCloud/IglooBering.svg?branch=master)](https://travis-ci.org/IglooCloud/IglooBering)[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FIglooCloud%2FIglooBering.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2FIglooCloud%2FIglooBering?ref=badge_shield)
+
 
 Bering is the back-end service of Igloo.
 
@@ -149,3 +150,6 @@ TBD
 ## License
 
 See the [license](https://github.com/IglooCloud/IglooBering/blob/master/LICENSE.md) file for license rights and limitations.
+
+
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FIglooCloud%2FIglooBering.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2FIglooCloud%2FIglooBering?ref=badge_large)
