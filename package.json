@@ -2,6 +2,7 @@
   "name": "igloo-bering",
   "version": "0.9.2",
   "description": "Backend for the igloo platform",
+  "main": "compiled/server.js",
   "scripts": {
     "dev": "nodemon ./server.js --exec babel-node --inspect -e js,graphql,env,lua",
     "build": "npm run compile && npm run sequelize db:migrate ",
