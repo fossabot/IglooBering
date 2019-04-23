@@ -248,11 +248,9 @@ const MAX_STORAGE = 250000 // BETA
  * @memberof Utilities
  */
 export function CreateGenericValue(
-  User,
   Device,
   Environment,
   Model,
-  ModelName,
   ValueModels,
   pubsub,
   argsChecks = (args, reject) => true
@@ -271,6 +269,12 @@ export function CreateGenericValue(
 
         if (args.name === "") {
           reject("name cannot be an empty string")
+          return
+        } else if (args.private === null) {
+          reject("Cannot set private to null")
+          return
+        } else if (args.hidden === null) {
+          reject("Cannot set hidden to null")
           return
         }
 
@@ -298,9 +302,8 @@ export function CreateGenericValue(
           ...args,
           deviceId: deviceFound.id,
           cardSize: args.cardSize || "NORMAL",
-          visibility: isNullOrUndefined(args.visibility)
-            ? "VISIBLE"
-            : args.visibility,
+          private: args.private || false,
+          hidden: args.hidden || false,
           index,
         })
 
@@ -387,7 +390,7 @@ export function logErrorsPromise(callback) {
       return await callback(resolve, reject)
     } catch (e) {
       if (e.parent &amp;&amp; e.parent.routine === "string_to_uuid") {
-        reject("This id is not valid")
+        reject("This ID is not valid")
         return
       }
 
@@ -438,7 +441,7 @@ export const genericValueMutation = (
   Environment,
   checkArgs = (args, valueFound, reject) => true
 ) => (root, args, context) =>
-  deviceInheritAuthorized(
+  deviceInheritValueAuthorized(
     args.id,
     context.dataLoaders[childLoaderName],
     context,
@@ -453,6 +456,12 @@ export const genericValueMutation = (
         return
       } else if (Object.keys(args).length === 1) {
         reject("You cannot make a mutation with only the id field")
+        return
+      } else if (args.private === null) {
+        reject("Cannot set private to null")
+        return
+      } else if (args.hidden === null) {
+        reject("Cannot set hidden to null")
         return
       }
 
@@ -481,7 +490,9 @@ export const genericValueMutation = (
         valueUpdated: { ...resolveObj, __resolveType },
         userIds: await instanceToSharedIds(environmentFound, context),
       })
-    }
+    },
+    undefined,
+    args.private !== undefined ? 3 : 2
   )
 
 export const create2FSecret = user => {
@@ -537,28 +548,34 @@ export const firstResolve = promises =>
 
 // FIXME: doesn't check if the user has the authorizations needed
 export const findAllValues = (
-  { BooleanValue, FloatValue, StringValue, PlotValue, CategoryPlotValue },
+  {
+    BooleanValue,
+    FloatValue,
+    StringValue,
+    FloatSeriesValue,
+    CategorySeriesValue,
+  },
   query
 ) => {
   const booleanValues = BooleanValue.findAll(query)
   const floatValues = FloatValue.findAll(query)
   const stringValues = StringValue.findAll(query)
-  const plotValues = PlotValue.findAll(query)
-  const categoryPlotValues = CategoryPlotValue.findAll(query)
+  const floatSeriesValues = FloatSeriesValue.findAll(query)
+  const categorySeriesValues = CategorySeriesValue.findAll(query)
 
   return Promise.all([
     booleanValues,
     floatValues,
     stringValues,
-    plotValues,
-    categoryPlotValues,
+    floatSeriesValues,
+    categorySeriesValues,
   ]).then(
     ([
       booleanValues,
       floatValues,
       stringValues,
-      plotValues,
-      categoryPlotValues,
+      floatSeriesValues,
+      categorySeriesValues,
     ]) => [
       ...booleanValues.map(value => ({
         ...value.dataValues,
@@ -578,17 +595,17 @@ export const findAllValues = (
         device: { id: value.dataValues.deviceId },
         __resolveType: "StringValue",
       })),
-      ...plotValues.map(value => ({
+      ...floatSeriesValues.map(value => ({
         ...value.dataValues,
         owner: { id: value.dataValues.ownerId },
         device: { id: value.dataValues.deviceId },
-        __resolveType: "PlotValue",
+        __resolveType: "FloatSeriesValue",
       })),
-      ...categoryPlotValues.map(value => ({
+      ...categorySeriesValues.map(value => ({
         ...value.dataValues,
         owner: { id: value.dataValues.ownerId },
         device: { id: value.dataValues.deviceId },
-        __resolveType: "CategoryPlotValue",
+        __resolveType: "CategorySeriesValue",
       })),
     ]
   )
@@ -600,22 +617,25 @@ export const findValue = (id, context) => {
     booleanValueLoaderById,
     floatValueLoaderById,
     stringValueLoaderById,
-    plotValueLoaderById,
-    categoryPlotValueLoaderById,
+    floatSeriesValueLoaderById,
+    categorySeriesValueLoaderById,
+    fileValueLoaderById,
     environmentLoaderById,
   } = context.dataLoaders
   const booleanValue = booleanValueLoaderById.load(id)
   const floatValue = floatValueLoaderById.load(id)
   const stringValue = stringValueLoaderById.load(id)
-  const plotValue = plotValueLoaderById.load(id)
-  const categoryPlotValue = categoryPlotValueLoaderById.load(id)
+  const floatSeriesValue = floatSeriesValueLoaderById.load(id)
+  const categorySeriesValue = categorySeriesValueLoaderById.load(id)
+  const fileValue = fileValueLoaderById.load(id)
 
   return Promise.all([
     booleanValue,
     floatValue,
     stringValue,
-    plotValue,
-    categoryPlotValue,
+    floatSeriesValue,
+    categorySeriesValue,
+    fileValue,
   ]).then(values => values.reduce((acc, val) => val || acc, null))
 }
 
@@ -1274,6 +1294,55 @@ export const deviceInheritAuthorized = (
   }
 }
 
+export const deviceInheritValueAuthorized = (
+  ownId,
+  ownLoader,
+  context,
+  authorizationRequired,
+  callback,
+  acceptedTokenTypes,
+  accessLevel = 1 // 1 = READ, 2 = READ and WRITE, 3 = PRODUCER
+) => async (resolve, reject) => {
+  const found = await ownLoader.load(ownId)
+
+  if (!found) {
+    reject("The requested resource does not exist")
+  } else if (
+    found.private ||
+    (accessLevel > 1 &amp;&amp; found.permission === "READ_ONLY") ||
+    accessLevel > 2
+  ) {
+    return producerAuthorized(ownId, context, callback)(resolve, reject)
+  } else {
+    return deviceInheritAuthorized(
+      ownId,
+      ownLoader,
+      context,
+      authorizationRequired,
+      callback,
+      acceptedTokenTypes
+    )(resolve, reject)
+  }
+}
+
+export const deviceInheritValueAuthorizedScalarPropsResolvers = (
+  ownLoaderName,
+  props,
+  acceptedTokenTypes
+) =>
+  props.reduce((acc, prop) => {
+    acc[prop] = (root, args, context) =>
+      deviceInheritValueAuthorized(
+        root.id,
+        context.dataLoaders[ownLoaderName],
+        context,
+        1,
+        (resolve, reject, resourceFound) => resolve(resourceFound[prop]),
+        acceptedTokenTypes
+      )
+    return acc
+  }, {})
+
 export const deviceInheritAuthorizedRetrieveScalarProp = (
   ownLoaderName,
   prop,
@@ -1525,7 +1594,7 @@ export const parseDateFilter = parseFloatFilter
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Wed Apr 03 2019 08:41:03 GMT+0000 (UTC) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Tue Apr 23 2019 09:08:02 GMT+0000 (UTC) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
 <script>prettyPrint();</script>
