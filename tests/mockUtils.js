@@ -130,6 +130,32 @@ module.exports = () => {
       hasAdminEnvironment: () => false,
       hasEditorEnvironment: () => false,
       hasSpectatorEnvironment: () => false
+    },
+    {
+      id: "mockUserId5",
+      quietMode: false,
+      createdAt: "2018-11-19T17:42:05.045Z",
+      updateAt: "2018-11-19T17:42:05.045Z",
+      email: "mock5@email.com",
+      devMode: true,
+      name: "MockName",
+      profileIconColor: "#00f",
+      emailIsVerified: true,
+      settings_language: "it-IT",
+      settings_lengthAndMass: "SI",
+      settings_temperature: "CELSIUS",
+      settings_dateFormat: "DMY",
+      settings_timeFormat: "H24",
+      settings_passwordChangeEmail: true,
+      settings_pendingOwnerChangeReceivedEmail: true,
+      settings_pendingEnvironmentShareReceivedEmail: true,
+      settings_pendingOwnerChangeAcceptedEmail: true,
+      settings_pendingEnvironmentShareAcceptedEmail: true,
+      settings_permanentTokenCreatedEmail: true,
+      hasOwnEnvironment: () => false,
+      hasAdminEnvironment: () => false,
+      hasEditorEnvironment: () => false,
+      hasSpectatorEnvironment: () => false
     }
   ];
 
@@ -144,6 +170,7 @@ module.exports = () => {
       id: "mockDeviceId",
       environmentId: "mockEnvironmentId",
       deviceType: "mockDeviceType",
+      producerId: "mockUserId5",
       name: "mockName",
       index: 0,
       online: null,
@@ -218,6 +245,22 @@ module.exports = () => {
       min: 1,
       max: 7,
       unitOfMeasurement: "C"
+    },
+    {
+      id: "mockPrivateFloatValueId",
+      environmentId: "mockEnvironmentId",
+      deviceId: "mockDeviceId",
+      private: true,
+      hidden: false,
+      cardSize: "NORMAL",
+      name: "mockName",
+      index: 0,
+      permission: "READ_WRITE",
+      value: 5,
+      precision: 0.1,
+      min: 1,
+      max: 7,
+      unitOfMeasurement: "C"
     }
   ];
   const mockStringValueData = [
@@ -234,6 +277,20 @@ module.exports = () => {
       value: "test",
       maxChars: null,
       allowedValues: ["test", "test2"]
+    },
+    {
+      id: "mockPrivateStringValueId",
+      environmentId: "mockEnvironmentId",
+      deviceId: "mockDeviceId",
+      private: true,
+      hidden: false,
+      cardSize: "NORMAL",
+      name: "mockName",
+      index: 0,
+      permission: "READ_WRITE",
+      value: "test",
+      maxChars: null,
+      allowedValues: ["test", "test2"]
     }
   ];
   const mockBooleanValueData = [
@@ -242,6 +299,18 @@ module.exports = () => {
       environmentId: "mockEnvironmentId",
       deviceId: "mockDeviceId",
       private: false,
+      hidden: false,
+      cardSize: "NORMAL",
+      name: "mockName",
+      index: 0,
+      permission: "READ_WRITE",
+      value: true
+    },
+    {
+      id: "mockPrivateBooleanValueId",
+      environmentId: "mockEnvironmentId",
+      deviceId: "mockDeviceId",
+      private: true,
       hidden: false,
       cardSize: "NORMAL",
       name: "mockName",
@@ -265,6 +334,21 @@ module.exports = () => {
       min: 0,
       max: 100,
       unitOfMeasurement: "C"
+    },
+    {
+      id: "mockPrivateFloatSeriesValueId",
+      environmentId: "mockEnvironmentId",
+      deviceId: "mockDeviceId",
+      private: true,
+      hidden: false,
+      cardSize: "NORMAL",
+      name: "mockName",
+      index: 0,
+      precision: 1,
+      threshold: 90,
+      min: 0,
+      max: 100,
+      unitOfMeasurement: "C"
     }
   ];
   const mockCategorySeriesValueData = [
@@ -273,6 +357,17 @@ module.exports = () => {
       environmentId: "mockEnvironmentId",
       deviceId: "mockDeviceId",
       private: false,
+      hidden: false,
+      cardSize: "NORMAL",
+      name: "mockName",
+      index: 0,
+      allowedValues: ["test", "test2"]
+    },
+    {
+      id: "mockPrivateCategorySeriesValueId",
+      environmentId: "mockEnvironmentId",
+      deviceId: "mockDeviceId",
+      private: true,
       hidden: false,
       cardSize: "NORMAL",
       name: "mockName",
@@ -302,6 +397,14 @@ module.exports = () => {
       userId: "mockUserId",
       deviceId: "mockDeviceId",
       seriesId: "mockFloatSeriesValueId",
+      value: 1,
+      timestamp: "2018-12-19T17:42:05.045Z"
+    },
+    {
+      id: "mockFloatSeriesNodeId4",
+      userId: "mockUserId",
+      deviceId: "mockDeviceId",
+      seriesId: "mockFloatSeriesValueId2",
       value: 1,
       timestamp: "2018-12-19T17:42:05.045Z"
     }

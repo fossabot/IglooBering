@@ -33,6 +33,17 @@ describe("FloatSeriesValue", () => {
     { id: "mockFloatSeriesValueId" },
     mockSeriesValueData[0]
   );
+  const producerHasAccess = testScalarProp(
+    FloatSeriesValueResolver,
+    { id: "mockFloatSeriesValueId" },
+    mockSeriesValueData[0],
+    "mockUserId5"
+  );
+  const testPrivate = notAuthorizedShouldFail(
+    FloatSeriesValueResolver,
+    { id: "mockPrivateFloatSeriesValueId" },
+    { auth: { userId: "mockUserId", tokenType: "TEMPORARY" }, ...mockContext }
+  );
   const testSeriesValueUnauthenticated = unauthenticatedShouldFail(FloatSeriesValueResolver, {
     id: "mockFloatSeriesValueId"
   });
@@ -62,9 +73,11 @@ describe("FloatSeriesValue", () => {
     "threshold"
   ];
 
-  scalarProps.forEach(prop =>
-    test(`${prop} is resolved correctly by sender`, testSeriesValueScalarProp(prop))
-  );
+  scalarProps.forEach(prop => {
+    test(`${prop} is resolved correctly by sender`, testSeriesValueScalarProp(prop));
+    test(`${prop} is accessible by producer`, producerHasAccess(prop));
+    test(`${prop} of private value is not accessible`, testPrivate(prop));
+  });
   test("device is resolved correctly", async () => {
     const deviceFound = await new Promise((resolve, reject) => {
       FloatSeriesValueResolver.device(

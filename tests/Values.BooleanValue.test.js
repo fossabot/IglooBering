@@ -31,6 +31,17 @@ describe("BooleanValue", () => {
     { id: "mockBooleanValueId" },
     mockBooleanValueData[0]
   );
+  const producerHasAccess = testScalarProp(
+    BooleanValueResolver,
+    { id: "mockBooleanValueId" },
+    mockBooleanValueData[0],
+    "mockUserId5"
+  );
+  const testPrivate = notAuthorizedShouldFail(
+    BooleanValueResolver,
+    { id: "mockPrivateBooleanValueId" },
+    { auth: { userId: "mockUserId", tokenType: "TEMPORARY" }, ...mockContext }
+  );
   const testBooleanValueUnauthenticated = unauthenticatedShouldFail(BooleanValueResolver, {
     id: "mockBooleanValueId"
   });
@@ -57,9 +68,11 @@ describe("BooleanValue", () => {
     "permission"
   ];
 
-  scalarProps.forEach(prop =>
-    test(`${prop} is resolved correctly by sender`, testBooleanValueScalarProp(prop))
-  );
+  scalarProps.forEach(prop => {
+    test(`${prop} is resolved correctly by sender`, testBooleanValueScalarProp(prop));
+    test(`${prop} is accessible by producer`, producerHasAccess(prop));
+    test(`${prop} of private value is not accessible`, testPrivate(prop));
+  });
   test("device is resolved correctly", async () => {
     const deviceFound = await new Promise((resolve, reject) => {
       BooleanValueResolver.device(

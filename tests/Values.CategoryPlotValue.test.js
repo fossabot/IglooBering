@@ -33,6 +33,17 @@ describe("CategorySeriesValue", () => {
     { id: "mockCategorySeriesValueId" },
     mockCategorySeriesValueData[0]
   );
+  const producerHasAccess = testScalarProp(
+    CategorySeriesValueResolver,
+    { id: "mockCategorySeriesValueId" },
+    mockCategorySeriesValueData[0],
+    "mockUserId5"
+  );
+  const testPrivate = notAuthorizedShouldFail(
+    CategorySeriesValueResolver,
+    { id: "mockPrivateCategorySeriesValueId" },
+    { auth: { userId: "mockUserId", tokenType: "TEMPORARY" }, ...mockContext }
+  );
   const testCategorySeriesValueUnauthenticated = unauthenticatedShouldFail(
     CategorySeriesValueResolver,
     {
@@ -61,9 +72,11 @@ describe("CategorySeriesValue", () => {
     "allowedValues"
   ];
 
-  scalarProps.forEach(prop =>
-    test(`${prop} is resolved correctly by sender`, testCategorySeriesValueScalarProp(prop))
-  );
+  scalarProps.forEach(prop => {
+    test(`${prop} is resolved correctly by sender`, testCategorySeriesValueScalarProp(prop));
+    test(`${prop} is accessible by producer`, producerHasAccess(prop));
+    test(`${prop} of private value is not accessible`, testPrivate(prop));
+  });
   test("device is resolved correctly", async () => {
     const deviceFound = await new Promise((resolve, reject) => {
       CategorySeriesValueResolver.device(

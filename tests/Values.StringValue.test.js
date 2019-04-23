@@ -31,6 +31,17 @@ describe("StringValue", () => {
     { id: "mockStringValueId" },
     mockStringValueData[0]
   );
+  const producerHasAccess = testScalarProp(
+    StringValueResolver,
+    { id: "mockStringValueId" },
+    mockStringValueData[0],
+    "mockUserId5"
+  );
+  const testPrivate = notAuthorizedShouldFail(
+    StringValueResolver,
+    { id: "mockPrivateStringValueId" },
+    { auth: { userId: "mockUserId", tokenType: "TEMPORARY" }, ...mockContext }
+  );
   const testStringValueUnauthenticated = unauthenticatedShouldFail(StringValueResolver, {
     id: "mockStringValueId"
   });
@@ -59,9 +70,11 @@ describe("StringValue", () => {
     "allowedValues"
   ];
 
-  scalarProps.forEach(prop =>
-    test(`${prop} is resolved correctly by sender`, testStringValueScalarProp(prop))
-  );
+  scalarProps.forEach(prop => {
+    test(`${prop} is resolved correctly by sender`, testStringValueScalarProp(prop));
+    test(`${prop} is accessible by producer`, producerHasAccess(prop));
+    test(`${prop} of private value is not accessible`, testPrivate(prop));
+  });
   test("device is resolved correctly", async () => {
     const deviceFound = await new Promise((resolve, reject) => {
       StringValueResolver.device(

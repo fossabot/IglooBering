@@ -1269,7 +1269,10 @@ export const deviceInheritValueAuthorized = (
     (accessLevel > 1 && found.permission === "READ_ONLY") ||
     accessLevel > 2
   ) {
-    return producerAuthorized(ownId, context, callback)(resolve, reject)
+    return producerAuthorized(found.deviceId, context, callback)(
+      resolve,
+      reject
+    )
   } else {
     return deviceInheritAuthorized(
       ownId,

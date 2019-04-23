@@ -32,6 +32,12 @@ describe("Device", () => {
     { id: "mockDeviceId" },
     mockDeviceData[0]
   );
+  const testProducerHasAccess = testScalarProp(
+    DeviceResolver,
+    { id: "mockDeviceId" },
+    mockDeviceData[0],
+    "mockUserId5"
+  );
   const testUnauthenticated = unauthenticatedShouldFail(DeviceResolver, {
     id: "mockDeviceId"
   });
@@ -46,7 +52,6 @@ describe("Device", () => {
     { auth: { userId: "mockUserId", tokenType: "TEMPORARY" }, ...mockContext }
   );
 
-  // not using a for loop because this syntax integrates better with the IDE
   const scalarProps = [
     "name",
     "deviceType",
@@ -60,6 +65,18 @@ describe("Device", () => {
 
   for (let prop of scalarProps) {
     test(`${prop} is resolved correctly`, testDeviceScalarProp(prop));
+  }
+  const producerAccessibleProp = [
+    "deviceType",
+    "online",
+    "batteryStatus",
+    "batteryCharging",
+    "signalStatus",
+    "firmware"
+  ];
+
+  for (let prop of producerAccessibleProp) {
+    test(`${prop} is accessible for producer`, testProducerHasAccess(prop));
   }
 
   test("muted is resolved correctly", async done => {
