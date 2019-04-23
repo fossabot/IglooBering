@@ -1,6 +1,6 @@
 {
   "name": "igloo-bering",
-  "version": "0.9.1",
+  "version": "0.9.2",
   "description": "Backend for the igloo platform",
   "scripts": {
     "dev": "nodemon ./server.js --exec babel-node --inspect -e js,graphql,env,lua",
