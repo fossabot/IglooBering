@@ -77,7 +77,7 @@ describe("CategorySeriesValue", () => {
   });
   test("value is resolved correctly", async () => {
     const valueFound = await new Promise((resolve, reject) => {
-      CategorySeriesValueResolver.value(
+      CategorySeriesValueResolver.nodes(
         { id: "mockCategorySeriesValueId" },
         {},
         { auth: { userId: "mockUserId", tokenType: "TEMPORARY" }, ...mockContext }
@@ -102,7 +102,7 @@ describe("CategorySeriesValue", () => {
     expect(nodeFound.id).toEqual("mockCategorySeriesNodeId2");
   });
 
-  const allProps = [...scalarProps, "device", "value", "lastNode"];
+  const allProps = [...scalarProps, "device", "nodes", "lastNode"];
 
   allProps.forEach(prop => {
     test(`${prop} fails if unauthenticated`, testCategorySeriesValueUnauthenticated(prop));

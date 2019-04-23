@@ -76,9 +76,9 @@ describe("FloatSeriesValue", () => {
 
     expect(deviceFound).toMatchObject({ id: mockSeriesValueData[0].deviceId });
   });
-  test("value is resolved correctly", async () => {
+  test("nodes is resolved correctly", async () => {
     const valueFound = await new Promise((resolve, reject) => {
-      FloatSeriesValueResolver.value(
+      FloatSeriesValueResolver.nodes(
         { id: "mockFloatSeriesValueId" },
         {},
         { auth: { userId: "mockUserId", tokenType: "TEMPORARY" }, ...mockContext }
@@ -104,7 +104,7 @@ describe("FloatSeriesValue", () => {
     expect(nodeFound.id).toEqual("mockFloatSeriesNodeId2");
   });
 
-  const allProps = [...scalarProps, "device", "value", "lastNode"];
+  const allProps = [...scalarProps, "device", "nodes", "lastNode"];
 
   allProps.forEach(prop => {
     test(`${prop} fails if unauthenticated`, testSeriesValueUnauthenticated(prop));

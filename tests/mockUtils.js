@@ -464,7 +464,7 @@ module.exports = () => {
       floatValueLoaderById: mockDataLoader(mocks.MockedFloatValue),
       stringValueLoaderById: mockDataLoader(mocks.MockedStringValue),
       booleanValueLoaderById: mockDataLoader(mocks.MockedBooleanValue),
-      seriesValueLoaderById: mockDataLoader(mocks.MockedFloatSeriesValue),
+      floatSeriesValueLoaderById: mockDataLoader(mocks.MockedFloatSeriesValue),
       floatSeriesNodeLoaderById: mockDataLoader(mocks.MockedFloatSeriesNode),
       categorySeriesNodeLoaderById: mockDataLoader(mocks.MockedCategorySeriesNode),
       categorySeriesValueLoaderById: mockDataLoader(mocks.MockedCategorySeriesValue),
